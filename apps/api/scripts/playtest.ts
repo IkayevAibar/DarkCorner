@@ -42,6 +42,7 @@ execSync('npx prisma migrate deploy', { stdio: 'ignore', env: { ...process.env }
 const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
 const { resetDatabase, devLogin } = await import('../test/helpers.js');
+const { runDueJobs } = await import('../src/services/scheduler.js');
 const { CLASS_DEFS, CLUES, RIDDLES, TIERS, baseById, canUse, isGear } = await import('@dark/engine');
 /** What a Door says when a Waypoint is behind it (it can lie, as Clues do). */
 const WAYPOINT_CLUES = new Set((CLUES.waypoint as { en: string }[]).map((c) => c.en));
@@ -52,7 +53,7 @@ const THREAT_RANK: Record<Threat, number> = { trivial: 0, easy: 1, risky: 2, dan
 
 const app = await buildApp();
 await resetDatabase();
-await prisma.season.create({ data: { number: 0, seed: 'playtest', status: 'ACTIVE', startsAt: new Date(), bossGateAt: new Date(Date.now() + 14 * 86_400_000) } });
+await prisma.season.create({ data: { number: 0, seed: 'playtest' } });
 
 interface Stats {
   fights: number; won: number; escaped: number; survived: number; deaths: number; sneaks: number; caught: number; retreats: number;
@@ -530,6 +531,10 @@ for (const [cls, race, portrait] of CLASSES) {
   bots.push(bot);
 }
 
+// The admin bot starts the Season as an admin would: the Boss gate, Omens, Vaults and weakening get scheduled.
+const started = await call(bots[0]!, 'POST', '/api/admin/season', { action: 'start' });
+if (!started.ok) throw new Error(`starting the Season failed: ${JSON.stringify(started.body)}`);
+let jobsRun = 0;
 console.log(`Playtest: ${bots.length} bots, ${DAYS} days, ${SESSIONS_PER_DAY} sessions a day\n`);
 let wipedOn: number | null = null;
 for (let day = 1; day <= DAYS && wipedOn === null; day++) {
@@ -537,6 +542,8 @@ for (let day = 1; day <= DAYS && wipedOn === null; day++) {
     for (let s = 0; s < SESSIONS_PER_DAY; s++) {
       for (const bot of bots) await session(bot);
       advance(24 / SESSIONS_PER_DAY);
+      // What the server's scheduler would have done while the clock moved on.
+      jobsRun += await runDueJobs(new Date());
     }
   } catch (e) {
     if (!(e instanceof SeasonOver)) throw e;
@@ -581,6 +588,12 @@ const season = await prisma.season.findFirstOrThrow({ orderBy: { createdAt: 'des
 const places = await prisma.bossKill.findMany({ where: { seasonId: season.id }, orderBy: { place: 'asc' } });
 console.log(`  Season ${season.status}${wipedOn ? `, wiped on day ${wipedOn}` : ''}; podium: ${places.map((p) => `${p.place}. ${p.heroName}`).join(', ') || 'nobody yet'}`);
 if (kills.length) console.log(`  Dragon kills: ${kills.join('; ')}`);
+const jobs = await prisma.job.groupBy({ by: ['kind'], _count: { _all: true }, where: { doneAt: { not: null } } });
+const failed = await prisma.job.findMany({ where: { lastError: { not: null } }, select: { kind: true, lastError: true } });
+console.log(`\nJobs run: ${jobsRun} (${jobs.map((j) => `${j.kind} ${j._count._all}`).join(', ')})${failed.length ? `; failed: ${failed.map((j) => `${j.kind}: ${j.lastError?.slice(0, 120)}`).join('; ')}` : ''}`);
+const vaults = await prisma.vaultOpening.count().catch(() => 0);
+const relics = await prisma.relicFind.count().catch(() => 0);
+console.log(`Vaults opened: ${vaults}; Relics found: ${relics}`);
 console.log('\nDeaths:');
 for (const bot of bots) for (const d of bot.stats.deathLog) console.log(`  ${bot.cls.padEnd(7)} ${d}`);
 const errors = bots.flatMap((b) => b.stats.errors.map((e) => `${b.name}: ${e}`));
