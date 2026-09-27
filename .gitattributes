@@ -1,0 +1,8 @@
+# Keep LF everywhere: the game deploys to Linux, and both agents write LF.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.webp binary
+*.mp3 binary
+*.ogg binary
