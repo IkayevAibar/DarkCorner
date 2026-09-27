@@ -27,7 +27,7 @@ Play through every part at least once, in both languages:
 - [ ] Every Event room, the Shops, the Forge (including a destroyed Item), the Market between two Players, the Temple, Chests and identifying.
 - [ ] Vaults (plain and announced), a Relic (grant a Mini-boss kill on Floor 7+ or announce Vaults until one drops), the Feed and Broadcasts.
 - [ ] Phones: Android Chrome and iPhone Safari, portrait. Install it to the home screen (both), check the tab bar, the bottom sheets and the fight playback.
-- [ ] Tune numbers from what testers feel: `packages/engine/src/economy.ts` (`LOOT`, prices), `content/monsters.ts`, `content/loot.ts`. Rerun `npm run balance:season -w @dark/engine` and `npm run balance:fights -w @dark/engine` after changes.
+- [ ] Tune numbers from what testers feel: `packages/engine/src/economy.ts` (`LOOT`, prices), `content/monsters.ts`, `content/loot.ts`. Rerun `npm run balance:season -w @dark/engine`, `npm run balance:fights -w @dark/engine` and `npm run balance:par -w @dark/engine` after changes, and `npm run playtest -w @dark/api` (bots play 14 days through the API on the test database; `npm run power-check -w @dark/api` then shows what those Heroes can beat).
 - [ ] **Backup drill:** on the server, `bash scripts/backup.sh`, then `bash scripts/restore-drill.sh`. It restores the newest backup into a scratch database, prints what came back, and drops it.
 
 ## Thursday: go or no-go

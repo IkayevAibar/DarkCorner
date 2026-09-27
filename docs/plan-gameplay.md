@@ -88,3 +88,5 @@ A Player checks in 2–3 times a day and spends about 20 Moves each time. Those 
 ## How we'll know it worked
 
 The testers will tell us. Until then, each part must pass `npm run balance:fights` and `npm run balance:season` (the Season targets stay: a Legendary every 2–3 days, 1–2 Mythics per Player), and the owner plays it in the browser before merging.
+
+Since 2026-09-27 there is also a headless playtest: four bots, one per Class, play 14 days through the real API on a fake clock (`npm run playtest -w @dark/api`). Its first runs found Heroes stuck in Camps that never rested, stranded at 1 health or behind a full Bag, and, with real drop gear, every Floor Trivial by day 10 and the Dragon beatable at level 14. The fixes are in design.md: deeper Floors keep pace with gear, d20 Bonus stats grow with Tier only, Trivial fights never kill, Heroes heal slowly while waiting, Items can be dropped, Wizards get a Shield, and the weak Paths were raised. After them, the bots reach about level 10 and Floors 5–8 by day 14.

@@ -13,6 +13,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "fixtures:fights": "tsx scripts/fight-fixtures.ts",
+    "playtest": "tsx scripts/playtest.ts",
+    "power-check": "tsx scripts/power-check.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
