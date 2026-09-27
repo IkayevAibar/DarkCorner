@@ -7,7 +7,7 @@ import { Meter } from '../../components/Meter';
 import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { describeError } from '../../errors';
-import { useLoad } from '../../components/useLoad';
+import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { formatDuration, useNow } from '../../time';
 
@@ -21,12 +21,7 @@ export function Tavern() {
   const [tab, setTab] = useState<'feed' | 'hall'>('feed');
   const tavern = useLoad(api.tavern);
   const hall = useLoad(api.hall);
-  // No websockets in Season 0: look again every 25 seconds while the Tavern is open.
-  const { reload } = tavern;
-  useEffect(() => {
-    const id = setInterval(() => void reload(), 25_000);
-    return () => clearInterval(id);
-  }, [reload]);
+  useRefresh(tavern.reload, 25_000);
   if (!tavern.data) return <Loading failed={tavern.failed !== null} onRetry={() => void tavern.reload()} />;
   const { season, online, entries } = tavern.data;
 

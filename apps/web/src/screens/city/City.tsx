@@ -1,17 +1,13 @@
-import { useEffect } from 'react';
 import { api } from '../../api';
 import { CityMap } from '../../components/city/CityMap';
-import { useLoad } from '../../components/useLoad';
+import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 
 /** Existing Tavern data supplies the Season; map rendering stays independently previewable. */
 export function City() {
   const { t } = useI18n();
   const { data, failed, reload } = useLoad(api.tavern);
-  useEffect(() => {
-    const id = setInterval(() => void reload(), 25_000);
-    return () => clearInterval(id);
-  }, [reload]);
+  useRefresh(reload, 25_000);
 
   return (
     <div className="city-surface grid gap-3">
