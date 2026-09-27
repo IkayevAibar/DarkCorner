@@ -1,8 +1,27 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, CLASSES, RECOVERY_PER_HOUR, STAMINA_MAX, STAMINA_REFILL_MS, baseById, currentStamina, isGear, recoveredHealth, startingHealth,
-  validateHeroChoices,
+  CLASS_DEFS, CLASSES, MONSTERS, PORTRAITS, RACES, RECOVERY_PER_HOUR, STAMINA_MAX, STAMINA_REFILL_MS, UNIQUES, baseById, currentStamina, isGear, portraitsFor,
+  recoveredHealth, startingHealth, validateHeroChoices,
 } from '../src/index.js';
+
+describe('art', () => {
+  const served = (url: string) => existsSync(new URL(`../../../apps/web/public${url}`, import.meta.url));
+
+  it('offers two painted portraits for every Race and Class, then the hooded one', () => {
+    for (const race of RACES) {
+      for (const cls of CLASSES) {
+        expect(portraitsFor(race, cls).map((p) => p.id)).toEqual([`${race}-${cls}-1`, `${race}-${cls}-2`, 'hooded']);
+      }
+    }
+  });
+
+  it('points every portrait, unique Item and painted monster at a file the web serves', () => {
+    for (const p of PORTRAITS) expect(served(p.url), p.url).toBe(true);
+    for (const u of UNIQUES) expect(u.art !== null && served(u.art), u.id).toBe(true);
+    for (const m of MONSTERS) if (m.art) expect(served(m.art), m.id).toBe(true);
+  });
+});
 
 describe('startingHealth', () => {
   it('uses the full hit die plus CON, as in the SRD', () => {
