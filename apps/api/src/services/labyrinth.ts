@@ -114,7 +114,12 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     potions,
     portalScrolls: portals,
   };
-  const base = { hero: heroPart, waypoints: hero.waypoints, bestFloor: hero.bestFloor };
+  const base = {
+    hero: heroPart,
+    season: { status: season.status.toLowerCase() as LabyrinthView['season']['status'], bossGateAt: season.bossGateAt?.toISOString() ?? null },
+    waypoints: hero.waypoints,
+    bestFloor: hero.bestFloor,
+  };
 
   if (hero.location === 'CITY' || hero.floor === null || hero.room === null) {
     return { ...base, location: 'city', floor: null, room: null, exits: [], map: null, graves: [] };

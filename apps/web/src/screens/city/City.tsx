@@ -4,9 +4,10 @@ import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
 
 const BUILDINGS: { to: string; icon: string; name: MessageKey; blurb: MessageKey }[] = [
-  { to: '/city/shop', icon: 'potion', name: 'city.shop', blurb: 'city.shop.blurb' },
+  { to: '/city/tavern', icon: 'potion', name: 'city.tavern', blurb: 'city.tavern.blurb' },
+  { to: '/city/shop', icon: 'chest', name: 'city.shop', blurb: 'city.shop.blurb' },
   { to: '/city/forge', icon: 'mace', name: 'city.forge', blurb: 'city.forge.blurb' },
-  { to: '/city/market', icon: 'chest', name: 'city.market', blurb: 'city.market.blurb' },
+  { to: '/city/market', icon: 'key', name: 'city.market', blurb: 'city.market.blurb' },
   { to: '/city/temple', icon: 'holy-symbol', name: 'city.temple', blurb: 'city.temple.blurb' },
   { to: '/labyrinth', icon: 'sword', name: 'city.gate', blurb: 'city.gate.blurb' },
 ];
@@ -32,10 +33,6 @@ export function City() {
             <span className="text-sm leading-snug text-muted">{t(b.blurb)}</span>
           </NavLink>
         ))}
-        <div className="panel grid gap-1 p-3 opacity-60">
-          <span className="font-head text-lg font-extrabold">{t('city.tavern')}</span>
-          <span className="text-sm leading-snug text-muted">{t('city.tavern.soon')}</span>
-        </div>
       </div>
     </div>
   );

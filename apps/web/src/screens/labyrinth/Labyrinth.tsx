@@ -165,6 +165,7 @@ function HeroStatus({ view }: { view: LabyrinthView }) {
 function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act }) {
   const { t } = useI18n();
   const floors = [1, ...view.waypoints.filter((n) => n !== 1).sort((a, b) => a - b)];
+  const shut = view.season.status === 'planned';
   return (
     <section className="panel grid gap-4 p-4">
       <HeroStatus view={view} />
@@ -172,6 +173,7 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
         <h1 className="m-0 font-head text-2xl font-extrabold">{t('lab.gate.title')}</h1>
         <p className="m-0 text-muted">{t('lab.gate.body')}</p>
         {view.bestFloor > 0 && <span className="text-sm text-muted">{t('lab.bestFloor', { n: view.bestFloor })}</span>}
+        {shut && <p className="m-0 font-bold text-[#ff9a8a]">{t('lab.notStarted')}</p>}
       </div>
       <div className="grid gap-2">
         {floors.map((n) => (
@@ -179,7 +181,7 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
             key={n}
             type="button"
             className={`btn ${n === 1 ? 'btn-primary' : ''}`}
-            disabled={busy}
+            disabled={busy || shut}
             onClick={() => void act(() => api.enterLabyrinth(n))}
           >
             {n === 1 ? t('lab.enter') : t('lab.enterWaypoint', { n })}
@@ -225,6 +227,13 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         </div>
         {room.restedAt && (
           <p className="m-0 px-1 text-sm text-muted">{t('lab.restedAt', { time: formatClock(locale, room.restedAt) })}</p>
+        )}
+        {room.vault && (
+          <p className="m-0 px-1 text-sm text-gold">
+            {room.vault.state === 'sealed' && room.vault.opensAt
+              ? t('lab.vault.sealed', { time: formatClock(locale, room.vault.opensAt) })
+              : t(`lab.vault.${room.vault.state}`)}
+          </p>
         )}
       </section>
 

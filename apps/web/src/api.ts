@@ -1,5 +1,6 @@
 import type {
-  AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, ApiErrorBody, AuthStatus, BlessingIdView, CreateHeroRequest,
+  AdminGrant, AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, AdminSeasonView, ApiErrorBody, AuthStatus, BlessingIdView,
+  CreateHeroRequest, HallView, RollLogView, TavernView,
   CreationOptions, DevLoginRequest, EventAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
@@ -80,4 +81,12 @@ export const api = {
   cancelListing: (id: string) => request<MarketView>('POST', `/api/market/${encodeURIComponent(id)}/cancel`),
   temple: () => request<TempleView>('GET', '/api/temple'),
   bless: (blessing: BlessingIdView) => request<TempleView>('POST', '/api/temple/bless', { blessing }),
+
+  tavern: () => request<TavernView>('GET', '/api/tavern'),
+  hall: () => request<HallView>('GET', '/api/hall'),
+  adminSeason: () => request<AdminSeasonView>('GET', '/api/admin/season'),
+  adminSeasonAction: (action: 'start' | 'end' | 'gate' | 'vault', minutes?: number) =>
+    request<AdminSeasonView>('POST', '/api/admin/season', { action, minutes }),
+  adminGrant: (body: AdminGrant) => request<{ ok: true }>('POST', '/api/admin/grant', body),
+  adminRolls: (kind?: string) => request<RollLogView>('GET', `/api/admin/rolls${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`),
 };

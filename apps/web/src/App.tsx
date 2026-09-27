@@ -8,6 +8,7 @@ import { City } from './screens/city/City';
 import { Forge } from './screens/city/Forge';
 import { Market } from './screens/city/Market';
 import { Shop } from './screens/city/Shop';
+import { Tavern } from './screens/city/Tavern';
 import { Temple } from './screens/city/Temple';
 import { Loot } from './screens/loot/Loot';
 import { Sandbox } from './screens/Sandbox';
@@ -29,6 +30,7 @@ export function App() {
         <Route path="/city/forge" element={<Forge />} />
         <Route path="/city/market" element={<Market />} />
         <Route path="/city/temple" element={<Temple />} />
+        <Route path="/city/tavern" element={<Tavern />} />
         <Route path="/labyrinth" element={<Labyrinth />} />
         <Route path="/loot" element={<Loot />} />
         <Route path="/heroes" element={<Heroes />} />
