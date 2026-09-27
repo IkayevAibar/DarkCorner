@@ -1,6 +1,6 @@
 # Codex task 08: the Tavern and the Hall of Fame
 
-**Branch:** `codex/tavern`, based on `claude/week-5`, or on `main` once that is merged.
+**Branch:** `codex/tavern`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal

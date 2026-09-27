@@ -1,6 +1,6 @@
 # Codex task 02: the ability-roll dice animation
 
-**Branch:** `codex/ability-dice`, based on `claude/week-2`, or on `main` once that is merged.
+**Branch:** `codex/ability-dice`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal

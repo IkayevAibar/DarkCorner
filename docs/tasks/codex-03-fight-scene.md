@@ -1,6 +1,6 @@
 # Codex task 03: the fight scene
 
-**Branch:** `codex/fight-scene`, based on `claude/week-3`, or on `main` once that is merged.
+**Branch:** `codex/fight-scene`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal

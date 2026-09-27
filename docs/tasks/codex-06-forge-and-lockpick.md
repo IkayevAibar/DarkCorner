@@ -1,6 +1,6 @@
 # Codex task 06: the Forge Upgrade animation and the lockpicking minigame
 
-**Branch:** `codex/forge-lockpick`, based on `claude/week-4`, or on `main` once that is merged.
+**Branch:** `codex/forge-lockpick`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Part 1: the Upgrade strike

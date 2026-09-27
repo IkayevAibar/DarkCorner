@@ -1,6 +1,6 @@
 # Codex task 07: the City map with pins
 
-**Branch:** `codex/city-map`, based on `claude/week-5`, or on `main` once that is merged.
+**Branch:** `codex/city-map`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal

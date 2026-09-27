@@ -1,6 +1,6 @@
 # Codex task 05: the Chest Spin, the identify reveal and Tier effects
 
-**Branch:** `codex/chest-spin`, based on `claude/week-4`, or on `main` once that is merged.
+**Branch:** `codex/chest-spin`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal

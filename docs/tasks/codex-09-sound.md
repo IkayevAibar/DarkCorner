@@ -1,6 +1,6 @@
 # Codex task 09: sound effects
 
-**Branch:** `codex/sound`, based on `claude/week-5`, or on `main` once that is merged.
+**Branch:** `codex/sound`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 **Waits for:** the owner's OK on the sound packs in [art/icons-and-sounds.md](../art/icons-and-sounds.md). Claude then puts the chosen files in `apps/web/public/sfx/` and lists them there.
 

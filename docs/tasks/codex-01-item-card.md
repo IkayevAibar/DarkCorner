@@ -1,6 +1,6 @@
 # Codex task 01: Item tile and Item card
 
-**Branch:** `codex/item-card`, based on `claude/week-1`, or on `main` once that is merged.
+**Branch:** `codex/item-card`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal

@@ -1,6 +1,6 @@
 # Codex task 04: the Floor map
 
-**Branch:** `codex/floor-map`, based on `claude/week-3`, or on `main` once that is merged.
+**Branch:** `codex/floor-map`, based on `main`.
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal
