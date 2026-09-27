@@ -2,20 +2,21 @@
  * The ugolok.world single sign-on token.
  *
  * ============================ COPY NOTICE ============================
- * This file exists twice, byte for byte identical:
+ * This file exists three times, byte for byte identical:
  *
  *   Aetherbound  apps/api/src/sso.ts
  *   Hardcore MC  apps/api/src/lib/sso.ts
+ *   Dark Corner  apps/api/src/lib/sso.ts
  *
  * They are separate repositories with separate installs, so there is no
  * package to share -- and a shared package would have to be published
- * somewhere for two independent Docker builds to install it, which is a lot
- * of machinery for a hundred lines of HMAC.
+ * somewhere for several independent Docker builds to install it, which is a
+ * lot of machinery for a hundred lines of HMAC.
  *
- * Change the token format in one and you must change it in the other in the
+ * Change the token format in one and you must change it in the others in the
  * same breath, or one site starts rejecting the other's sessions and the
  * symptom is "logging in works, but the other subdomain says I'm signed out".
- * `diff` the two files if you suspect that has happened.
+ * `diff` the files if you suspect that has happened.
  *
  * It deliberately imports nothing but node:crypto so that copying it is all
  * there is to it.
