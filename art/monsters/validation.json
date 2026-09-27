@@ -1,0 +1,274 @@
+[
+  {
+    "file": "giant-rat.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2900293,
+    "sha256": "d3c737d40de53a85b40d706b4a51b316c4a94c16093243ac84d9074cf2a1d16a"
+  },
+  {
+    "file": "goblin-archer.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2867594,
+    "sha256": "30a633d9fc9c9d7fde6afc669f61ef752ab6e9caf15bd69c2c90476457e9a667"
+  },
+  {
+    "file": "goblin-cutpurse.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2503448,
+    "sha256": "7218160f0ecaaf1dd2b5d102adaf9e90892b23f80b84e1db906fbf43137ec422"
+  },
+  {
+    "file": "wolf.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2865953,
+    "sha256": "d041ee0f9a5606cba7f38021e5a2a9e52647b6756b6e0712bd088a105fcb576a"
+  },
+  {
+    "file": "goblin-chieftain.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2626336,
+    "sha256": "da94b0fd1766435cea99dd5f1d54b5ffc8ed3644cf66ca7002c4797fe0c666af"
+  },
+  {
+    "file": "zombie.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 2395344,
+    "sha256": "31bb7a400dfa58eff285934a0a141ebc3923e96409c2ba9313c1fec02370c113"
+  },
+  {
+    "file": "ghoul.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2568855,
+    "sha256": "51469a009f9f4f2ebc2b9b2fdd3bb42a8df27a8cc99a59c7c9cc948365bbe9f9"
+  },
+  {
+    "file": "wraith.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2347338,
+    "sha256": "167902e64ed3ea5d80cf8b4ab734edf531dde8b884d34a9ef08a2033110bb892"
+  },
+  {
+    "file": "bone-knight.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2530074,
+    "sha256": "0e9dea1ab56451ed3225256966d12cdee104d7a50c6e3e4dc5eb4ff421e5a1ba"
+  },
+  {
+    "file": "cultist.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2117563,
+    "sha256": "fa85b6bcd3ef8fc725c0e36ef6eb20166a7251599b2097eaca2c9ec8213d2194"
+  },
+  {
+    "file": "hellhound.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2325219,
+    "sha256": "2d6c0127ce4aa1818a5981aa1f6c1bfe3f444ecc459db5ba4ab25c179b7c238b"
+  },
+  {
+    "file": "demon-brute.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 2845354,
+    "sha256": "84acdf9572e705b8eaeee778d5e5f47edb7954c2dcb50f2803d0dc2a55175324"
+  },
+  {
+    "file": "horned-tyrant.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2618502,
+    "sha256": "ac0c6f182e9ccf096c2d146e5ac8d9bc91684e31b7f64dc543a556a9bec5c107"
+  },
+  {
+    "file": "kobold.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2403205,
+    "sha256": "03b33b9c700738404deb4a34955cb8a57e7ab231da77b5ed99c862ac9a3961fe"
+  },
+  {
+    "file": "drake.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2215885,
+    "sha256": "5b7f648174a73471d4ba5d5162517a9a07f316831f178a8105c36bb631c9a69e"
+  },
+  {
+    "file": "doppelganger.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2514407,
+    "sha256": "24a792878618334391b64e727bf3a6f6f5c58588fcecfcb04b74b1132732f8d0"
+  },
+  {
+    "file": "mimic.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2853126,
+    "sha256": "6f5603fa076ebf9d7ded66afb20fed68ef5dc1595c7f4ed9a9c473aa8a84df8f"
+  }
+]
