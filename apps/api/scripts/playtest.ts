@@ -357,7 +357,8 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
   const hero = view.hero;
   // Hurt before a fight that looks hard: top up first, then look again.
   const worst = Math.min(...(['bold', 'steady', 'wary'] as const).map((s) => THREAT_RANK[facing.threat[s]]));
-  if (worst >= 2 && hero.hp < hero.maxHp * 0.75 && hero.potions > 0 && (await drink(bot))) return;
+  const topUp = facing.kind === 'boss' ? 0.95 : 0.75;
+  if (worst >= 2 && hero.hp < hero.maxHp * topUp && hero.potions > 0 && (await drink(bot))) return;
   const floor = view.floor!.number;
   const names = facing.monsters.map((m) => `${m.elite ? `${m.elite} ` : ''}${m.name.en}`).join(' + ');
   // The Stance with the lowest Threat; ties keep the current one, then Bold.

@@ -3,7 +3,7 @@
  * fight Rooms, its Mini-boss, and the Dragon, with their real gear, many fights each.
  * Run after `npm run playtest -w @dark/api`: npm run power-check -w @dark/api
  */
-import { type FightOutcome, type ThreatId, createRng, fightOdds, simulateFight, spawnEncounter, threatOf } from '@dark/engine';
+import { type ClassId, type FightOutcome, type PathId, type ThreatId, createRng, fightOdds, restUses, simulateFight, spawnEncounter, threatOf } from '@dark/engine';
 import { TEST_DATABASE_URL } from '../test/test-db.js';
 
 process.env.DATABASE_URL = TEST_DATABASE_URL;
@@ -16,7 +16,8 @@ const pct = (x: number) => `${Math.round(100 * x)}%`.padStart(4);
 
 for (const hero of heroes) {
   // At full health with three potions and every rest use, as after a trip to the City.
-  const full = { ...hero, hp: 99_999, spellUses: 99, healUses: 99 };
+  const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
+  const full = { ...hero, hp: 99_999, spellUses: uses.spells, healUses: uses.heals };
   const combat = combatOf(full as typeof hero);
   const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => `${i.tier[0]!.toUpperCase()}${i.upgrade ? `+${i.upgrade}` : ''}`);
   console.log(`\n${hero.name} (${hero.class}, ${hero.path ?? 'no Path'}) level ${hero.level}, full health ${combat.maxHp}, AC ${combat.ac}, worn ${worn.join(' ')}`);
