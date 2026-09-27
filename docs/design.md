@@ -417,8 +417,9 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 
 ### Getting in and out
 
-- **Entering:** go in through the Labyrinth gate, starting either from the entrance on Floor 1 or from any Waypoint your Hero has reached this Season.
+- **Entering:** go in through the Labyrinth gate, starting either from the entrance on Floor 1, from any Waypoint your Hero has reached this Season, or back through an open Town Portal.
 - **Leaving:** walk back out through the entrance on Floor 1, walk to any Waypoint you've reached, or read a **Town Portal** scroll anywhere outside a fight (50 gold *(v0)*).
+- **Town Portals stay open:** the portal a Hero reads stays open behind it for 24 hours *(v0)*. Stepping back through it from the Labyrinth gate, once, returns the Hero to the Room it read the scroll in (read in a doorway, to the last safe Room). If monsters have come back to that Room meanwhile, the Hero steps out in their doorway. So a trip to the City to sell and heal doesn't cost the way back down.
 - **In the City:** returning fully heals the Hero and restores all its abilities. Gold picked up in the Labyrinth becomes safe from that moment.
 
 ### Waiting heroes and camps

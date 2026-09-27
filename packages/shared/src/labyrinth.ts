@@ -302,6 +302,8 @@ export const labyrinthViewSchema = z.object({
   season: z.object({ status: seasonStatusSchema, bossGateAt: z.string().nullable(), omen: omenViewSchema.nullable() }),
   /** Floors whose Waypoint this Hero has reached (entering there is allowed). */
   waypoints: z.array(z.number().int()),
+  /** A Town Portal the Hero left open: step back through it from the City to where it was read, until `closesAt`. */
+  portal: z.object({ floor: z.number().int(), closesAt: z.string() }).nullable(),
   bestFloor: z.number().int(),
   floor: z.object({
     number: z.number().int(),
@@ -351,5 +353,6 @@ export const labyrinthResultSchema = z.object({
 });
 export type LabyrinthResult = z.infer<typeof labyrinthResultSchema>;
 
-export const enterRequestSchema = z.object({ floor: z.number().int().min(1).default(1) });
+/** `portal`: step back through the open Town Portal instead (then `floor` is ignored). */
+export const enterRequestSchema = z.object({ floor: z.number().int().min(1).default(1), portal: z.boolean().default(false) });
 export const moveRequestSchema = z.object({ to: z.number().int().min(0) });

@@ -173,7 +173,7 @@ function HeroStatus({ view }: { view: LabyrinthView }) {
 
 /** In the City: the way down, at the gate or at any Waypoint already woken. */
 function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const floors = [1, ...view.waypoints.filter((n) => n !== 1).sort((a, b) => a - b)];
   const shut = view.season.status === 'planned';
   return (
@@ -186,11 +186,27 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
         {shut && <p className="m-0 font-bold text-[#ff9a8a]">{t('lab.notStarted')}</p>}
       </div>
       <div className="grid gap-2">
+        {view.portal && (
+          <div className="grid gap-1">
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={busy || shut}
+              onClick={() => {
+                play('door', { rate: 1.2 });
+                void act(() => api.enterLabyrinth(view.portal!.floor, true));
+              }}
+            >
+              {t('lab.portalBack', { n: view.portal.floor })}
+            </button>
+            <span className="justify-self-center text-xs text-muted">{t('lab.portalCloses', { time: formatClock(locale, view.portal.closesAt) })}</span>
+          </div>
+        )}
         {floors.map((n) => (
           <button
             key={n}
             type="button"
-            className={`btn ${n === 1 ? 'btn-primary' : ''}`}
+            className={`btn ${n === 1 && !view.portal ? 'btn-primary' : ''}`}
             disabled={busy || shut}
             onClick={() => {
               play('door', { rate: 0.8 });

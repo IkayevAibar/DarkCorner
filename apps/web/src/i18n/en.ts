@@ -193,6 +193,8 @@ export const en = {
   'lab.gate.body': 'Ten Floors down, the Ancient Dragon waits. Each Move through a Door costs 1 Stamina, and Stamina comes back 1 point every 24 minutes.',
   'lab.enter': 'Enter at the gate',
   'lab.enterWaypoint': 'Enter at the Floor {n} Waypoint',
+  'lab.portalBack': 'Step back through your Town Portal: Floor {n}',
+  'lab.portalCloses': 'It closes at {time}.',
   'lab.bestFloor': 'Deepest Floor reached: {n}',
   'lab.noHero': 'You need a Hero before you go down.',
   'lab.createHero': 'Create a Hero',

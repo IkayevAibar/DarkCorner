@@ -330,6 +330,22 @@ describe('the Labyrinth', () => {
     expect(h.hp).toBe(h.maxHp);
   });
 
+  it('leaves a Town Portal open for a day, to step back through once', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.hero.updateMany({ data: { room: fightNextToLanding, prevRoom: fightNextToLanding, facing: false } });
+    const h = await hero();
+    await prisma.item.create({ data: { heroId: h.id, seasonId: h.seasonId, base: 'scroll-portal', place: 'BAG', quantity: 1, tier: 'common' } });
+    const home = await act('/api/labyrinth/portal');
+    expect(home.view.location).toBe('city');
+    expect(home.view.portal).toMatchObject({ floor: 1 });
+    const back = await act('/api/labyrinth/enter', { portal: true });
+    expect(back.view.room?.id).toBe(fightNextToLanding);
+    expect(back.view.portal).toBeNull();
+    await act('/api/labyrinth/leave').catch(() => null);
+    await prisma.hero.updateMany({ data: { location: 'CITY', floor: null, room: null, portalFloor: 1, portalRoom: floor1.landing, portalUntil: new Date(Date.now() - 1000) } });
+    expect((await post('/api/labyrinth/enter', { portal: true })).json().error).toBe('no_portal');
+  });
+
   it('keeps Storage in the City', async () => {
     await act('/api/labyrinth/enter', { floor: 1 });
     const potion = await prisma.item.findFirstOrThrow({ where: { base: 'potion' } });

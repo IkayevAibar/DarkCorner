@@ -13,8 +13,8 @@ export async function labyrinthRoutes(app: FastifyInstance) {
   app.get('/api/labyrinth', guard, async (request): Promise<LabyrinthResult> => labyrinthState(request.player!));
 
   app.post('/api/labyrinth/enter', guard, async (request): Promise<LabyrinthResult> => {
-    const { floor } = enterRequestSchema.parse(request.body);
-    return enterLabyrinth(request.player!, floor);
+    const { floor, portal } = enterRequestSchema.parse(request.body);
+    return enterLabyrinth(request.player!, floor, portal);
   });
 
   app.post('/api/labyrinth/move', guard, async (request): Promise<LabyrinthResult> => {

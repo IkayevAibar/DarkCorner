@@ -173,6 +173,15 @@ function seesThrough(hero: Hero, floor: number, door: Door, from: number): boole
   }).success;
 }
 
+/** A Town Portal stays open for a day behind the Hero who read it (v0). */
+const PORTAL_MS = 24 * HOUR_MS;
+
+/** The Hero's open Town Portal, if it has one. */
+function portalOf(hero: Hero, now: Date): { floor: number; closesAt: string } | null {
+  if (hero.portalFloor === null || hero.portalRoom === null || !hero.portalUntil || hero.portalUntil <= now) return null;
+  return { floor: hero.portalFloor, closesAt: hero.portalUntil.toISOString() };
+}
+
 async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date): Promise<LabyrinthView> {
   const { stamina, savedAt } = currentStamina(hero.stamina, hero.staminaAt, now);
   const potions = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion').reduce((s, i) => s + i.quantity, 0);
@@ -207,6 +216,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       omen: omenView(season, now),
     },
     waypoints: hero.waypoints,
+    portal: portalOf(hero, now),
     bestFloor: hero.bestFloor,
   };
 
@@ -350,13 +360,31 @@ export async function labyrinthState(player: Player): Promise<LabyrinthResult> {
 }
 
 /** From the City into the Labyrinth: at the entrance of Floor 1, or at a Waypoint already reached. */
-export async function enterLabyrinth(player: Player, floorNumber: number): Promise<LabyrinthResult> {
+export async function enterLabyrinth(player: Player, floorNumber: number, viaPortal = false): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const lab = labyrinthFor(season);
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
     if (hero.location !== 'CITY') throw ApiError.conflict('already_inside', 'Already in the Labyrinth');
     if (season.status === 'PLANNED') throw ApiError.conflict('season_not_started', 'The Season has not started yet');
+    if (viaPortal) {
+      // Back through the open Town Portal, to the Room it was read in; it closes behind the Hero.
+      const now = new Date();
+      if (!portalOf(hero, now)) throw ApiError.conflict('no_portal', 'You have no open Town Portal');
+      const floor = floorOf(lab, hero.portalFloor!);
+      const room = hero.portalRoom!;
+      // Monsters back in that Room by now: the Hero steps out in their doorway.
+      const waiting = await monstersWaiting(tx, hero, season, floor, room, now);
+      await tx.hero.update({
+        where: { id: hero.id },
+        data: {
+          location: 'LABYRINTH', floor: floor.number, room, prevRoom: waiting ? floor.landing : room, facing: waiting !== null,
+          deathless: true, lucky: true, campSince: floor.rooms[room]!.type === 'camp' ? now : null, hpAt: now,
+          portalFloor: null, portalRoom: null, portalUntil: null,
+        },
+      });
+      return hero.id;
+    }
     if (floorNumber !== 1 && !hero.waypoints.includes(floorNumber)) {
       throw ApiError.conflict('no_waypoint', 'You have not reached that Waypoint yet');
     }
@@ -703,21 +731,30 @@ export async function leaveByWaypoint(player: Player): Promise<LabyrinthResult> 
   return respond(heroId, season, outcome);
 }
 
-/** Read a Town Portal scroll: home from anywhere. */
+/**
+ * Read a Town Portal scroll: home from anywhere, and the portal stays open behind the
+ * Hero for a day, to step back through once (from a doorway, to the last safe Room).
+ */
 export async function readPortal(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
-    if (hero.location !== 'LABYRINTH') throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
+    if (hero.location !== 'LABYRINTH' || hero.floor === null || hero.room === null) throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
     const scroll = stackIn(hero, 'scroll-portal');
     if (!scroll) throw ApiError.conflict('no_scroll', 'You have no Town Portal scroll');
     if (scroll.quantity > 1) await tx.item.update({ where: { id: scroll.id }, data: { quantity: scroll.quantity - 1 } });
     else await tx.item.delete({ where: { id: scroll.id } });
+    const floor = hero.floor;
+    const room = hero.facing ? (hero.prevRoom ?? floorOf(labyrinthFor(season), floor).landing) : hero.room;
     await goHome(tx, hero, outcome);
+    await tx.hero.update({ where: { id: hero.id }, data: { portalFloor: floor, portalRoom: room, portalUntil: new Date(Date.now() + PORTAL_MS) } });
     return hero.id;
   });
-  outcome.notices.unshift(t('The portal closes behind you. You are in the City.', 'Портал закрылся за спиной. Вы в городе.'));
+  outcome.notices.unshift(t(
+    'You step through to the City. The portal stays open behind you for a day: step back through it from the Labyrinth gate.',
+    'Вы шагаете сквозь портал в город. Он останется открытым сутки: вернуться можно от врат лабиринта.',
+  ));
   return respond(heroId, season, outcome);
 }
 

@@ -110,6 +110,10 @@ model Hero {
   /// How the Hero fights: bold, steady or wary.
   stance      String       @default("steady")
   bestFloor   Int          @default(0)
+  /// A Town Portal left open behind the Hero: one step back through from the City, until `portalUntil`.
+  portalFloor Int?
+  portalRoom  Int?
+  portalUntil DateTime?
   /// Floors whose Waypoint the Hero has reached.
   waypoints   Int[]        @default([])
   /// Uses left until the next long rest.
