@@ -352,6 +352,8 @@ const DEATH_SAVE_DC = 10;
 /** A Hero drinks at most this many potions in one fight (v0), however many it carries. */
 export const POTIONS_PER_FIGHT = 3;
 const ROUND_LIMIT = 60;
+/** Thief, Ghost: the round from which every round's Sneak attack gets the full dice (v0). */
+export const THIEF_STUDY_ROUND = 4;
 /** Ember Fang: a critical hit leaves the enemy burning (v0). */
 const EMBER_BURN = { turns: 3, dice: [1, 6] as [number, number] };
 
@@ -385,6 +387,8 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   let secondWind = hero.class === 'fighter';
   let sneakReady = hero.class === 'rogue';
   let openedFight = false;
+  /** The round being fought, for features that grow as a fight drags on. */
+  let currentRound = 0;
   const path = (id: PathId, from?: typeof PATH_MASTERY) => onPath(hero, id, from);
   let firstHitCrit = hero.uniques.includes('gravewhisper') || path('assassin', PATH_MASTERY);
   let riposteReady = false;
@@ -574,8 +578,10 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         damage = dice * (hero.weapon?.factor ?? 1) + mod(attackAbility);
         if (sneakReady) {
           // The fight's first hit, or an Assassin's every round, gets the full dice; other rounds a sixth of the level.
+          // A master Thief has studied its prey by the fourth round: from then on, a third of the level.
           const full = !openedFight || path('assassin');
-          const sneak = full ? Math.ceil(hero.level / 2) : Math.ceil(hero.level / 6);
+          const studied = path('thief', PATH_MASTERY) && currentRound >= THIEF_STUDY_ROUND;
+          const sneak = Math.ceil(hero.level / (full ? 2 : studied ? 3 : 6));
           damage += sum(rollDice(rng, crit ? sneak * 2 : sneak, 6));
           sneakReady = false;
           openedFight = true;
@@ -840,6 +846,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
 
   let outcome: FightOutcome | null = alive().length === 0 ? 'victory' : null;
   for (let round = 1; round <= ROUND_LIMIT && outcome === null; round++) {
+    currentRound = round;
     dodgeReady = dodges;
     riposteReady = path('guardian');
     // Rogues find another opening each round.

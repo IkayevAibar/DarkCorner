@@ -144,7 +144,7 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
   |---|---|---|---|
   | Fighter | Champion | Critical hits on a roll one lower | Below half health, regain 2 + CON modifier at the start of each turn |
   | Fighter | Guardian | Once per round, strike back at a monster that misses | Once per fight, a blow that would drop the Hero leaves it at 1 health |
-  | Rogue | Thief | Potions don't cost the turn; +20% gold find | +5 to Sneak and Escape rolls; can Sneak past Mini-bosses |
+  | Rogue | Thief | Potions don't cost the turn; +20% gold find | +5 to Sneak and Escape rolls; can Sneak past Mini-bosses; from a fight's fourth round, each round's Sneak attack rolls a third of the level in d6 (it has studied its prey), so a Thief can wear the Boss down |
   | Rogue | Assassin | Full Sneak attack every round | The first hit of every fight is a critical hit |
   | Wizard | Evoker | Spells add the INT modifier twice | One more burst per rest; a burst hits even a lone enemy, twice as hard |
   | Wizard | Abjurer | Each fight starts behind a ward of 4 × level + INT modifier that takes damage first and mends by the INT modifier each turn | Advantage on every saving throw |

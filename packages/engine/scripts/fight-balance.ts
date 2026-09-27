@@ -5,6 +5,10 @@
  * - the Dragon at full strength and weakened, against level 18–20 Heroes in endgame gear.
  * Run: npm run balance:fights -w @dark/engine [-- bold|steady|wary]
  * Tune monsters (content/monsters.ts) until early Floors are forgiving and deep ones bite.
+ *
+ * Its "decent" and "endgame" kits are the Starter kit's bases improved, far weaker than
+ * real drop gear once Floors grow with depth (MIGHT): for Floors 3 and deeper, and for
+ * Mini-bosses, balance:par is the reference. Keep this one for new Heroes and Path gaps.
  */
 import {
   CLASS_DEFS, type ClassId, type HeroCombat, type MonsterInstance, type PathId, STANCES, type StanceId, createRng, heroCombat, pathsOf, restUses,

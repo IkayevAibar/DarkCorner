@@ -70,8 +70,8 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
         'Зелья не отнимают ход. +20% к золоту.',
       )),
       feature(9, text('Ghost', 'Призрак'), text(
-        '+5 to Sneak and Escape rolls, and you can Sneak past Mini-bosses.',
-        '+5 к проверкам скрытности и броскам побега; можно прокрасться даже мимо мини-босса.',
+        '+5 to Sneak and Escape rolls, and you can Sneak past Mini-bosses. From a fight’s fourth round you have studied your prey: each round’s Sneak attack rolls a third of your level in d6.',
+        '+5 к проверкам скрытности и броскам побега; можно прокрасться даже мимо мини-босса. С четвёртого раунда боя вы изучили добычу: скрытая атака каждый раунд бросает столько d6, сколько треть уровня.',
       )),
     ],
   },

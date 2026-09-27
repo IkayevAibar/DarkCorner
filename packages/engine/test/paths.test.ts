@@ -85,6 +85,25 @@ describe('Paths', () => {
     expect(perHit('assassin')).toBeGreaterThan(perHit(null) * 1.3);
   });
 
+  it('lets a Thief of level 9 study its prey: from the fourth round, a bigger Sneak attack every round', () => {
+    const lateHit = (path: PathId | null, level: number) => {
+      let damage = 0;
+      let hits = 0;
+      for (let i = 0; i < 200; i++) {
+        const target = [{ ...instantiate(monsterById('zombie'), 5, 'm0'), hp: 4000, maxHp: 4000 }];
+        const events = fight(`study-${path}-${level}-${i}`, { ...hero('rogue', level, { path }), hp: 9999, maxHp: 9999 }, target).events;
+        // A Rogue swings once a round: these are hits well past the fourth round.
+        for (const e of of(events, 'attack').filter((x) => x.actor === 'hero' && x.hit && !x.crit).slice(8, 24)) {
+          damage += e.damage;
+          hits++;
+        }
+      }
+      return damage / hits;
+    };
+    expect(lateHit('thief', 9)).toBeGreaterThan(lateHit(null, 9) * 1.12);
+    expect(lateHit('thief', 8)).toBeLessThan(lateHit(null, 8) * 1.05);
+  });
+
   it('turns aside the first blow of every fight with a Wizard’s Shield, and only the first', () => {
     for (let i = 0; i < 20; i++) {
       const r = fight(`shield-${i}`, { ...hero('wizard', 2), hp: 999, maxHp: 999 });
