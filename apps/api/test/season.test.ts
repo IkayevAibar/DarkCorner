@@ -110,6 +110,38 @@ describe('the Season', () => {
     expect(tavern.season.omen?.id ?? null).toBe(today);
   });
 
+  it('retells the past day before the Omen: its best moments, then who fell', async () => {
+    await post(admin, '/api/admin/season', { action: 'start' });
+    const season = await prisma.season.findFirstOrThrow({ where: { status: 'ACTIVE' } });
+    const midnight = Math.floor(Date.now() / DAY_MS) * DAY_MS;
+    const line = (kind: string, data: Record<string, unknown>, hoursBeforeMidnight = 6) => prisma.feedEvent.create({
+      data: { seasonId: season.id, kind, data: data as object, createdAt: new Date(midnight - hoursBeforeMidnight * 3_600_000) },
+    });
+    await line('depth', { hero: 'Pip', floor: 2 });
+    await line('depth', { hero: 'Pip', floor: 3 });
+    await line('market-sale', { hero: 'Garrick', seller: 'Pip', price: 50, tier: 'rare', base: 'dagger' });
+    await line('drop', { hero: 'Pip', tier: 'mythic', base: 'longsword', floor: 3 });
+    await line('death', { hero: 'Garrick', floor: 3 });
+    await line('death', { hero: 'Old', floor: 1 }, 30);
+
+    const job = await prisma.job.findFirstOrThrow({ where: { kind: 'omen' } });
+    await prisma.job.update({ where: { id: job.id }, data: { runAt: new Date(Date.now() - 1000) } });
+    await runDueJobs();
+
+    const said = (await prisma.job.findMany({ where: { kind: 'broadcast' }, orderBy: { runAt: 'asc' } }))
+      .map((j) => (j.payload as { text: { en: string } }).text.en);
+    // The best moment first; a Hero's deepest new Floor only; nothing from before the past day.
+    expect(said.find((text) => text.startsWith('📜'))?.split('\n')).toEqual([
+      '📜 The past day in the Labyrinth:',
+      '• Pip found a Mythic longsword on Floor 3',
+      '• Pip reached Floor 3 for the first time',
+      '• Garrick bought from Pip for 50 gold: Rare dagger',
+      '☠ Fallen: Garrick (Floor 3)',
+    ]);
+    const omen = omenFor(SEED, Math.floor(Date.now() / DAY_MS));
+    if (omen) expect(said.findIndex((text) => text.startsWith('🌘'))).toBeGreaterThan(said.findIndex((text) => text.startsWith('📜')));
+  });
+
   it('keeps the Labyrinth shut until it starts, and admin tools from other Players', async () => {
     const { cookie } = await makeHero('Early');
     expect((await post(cookie, '/api/labyrinth/enter', { floor: 1 })).json().error).toBe('season_not_started');

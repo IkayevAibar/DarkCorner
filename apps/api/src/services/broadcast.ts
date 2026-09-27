@@ -9,8 +9,8 @@ import { onJob, schedule } from './scheduler.js';
  * goes out if the thing it announces really happened, and Discord being down
  * never fails a Player's action.
  */
-export async function broadcast(tx: Tx, text: LocalizedText): Promise<void> {
-  await schedule(tx, 'broadcast', new Date(), { text });
+export async function broadcast(tx: Tx, text: LocalizedText, at = new Date()): Promise<void> {
+  await schedule(tx, 'broadcast', at, { text });
 }
 
 onJob('broadcast', async (payload) => {

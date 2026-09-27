@@ -578,7 +578,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - an Upgrade to +10 succeeds
   - the Boss is defeated (Champion, 2nd and 3rd)
   - a Vault is announced
-  - the day's Omen, at midnight UTC
+  - the day's Omen, at midnight UTC, just after a recap of the past day: up to five of its best moments from the Feed (a Hero's deepest new Floor only), then who fell. A quiet day has no recap.
   - the Boss gate opens
   - the Boss weakens
   - a Season starts or ends
