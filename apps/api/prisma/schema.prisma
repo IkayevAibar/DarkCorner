@@ -30,6 +30,7 @@ model Player {
   rolls      RollLog[]
   heroes     Hero[]
   drafts     HeroDraft[]
+  listings   Listing[]
 }
 
 enum SeasonStatus {
@@ -104,14 +105,24 @@ model Hero {
   healUses    Int          @default(0)
   /// Once-per-Run powers still available (Deathless Mail).
   deathless   Boolean      @default(true)
+  /// Once-per-Run reroll of a failed d20 (Lucky charm, Luckstone).
+  lucky       Boolean      @default(true)
   /// When the Hero sat down in a Camp; four hours later it is fully rested.
   campSince   DateTime?
 
-  player Player      @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  season Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  items  Item[]
-  floors HeroFloor[]
-  graves Grave[]
+  // Luck
+  /// The Bad-luck meter: at 120 the next Item that drops is Legendary or better.
+  badLuck       Int       @default(0)
+  blessing      String?
+  blessingUntil DateTime?
+
+  player    Player         @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season    Season         @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  items     Item[]
+  floors    HeroFloor[]
+  graves    Grave[]
+  purchases ShopPurchase[]
+  visits    EventVisit[]
 
   @@index([playerId, seasonId])
 }
@@ -188,6 +199,7 @@ enum ItemPlace {
   BAG
   STORAGE
   GRAVE
+  MARKET
 }
 
 /// One Item, or one stack of a stackable. Exactly one place at a time.
@@ -220,12 +232,65 @@ model Item {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
-  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  hero   Hero?  @relation(fields: [heroId], references: [id], onDelete: SetNull)
-  grave  Grave? @relation(fields: [graveId], references: [id], onDelete: Cascade)
+  season  Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  hero    Hero?    @relation(fields: [heroId], references: [id], onDelete: SetNull)
+  grave   Grave?   @relation(fields: [graveId], references: [id], onDelete: Cascade)
+  listing Listing?
 
   @@index([heroId, place])
   @@unique([heroId, slot])
+}
+
+/// An Item for sale on the Market. While listed the Item's place is MARKET and it
+/// belongs to no Hero; the row goes away when it sells or is taken back.
+model Listing {
+  id         String   @id @default(cuid())
+  seasonId   String
+  itemId     String   @unique
+  /// The selling Player: proceeds go to whichever Hero they have when it sells.
+  sellerId   String
+  sellerName String
+  price      Int
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  seller Player @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  @@index([seasonId, expiresAt])
+  @@index([sellerId])
+}
+
+/// Today's Shop gear a Hero has bought: each piece sells once per Hero per day.
+model ShopPurchase {
+  id     String @id @default(cuid())
+  heroId String
+  /// Days since the epoch, UTC.
+  day    Int
+  offer  String
+
+  hero Hero @relation(fields: [heroId], references: [id], onDelete: Cascade)
+
+  @@unique([heroId, day, offer])
+}
+
+/// One Hero's visit to an Event room on one day: what the Hero did there. The
+/// room's contents come from a seed, so only progress is stored.
+model EventVisit {
+  id        String    @id @default(cuid())
+  heroId    String
+  floor     Int
+  room      Int
+  /// Days since the epoch, UTC: events restock daily, like fight Rooms.
+  day       Int
+  kind      String
+  state     Json      @default("{}")
+  doneAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  hero Hero @relation(fields: [heroId], references: [id], onDelete: Cascade)
+
+  @@unique([heroId, floor, room, day])
 }
 
 /// Every roll that matters, with the seed that produced it, so it can be replayed.

@@ -6,6 +6,7 @@ import { accountOrigin, env } from './env.js';
 import { ApiError } from './lib/errors.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
+import { cityRoutes } from './routes/city.js';
 import { heroRoutes } from './routes/heroes.js';
 import { itemRoutes } from './routes/items.js';
 import { labyrinthRoutes } from './routes/labyrinth.js';
@@ -67,6 +68,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(heroRoutes);
   await app.register(itemRoutes);
   await app.register(labyrinthRoutes);
+  await app.register(cityRoutes);
 
   return app;
 }

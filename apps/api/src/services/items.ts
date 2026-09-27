@@ -1,7 +1,7 @@
 import type { Item, Prisma } from '@prisma/client';
 import type { ItemView, Tier } from '@dark/shared';
 import {
-  type GearRoll, STACK_TIER_HINT, baseById, bonusLines, buybackPrice, isGear, itemName, uniqueById,
+  type GearRoll, STACK_TIER_HINT, baseById, bonusLines, buybackPrice, isGear, itemName, sellValue, uniqueById,
 } from '@dark/engine';
 
 type BonusStats = GearRoll['bonusStats'];
@@ -28,7 +28,7 @@ export function toItemView(item: Item): ItemView {
       serial: null,
       owners: null,
       art: null,
-      worth: 0,
+      worth: sellValue({ ...item, tier: 'common' }),
     };
   }
 
@@ -67,6 +67,22 @@ export function toItemView(item: Item): ItemView {
     art: known ? (unique?.art ?? null) : null,
     worth: buybackPrice(roll),
   };
+}
+
+/** A view of Items that don't exist yet: Shop goods, merchant wares, Chest odds. */
+export function rollView(roll: GearRoll, id: string): ItemView {
+  return toItemView({
+    ...gearData(roll, ''), id, seasonId: '', heroId: null, place: 'BAG', slot: null, quantity: 1, upgrade: 0, serial: null,
+    owners: null, graveId: null, createdAt: new Date(0), updatedAt: new Date(0),
+  } as Item);
+}
+
+export function stackView(base: string, quantity: number, id = base): ItemView {
+  return toItemView({
+    id, seasonId: '', heroId: null, place: 'BAG', slot: null, base, tier: 'common', quantity, itemLevel: 1, quality: null,
+    bonusStats: [], suffix: null, uniqueId: null, radiant: false, identified: true, upgrade: 0, serial: null, owners: null,
+    seed: null, graveId: null, createdAt: new Date(0), updatedAt: new Date(0),
+  });
 }
 
 /** Columns for a new gear Item from an engine roll. */

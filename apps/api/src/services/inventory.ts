@@ -1,29 +1,13 @@
-import type { Player, Prisma } from '@prisma/client';
+import type { Player } from '@prisma/client';
 import type { HeroView, SlotId } from '@dark/shared';
 import { BAG_SLOTS, type ClassId, type GearBase, STORAGE_SLOTS, baseById, canUse, isGear, slotsFor } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { toHeroView } from './heroes.js';
+import { lockHero, ownItem } from './ledger.js';
 import { currentSeason } from './seasons.js';
 
 const CAPACITY: Record<'BAG' | 'STORAGE', number> = { BAG: BAG_SLOTS, STORAGE: STORAGE_SLOTS };
-
-/** The Player's living Hero and one of its Items, or a 404/409 explaining why not. */
-async function heroAndItem(tx: Prisma.TransactionClient, player: Player, itemId: string) {
-  const season = await currentSeason();
-  const hero = await tx.hero.findFirst({ where: { playerId: player.id, seasonId: season.id, retiredAt: null } });
-  if (!hero) throw ApiError.conflict('no_hero', 'Create a Hero first');
-  const item = await tx.item.findFirst({ where: { id: itemId, heroId: hero.id } });
-  if (!item) throw ApiError.notFound('item_not_found', 'No such Item on your Hero');
-  if (item.place === 'STORAGE' && hero.location !== 'CITY') {
-    throw ApiError.conflict('storage_in_city', 'Storage is back in the City');
-  }
-  return { hero, item };
-}
-
-async function used(tx: Prisma.TransactionClient, heroId: string, place: 'BAG' | 'STORAGE'): Promise<number> {
-  return tx.item.count({ where: { heroId, place } });
-}
 
 async function heroView(heroId: string): Promise<HeroView> {
   return toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }));
@@ -34,8 +18,10 @@ async function heroView(heroId: string): Promise<HeroView> {
  * where the new one came from, so the Bag and Storage never overflow.
  */
 export async function equipItem(player: Player, itemId: string, wanted?: SlotId): Promise<HeroView> {
+  const season = await currentSeason();
   const heroId = await prisma.$transaction(async (tx) => {
-    const { hero, item } = await heroAndItem(tx, player, itemId);
+    const hero = await lockHero(tx, player, season.id);
+    const item = ownItem(hero, itemId);
     if (item.place === 'WORN') throw ApiError.conflict('already_worn', 'Already worn');
     const base = baseById(item.base);
     if (!isGear(base)) throw ApiError.badRequest('not_gear', 'Only gear can be worn');
@@ -44,8 +30,7 @@ export async function equipItem(player: Player, itemId: string, wanted?: SlotId)
 
     const fits = slotsFor(base as GearBase);
     if (wanted && !fits.includes(wanted)) throw ApiError.badRequest('wrong_slot', 'It does not go there');
-    const worn = await tx.item.findMany({ where: { heroId: hero.id, place: 'WORN' } });
-    const taken = new Map(worn.map((w) => [w.slot, w]));
+    const taken = new Map(hero.items.filter((w) => w.place === 'WORN').map((w) => [w.slot, w]));
     const slot = wanted ?? fits.find((s) => !taken.has(s)) ?? fits[0]!;
 
     const current = taken.get(slot);
@@ -60,10 +45,12 @@ export async function equipItem(player: Player, itemId: string, wanted?: SlotId)
 }
 
 export async function unequipItem(player: Player, itemId: string): Promise<HeroView> {
+  const season = await currentSeason();
   const heroId = await prisma.$transaction(async (tx) => {
-    const { hero, item } = await heroAndItem(tx, player, itemId);
+    const hero = await lockHero(tx, player, season.id);
+    const item = ownItem(hero, itemId);
     if (item.place !== 'WORN') throw ApiError.conflict('not_worn', 'Not worn');
-    if ((await used(tx, hero.id, 'BAG')) >= BAG_SLOTS) throw ApiError.conflict('bag_full', 'Your Bag is full');
+    if (hero.items.filter((i) => i.place === 'BAG').length >= BAG_SLOTS) throw ApiError.conflict('bag_full', 'Your Bag is full');
     await tx.item.update({ where: { id: item.id }, data: { place: 'BAG', slot: null } });
     return hero.id;
   });
@@ -73,22 +60,24 @@ export async function unequipItem(player: Player, itemId: string): Promise<HeroV
 /** Moves an Item between the Bag and Storage, topping up a matching stack first. */
 export async function moveItem(player: Player, itemId: string, to: 'bag' | 'storage'): Promise<HeroView> {
   const target: 'BAG' | 'STORAGE' = to === 'bag' ? 'BAG' : 'STORAGE';
+  const season = await currentSeason();
   const heroId = await prisma.$transaction(async (tx) => {
-    const { hero, item } = await heroAndItem(tx, player, itemId);
+    const hero = await lockHero(tx, player, season.id);
+    const item = ownItem(hero, itemId);
     if (item.place === 'WORN') throw ApiError.conflict('worn', 'Take it off first');
     if (item.place === target) return hero.id;
     if (target === 'STORAGE' && hero.location !== 'CITY') throw ApiError.conflict('storage_in_city', 'Storage is back in the City');
 
     const base = baseById(item.base);
     if (!isGear(base)) {
-      const stack = await tx.item.findFirst({ where: { heroId: hero.id, place: target, base: item.base } });
+      const stack = hero.items.find((i) => i.place === target && i.base === item.base);
       if (stack && stack.quantity + item.quantity <= base.maxStack) {
         await tx.item.update({ where: { id: stack.id }, data: { quantity: stack.quantity + item.quantity } });
         await tx.item.delete({ where: { id: item.id } });
         return hero.id;
       }
     }
-    if ((await used(tx, hero.id, target)) >= CAPACITY[target]) {
+    if (hero.items.filter((i) => i.place === target).length >= CAPACITY[target]) {
       throw ApiError.conflict(target === 'BAG' ? 'bag_full' : 'storage_full', `Your ${to} is full`);
     }
     await tx.item.update({ where: { id: item.id }, data: { place: target } });

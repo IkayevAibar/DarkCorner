@@ -3,7 +3,8 @@ import type {
   AbilitySetView, CreateHeroRequest, CreationOptions, HeroDraft, HeroView, MyHeroResponse, SlotId,
 } from '@dark/shared';
 import {
-  ABILITY_REROLLS, type AbilitySet, BAG_SLOTS, BANNER_COLORS, CLASS_DEFS, CLASSES, type GearBase, PORTRAITS, RACE_DEFS,
+  ABILITY_REROLLS, type AbilitySet, BAD_LUCK_MAX, BAG_SLOTS, BANNER_COLORS, BLESSINGS, type BlessingId, CLASS_DEFS, CLASSES,
+  type GearBase, PORTRAITS, RACE_DEFS, luckOf,
   RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
   createRng, currentStamina, portraitById, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth,
   validateHeroChoices,
@@ -12,6 +13,7 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { gearData, toItemView } from './items.js';
+import { lockHero, requireCity } from './ledger.js';
 import { currentSeason } from './seasons.js';
 
 type HeroWithItems = Hero & { items: Item[] };
@@ -36,6 +38,18 @@ const toSetView = (set: AbilitySet): AbilitySetView => ({ rolls: set.rolls, scor
 
 function toDraftView(draft: { sets: Prisma.JsonValue; rerollsLeft: number }): HeroDraft {
   return { sets: (draft.sets as unknown as AbilitySet[]).map(toSetView), rerollsLeft: draft.rerollsLeft };
+}
+
+/** The Blessing still on the Hero, if any. */
+export const activeBlessing = (hero: Pick<Hero, 'blessing' | 'blessingUntil'>, now = new Date()): BlessingId | null =>
+  hero.blessing && hero.blessingUntil && hero.blessingUntil > now ? (hero.blessing as BlessingId) : null;
+
+/** Magic find, gold find and meter speed from worn gear and the Blessing. */
+export function heroLuck(hero: Hero & { items: Item[] }, now = new Date()) {
+  const worn = hero.items
+    .filter((i) => i.place === 'WORN')
+    .map((i) => ({ bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant, uniqueId: i.uniqueId }));
+  return luckOf({ worn, blessing: activeBlessing(hero, now) });
 }
 
 /** The Hero's portrait art, falling back to the hooded figure if its portrait was removed. */
@@ -84,6 +98,22 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     storage: hero.items.filter((i) => i.place === 'STORAGE').sort(byAge).map(toItemView),
     bagSlots: BAG_SLOTS,
     storageSlots: STORAGE_SLOTS,
+    inCity: hero.location === 'CITY',
+    luck: luckView(hero, now),
+  };
+}
+
+function luckView(hero: HeroWithItems, now: Date): HeroView['luck'] {
+  const luck = heroLuck(hero, now);
+  const blessing = activeBlessing(hero, now);
+  return {
+    badLuck: hero.badLuck,
+    badLuckMax: BAD_LUCK_MAX,
+    magicFind: luck.magicFind,
+    goldFind: luck.goldFind,
+    blessing: blessing
+      ? { id: blessing, name: BLESSINGS[blessing].name, description: BLESSINGS[blessing].description, until: hero.blessingUntil!.toISOString() }
+      : null,
   };
 }
 
@@ -241,10 +271,11 @@ export async function giveStarterKit(tx: Prisma.TransactionClient, hero: Hero, s
 export async function retireHero(player: Player): Promise<void> {
   const season = await currentSeason();
   await prisma.$transaction(async (tx) => {
-    const heroes = await tx.hero.findMany({ where: { playerId: player.id, seasonId: season.id } });
-    const active = heroes.find((h) => !h.retiredAt);
-    if (!active) throw ApiError.conflict('no_hero', 'No Hero to retire');
-    if (heroes.length >= 2) throw ApiError.conflict('retire_used', 'You have already retired a Hero this Season');
+    const active = await lockHero(tx, player, season.id);
+    // The Temple is in the City: a Hero in the Labyrinth has to come home first.
+    requireCity(active);
+    const heroes = await tx.hero.count({ where: { playerId: player.id, seasonId: season.id } });
+    if (heroes >= 2) throw ApiError.conflict('retire_used', 'You have already retired a Hero this Season');
     await tx.item.updateMany({
       where: { heroId: active.id, place: { in: ['WORN', 'BAG'] } },
       data: { place: 'STORAGE', slot: null },

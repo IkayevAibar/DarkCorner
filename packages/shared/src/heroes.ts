@@ -65,6 +65,24 @@ export const heroDraftSchema = z.object({
 });
 export type HeroDraft = z.infer<typeof heroDraftSchema>;
 
+export const BLESSING_IDS = ['fortune', 'greed', 'providence'] as const;
+export const blessingIdSchema = z.enum(BLESSING_IDS);
+export type BlessingIdView = z.infer<typeof blessingIdSchema>;
+
+/** Everything that tilts the Hero's drops: gear, a Blessing, and the Bad-luck meter. */
+export const luckViewSchema = z.object({
+  badLuck: z.number().int(),
+  /** At this, the next Item that drops is Legendary or better. */
+  badLuckMax: z.number().int(),
+  /** Percent, from gear and the Blessing. */
+  magicFind: z.number().int(),
+  goldFind: z.number().int(),
+  blessing: z.object({
+    id: blessingIdSchema, name: localizedTextSchema, description: localizedTextSchema, until: z.string(),
+  }).nullable(),
+});
+export type LuckView = z.infer<typeof luckViewSchema>;
+
 export const heroSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -89,6 +107,9 @@ export const heroSchema = z.object({
   storage: z.array(itemViewSchema),
   bagSlots: z.number().int(),
   storageSlots: z.number().int(),
+  /** City buildings and Storage only work while the Hero is in the City. */
+  inCity: z.boolean(),
+  luck: luckViewSchema,
 });
 export type HeroView = z.infer<typeof heroSchema>;
 

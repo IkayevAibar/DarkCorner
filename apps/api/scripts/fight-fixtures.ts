@@ -91,7 +91,7 @@ function run(name: string, s: Scenario): FightReplay {
     const hero = heroCombat({ name: s.hero.name, class: s.hero.class, race: s.hero.race, level: s.level, talents: ['alert', 'tough'], scores, maxHp, hp, worn });
     const monsters = spawnEncounter(createRng(`${name}:spawn:${i}`), s.floor, s.kind);
     const result = simulateFight(createRng(`${name}:fight:${i}`), {
-      hero, monsters, uses: restUses(s.hero.class, s.level), potions: s.potions, runPowers: { deathless: false },
+      hero, monsters, uses: restUses(s.hero.class, s.level), potions: s.potions, runPowers: { deathless: false, lucky: false },
     });
     if (!s.want(result)) continue;
     return fightReplaySchema.parse({

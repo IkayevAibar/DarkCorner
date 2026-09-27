@@ -52,6 +52,7 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('down') }),
   z.object({ type: z.literal('death-save'), natural: z.number().int(), successes: z.number().int(), failures: z.number().int() }),
   z.object({ type: z.literal('rise'), hp: z.number().int() }),
+  z.object({ type: z.literal('reroll'), natural: z.number().int() }),
   z.object({ type: z.literal('end'), outcome: fightOutcomeSchema }),
 ]);
 export type FightEventView = z.infer<typeof fightEventSchema>;
