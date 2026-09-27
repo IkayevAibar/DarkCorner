@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { CLASS_IDS, type ClassId, classIdSchema } from './classes.js';
 import { itemViewSchema, localizedTextSchema } from './items.js';
 
+export { CLASS_IDS, type ClassId, classIdSchema };
+
 export const RACE_IDS = ['human', 'elf', 'dwarf', 'halfling'] as const;
-export const CLASS_IDS = ['fighter', 'rogue', 'wizard', 'cleric'] as const;
 export const TALENT_IDS = [
   'alert', 'tough', 'savage-attacker', 'lucky-charm', 'haggler', 'field-medic',
   'iron-will', 'fireproof', 'scavenger', 'treasure-hunter', 'light-step', 'heavy-hitter', 'battle-hardened',
@@ -12,13 +14,11 @@ export const ABILITY_IDS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
 export const SLOT_IDS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring1', 'ring2'] as const;
 
 export const raceIdSchema = z.enum(RACE_IDS);
-export const classIdSchema = z.enum(CLASS_IDS);
 export const talentIdSchema = z.enum(TALENT_IDS);
 export const pathIdSchema = z.enum(PATH_IDS);
 export const abilityIdSchema = z.enum(ABILITY_IDS);
 export const slotIdSchema = z.enum(SLOT_IDS);
 export type RaceId = z.infer<typeof raceIdSchema>;
-export type ClassId = z.infer<typeof classIdSchema>;
 export type TalentId = z.infer<typeof talentIdSchema>;
 export type PathIdView = z.infer<typeof pathIdSchema>;
 export type AbilityId = z.infer<typeof abilityIdSchema>;

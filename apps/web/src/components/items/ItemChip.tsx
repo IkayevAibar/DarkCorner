@@ -1,6 +1,13 @@
-import type { ItemView, LocalizedText } from '@dark/shared';
+import type { GearFactsView, HeroView, ItemView, LocalizedText } from '@dark/shared';
+import { api } from '../../api';
 import { useI18n } from '../../i18n';
+import type { MessageKey } from '../../i18n/en';
+import { useLoad } from '../useLoad';
 import { ICON_VIEWBOX, iconPath } from './icons';
+
+/** Comparison colors: muted, so Tier colors stay the brightest thing on screen. */
+const BETTER = '#9cc48a';
+const WORSE = '#d98a74';
 
 /** Picks the current language out of engine content. */
 export function useText() {
@@ -58,6 +65,11 @@ export function ItemDetails({ item }: { item: ItemView }) {
   const { t } = useI18n();
   const text = useText();
   const color = `var(--color-tier-${item.tier})`;
+  // The Hero's Class decides what gear numbers mean for it, and its worn gear is the comparison.
+  const mine = useLoad(api.myHero);
+  const hero = mine.data?.hero ?? null;
+  // Gear this Hero can't wear gets a warning instead of a comparison that would read like an upgrade.
+  const barred = hero !== null && item.gear?.classes != null && !item.gear.classes.includes(hero.class);
   return (
     <div className="grid gap-3">
       <div className="flex items-center gap-3">
@@ -78,21 +90,117 @@ export function ItemDetails({ item }: { item: ItemView }) {
           <strong className="text-bone not-italic">{t('item.unidentified')}.</strong> {t('item.unidentifiedHint')}
         </p>
       )}
+      {item.gear && <GearFacts gear={item.gear} hero={hero} barred={barred} />}
+      {item.about && <p className="m-0 text-[15px]">{text(item.about)}</p>}
       {item.quality !== null && <span className="text-sm">{t('item.quality', { n: item.quality })}</span>}
       {item.serial && <span className="font-head text-sm font-bold text-gold">{t('item.serial', { n: item.serial.number, m: item.serial.of })}</span>}
-      {item.bonusStats && item.bonusStats.length > 0 && (
-        <ul className="m-0 grid list-none gap-1 p-0">
-          {item.bonusStats.map((line, i) => (
-            <li key={i} className="text-[15px]">
-              <span style={{ color }}>◆ </span>
-              {text(line)}
-            </li>
-          ))}
-        </ul>
-      )}
+      <BonusLines item={item} />
       {item.power && <p className="m-0 italic" style={{ color }}>{text(item.power)}</p>}
+      {item.gear && hero && !barred && <Compare item={item} gear={item.gear} hero={hero} />}
       {item.owners && <span className="text-sm text-muted">{t('item.owners', { list: item.owners.join(' → ') })}</span>}
       {item.worth > 0 && <span className="text-xs text-muted">{t('item.worth', { n: item.worth.toLocaleString() })}</span>}
     </div>
+  );
+}
+
+function BonusLines({ item, muted = false }: { item: ItemView; muted?: boolean }) {
+  const text = useText();
+  if (!item.bonusStats || item.bonusStats.length === 0) return null;
+  return (
+    <ul className={`m-0 grid list-none gap-1 p-0 ${muted ? 'text-sm text-muted' : 'text-[15px]'}`}>
+      {item.bonusStats.map((line, i) => (
+        <li key={i}>
+          <span style={{ color: `var(--color-tier-${item.tier})` }}>◆ </span>
+          {text(line)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const casts = (hero: HeroView | null) => hero?.class === 'wizard' || hero?.class === 'cleric';
+/** The ability a weapon attack adds, as fights pick it: DEX for bows and Rogues, else STR. */
+const attackAbility = (gear: GearFactsView, hero: HeroView) => (gear.group === 'bow' || hero.class === 'rogue' ? 'dex' : 'str');
+const modifier = (score: number) => Math.floor((score - 10) / 2);
+/** What a piece's armor is worth to this Hero: body armor with as much DEX as it lets count. */
+const armorFor = (gear: GearFactsView, hero: HeroView) => {
+  if (!gear.armor) return null;
+  if (!gear.armor.body) return gear.armor.ac;
+  return gear.armor.ac + Math.min(modifier(hero.abilities.dex), gear.armor.maxDex ?? Infinity);
+};
+
+/** What a piece of gear does in a fight: its slot, its weapon or armor numbers, and who may wear it. */
+function GearFacts({ gear, hero, barred }: { gear: GearFactsView; hero: HeroView | null; barred: boolean }) {
+  const { t } = useI18n();
+  const kind = gear.slot === 'main' ? 'weapon' : gear.slot === 'off' ? 'offhand' : gear.slot === 'body' ? 'armor' : null;
+  const lines: string[] = [];
+  if (gear.damage) {
+    const d = gear.damage;
+    const dice = `${d.dice}d${d.sides}${d.percent === 100 ? '' : ` × ${d.percent}%`}`;
+    lines.push(`${t('item.damage', { min: d.min, max: d.max })} (${dice}), ${t(`item.hits.${d.hits}`)}`);
+    if (hero && !casts(hero)) lines.push(t('item.plus', { ability: t(`ability.${attackAbility(gear, hero)}`) }));
+  }
+  if (gear.armor) {
+    const { ac, body, maxDex } = gear.armor;
+    lines.push(!body ? t('item.armorAdd', { ac }) : maxDex === null ? t('item.armorBody', { ac })
+      : maxDex === 0 ? t('item.armorBodyNoDex', { ac }) : t('item.armorBodyCap', { ac, n: maxDex }));
+  }
+  if (gear.heavy) lines.push(t('item.heavy'));
+  if (!gear.damage && !gear.armor) lines.push(t('item.bonusOnly'));
+  return (
+    <div className="grid gap-0.5 text-[15px]">
+      <span className="text-sm text-muted">
+        {t(`slot.${gear.slot === 'ring' ? 'ring1' : gear.slot}`)}
+        {kind && gear.group && ` · ${t(`item.${kind}.${gear.group}` as MessageKey)}`}
+      </span>
+      {lines.map((line) => <span key={line}>{line}</span>)}
+      {gear.damage && casts(hero) && !barred && <span className="text-sm text-muted">{t('item.casterWeapon')}</span>}
+      {gear.classes && (
+        <span className="text-sm text-muted">{t('item.classes', { list: gear.classes.map((c) => t(`class.${c}`)).join(', ') })}</span>
+      )}
+      {barred && <span className="text-sm font-bold" style={{ color: WORSE }}>{t('item.cantUse')}</span>}
+    </div>
+  );
+}
+
+/** Side by side with what the Hero wears in the same slot: the numbers that change, then the worn piece's Bonus stats. */
+function Compare({ item, gear, hero }: { item: ItemView; gear: GearFactsView; hero: HeroView }) {
+  const { t } = useI18n();
+  const text = useText();
+  const slots: string[] = gear.slot === 'ring' ? ['ring1', 'ring2'] : [gear.slot];
+  const worn = hero.worn.filter((w) => slots.includes(w.slot));
+  if (worn.some((w) => w.item.id === item.id)) return <p className="m-0 text-sm text-muted">{t('item.wearing')}</p>;
+  const shift = (label: string, from: string, to: string, better: boolean | null) => (
+    <span style={{ color: better === null ? undefined : better ? BETTER : WORSE }}>{t('item.change', { label, from, to })}</span>
+  );
+  return (
+    <section className="grid gap-2 border-t border-line pt-2">
+      <span className="sub-heading">{t('item.compare')}</span>
+      {worn.length === 0 && <p className="m-0 text-sm text-muted">{t('item.slotEmpty')}</p>}
+      {worn.map(({ slot, item: other }) => {
+        const was = other.gear;
+        const damage = gear.damage && was?.damage && !casts(hero) ? { from: was.damage, to: gear.damage } : null;
+        // A Shield swapped for an Orb loses its Armor Class: count what is missing as 0.
+        const from = was ? armorFor(was, hero) : null;
+        const to = armorFor(gear, hero);
+        const armor = from === null && to === null ? { from: null, to: null } : { from: from ?? 0, to: to ?? 0 };
+        return (
+          <div key={slot} className="grid gap-0.5 text-sm">
+            <span>
+              {t('item.wornNow')}{' '}
+              <b style={{ color: `var(--color-tier-${other.tier})` }}>{text(other.name)}{other.upgrade > 0 && ` +${other.upgrade}`}</b>
+            </span>
+            {damage && shift(
+              t('item.damageLabel'),
+              `${damage.from.min}–${damage.from.max}`,
+              `${damage.to.min}–${damage.to.max}`,
+              damage.to.min + damage.to.max === damage.from.min + damage.from.max ? null : damage.to.min + damage.to.max > damage.from.min + damage.from.max,
+            )}
+            {armor.from !== null && armor.to !== null && shift(t('item.armorLabel'), String(armor.from), String(armor.to), armor.to === armor.from ? null : armor.to > armor.from)}
+            {other.bonusStats?.length ? <BonusLines item={other} muted /> : <span className="text-muted">{t('item.noBonus')}</span>}
+          </div>
+        );
+      })}
+    </section>
   );
 }

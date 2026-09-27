@@ -16,6 +16,7 @@ Render `ItemView` from `@dark/shared` (`packages/shared/src/items.ts`). Import i
 
 - **Unidentified items:** while `identified` is false, `quality`, `bonusStats`, `power` and `radiant` are null. Show the mystery state from the look test: a dimmed icon, a "?" mark, and "???" lines.
 - **Names and text:** `name`, `bonusStats` and `power` come in both languages. Pick one with `useI18n().locale`.
+- **What it does:** `gear` holds a piece's fight numbers (slot, proficiency group, the Classes that may wear it, damage or armor, heavy) and `about` says what using a stackable does. The card must show them, and keep the comparison with the Hero's worn gear: Claude's stand-in `ItemDetails` shows one way to lay it out, loading the Hero with `api.myHero`.
 
 ## Look
 

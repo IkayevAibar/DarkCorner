@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ABILITY_IDS, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
+import { ABILITY_IDS, type ClassId, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
 import { api } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
@@ -46,7 +46,7 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
       body: (
         <div className="grid gap-4">
           <ItemDetails item={item} />
-          <ItemActions item={item} place={place} onDone={() => { closeSheet(); onChanged(); }} />
+          <ItemActions item={item} place={place} heroClass={hero.class} onDone={() => { closeSheet(); onChanged(); }} />
         </div>
       ),
     });
@@ -178,7 +178,7 @@ function ItemGrid({ title, items, onPick }: { title: string; items: ItemView[]; 
   );
 }
 
-function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; onDone: () => void }) {
+function ItemActions({ item, place, heroClass, onDone }: { item: ItemView; place: Place; heroClass: ClassId; onDone: () => void }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -199,6 +199,8 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
   };
 
   const wearable = item.kind === 'gear';
+  // The card already says why; the server would refuse it anyway.
+  const barred = item.gear?.classes != null && !item.gear.classes.includes(heroClass);
   return (
     <div className="grid gap-2">
       <div className="flex flex-wrap gap-2">
@@ -211,7 +213,7 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
           </button>
         )}
         {place !== 'worn' && wearable && item.identified && (
-          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(async () => {
+          <button type="button" className="btn btn-primary flex-1" disabled={busy || barred} onClick={() => void act(async () => {
             play('equip');
             await api.equipItem(item.id);
           })}>

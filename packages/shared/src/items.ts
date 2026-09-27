@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { classIdSchema } from './classes.js';
 
 /** Rarity, lowest to highest. Relics sit above the Tiers but share the list for ordering. */
 export const TIERS = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic', 'relic'] as const;
@@ -17,6 +18,32 @@ export const ITEM_KINDS = ['gear', 'potion', 'scroll', 'bomb', 'key', 'chest', '
 export const itemKindSchema = z.enum(ITEM_KINDS);
 export type ItemKind = z.infer<typeof itemKindSchema>;
 
+/** Where a piece of gear is worn; rings fit either ring slot. */
+export const GEAR_SLOTS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring'] as const;
+
+/**
+ * What a piece of gear does in a fight, with its Quality, Upgrades and Radiant
+ * applied, so two Items can be compared. While Unidentified it shows the base
+ * type at an average Quality.
+ */
+export const gearFactsSchema = z.object({
+  slot: z.enum(GEAR_SLOTS),
+  /** Proficiency group, e.g. "blade", "heavy" armor or "shield"; null when anyone may wear it. */
+  group: z.string().nullable(),
+  /** The Classes that may wear it; null means all of them. */
+  classes: z.array(classIdSchema).nullable(),
+  /** Weapons: damage before the ability modifier. `percent` is the Quality/Upgrade/Radiant scaling. */
+  damage: z.object({
+    dice: z.number().int(), sides: z.number().int(), min: z.number().int(), max: z.number().int(), percent: z.number().int(),
+    hits: z.enum(['slash', 'pierce', 'bludgeon']),
+  }).nullable(),
+  /** Body armor: its Armor Class before DEX, and the most DEX that still counts (null: all of it). Shields and helms: what they add. */
+  armor: z.object({ ac: z.number().int(), body: z.boolean(), maxDex: z.number().int().nullable() }).nullable(),
+  /** Heavy body armor: Sneaking at disadvantage. */
+  heavy: z.boolean(),
+});
+export type GearFactsView = z.infer<typeof gearFactsSchema>;
+
 export const itemViewSchema = z.object({
   id: z.string(),
   /** Only gear has Quality, Bonus stats and Upgrades; the rest stack. */
@@ -30,7 +57,7 @@ export const itemViewSchema = z.object({
   /** Icon key for the base, e.g. "sword" (see apps/web/src/components/items/icons.ts). */
   icon: z.string(),
   name: localizedTextSchema,
-  /** Comes from the Floor it dropped on; scales base damage or armor. */
+  /** Comes from the Floor it dropped on; makes Bonus stats bigger (+10% a level) and the price higher. */
   itemLevel: z.number().int().min(1),
   identified: z.boolean(),
   /** 1–100. */
@@ -50,5 +77,9 @@ export const itemViewSchema = z.object({
   art: z.string().nullable(),
   /** What the Shops pay for it (the Buyback price), in gold. */
   worth: z.number().int().min(0),
+  /** Gear only: its fight numbers. */
+  gear: gearFactsSchema.nullable(),
+  /** Stackables only: what using one does. */
+  about: localizedTextSchema.nullable(),
 });
 export type ItemView = z.infer<typeof itemViewSchema>;

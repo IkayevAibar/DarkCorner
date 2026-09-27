@@ -6,6 +6,13 @@ export const TIERS = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic
 export type Tier = (typeof TIERS)[number];
 export const tierRank = (tier: Tier): number => TIERS.indexOf(tier);
 
+/** Tier names for sentences; the Russian is the adjective that goes with "предмет". */
+export const TIER_TEXT: Record<Tier, Text> = {
+  common: text('Common', 'обычный'), uncommon: text('Uncommon', 'необычный'), rare: text('Rare', 'редкий'),
+  epic: text('Epic', 'эпический'), legendary: text('Legendary', 'легендарный'), mythic: text('Mythic', 'мифический'),
+  relic: text('Relic', 'реликвия'),
+};
+
 /** Rare and better drop Unidentified. */
 export const IDENTIFIED_BELOW: Tier = 'rare';
 

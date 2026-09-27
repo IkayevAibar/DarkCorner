@@ -72,6 +72,11 @@ describe('creating a Hero', () => {
     expect(worn).toEqual({ main: 'longsword', off: 'shield', body: 'chainmail' });
     expect(hero.bag).toEqual([expect.objectContaining({ kind: 'potion', quantity: 2 })]);
     for (const w of hero.worn) expect(w.item).toMatchObject({ tier: 'common', identified: true, quality: 50 });
+    // Every Item says what it does: gear its fight numbers, a potion its use.
+    const card = (slot: string) => hero.worn.find((w: { slot: string }) => w.slot === slot).item;
+    expect(card('main').gear).toMatchObject({ group: 'blade', damage: { dice: 1, sides: 8, min: 1, max: 8, hits: 'slash' } });
+    expect(card('body').gear).toMatchObject({ armor: { ac: 16, body: true, maxDex: 0 }, heavy: true });
+    expect(hero.bag[0].about.en).toContain('Heals 2d4 + 2');
 
     expect((await get('/api/heroes/me')).json()).toMatchObject({ canCreate: false, canRetire: true, draft: null });
   });

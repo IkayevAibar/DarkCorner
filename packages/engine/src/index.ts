@@ -25,3 +25,4 @@ export * from './content/bounties.js';
 export * from './content/omens.js';
 export * from './content/riddles.js';
 export * from './content/hunts.js';
+export * from './content/about.js';

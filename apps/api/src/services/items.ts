@@ -1,7 +1,7 @@
 import type { Item, Prisma } from '@prisma/client';
 import type { ItemView, Tier } from '@dark/shared';
 import {
-  type GearRoll, STACK_TIER_HINT, baseById, bonusLines, buybackPrice, isGear, itemName, sellValue, uniqueById,
+  type GearRoll, STACK_TIER_HINT, baseById, bonusLines, buybackPrice, gearFacts, isGear, itemAbout, itemName, sellValue, uniqueById,
 } from '@dark/engine';
 
 type BonusStats = GearRoll['bonusStats'];
@@ -29,6 +29,8 @@ export function toItemView(item: Item): ItemView {
       owners: null,
       art: null,
       worth: sellValue({ ...item, tier: 'common' }),
+      gear: null,
+      about: itemAbout(item.base),
     };
   }
 
@@ -66,6 +68,9 @@ export function toItemView(item: Item): ItemView {
     owners: known && Array.isArray(item.owners) ? (item.owners as string[]) : null,
     art: known ? (unique?.art ?? null) : null,
     worth: buybackPrice(roll),
+    // Unidentified: the base type at an average Quality, so Quality and Radiant stay secret.
+    gear: gearFacts(base, known ? item : { quality: null, upgrade: item.upgrade, radiant: false }),
+    about: null,
   };
 }
 

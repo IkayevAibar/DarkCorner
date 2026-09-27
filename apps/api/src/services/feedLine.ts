@@ -1,15 +1,11 @@
 import type { FeedEvent } from '@prisma/client';
 import type { LocalizedText, Tier } from '@dark/shared';
-import { KIN_NAMES, baseById, type MonsterKin, uniqueById, OMEN_DEFS, type OmenId } from '@dark/engine';
+import { KIN_NAMES, TIER_TEXT, baseById, type MonsterKin, uniqueById, OMEN_DEFS, type OmenId } from '@dark/engine';
 
 // How each Feed line reads, in both languages. It needs nothing but the engine's
 // content, so the Tavern, the Hall of Fame and the midnight recap can all use it.
 
-export const TIER_NAMES: Record<string, LocalizedText> = {
-  common: { en: 'Common', ru: 'обычный' }, uncommon: { en: 'Uncommon', ru: 'необычный' }, rare: { en: 'Rare', ru: 'редкий' },
-  epic: { en: 'Epic', ru: 'эпический' }, legendary: { en: 'Legendary', ru: 'легендарный' }, mythic: { en: 'Mythic', ru: 'мифический' },
-  relic: { en: 'Relic', ru: 'реликвия' },
-};
+export const TIER_NAMES: Record<string, LocalizedText> = TIER_TEXT;
 const GRADE_NAMES: Record<string, LocalizedText> = {
   iron: { en: 'an Iron', ru: 'железный' }, silver: { en: 'a Silver', ru: 'серебряный' }, gold: { en: 'a Gold', ru: 'золотой' },
 };

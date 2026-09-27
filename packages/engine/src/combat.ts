@@ -13,9 +13,8 @@ import { RACE_DEFS, type RaceId } from './content/races.js';
 import { DEFAULT_STANCE, STANCE_DEFS, type StanceId } from './content/stances.js';
 import type { TalentId } from './content/talents.js';
 import { type Edge, rollD20, rollDice, sum } from './dice.js';
-import { qualityFactor } from './items.js';
 import { type Rng, createRng } from './rng.js';
-import { UPGRADE_STEP, armorClass } from './stats.js';
+import { armorClass, gearFactor } from './stats.js';
 
 // ─── Levels ───────────────────────────────────────────────────────────────
 
@@ -121,7 +120,7 @@ export function heroCombat(input: {
   const weapon = weaponGear
     ? {
       base: baseById(weaponGear.base) as GearBase,
-      factor: qualityFactor(weaponGear.quality ?? 50) * (1 + UPGRADE_STEP * weaponGear.upgrade) * (weaponGear.radiant ? RADIANT_BOOST : 1),
+      factor: gearFactor(weaponGear),
     }
     : null;
 

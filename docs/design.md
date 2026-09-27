@@ -461,7 +461,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 
 ### What an item is made of
 
-- **Base:** the item type (e.g. longsword) and its item level, which comes from the Floor it dropped on. Together they set its base damage or armor.
+- **Base:** the item type (e.g. longsword) sets its base damage or armor. Its **item level** comes from the Floor it dropped on: it makes the Bonus stats bigger (+10% a level) and the price higher, and leaves base damage and armor as they are.
 - **Tier:** Common (gray), Uncommon (green), Rare (blue), Epic (purple), Legendary (orange), Mythic (red).
 - **Quality:** a 1–100% roll, evenly spread *(v0)*. It scales base damage or armor from 85% to 115%.
 - **Bonus stats:**
@@ -472,6 +472,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 - **Radiant:** 1 in 200 Items of any Tier *(v0)*. It glows and gets +10% to all its numbers.
 - **Upgrade level:** from +0 to +10. Each level adds +4% base damage or armor *(v0)*.
 - **Trading:** everything can be traded, including Relics and worn gear.
+- **The card says what it does:** gear shows its slot, its damage (dice, the range after Quality, Upgrades and Radiant, and the damage type) or its Armor Class, which Classes may wear it, and how it compares with what the Hero wears in that slot. A Wizard's or Cleric's card notes that spells ignore weapon dice. Stackables say what using one does: a potion's healing, a Chest's odds, what a Material pays for at the Forge.
 
 ### Relics
 
