@@ -213,7 +213,7 @@
      "en": "Goblin",
      "ru": "Гоблин"
     },
-    "art": "/art/tokens/goblin.png",
+    "art": "/art/tokens/goblin.webp",
     "hp": 11,
     "maxHp": 11,
     "ac": 12,
@@ -456,7 +456,7 @@
      "en": "Skeleton",
      "ru": "Скелет"
     },
-    "art": "/art/tokens/skeleton.png",
+    "art": "/art/tokens/skeleton.webp",
     "hp": 24,
     "maxHp": 24,
     "ac": 13,
@@ -473,7 +473,7 @@
      "en": "Skeleton",
      "ru": "Скелет"
     },
-    "art": "/art/tokens/skeleton.png",
+    "art": "/art/tokens/skeleton.webp",
     "hp": 24,
     "maxHp": 24,
     "ac": 13,
@@ -687,7 +687,7 @@
      "en": "Imp",
      "ru": "Бес"
     },
-    "art": "/art/tokens/imp.png",
+    "art": "/art/tokens/imp.webp",
     "hp": 32,
     "maxHp": 32,
     "ac": 13,
@@ -1101,7 +1101,7 @@
      "en": "Skeleton",
      "ru": "Скелет"
     },
-    "art": "/art/tokens/skeleton.png",
+    "art": "/art/tokens/skeleton.webp",
     "hp": 18,
     "maxHp": 18,
     "ac": 13,
@@ -1547,7 +1547,7 @@
      "en": "Skeleton",
      "ru": "Скелет"
     },
-    "art": "/art/tokens/skeleton.png",
+    "art": "/art/tokens/skeleton.webp",
     "hp": 24,
     "maxHp": 24,
     "ac": 13,
@@ -1739,7 +1739,7 @@
      "en": "The Ancient Dragon",
      "ru": "Древний дракон"
     },
-    "art": "/art/tokens/dragon.png",
+    "art": "/art/tokens/dragon.webp",
     "hp": 700,
     "maxHp": 700,
     "ac": 20,
@@ -3061,7 +3061,7 @@
      "en": "Imp",
      "ru": "Бес"
     },
-    "art": "/art/tokens/imp.png",
+    "art": "/art/tokens/imp.webp",
     "hp": 40,
     "maxHp": 40,
     "ac": 13,

@@ -16,7 +16,7 @@ Every fight shows its monsters as round tokens. Only the Goblin, Skeleton, Imp a
 
 ## Where
 
-- The four existing tokens to match: `apps/web/public/art/tokens/goblin.png`, `skeleton.png`, `imp.png`, `dragon.png`.
+- The four existing tokens to match: `apps/web/public/art/tokens/goblin.webp`, `skeleton.webp`, `imp.webp`, `dragon.webp` (sources: `art/look-test/monster-*.png` and `boss-dragon.png` on the `prototype/look-test` branch).
 - How they show: `apps/web/src/components/Token.tsx` crops a circle, full bleed, zoomed 1.08×, on a ring in the monster's color; fights show tokens at about 48–64 px, Mini-bosses larger. The Encounter panel (`screens/labyrinth/Labyrinth.tsx`, the Facing panel) shows them too.
 
 ## Done when
