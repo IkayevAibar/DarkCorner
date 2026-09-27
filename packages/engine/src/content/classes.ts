@@ -15,6 +15,8 @@ export interface ClassDef {
   hitDie: 6 | 8 | 10 | 12;
   /** The ability its attacks and spells lean on. */
   primary: Ability;
+  /** Saving throws it adds its proficiency bonus to (SRD). */
+  saves: [Ability, Ability];
   weapons: WeaponType[];
   offHands: OffHandType[];
   armor: ArmorType[];
@@ -30,6 +32,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     name: text('Fighter', 'Воин'),
     hitDie: 10,
     primary: 'str',
+    saves: ['str', 'con'],
     weapons: ['heavy', 'blade', 'dagger', 'bow', 'mace'],
     offHands: ['shield'],
     armor: ['heavy', 'medium', 'light'],
@@ -48,6 +51,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     name: text('Rogue', 'Плут'),
     hitDie: 8,
     primary: 'dex',
+    saves: ['dex', 'int'],
     weapons: ['blade', 'dagger', 'bow'],
     offHands: [],
     armor: ['light'],
@@ -66,6 +70,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     name: text('Wizard', 'Волшебник'),
     hitDie: 6,
     primary: 'int',
+    saves: ['int', 'wis'],
     weapons: ['dagger', 'staff'],
     offHands: ['orb'],
     armor: ['robes'],
@@ -78,6 +83,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     name: text('Cleric', 'Жрец'),
     hitDie: 8,
     primary: 'wis',
+    saves: ['wis', 'cha'],
     weapons: ['mace', 'staff'],
     offHands: ['shield', 'holy-symbol'],
     armor: ['medium', 'light', 'robes'],

@@ -180,8 +180,9 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[content.tier, 1]], source: 'three-chests' }, out);
       } else {
         out.notices.push(t('The chest opens its teeth. A mimic!', 'Сундук раскрывает пасть. Мимик!'));
+        // It bites before the Hero can draw.
         await fight(tx, hero, season, floor, room, 'fight', out, {
-          monsters: [instantiate(monsterById('mimic'), floor.number, 'm0')], bonusDrops: 1, clears: false,
+          monsters: [instantiate(monsterById('mimic'), floor.number, 'm0')], bonusDrops: 1, clears: false, surprise: 'hero',
         });
       }
       return;

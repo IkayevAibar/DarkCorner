@@ -1,53 +1,89 @@
 /**
- * Fight balance table: a fresh Hero of each Class at level = Floor, one fight
- * against that Floor's monsters, many times over, in one Stance (Steady unless
- * named). Run: npm run balance:fights -w @dark/engine [-- bold|steady|wary]
+ * Fight balance tables, many fights each, in one Stance (Steady unless named):
+ * - a fresh Hero of each Class at level = Floor in its Starter kit, against that Floor's fight Rooms;
+ * - Mini-bosses with their escorts, against a Hero a level up in decent gear;
+ * - the Dragon at full strength and weakened, against level 18–20 Heroes in endgame gear.
+ * Run: npm run balance:fights -w @dark/engine [-- bold|steady|wary]
  * Tune monsters (content/monsters.ts) until early Floors are forgiving and deep ones bite.
  */
 import {
-  CLASS_DEFS, type ClassId, STANCES, type StanceId, createRng, heroCombat, restUses, simulateFight, spawnEncounter, startingHealth,
+  CLASS_DEFS, type ClassId, type HeroCombat, type MonsterInstance, STANCES, type StanceId, createRng, heroCombat, restUses, simulateFight,
+  spawnEncounter, startingHealth,
 } from '../src/index.js';
 
 const stance = (process.argv[2] ?? 'steady') as StanceId;
 if (!STANCES.includes(stance)) throw new Error(`unknown Stance "${stance}": use ${STANCES.join(', ')}`);
+const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric'] as const;
 
-function starter(cls: ClassId, level: number) {
+type Gear = 'starter' | 'decent' | 'endgame';
+
+/** A Hero of a Class and level: its Starter kit, or the same bases better rolled, upgraded and with Bonus stats. */
+function hero(cls: ClassId, level: number, gear: Gear = 'starter'): HeroCombat {
   const primary = CLASS_DEFS[cls].primary;
-  const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, [primary]: 16 };
+  const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, [primary]: gear === 'endgame' ? 20 : 16 };
   const perLevel = Math.ceil(CLASS_DEFS[cls].hitDie / 2) + 1 + 2 + 2;
   const hp = startingHealth(cls, 'human', ['alert', 'tough'], scores.con) + (level - 1) * perLevel;
-  const worn = CLASS_DEFS[cls].starterKit.map((base) => ({ base, quality: 50, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }));
+  const rolled = {
+    starter: { quality: 50, upgrade: 0, bonusStats: [] },
+    decent: { quality: 70, upgrade: 3, bonusStats: [{ stat: 'damage', value: 12 }, { stat: 'spellPower', value: 12 }, { stat: 'maxHp', value: 20 }, { stat: 'armor', value: 1 }, { stat: 'crit', value: 3 }] },
+    endgame: { quality: 90, upgrade: 7, bonusStats: [{ stat: 'damage', value: 40 }, { stat: 'spellPower', value: 40 }, { stat: 'maxHp', value: 90 }, { stat: 'armor', value: 4 }, { stat: 'crit', value: 10 }, { stat: 'con', value: 4 }] },
+  }[gear];
+  const worn = CLASS_DEFS[cls].starterKit.map((base, i) => ({
+    base, quality: rolled.quality, upgrade: rolled.upgrade, radiant: false, bonusStats: i === 0 ? rolled.bonusStats : [], uniqueId: null,
+  }));
   return heroCombat({ name: 'T', class: cls, race: 'human', level, talents: ['alert', 'tough'], scores, maxHp: hp, hp, worn });
 }
 
-const N = 1500;
-console.log(`Stance: ${stance}`);
-for (let floor = 1; floor <= 9; floor++) {
+const pct = (x: number, n: number) => `${Math.round((100 * x) / n)}%`.padStart(4);
+
+/** Runs `n` fights and prints one cell per Class. */
+function row(label: string, n: number, make: (cls: ClassId, i: number) => { hero: HeroCombat; monsters: MonsterInstance[]; potions: number }) {
   const cells: string[] = [];
-  for (const cls of ['fighter', 'rogue', 'wizard', 'cleric'] as const) {
+  for (const cls of CLASSES) {
     let wins = 0;
     let dead = 0;
     let away = 0;
     let hpLeft = 0;
-    for (let i = 0; i < N; i++) {
-      const hero = starter(cls, floor);
-      const r = simulateFight(createRng(`${cls}-${floor}-${i}`), {
-        hero,
-        monsters: spawnEncounter(createRng(`spawn-${cls}-${floor}-${i}`), floor, 'fight'),
-        uses: restUses(cls, floor),
-        potions: 1,
-        runPowers: { deathless: false, lucky: false },
-        stance,
+    for (let i = 0; i < n; i++) {
+      const { hero: h, monsters, potions } = make(cls, i);
+      const r = simulateFight(createRng(`${label}-${cls}-${i}`), {
+        hero: h, monsters, uses: restUses(cls, h.level), potions, runPowers: { deathless: false, lucky: false }, stance,
       });
       if (r.outcome === 'victory') {
         wins++;
-        hpLeft += r.hp / hero.maxHp;
+        hpLeft += r.hp / h.maxHp;
       }
       if (r.outcome === 'dead') dead++;
       if (r.outcome === 'escaped') away++;
     }
-    const pct = (x: number) => `${Math.round((100 * x) / N)}%`.padStart(4);
-    cells.push(`${cls.padEnd(7)} win ${pct(wins)} ran ${pct(away)} dead ${pct(dead)} hp ${Math.round((100 * hpLeft) / Math.max(1, wins))}%`);
+    cells.push(`${cls.padEnd(7)} win ${pct(wins, n)} ran ${pct(away, n)} dead ${pct(dead, n)} hp ${Math.round((100 * hpLeft) / Math.max(1, wins))}%`);
   }
-  console.log(`floor ${floor} (lv ${floor}):  ${cells.join(' | ')}`);
+  console.log(`${label.padEnd(22)} ${cells.join(' | ')}`);
+}
+
+console.log(`Stance: ${stance}\n\nFight Rooms, level = Floor, Starter kit, 1 potion`);
+for (let floor = 1; floor <= 9; floor++) {
+  row(`floor ${floor} (lv ${floor})`, 1500, (cls, i) => ({
+    hero: hero(cls, floor),
+    monsters: spawnEncounter(createRng(`spawn-${cls}-${floor}-${i}`), floor, 'fight'),
+    potions: 1,
+  }));
+}
+
+console.log('\nMini-bosses and escorts, a level up, decent gear, 3 potions');
+for (const floor of [2, 3, 5, 6, 8, 9]) {
+  row(`miniboss F${floor} (lv ${floor + 1})`, 600, (cls) => ({
+    hero: hero(cls, floor + 1, 'decent'),
+    monsters: spawnEncounter(createRng('miniboss'), floor, 'miniboss'),
+    potions: 3,
+  }));
+}
+
+console.log('\nThe Dragon, endgame gear, 5 potions');
+for (const [level, weakening] of [[18, 0], [20, 0], [20, 0.2], [20, 0.4]] as const) {
+  row(`dragon lv ${level} −${Math.round(weakening * 100)}%`, 400, (cls) => ({
+    hero: hero(cls, level, 'endgame'),
+    monsters: spawnEncounter(createRng('boss'), 10, 'boss', weakening),
+    potions: 5,
+  }));
 }

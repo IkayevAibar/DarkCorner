@@ -16,6 +16,21 @@ export type Direction = z.infer<typeof directionSchema>;
 // Mirrors FightEvent in packages/engine/src/combat.ts; the API validates every
 // replay against this before sending it, so the two cannot drift silently.
 
+/** Monster signatures (engine: content/monsters.ts). */
+export const MONSTER_POWERS = [
+  'pack', 'quick', 'thief', 'brittle', 'paralyze', 'undying', 'drain', 'mend', 'burn', 'breath', 'multiattack', 'frighten', 'enrage',
+] as const;
+export const monsterPowerSchema = z.enum(MONSTER_POWERS);
+export type MonsterPowerView = z.infer<typeof monsterPowerSchema>;
+
+/** Elite gifts: one monster of a group may carry one, from Floor 2 down. */
+export const ELITES = ['gilded', 'frenzied', 'armored', 'vampiric', 'swift'] as const;
+export const eliteSchema = z.enum(ELITES);
+export type Elite = z.infer<typeof eliteSchema>;
+
+export const STATUSES = ['burning', 'paralyzed', 'frightened'] as const;
+export const statusSchema = z.enum(STATUSES);
+
 export const combatantSchema = z.object({
   /** "hero", or "m0", "m1", … for monsters. */
   key: z.string(),
@@ -28,6 +43,10 @@ export const combatantSchema = z.object({
   boss: z.boolean(),
   /** A Hero's banner color, for its token ring; null for monsters. */
   banner: z.string().nullable(),
+  /** A monster's elite gift, if it has one. */
+  elite: eliteSchema.nullable(),
+  /** A monster's powers, elite ones included; empty for a Hero. */
+  powers: z.array(monsterPowerSchema),
 });
 export type Combatant = z.infer<typeof combatantSchema>;
 
@@ -52,6 +71,23 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     type: z.literal('heal'), actor: z.string(), ability: z.enum(['second-wind', 'cure-wounds', 'potion', 'life-steal']),
     amount: z.number().int(), hp: z.number().int(),
   }),
+  /** A monster's power at work: `amount` is gold stolen, health restored or damage dealt; `hp` the target's health after. */
+  z.object({
+    type: z.literal('power'), actor: z.string(), power: monsterPowerSchema,
+    target: z.string().optional(), amount: z.number().int().optional(), hp: z.number().int().optional(),
+  }),
+  /** A saving throw the Hero makes against a monster's power. */
+  z.object({
+    type: z.literal('save'), ability: z.enum(['str', 'dex', 'con', 'int', 'wis', 'cha']), natural: z.number().int(), total: z.number().int(),
+    dc: z.number().int(), success: z.boolean(),
+  }),
+  z.object({ type: z.literal('status'), target: z.string(), status: statusSchema, turns: z.number().int() }),
+  /** Burning damage at the start of a turn. */
+  z.object({ type: z.literal('tick'), target: z.string(), damage: z.number().int(), hp: z.number().int() }),
+  /** Paralyzed: the turn is lost. */
+  z.object({ type: z.literal('held'), target: z.string() }),
+  /** A monster runs off, a thief with what it stole. */
+  z.object({ type: z.literal('fled'), key: z.string() }),
   z.object({ type: z.literal('defeated'), key: z.string() }),
   z.object({ type: z.literal('down') }),
   z.object({ type: z.literal('death-save'), natural: z.number().int(), successes: z.number().int(), failures: z.number().int() }),

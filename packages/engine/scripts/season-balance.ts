@@ -8,11 +8,13 @@
  *
  * The Player model is rough on purpose (v0): ~50 Moves a day, a third of them
  * back through Rooms already cleared, going one Floor deeper every 3 days, and
- * opening half the Chests found. Relics come from Vaults and aren't modeled.
+ * opening half the Chests found. Every fight is fought (Sneaking past and Retreating
+ * would only lower the numbers), and an elite in the group drops one more Item.
+ * Relics come from Vaults and aren't modeled.
  */
 import {
-  BAD_LUCK_MAX, BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ChestGrade, LOOT, type Rng, type Tier, createRng, dropOdds,
-  rollChestGrade, rollChestTier, rollLootTier, tierRank,
+  BAD_LUCK_MAX, BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ChestGrade, ELITE_CHANCE, LOOT, type Rng, type Tier, createRng, dropOdds,
+  rollChestGrade, rollChestTier, rollLootTier, themeOf, tierRank,
 } from '../src/index.js';
 
 const PLAYERS = 10;
@@ -66,6 +68,7 @@ function simulatePlayer(rng: Rng): Tally {
       if (r < FIGHT) {
         badLuck = Math.min(BAD_LUCK_MAX, badLuck + BAD_LUCK_PER_FIGHT);
         if (rng.chance(LOOT.fightDrop)) drop(floor);
+        if (floor >= 2 && rng.chance(ELITE_CHANCE[themeOf(floor)])) drop(floor);
       } else if (r < FIGHT + TREASURE) {
         const items = weighted(rng, LOOT.treasureItems);
         for (let i = 0; i < items; i++) drop(floor);

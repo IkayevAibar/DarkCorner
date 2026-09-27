@@ -24,6 +24,8 @@ export interface GearBase extends BaseCommon {
   armor?: ArmorType;
   /** Weapon damage: [dice, sides]. */
   damage?: [number, number];
+  /** How a weapon wounds: some monsters shrug off one kind and break under another. */
+  hits?: 'slash' | 'pierce' | 'bludgeon';
   /** Armor Class this piece gives (body armor: its base AC). */
   ac?: number;
   /** Body armor: how much DEX modifier still counts (Infinity = all of it). */
@@ -42,20 +44,20 @@ const stack = (b: StackBase): StackBase => b;
 
 export const BASES: ItemBase[] = [
   // Weapons
-  gear({ id: 'greatsword', name: text('Greatsword', 'Двуручный меч'), icon: 'sword', slot: 'main', weapon: 'heavy', damage: [2, 6] }),
-  gear({ id: 'greataxe', name: text('Greataxe', 'Секира'), icon: 'axe', slot: 'main', weapon: 'heavy', damage: [1, 12] }),
-  gear({ id: 'maul', name: text('Maul', 'Двуручный молот'), icon: 'mace', slot: 'main', weapon: 'heavy', damage: [2, 6] }),
-  gear({ id: 'longsword', name: text('Longsword', 'Длинный меч'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8] }),
-  gear({ id: 'saber', name: text('Saber', 'Сабля'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8] }),
-  gear({ id: 'rapier', name: text('Rapier', 'Рапира'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8] }),
-  gear({ id: 'dagger', name: text('Dagger', 'Кинжал'), icon: 'dagger', slot: 'main', weapon: 'dagger', damage: [1, 4] }),
-  gear({ id: 'shortbow', name: text('Shortbow', 'Короткий лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 6] }),
-  gear({ id: 'longbow', name: text('Longbow', 'Длинный лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 8] }),
-  gear({ id: 'crossbow', name: text('Crossbow', 'Арбалет'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 10] }),
-  gear({ id: 'mace', name: text('Mace', 'Булава'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 6] }),
-  gear({ id: 'warhammer', name: text('Warhammer', 'Боевой молот'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 8] }),
-  gear({ id: 'staff', name: text('Staff', 'Посох'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 6] }),
-  gear({ id: 'wand', name: text('Wand', 'Жезл'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 4] }),
+  gear({ id: 'greatsword', name: text('Greatsword', 'Двуручный меч'), icon: 'sword', slot: 'main', weapon: 'heavy', damage: [2, 6], hits: 'slash' }),
+  gear({ id: 'greataxe', name: text('Greataxe', 'Секира'), icon: 'axe', slot: 'main', weapon: 'heavy', damage: [1, 12], hits: 'slash' }),
+  gear({ id: 'maul', name: text('Maul', 'Двуручный молот'), icon: 'mace', slot: 'main', weapon: 'heavy', damage: [2, 6], hits: 'bludgeon' }),
+  gear({ id: 'longsword', name: text('Longsword', 'Длинный меч'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8], hits: 'slash' }),
+  gear({ id: 'saber', name: text('Saber', 'Сабля'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8], hits: 'slash' }),
+  gear({ id: 'rapier', name: text('Rapier', 'Рапира'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8], hits: 'pierce' }),
+  gear({ id: 'dagger', name: text('Dagger', 'Кинжал'), icon: 'dagger', slot: 'main', weapon: 'dagger', damage: [1, 4], hits: 'pierce' }),
+  gear({ id: 'shortbow', name: text('Shortbow', 'Короткий лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 6], hits: 'pierce' }),
+  gear({ id: 'longbow', name: text('Longbow', 'Длинный лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 8], hits: 'pierce' }),
+  gear({ id: 'crossbow', name: text('Crossbow', 'Арбалет'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 10], hits: 'pierce' }),
+  gear({ id: 'mace', name: text('Mace', 'Булава'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 6], hits: 'bludgeon' }),
+  gear({ id: 'warhammer', name: text('Warhammer', 'Боевой молот'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 8], hits: 'bludgeon' }),
+  gear({ id: 'staff', name: text('Staff', 'Посох'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 6], hits: 'bludgeon' }),
+  gear({ id: 'wand', name: text('Wand', 'Жезл'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 4], hits: 'bludgeon' }),
 
   // Off-hands
   gear({ id: 'shield', name: text('Shield', 'Щит'), icon: 'shield', slot: 'off', offHand: 'shield', ac: 2 }),

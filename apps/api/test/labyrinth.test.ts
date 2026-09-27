@@ -1,9 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { type Floor, doorsOf, generateLabyrinth } from '@dark/engine';
+import { type Floor, doorsOf, generateLabyrinth, instantiate, monsterById } from '@dark/engine';
 import { labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
+import { emptyOutcome, fight } from '../src/services/fights.js';
+import { lockHero } from '../src/services/ledger.js';
 import { devLogin, resetDatabase } from './helpers.js';
 
 let app: FastifyInstance;
@@ -182,6 +184,29 @@ describe('the Labyrinth', () => {
     expect(smoked.checks).toHaveLength(0);
     expect(smoked.view.room?.facing ?? null).toBeNull();
     expect(smoked.view.hero.bombs).toEqual({ fire: 1, smoke: 0 });
+  });
+
+  it('loses carried gold for good to a thief that gets away', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999 } });
+    const player = await prisma.player.findFirstOrThrow();
+    const season = await prisma.season.findFirstOrThrow();
+    let stolen = 0;
+    for (let i = 0; i < 40 && stolen === 0; i++) {
+      await prisma.hero.updateMany({ data: { carriedGold: 100 } });
+      const out = emptyOutcome();
+      await prisma.$transaction(async (tx) => {
+        const h = await lockHero(tx, player, season.id);
+        await fight(tx, h, season, floor1, fightNextToLanding, 'fight', out, { monsters: [instantiate(monsterById('goblin-cutpurse'), 1, 'm0')], clears: false });
+      });
+      const fled = out.fight!.events.some((e) => e.type === 'fled');
+      if (fled) {
+        stolen = out.fight!.events.flatMap((e) => (e.type === 'power' && e.power === 'thief' ? [e.amount ?? 0] : []))[0]!;
+        expect(out.notices.some((n) => n.en.includes(`${stolen}`))).toBe(true);
+      }
+    }
+    expect(stolen).toBeGreaterThan(0);
+    expect((await hero()).carriedGold).toBe(100 - stolen);
   });
 
   it('keeps the Stance the Player picks, and rates the Threat for each', async () => {

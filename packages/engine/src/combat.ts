@@ -4,11 +4,13 @@ import { type GearBase, baseById, isGear } from './content/bases.js';
 import { CLASS_DEFS, type ClassId } from './content/classes.js';
 import { type ThemeId, themeOf } from './content/floors.js';
 import { RADIANT_BOOST } from './content/loot.js';
-import { type MonsterDef, MONSTERS, monsterById } from './content/monsters.js';
+import {
+  ELITE_CHANCE, ELITE_HP, ELITES, type EliteId, GILDED_HP, type MonsterDef, type MonsterPower, type MonsterPowerId, MONSTERS, monsterById,
+} from './content/monsters.js';
 import { RACE_DEFS, type RaceId } from './content/races.js';
 import { DEFAULT_STANCE, STANCE_DEFS, type StanceId } from './content/stances.js';
 import type { TalentId } from './content/talents.js';
-import { rollD20, rollDice, sum } from './dice.js';
+import { type Edge, rollD20, rollDice, sum } from './dice.js';
 import { qualityFactor } from './items.js';
 import { type Rng, createRng } from './rng.js';
 import { UPGRADE_STEP, armorClass } from './stats.js';
@@ -138,37 +140,62 @@ export interface MonsterInstance {
   damage: [number, number, number];
   dex: number;
   xp: number;
-  /** A weakened Boss hits softer (1 = full strength). */
+  /** A weakened Boss hits softer and a Frenzied elite harder (1 = as written). */
   damageFactor: number;
+  /** Floors below where its theme starts: its save DCs grow by 1 for every two. */
+  depth: number;
+  elite: EliteId | null;
+  /** Its own powers plus whatever its elite gift adds. */
+  powers: MonsterPower[];
 }
 
 const THEME_START: Record<ThemeId, number> = { warrens: 1, crypts: 4, depths: 7, lair: 10 };
 
-/** A monster scaled to its Floor: each Floor deeper into a theme adds 15% health and +1 to hit and damage. */
-export function instantiate(def: MonsterDef, floor: number, key: string, weakening = 0): MonsterInstance {
+/**
+ * A monster scaled to its Floor: each Floor deeper into a theme adds 15% health
+ * and +1 to hit and damage. An elite gift toughens it further (content/monsters.ts).
+ */
+export function instantiate(def: MonsterDef, floor: number, key: string, weakening = 0, elite: EliteId | null = null): MonsterInstance {
   const depth = Math.max(0, floor - THEME_START[def.theme]);
-  const hp = Math.round(def.hp * (1 + 0.15 * depth) * (1 - weakening));
+  const toughness = elite === 'gilded' ? GILDED_HP : elite ? ELITE_HP : 1;
+  const hp = Math.round(def.hp * (1 + 0.15 * depth) * (1 - weakening) * toughness);
+  const powers = [...(def.powers ?? [])];
+  if (elite === 'vampiric' && !powers.some((p) => p.id === 'drain')) powers.push({ id: 'drain' });
+  if (elite === 'swift') {
+    const multi = powers.find((p) => p.id === 'multiattack');
+    if (multi?.id === 'multiattack') powers.splice(powers.indexOf(multi), 1, { id: 'multiattack', attacks: multi.attacks + 1 });
+    else powers.push({ id: 'multiattack', attacks: 2 });
+    if (!powers.some((p) => p.id === 'quick')) powers.push({ id: 'quick' });
+  }
   return {
     key,
     id: def.id,
     hp,
     maxHp: hp,
-    ac: def.ac,
+    ac: def.ac + (elite === 'armored' ? 3 : 0),
     attack: def.attack + depth,
     damage: [def.damage[0], def.damage[1], def.damage[2] + depth],
     dex: def.dex,
-    xp: Math.round(def.xp * (1 + 0.1 * depth)),
-    damageFactor: 1 - weakening,
+    xp: Math.round(def.xp * (1 + 0.1 * depth) * (elite ? 2 : 1)),
+    damageFactor: (1 - weakening) * (elite === 'frenzied' ? 1.5 : 1),
+    depth,
+    elite,
+    powers,
   };
 }
 
-/** The group waiting in a fight Room: 1–2 monsters on Floor 1, up to 3 deeper down, at most one brute. */
+/**
+ * Who waits in a Room. A fight Room holds 1–2 monsters on Floor 1 and up to 3
+ * deeper down, at most one of them a brute; from Floor 2 its strongest may be an
+ * elite. A Mini-boss or the Boss comes with its escort.
+ */
 export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss' | 'boss', weakening = 0): MonsterInstance[] {
   const theme = themeOf(floor);
   if (kind !== 'fight') {
     const def = MONSTERS.find((d) => d.theme === theme && d.role === kind);
     if (!def) throw new Error(`no ${kind} for theme ${theme}`);
-    return [instantiate(def, floor, 'm0', kind === 'boss' ? weakening : 0)];
+    const leader = instantiate(def, floor, 'm0', kind === 'boss' ? weakening : 0);
+    return [leader, ...(def.escort ?? []).map((id, i) => instantiate(monsterById(id), floor, `m${i + 1}`))];
   }
   const sizes: [number, number][] = floor === 1 ? [[1, 70], [2, 30]] : floor === 2 ? [[1, 40], [2, 50], [3, 10]] : [[1, 30], [2, 50], [3, 20]];
   let r = rng.next() * 100;
@@ -184,6 +211,10 @@ export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'minibos
     if (def.role === 'brute') brutes++;
     out.push(instantiate(def, floor, `m${i}`));
   }
+  if (floor >= 2 && rng.chance(ELITE_CHANCE[theme])) {
+    const strongest = out.reduce((a, b) => (b.maxHp > a.maxHp ? b : a));
+    out[out.indexOf(strongest)] = instantiate(monsterById(strongest.id), floor, strongest.key, 0, rng.pick([...ELITES]));
+  }
   return out;
 }
 
@@ -191,6 +222,9 @@ export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'minibos
 
 /** Escaped: an Escape roll got the Hero out; like surviving, it ends back in the last safe Room. */
 export type FightOutcome = 'victory' | 'survived' | 'escaped' | 'dead';
+
+/** Lasting effects: burning hurts each turn, paralyzed loses a turn, frightened attacks with disadvantage. */
+export type StatusId = 'burning' | 'paralyzed' | 'frightened';
 
 export type FightEvent =
   | { type: 'initiative'; order: string[] }
@@ -200,6 +234,20 @@ export type FightEvent =
   | { type: 'blocked'; actor: string }
   | { type: 'burst'; actor: string; source: 'spell' | 'bomb'; targets: { key: string; damage: number; hp: number }[] }
   | { type: 'heal'; actor: string; ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal'; amount: number; hp: number }
+  /**
+   * A monster's power at work. `amount` is gold stolen (thief), health restored
+   * (mend, drain) or damage dealt (breath); `hp` is the target's health after it.
+   */
+  | { type: 'power'; actor: string; power: MonsterPowerId; target?: string; amount?: number; hp?: number }
+  /** A saving throw the Hero makes against a monster's power. */
+  | { type: 'save'; ability: Ability; natural: number; total: number; dc: number; success: boolean }
+  | { type: 'status'; target: string; status: StatusId; turns: number }
+  /** Burning damage at the start of a turn. */
+  | { type: 'tick'; target: string; damage: number; hp: number }
+  /** Paralyzed: the turn is lost. */
+  | { type: 'held'; target: string }
+  /** A monster runs off, a thief with what it stole. */
+  | { type: 'fled'; key: string }
   | { type: 'defeated'; key: string }
   | { type: 'down' }
   | { type: 'death-save'; natural: number; successes: number; failures: number }
@@ -223,6 +271,8 @@ export interface FightInput {
   surprise?: 'hero' | 'monsters' | null;
   /** A Fire bomb thrown before the first round: one roll that every monster takes. */
   bomb?: { dice: number; sides: number; bonus: number } | null;
+  /** Gold the Hero carries, for thieves to steal. */
+  gold?: number;
 }
 
 export interface FightResult {
@@ -234,10 +284,25 @@ export interface FightResult {
   xp: number;
   defeated: string[];
   runPowers: { deathless: boolean; lucky: boolean };
+  /** Carried gold that ran off with a thief. */
+  goldStolen: number;
 }
 
 const DEATH_SAVE_DC = 10;
 const ROUND_LIMIT = 60;
+/** Ember Fang: a critical hit leaves the enemy burning (v0). */
+const EMBER_BURN = { turns: 3, dice: [1, 6] as [number, number] };
+
+/** Advantage and disadvantage cancel out, as in the SRD. */
+function combine(a: Edge, b: Edge): Edge {
+  if (a === 'normal') return b;
+  if (b === 'normal' || a === b) return a;
+  return 'normal';
+}
+
+function powerOf<P extends MonsterPowerId>(mm: MonsterInstance, id: P): Extract<MonsterPower, { id: P }> | null {
+  return (mm.powers.find((p) => p.id === id) as Extract<MonsterPower, { id: P }> | undefined) ?? null;
+}
 
 /**
  * Plays out a whole fight on the server. The web never rolls: it replays
@@ -251,8 +316,10 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const runPowers = { ...input.runPowers };
   const events: FightEvent[] = [];
   const defeated: string[] = [];
+  const fled = new Set<string>();
   let potions = input.potions;
   let potionsUsed = 0;
+  let goldLeft = input.gold ?? 0;
   let secondWind = hero.class === 'fighter';
   let sneakReady = hero.class === 'rogue';
   let firstHitCrit = hero.uniques.includes('gravewhisper');
@@ -271,33 +338,91 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const caster = hero.class === 'wizard' || hero.class === 'cleric';
   const attackAbility: Ability = caster ? cls.primary : hero.weapon?.base.weapon === 'bow' || hero.class === 'rogue' ? 'dex' : 'str';
   const critFrom = Math.max(18, 20 - Math.floor(hero.critChance / 5));
-  const alive = () => mons.filter((mm) => mm.hp > 0);
+
+  // What lasts between turns.
+  const burning = new Map<string, { turns: number; dice: [number, number] }>();
+  let held = 0;
+  let frightened = 0;
+  const stolen = new Map<string, number>();
+  const breathReady = new Set(mons.filter((mm) => powerOf(mm, 'breath')).map((mm) => mm.key));
+  const mended = new Set<string>();
+  const stoodUp = new Set<string>();
+  const enraged = new Set<string>();
+  let escaped = false;
+
+  const alive = () => mons.filter((mm) => mm.hp > 0 && !fled.has(mm.key));
   const markDefeated = () => {
     for (const mm of mons) {
       if (mm.hp <= 0 && !defeated.includes(mm.key)) {
         defeated.push(mm.key);
+        stolen.delete(mm.key);
         events.push({ type: 'defeated', key: mm.key });
       }
     }
   };
-  let escaped = false;
+  const heroSave = (ability: Ability, dc: number) => {
+    const result = check(rng, { modifier: mod(ability) + (cls.saves.includes(ability) ? prof : 0), dc, rerollOnes });
+    events.push({ type: 'save', ability, natural: result.roll.natural, total: result.total, dc, success: result.success });
+    return result.success;
+  };
+  const dcOf = (mm: MonsterInstance, dc: number) => dc + Math.floor(mm.depth / 2);
+  const hurtHero = (damage: number) => {
+    hero.hp = Math.max(0, hero.hp - damage);
+    if (hero.hp === 0 && runPowers.deathless && hero.uniques.includes('deathless-mail')) {
+      runPowers.deathless = false;
+      hero.hp = 1;
+    }
+  };
+  /**
+   * Damage to a monster: an undying one may stay up at 1 health once, and one
+   * that enrages does so the first time it drops below half. Returns the events
+   * to add after the blow itself.
+   */
+  const wound = (mm: MonsterInstance, damage: number, crit: boolean): FightEvent[] => {
+    const after: FightEvent[] = [];
+    mm.hp = Math.max(0, mm.hp - damage);
+    if (mm.hp === 0 && !crit && powerOf(mm, 'undying') && !stoodUp.has(mm.key) && rng.chance(0.5)) {
+      stoodUp.add(mm.key);
+      mm.hp = 1;
+      after.push({ type: 'power', actor: mm.key, power: 'undying', hp: 1 });
+    }
+    if (mm.hp > 0 && mm.hp < mm.maxHp / 2 && powerOf(mm, 'enrage') && !enraged.has(mm.key)) {
+      enraged.add(mm.key);
+      mm.ac += 2;
+      mm.attack += 1;
+      if (powerOf(mm, 'breath')) breathReady.add(mm.key);
+      after.push({ type: 'power', actor: mm.key, power: 'enrage' });
+    }
+    return after;
+  };
 
-  // Initiative. Rogues strike first: they roll it with advantage.
+  // Initiative. Rogues strike first: they roll it with advantage. Quick monsters add 5.
   const init = new Map<string, number>();
   const heroInit = rollD20(rng, { rerollOnes, edge: hero.class === 'rogue' ? 'advantage' : 'normal' }).natural;
   init.set('hero', hero.uniques.includes('wardens-longbow') ? 99 : heroInit + mod('dex') + (hero.talents.includes('alert') ? 5 : 0));
-  for (const mm of mons) init.set(mm.key, rollD20(rng).natural + abilityModifier(mm.dex));
+  for (const mm of mons) init.set(mm.key, rollD20(rng).natural + abilityModifier(mm.dex) + (powerOf(mm, 'quick') ? 5 : 0));
   const order = [...init.entries()].sort((p, q) => q[1] - p[1]).map(([k]) => k);
   events.push({ type: 'initiative', order });
   if (input.surprise) events.push({ type: 'surprise', side: input.surprise });
   if (input.bomb) {
     const damage = sum(rollDice(rng, input.bomb.dice, input.bomb.sides)) + input.bomb.bonus;
+    const after: FightEvent[] = [];
     const targets = mons.map((mm) => {
-      mm.hp = Math.max(0, mm.hp - damage);
+      after.push(...wound(mm, damage, false));
       return { key: mm.key, damage, hp: mm.hp };
     });
-    events.push({ type: 'burst', actor: 'hero', source: 'bomb', targets });
+    events.push({ type: 'burst', actor: 'hero', source: 'bomb', targets }, ...after);
     markDefeated();
+  }
+  // Fear comes before the first blow: the most fearsome monster only.
+  const dread = alive().find((mm) => powerOf(mm, 'frighten'));
+  if (dread) {
+    const fear = powerOf(dread, 'frighten')!;
+    events.push({ type: 'power', actor: dread.key, power: 'frighten', target: 'hero' });
+    if (!heroSave('wis', dcOf(dread, fear.dc))) {
+      frightened = fear.rounds;
+      events.push({ type: 'status', target: 'hero', status: 'frightened', turns: fear.rounds });
+    }
   }
 
   const heal = (ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal', amount: number) => {
@@ -311,8 +436,9 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const heroAttack = () => {
     const targets = alive();
     if (targets.length === 0) return;
-    const target = targets.reduce((a, b) => (b.hp < a.hp ? b : a));
-    const roll = rollD20(rng, { edge: stance.attackEdge, rerollOnes });
+    // A thief running with gold first; otherwise whoever is closest to falling.
+    const target = targets.find((mm) => (stolen.get(mm.key) ?? 0) > 0) ?? targets.reduce((a, b) => (b.hp < a.hp ? b : a));
+    const roll = rollD20(rng, { edge: combine(stance.attackEdge, frightened > 0 ? 'disadvantage' : 'normal'), rerollOnes });
     const total = roll.natural + prof + mod(attackAbility) + stance.toHit;
     let crit = roll.natural >= critFrom;
     let hit = crit || (roll.natural !== 1 && total >= target.ac);
@@ -326,6 +452,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       firstHitCrit = false;
     }
     let damage = 0;
+    let after: FightEvent[] = [];
     if (hit) {
       const targetDef = monsterById(target.id);
       if (caster) {
@@ -346,21 +473,30 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
           damage += sum(rollDice(rng, crit ? sneak * 2 : sneak, 6));
           sneakReady = false;
         }
+        // Bones break under blunt weapons, and arrows and points slip between them.
+        if (powerOf(target, 'brittle')) {
+          const hits = hero.weapon?.base.hits ?? 'bludgeon';
+          damage *= hits === 'bludgeon' ? 1.5 : hits === 'pierce' ? 0.75 : 1;
+        }
       }
       damage *= 1 + hero.damagePct / 100;
       if (hero.uniques.includes('oathbreaker') && hero.hp < hero.maxHp / 2) damage *= 1.5;
       if (hero.uniques.includes('dragonbone-blade') && targetDef.kin === 'dragonkin') damage *= 2;
-      if (crit && hero.uniques.includes('ember-fang')) damage += sum(rollDice(rng, 2, 6));
       damage = Math.max(1, Math.round(damage));
-      target.hp = Math.max(0, target.hp - damage);
+      after = wound(target, damage, crit);
     }
-    events.push({ type: 'attack', actor: 'hero', target: target.key, natural: roll.natural, total, hit, crit, damage, targetHp: target.hp, kind: caster ? 'spell' : 'weapon' });
+    events.push({ type: 'attack', actor: 'hero', target: target.key, natural: roll.natural, total, hit, crit, damage, targetHp: target.hp, kind: caster ? 'spell' : 'weapon' }, ...after);
+    if (hit && crit && hero.uniques.includes('ember-fang') && target.hp > 0) {
+      burning.set(target.key, { ...EMBER_BURN });
+      events.push({ type: 'status', target: target.key, status: 'burning', turns: EMBER_BURN.turns });
+    }
     if (hit && hero.lifeSteal > 0) heal('life-steal', (damage * hero.lifeSteal) / 100);
     if (hit && crit && hero.uniques.includes('wyrmfire')) {
       for (const other of alive()) {
         if (other === target) continue;
-        other.hp = Math.max(0, other.hp - Math.round(damage / 2));
-        events.push({ type: 'attack', actor: 'hero', target: other.key, natural: roll.natural, total, hit: true, crit: false, damage: Math.round(damage / 2), targetHp: other.hp, kind: 'weapon' });
+        const splash = Math.round(damage / 2);
+        const more = wound(other, splash, false);
+        events.push({ type: 'attack', actor: 'hero', target: other.key, natural: roll.natural, total, hit: true, crit: false, damage: splash, targetHp: other.hp, kind: 'weapon' }, ...more);
       }
     }
     markDefeated();
@@ -394,12 +530,13 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     if (hero.class === 'wizard' && uses.spells > 0 && alive().length >= 2) {
       uses.spells--;
       const dice = 2 + Math.floor(hero.level / 3);
+      const after: FightEvent[] = [];
       const targets = alive().map((mm) => {
         const damage = Math.max(1, Math.round(sum(rollDice(rng, dice, 6)) * (1 + hero.spellPower / 100)));
-        mm.hp = Math.max(0, mm.hp - damage);
+        after.push(...wound(mm, damage, false));
         return { key: mm.key, damage, hp: mm.hp };
       });
-      events.push({ type: 'burst', actor: 'hero', source: 'spell', targets });
+      events.push({ type: 'burst', actor: 'hero', source: 'spell', targets }, ...after);
       markDefeated();
       return;
     }
@@ -407,17 +544,18 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     for (let i = 0; i < attacks && alive().length > 0; i++) heroAttack();
   };
 
-  const monsterTurn = (mm: MonsterInstance) => {
-    const roll = rollD20(rng, { edge: stance.defendEdge });
+  const monsterAttack = (mm: MonsterInstance) => {
+    const pack = powerOf(mm, 'pack') !== null && alive().some((other) => other !== mm);
+    const roll = rollD20(rng, { edge: combine(stance.defendEdge, pack ? 'advantage' : 'normal') });
     const total = roll.natural + mm.attack;
     const crit = roll.natural === 20 && !hero.uniques.includes('drowned-crown');
     const hit = roll.natural === 20 || (roll.natural !== 1 && total >= hero.ac);
-    let damage = 0;
     if (hit && aegis) {
       aegis = false;
       events.push({ type: 'blocked', actor: mm.key });
       return;
     }
+    let damage = 0;
     if (hit) {
       const [n, sides, plus] = mm.damage;
       damage = Math.max(1, Math.round((sum(rollDice(rng, crit ? n * 2 : n, sides)) + plus) * mm.damageFactor));
@@ -425,18 +563,104 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         dodgeReady = false;
         damage = Math.max(1, Math.floor(damage / 2));
       }
-      hero.hp = Math.max(0, hero.hp - damage);
-      if (hero.hp === 0 && runPowers.deathless && hero.uniques.includes('deathless-mail')) {
-        runPowers.deathless = false;
-        hero.hp = 1;
-      }
+      hurtHero(damage);
     }
     events.push({ type: 'attack', actor: mm.key, target: 'hero', natural: roll.natural, total, hit, crit, damage, targetHp: hero.hp, kind: 'weapon' });
+    if (!hit) return;
+
+    if (powerOf(mm, 'drain')) {
+      const gained = Math.min(mm.maxHp - mm.hp, Math.floor(damage / 2));
+      if (gained > 0) {
+        mm.hp += gained;
+        events.push({ type: 'power', actor: mm.key, power: 'drain', amount: gained, hp: mm.hp });
+      }
+    }
+    const thief = powerOf(mm, 'thief');
+    if (thief && goldLeft > 0 && !stolen.has(mm.key)) {
+      const amount = Math.min(goldLeft, sum(rollDice(rng, 2, 10)) * (mm.depth + 1));
+      goldLeft -= amount;
+      stolen.set(mm.key, amount);
+      events.push({ type: 'power', actor: mm.key, power: 'thief', target: 'hero', amount });
+    }
+    if (hero.hp <= 0) return;
+    const burn = powerOf(mm, 'burn');
+    if (burn) {
+      burning.set('hero', { turns: burn.turns, dice: burn.dice });
+      events.push({ type: 'status', target: 'hero', status: 'burning', turns: burn.turns });
+    }
+    const paralyze = powerOf(mm, 'paralyze');
+    if (paralyze && held === 0 && !heroSave('con', dcOf(mm, paralyze.dc))) {
+      held = 1;
+      events.push({ type: 'status', target: 'hero', status: 'paralyzed', turns: 1 });
+    }
+  };
+
+  const monsterTurn = (mm: MonsterInstance) => {
+    // A thief that got its hands on gold runs with it.
+    if (stolen.has(mm.key)) {
+      fled.add(mm.key);
+      events.push({ type: 'fled', key: mm.key });
+      return;
+    }
+    const mend = powerOf(mm, 'mend');
+    if (mend && !mended.has(mm.key)) {
+      const hurt = alive().filter((other) => other !== mm && other.hp < other.maxHp / 2).sort((a, b) => a.hp - b.hp)[0];
+      if (hurt) {
+        mended.add(mm.key);
+        const gained = Math.min(hurt.maxHp - hurt.hp, sum(rollDice(rng, mend.dice[0], mend.dice[1])) + mm.depth);
+        hurt.hp += gained;
+        events.push({ type: 'power', actor: mm.key, power: 'mend', target: hurt.key, amount: gained, hp: hurt.hp });
+        return;
+      }
+    }
+    const breath = powerOf(mm, 'breath');
+    if (breath) {
+      if (!breathReady.has(mm.key) && rollDice(rng, 1, 6)[0]! >= 5) breathReady.add(mm.key);
+      if (breathReady.has(mm.key)) {
+        breathReady.delete(mm.key);
+        const full = Math.round(sum(rollDice(rng, breath.dice[0], breath.dice[1])) * mm.damageFactor);
+        const saved = heroSave('dex', dcOf(mm, breath.dc));
+        const damage = Math.max(1, saved ? Math.floor(full / 2) : full);
+        hurtHero(damage);
+        events.push({ type: 'power', actor: mm.key, power: 'breath', target: 'hero', amount: damage, hp: hero.hp });
+        return;
+      }
+    }
+    const attacks = powerOf(mm, 'multiattack')?.attacks ?? 1;
+    for (let i = 0; i < attacks && hero.hp > 0; i++) monsterAttack(mm);
+  };
+
+  /** Burning bites at the start of a turn; returns whether the fighter can still act. */
+  const startTurn = (key: string): boolean => {
+    const fire = burning.get(key);
+    if (fire && fire.turns > 0) {
+      fire.turns--;
+      const damage = sum(rollDice(rng, fire.dice[0], fire.dice[1]));
+      if (key === 'hero') {
+        hurtHero(damage);
+        events.push({ type: 'tick', target: 'hero', damage, hp: hero.hp });
+        if (hero.hp <= 0) return false;
+      } else {
+        const mm = mons.find((x) => x.key === key)!;
+        const after = wound(mm, damage, false);
+        events.push({ type: 'tick', target: key, damage, hp: mm.hp }, ...after);
+        markDefeated();
+        if (mm.hp <= 0) return false;
+      }
+    }
+    if (key === 'hero' && held > 0) {
+      held--;
+      events.push({ type: 'held', target: 'hero' });
+      return false;
+    }
+    return true;
   };
 
   /** 3 successes (10+) or 3 failures; a natural 20 stands up, a natural 1 counts twice. */
   const deathSaves = (): 'rise' | 'survived' | 'dead' => {
     events.push({ type: 'down' });
+    burning.delete('hero');
+    held = 0;
     let successes = 0;
     let failures = 0;
     while (successes < 3 && failures < 3) {
@@ -471,10 +695,11 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       if (outcome !== null) break;
       // Whoever was surprised stands still for the first round.
       if (round === 1 && input.surprise === (key === 'hero' ? 'hero' : 'monsters')) continue;
-      if (key === 'hero') heroTurn();
-      else {
+      if (key === 'hero') {
+        if (hero.hp > 0 && startTurn('hero')) heroTurn();
+      } else {
         const mm = mons.find((x) => x.key === key)!;
-        if (mm.hp > 0) monsterTurn(mm);
+        if (mm.hp > 0 && !fled.has(mm.key) && startTurn(mm.key)) monsterTurn(mm);
       }
       if (escaped) outcome = 'escaped';
       else if (alive().length === 0) outcome = 'victory';
@@ -483,13 +708,15 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         if (save !== 'rise') outcome = save;
       }
     }
+    if (frightened > 0) frightened--;
   }
   // A fight that runs out of rounds ends with the Hero pulling back, alive.
   outcome ??= 'survived';
   events.push({ type: 'end', outcome });
 
   const xp = mons.filter((mm) => defeated.includes(mm.key)).reduce((s, mm) => s + mm.xp, 0);
-  return { events, outcome, hp: outcome === 'dead' ? 0 : hero.hp, uses, potionsUsed, xp, defeated, runPowers };
+  const goldStolen = [...stolen.entries()].filter(([key]) => fled.has(key)).reduce((s, [, amount]) => s + amount, 0);
+  return { events, outcome, hp: outcome === 'dead' ? 0 : hero.hp, uses, potionsUsed, xp, defeated, runPowers, goldStolen };
 }
 
 // ─── Before and around the fight ──────────────────────────────────────────

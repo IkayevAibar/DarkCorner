@@ -13,7 +13,7 @@ import { useI18n } from '../../i18n';
 import { play, playTier } from '../../sound';
 import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { EventPanel } from './EventPanel';
-import { FightPlayback } from './FightPlayback';
+import { EliteBadge, FightPlayback } from './FightPlayback';
 import { FloorMap } from './FloorMap';
 
 type Act = (call: () => Promise<LabyrinthResult>) => Promise<void>;
@@ -353,6 +353,7 @@ function FacingTokens({ facing, view }: { facing: Facing; view: LabyrinthView })
           <div key={m.key} className="grid justify-items-center gap-1" style={{ width: Math.max(size, 72) }}>
             <Token art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={m.boss && facing.monsters.length === 1 ? 118 : size} />
             <span className="max-w-full truncate rounded-[2px] bg-black/65 px-1.5 font-head text-xs font-bold text-bone">{text(m.name)}</span>
+            {m.elite && <EliteBadge elite={m.elite} />}
           </div>
         ))}
       </div>
@@ -383,6 +384,8 @@ function FacingPanel({ facing, view, busy, act }: { facing: Facing; view: Labyri
           <strong className={THREAT_TONE[threat].split(' ')[1]}>{t(`threat.${threat}`)}.</strong> {t(`threat.${threat}.hint`)}
         </p>
       </div>
+
+      <Foes facing={facing} />
 
       <div className="grid gap-1.5">
         <span className="sub-heading">{t('stance.title')}</span>
@@ -433,6 +436,39 @@ function FacingPanel({ facing, view, busy, act }: { facing: Facing; view: Labyri
         </button>
       </div>
     </section>
+  );
+}
+
+/** What each monster in the doorway can do, so the Player can weigh the fight. */
+function Foes({ facing }: { facing: Facing }) {
+  const { t } = useI18n();
+  const text = useText();
+  const seen = new Set<string>();
+  const kinds = facing.monsters.filter((m) => {
+    const id = `${text(m.name)}:${m.elite ?? ''}`;
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+  if (!kinds.some((m) => m.powers.length > 0 || m.elite)) return null;
+  return (
+    <div className="grid gap-1.5">
+      <span className="sub-heading">{t('facing.who')}</span>
+      <ul className="m-0 grid list-none gap-1.5 p-0">
+        {kinds.map((m) => (
+          <li key={m.key} className="text-sm leading-snug">
+            <strong className="font-head">{text(m.name)}</strong>
+            {m.elite && <span className={m.elite === 'gilded' ? 'text-gold' : 'text-tier-epic'}> · {t(`elite.${m.elite}`)}: {t(`elite.${m.elite}.blurb`)}</span>}
+            {m.powers.map((p) => (
+              <span key={p} className="block text-muted">
+                <span className="text-bone">{t(`power.${p}`)}.</span> {t(`power.${p}.blurb`)}
+              </span>
+            ))}
+          </li>
+        ))}
+      </ul>
+      {kinds.some((m) => m.elite) && <p className="m-0 text-xs text-muted">{t('elite.note')}</p>}
+    </div>
   );
 }
 

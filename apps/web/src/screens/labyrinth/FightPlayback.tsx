@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { Combatant, FightEventView, FightReplay } from '@dark/shared';
+import type { Combatant, Elite, FightEventView, FightReplay, MonsterPowerView } from '@dark/shared';
 import { useText } from '../../components/items/ItemChip';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
 import { useI18n } from '../../i18n';
+import type { MessageKey } from '../../i18n/en';
 import { buzz, play } from '../../sound';
 
 /**
@@ -126,12 +127,11 @@ function Fighter({ who, name, hp, fallen, size, event, step, saves }: {
           <span className="text-tier-mythic">{'●'.repeat(saves.failures)}{'○'.repeat(3 - saves.failures)}</span>
         </span>
       )}
+      {who.elite && <EliteBadge elite={who.elite} />}
       {effect?.float && (
         <span
           key={`f${step}`}
-          className={`anim-float pointer-events-none absolute top-[18%] left-1/2 font-head font-extrabold [text-shadow:0_2px_0_#000,0_0_8px_#000] ${
-            effect.float.tone === 'heal' ? 'text-tier-uncommon' : effect.float.tone === 'crit' ? 'text-gold' : 'text-[#ff6a55]'
-          }`}
+          className={`anim-float pointer-events-none absolute top-[18%] left-1/2 font-head font-extrabold [text-shadow:0_2px_0_#000,0_0_8px_#000] ${FLOAT_TONE[effect.float.tone]}`}
           style={{ fontSize: effect.float.tone === 'crit' ? 30 : 24 }}
         >
           {effect.float.text}
@@ -149,6 +149,24 @@ function Fighter({ who, name, hp, fallen, size, event, step, saves }: {
         </span>
       )}
     </div>
+  );
+}
+
+const FLOAT_TONE: Record<FloatTone, string> = {
+  hit: 'text-[#ff6a55]',
+  crit: 'text-gold',
+  heal: 'text-tier-uncommon',
+  burn: 'text-tier-legendary',
+  gold: 'text-[#f1c75b]',
+};
+
+/** A small tag under an elite monster's token. */
+export function EliteBadge({ elite }: { elite: Elite }) {
+  const { t } = useI18n();
+  return (
+    <span className={`rounded-[2px] border px-1 font-head text-[10px] font-extrabold uppercase ${elite === 'gilded' ? 'border-gold text-gold' : 'border-tier-epic text-tier-epic'} bg-black/70`}>
+      {t(`elite.${elite}`)}
+    </span>
   );
 }
 
@@ -173,15 +191,22 @@ function frameAt(replay: FightReplay, step: number): Frame {
       case 'down': hp.hero = 0; frame.heroDown = true; frame.saves = { successes: 0, failures: 0 }; break;
       case 'death-save': frame.saves = { successes: e.successes, failures: e.failures }; break;
       case 'rise': hp.hero = e.hp; frame.heroDown = false; frame.saves = null; break;
+      case 'power':
+        if (e.hp !== undefined) hp[e.power === 'drain' || e.power === 'undying' ? e.actor : (e.target ?? e.actor)] = e.hp;
+        break;
+      case 'tick': hp[e.target] = e.hp; break;
+      case 'fled': frame.fallen.add(e.key); break;
       default: break;
     }
   }
   return frame;
 }
 
+type FloatTone = 'hit' | 'crit' | 'heal' | 'burn' | 'gold';
+
 interface Effect {
   shake?: boolean;
-  float?: { text: string; tone: 'hit' | 'crit' | 'heal' };
+  float?: { text: string; tone: FloatTone };
   d20?: number;
 }
 
@@ -204,7 +229,28 @@ function effectOn(key: string, event: FightEventView | null): Effect | null {
     case 'death-save':
     case 'reroll':
     case 'escape':
+    case 'save':
       return key === 'hero' ? { d20: event.natural } : null;
+    case 'tick':
+      return event.target === key ? { shake: true, float: { text: `−${event.damage}`, tone: 'burn' } } : null;
+    case 'power':
+      switch (event.power) {
+        case 'breath':
+          if (event.target === key) return { shake: true, float: { text: `−${event.amount ?? 0}`, tone: 'burn' } };
+          return event.actor === key ? { shake: true } : null;
+        case 'thief':
+          return event.target === key ? { float: { text: `−${event.amount ?? 0}`, tone: 'gold' } } : null;
+        case 'mend':
+          return event.target === key ? { float: { text: `+${event.amount ?? 0}`, tone: 'heal' } } : null;
+        case 'drain':
+          return event.actor === key ? { float: { text: `+${event.amount ?? 0}`, tone: 'heal' } } : null;
+        case 'enrage':
+        case 'undying':
+        case 'frighten':
+          return event.actor === key ? { shake: true } : null;
+        default:
+          return null;
+      }
     case 'down':
       return key === 'hero' ? { shake: true } : null;
     default:
@@ -243,6 +289,15 @@ function sound(event: FightEventView): void {
       if (event.natural === 20) buzz([60, 40, 60]);
       break;
     case 'rise': play('equip'); break;
+    case 'save': play('die'); break;
+    case 'tick': play('hit', { rate: 1.3, volume: 0.5 }); break;
+    case 'fled': play('step'); play('step', { delay: 180 }); break;
+    case 'power':
+      if (event.power === 'breath') play('crit', { rate: 0.6 });
+      else if (event.power === 'thief') play('coins', { rate: 1.2 });
+      else if (event.power === 'enrage' || event.power === 'frighten') play('crit', { rate: 0.7, volume: 0.8 });
+      else if (event.power === 'undying') play('creak');
+      break;
     case 'end':
       if (event.outcome === 'victory') play('coins', { delay: 150 });
       else if (event.outcome === 'dead') play('grave');
@@ -264,6 +319,10 @@ function pause(event: FightEventView): number {
     case 'reroll': return 900;
     case 'rise': return 1000;
     case 'defeated': return 520;
+    case 'power': return event.power === 'breath' || event.power === 'frighten' ? 1100 : 900;
+    case 'save': return 950;
+    case 'tick': return 650;
+    case 'fled': return 900;
     default: return 700;
   }
 }
@@ -283,6 +342,17 @@ function displayNames(replay: FightReplay, text: ReturnType<typeof useText>): Re
   return names;
 }
 
+/** The monster powers that show up as their own line in a fight. */
+const POWER_LINES: Partial<Record<MonsterPowerView, MessageKey>> = {
+  thief: 'fight.power.thief',
+  mend: 'fight.power.mend',
+  breath: 'fight.power.breath',
+  drain: 'fight.power.drain',
+  undying: 'fight.power.undying',
+  enrage: 'fight.power.enrage',
+  frighten: 'fight.power.frighten',
+};
+
 function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: Record<string, string>): string | null {
   const n = (key: string) => names[key] ?? key;
   switch (e.type) {
@@ -301,6 +371,16 @@ function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: 
     case 'reroll': return t('fight.reroll', { name: n('hero'), d: e.natural });
     case 'surprise': return t(`fight.surprise.${e.side}`);
     case 'escape': return t(e.success ? 'fight.escape.yes' : 'fight.escape.no', { name: n('hero'), d: e.natural, t: e.total, dc: e.dc });
+    case 'power': {
+      const key = POWER_LINES[e.power];
+      return key ? t(key, { actor: n(e.actor), target: n(e.target ?? 'hero'), n: e.amount ?? 0 }) : null;
+    }
+    case 'save':
+      return t('fight.save', { ability: t(`ability.${e.ability}`), d: e.natural, t: e.total, dc: e.dc, result: t(e.success ? 'result.success' : 'result.failure') });
+    case 'status': return t(`fight.status.${e.status}`, { name: n(e.target) });
+    case 'tick': return t('fight.tick', { name: n(e.target), n: e.damage });
+    case 'held': return t('fight.held', { name: n(e.target) });
+    case 'fled': return t('fight.fled', { name: n(e.key) });
     case 'end': return null;
   }
 }

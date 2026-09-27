@@ -9,8 +9,8 @@ import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { type Combatant, type FightReplay, fightReplaySchema } from '@dark/shared';
 import {
-  BANNER_COLORS, CLASS_DEFS, type ClassId, type FightResult, type MonsterInstance, type RaceId, THEMES, createRng,
-  heroCombat, monsterById, restUses, simulateFight, spawnEncounter, startingHealth, themeOf,
+  BANNER_COLORS, CLASS_DEFS, type ClassId, type FightInput, type FightResult, type MonsterInstance, type RaceId, type StanceId, THEMES, createRng,
+  fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter, startingHealth, themeOf,
 } from '@dark/engine';
 
 interface Scenario {
@@ -21,7 +21,12 @@ interface Scenario {
   /** Starting health as a share of the maximum. */
   health: number;
   potions: number;
-  want: (result: FightResult) => boolean;
+  stance?: StanceId;
+  surprise?: FightInput['surprise'];
+  bomb?: boolean;
+  /** Carried gold, for thieves. */
+  gold?: number;
+  want: (result: FightResult, monsters: MonsterInstance[]) => boolean;
 }
 
 const has = (r: FightResult, test: (e: FightResult['events'][number]) => boolean) => r.events.some(test);
@@ -70,13 +75,51 @@ const SCENARIOS: Record<string, Scenario> = {
   'dragon': {
     hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.png', banner: BANNER_COLORS[0] },
     level: 16, floor: 10, kind: 'boss', health: 1, potions: 3,
-    want: (r) => r.events.length <= 90,
+    want: (r) => r.events.length <= 90 && has(r, (e) => e.type === 'power' && e.power === 'breath') && has(r, (e) => e.type === 'power' && e.power === 'frighten'),
+  },
+  'ambush-after-sneak': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.png', banner: BANNER_COLORS[0] },
+    level: 2, floor: 2, kind: 'fight', health: 1, potions: 1, surprise: 'hero',
+    want: (r) => r.outcome === 'victory' && r.events.filter((e) => e.type === 'attack' && e.actor !== 'hero').length >= 2,
+  },
+  'fire-bomb': {
+    hero: { name: 'Pip', race: 'halfling', class: 'rogue', portrait: '/art/portraits/halfling-rogue-1.png', banner: BANNER_COLORS[5] },
+    level: 3, floor: 3, kind: 'fight', health: 1, potions: 1, bomb: true,
+    want: (r, m) => r.outcome === 'victory' && m.length >= 2 && r.events.filter((e) => e.type === 'defeated').length >= 1,
+  },
+  'wary-escape': {
+    hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.png', banner: BANNER_COLORS[1] },
+    level: 4, floor: 5, kind: 'fight', health: 0.8, potions: 0, stance: 'wary',
+    want: (r) => r.outcome === 'escaped' && r.events.filter((e) => e.type === 'escape').length >= 2,
+  },
+  'cutpurse-runs': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.png', banner: BANNER_COLORS[0] },
+    level: 2, floor: 2, kind: 'fight', health: 1, potions: 1, gold: 60,
+    want: (r) => r.goldStolen > 0 && has(r, (e) => e.type === 'fled'),
+  },
+  'ghoul-paralyzes': {
+    hero: { name: 'Borin', race: 'dwarf', class: 'cleric', portrait: '/art/portraits/dwarf-cleric-1.png', banner: BANNER_COLORS[3] },
+    level: 5, floor: 5, kind: 'fight', health: 1, potions: 1,
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'held') && has(r, (e) => e.type === 'power' && e.power === 'undying'),
+  },
+  'hellhound-breath-burn': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.png', banner: BANNER_COLORS[0] },
+    level: 8, floor: 8, kind: 'fight', health: 1, potions: 2,
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'power' && e.power === 'breath') && has(r, (e) => e.type === 'tick'),
+  },
+  'gilded-elite': {
+    hero: { name: 'Pip', race: 'halfling', class: 'rogue', portrait: '/art/portraits/halfling-rogue-1.png', banner: BANNER_COLORS[5] },
+    level: 4, floor: 3, kind: 'fight', health: 1, potions: 2,
+    want: (r, m) => r.outcome === 'victory' && m.some((x) => x.elite === 'gilded'),
   },
 };
 
 function combatant(m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
-  return { key: m.key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null };
+  return {
+    key: m.key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
+    elite: m.elite, powers: m.powers.map((p) => p.id),
+  };
 }
 
 function run(name: string, s: Scenario): FightReplay {
@@ -86,17 +129,18 @@ function run(name: string, s: Scenario): FightReplay {
   const maxHp = startingHealth(s.hero.class, s.hero.race, ['alert', 'tough'], scores.con) + (s.level - 1) * perLevel;
   const worn = CLASS_DEFS[s.hero.class].starterKit.map((base) => ({ base, quality: 60, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }));
 
-  for (let i = 0; i < 20_000; i++) {
+  for (let i = 0; i < 60_000; i++) {
     const hp = Math.max(1, Math.round(maxHp * s.health));
     const hero = heroCombat({ name: s.hero.name, class: s.hero.class, race: s.hero.race, level: s.level, talents: ['alert', 'tough'], scores, maxHp, hp, worn });
     const monsters = spawnEncounter(createRng(`${name}:spawn:${i}`), s.floor, s.kind);
     const result = simulateFight(createRng(`${name}:fight:${i}`), {
       hero, monsters, uses: restUses(s.hero.class, s.level), potions: s.potions, runPowers: { deathless: false, lucky: false },
+      stance: s.stance ?? 'bold', surprise: s.surprise ?? null, bomb: s.bomb ? fireBomb(s.floor) : null, gold: s.gold ?? 0,
     });
-    if (!s.want(result)) continue;
+    if (!s.want(result, monsters)) continue;
     return fightReplaySchema.parse({
       map: THEMES[themeOf(s.floor)].maps[0],
-      hero: { key: 'hero', name: { en: s.hero.name, ru: s.hero.name }, art: s.hero.portrait, hp, maxHp, ac: hero.ac, boss: false, banner: s.hero.banner },
+      hero: { key: 'hero', name: { en: s.hero.name, ru: s.hero.name }, art: s.hero.portrait, hp, maxHp, ac: hero.ac, boss: false, banner: s.hero.banner, elite: null, powers: [] },
       monsters: monsters.map(combatant),
       events: result.events,
       outcome: result.outcome,

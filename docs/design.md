@@ -152,7 +152,56 @@ The rules are a light version of the D&D System Reference Document (SRD 5.2).
 - **Before a fight:** see below.
 - **Abilities:** some work once per fight. Others have a few uses per rest, and those come back after a long rest at a Camp or on returning to the City.
 - **Health:** damage carries over from Room to Room. Heroes heal with potions, Shrines, Cleric spells, a long rest at a Camp, or fully in the City.
-- **Monsters:** they come in groups, and deeper Floors have stronger ones.
+- **Monsters:** they come in groups, and deeper Floors have stronger ones. Each kind has a power of its own (see Monsters below).
+- **Saving throws:** some powers call for a save: a d20 plus the ability modifier, plus proficiency in the Class's two saves (Fighter STR and CON, Rogue DEX and INT, Wizard INT and WIS, Cleric WIS and CHA). The DC is set by the power, +1 for every two Floors deeper into its theme.
+- **Weapons wound differently:** slashing (swords, axes), piercing (rapiers, daggers, bows) or blunt (maces, hammers, mauls, staves). It matters against some monsters.
+
+### Monsters
+
+Every monster has a signature power, so a fight plays differently depending on who is in it. The Door's Threat already counts them, and the Player sees them before choosing (Before a fight). Season 0's bestiary *(v0)*:
+
+| Floors | Monster | Power |
+|---|---|---|
+| 1–3 | Giant rat, Goblin | none |
+| 1–3 | Goblin archer | **Quick:** +5 to initiative |
+| 1–3 | Goblin cutpurse | **Thief:** a hit snatches carried gold, 2d10 × (Floors into the theme + 1). It runs with it on its next turn unless it falls first. The gold that gets away is lost. |
+| 1–3 | Wolf | **Pack hunter:** advantage while another monster still stands |
+| 4–6 | Skeleton | **Brittle bones:** blunt weapons deal +50%, piercing ones −25% |
+| 4–6 | Zombie | **Undying:** half the time, the first killing blow that isn't a critical hit leaves it at 1 health |
+| 4–6 | Ghoul | **Paralyzing touch:** a hit calls for a CON save (DC 10), or the Hero loses its next turn |
+| 4–6 | Wraith | **Life drain:** heals itself for half the damage it deals |
+| 7–9 | Cultist | **Dark mending:** once per fight, instead of attacking, heals an ally below half health by 2d8 |
+| 7–9 | Imp | **Hellfire:** a hit sets the Hero burning, 1d4 at the start of its next 2 turns |
+| 7–9 | Hellhound | **Fire breath:** 3d6, DEX save (DC 13) for half. Ready at the start, and again on a 5–6 on a d6 each turn |
+| 7–9 | Demon brute | **Several attacks:** two a turn |
+| 10 | Kobold | **Pack hunter** |
+| 10 | Drake | **Fire breath:** 5d6, DC 14 |
+| any | Mimic | Bites before the Hero can move: the Hero is surprised. |
+
+- **Mini-bosses** come with an escort:
+  - the Goblin chieftain with a Goblin archer
+  - the Bone knight, which is **Undying**, with a Skeleton
+  - the Horned tyrant (two attacks a turn, and **Terrifying**: a WIS save as the fight starts, DC 14, or 2 rounds of disadvantage on attacks) with an Imp
+- **The Dragon:**
+  - **Terrifying** (DC 14).
+  - **Fire breath:** 10d6, DEX DC 16.
+  - Two attacks a turn.
+  - **Rage:** below half health, once, it gains +2 AC and +1 to hit, and its breath is ready again.
+- **Elite packs** *(v0)*: from Floor 2 on, a group's strongest monster is sometimes an elite. The chance is 10% on Floors 2–3, 15% on 4–6, 20% on 7–9 and 25% on 10.
+  - Every elite has 25% more health (Gilded 50%), is worth double XP, and drops one more Item when it falls.
+  - Each has one gift:
+
+    | Gift | Effect |
+    |---|---|
+    | Gilded | triple gold, the one Players hope for |
+    | Frenzied | its hits deal +50% |
+    | Armored | +3 AC |
+    | Vampiric | Life drain |
+    | Swift | +5 to initiative and one more attack a turn |
+- **Statuses:**
+  - Burning: damage at the start of each turn. Ember Fang's critical hits now set enemies burning for 3 turns, 1d6 a turn, as its text always said.
+  - Paralyzed: the next turn is lost.
+  - Frightened: disadvantage on attacks.
 
 ### Before a fight
 
@@ -252,7 +301,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 
 | Event | What happens |
 |---|---|
-| Three chests | Pick one of three: one holds gold, two hold an Item each, and 30% of the time one of those is a mimic, which means a fight *(v0)*. |
+| Three chests | Pick one of three: one holds gold, two hold an Item each, and 30% of the time one of those is a mimic, which means a fight in which the mimic strikes first *(v0)*. |
 | Shrine | Pray for a random Blessing, at the risk of a curse. A WIS Check against 12; failing by 5 or more (or a natural 1) burns a quarter of max health. Clerics roll with advantage, and Wizards sense the curse and step back *(v0)*. |
 | Goblin gambler | Double-or-nothing on carried gold: both roll a d20 and ties go to the goblin. Or bet an Item for one a Tier higher (not Mythics or Relics). One bet per visit *(v0)*. |
 | Wandering merchant | Sells 3 rare Items (Rare, Epic, sometimes Legendary) at 6 times the Buyback price, and buys yours at twice the Buyback price *(v0)*. |
@@ -335,9 +384,10 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 
 ### Where loot comes from
 
-- **Fight Rooms:** a 30% chance of an Item per fight, a 3% chance of an Iron key, plus gold *(v0)*.
+- **Fight Rooms:** a 20% chance of an Item per fight, a 3% chance of an Iron key, plus gold *(v0)*. An elite in the group adds one Item.
 - **Treasure Rooms:** 1–3 Items (60% one, 30% two, 10% three), a 20% chance of a Chest, plus gold *(v0)*.
 - **Mini-bosses:** 2 Items, a 50% chance of a Chest, and ten times the gold *(v0)*.
+- **Elites:** one more Item each; a Gilded one triples its gold.
 - **Elsewhere:** Event rooms, Vaults and the Boss.
 - **Magic find** makes every Rare-or-better chance that many percent bigger. **Gold find** adds to gold picked up.
 
@@ -352,7 +402,7 @@ Chances of each Tier when an Item drops *(v0)*:
 | Legendary | 0.3% | 1.3% | 2.6% | 4.3% |
 | Mythic | 0.01% | 0.1% | 0.25% | 0.45% |
 
-**What a Player should see:** about one Legendary every 2–3 days for an active Player, 1–2 Mythics per Player per Season, and about 10 Relics per Season across the server. `npm run balance:season -w @dark/engine` simulates a Season and checks the first two; on 2026-09-27 it gave a Legendary every 2.3 days and 1.8 Mythics per Player, after lowering the deep-Floor Mythic odds (from 0.4% and 0.7%) and the fight and Treasure drops.
+**What a Player should see:** about one Legendary every 2–3 days for an active Player, 1–2 Mythics per Player per Season, and about 10 Relics per Season across the server. `npm run balance:season -w @dark/engine` simulates a Season and checks the first two; on 2026-09-27 it gave a Legendary every 2.3 days and 1.8 Mythics per Player, after lowering the deep-Floor Mythic odds (from 0.4% and 0.7%) and the fight and Treasure drops. Elites came later the same day with an Item each, so the plain fight drop went from 30% to 20%: a Legendary every 2.0 days and 1.9 Mythics, counting every fight as fought.
 
 ### Bad-luck meter
 

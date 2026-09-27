@@ -1,7 +1,7 @@
 import type { Hero, HeroFloor, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
-  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, type HeroCombat, LOOT, type MonsterInstance,
+  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT, type MonsterInstance,
   RELIC_CHANCE, type RaceId, type StanceId, type TalentId, weakeningAt,
   createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
@@ -77,7 +77,10 @@ export async function markCleared(tx: Tx, hf: HeroFloor, room: number, now: Date
 
 export function combatant(key: string, m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
-  return { key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null };
+  return {
+    key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
+    elite: m.elite, powers: m.powers.map((p) => p.id),
+  };
 }
 
 export type FightKind = 'fight' | 'miniboss' | 'boss';
@@ -118,6 +121,7 @@ export function fightInput(hero: HeroWithItems, combat: HeroCombat, monsters: Mo
     stance: opts.stance ?? (hero.stance as StanceId),
     surprise: opts.surprise ?? null,
     bomb: opts.bombFloor ? fireBomb(opts.bombFloor) : null,
+    gold: hero.carriedGold,
   };
 }
 
@@ -157,7 +161,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     map: floor.rooms[roomId]!.map,
     hero: {
       key: 'hero', name: { en: hero.name, ru: hero.name }, art: portraitUrlOf(hero), hp: combat.hp, maxHp: combat.maxHp, ac: combat.ac,
-      boss: false, banner: hero.banner,
+      boss: false, banner: hero.banner, elite: null, powers: [],
     },
     monsters: monsters.map((m) => combatant(m.key, m)),
     events: result.events,
@@ -180,6 +184,13 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   }
 
   if (kind === 'boss') await feed(tx, season, hero, 'boss-attempt', { outcome: result.outcome });
+
+  // A cutpurse that got away took its gold for good.
+  if (result.goldStolen > 0) {
+    hero.carriedGold = Math.max(0, hero.carriedGold - result.goldStolen);
+    await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: hero.carriedGold } });
+    out.notices.push(t(`A thief got away with ${result.goldStolen} of your gold.`, `Вор ушёл с вашим золотом: ${result.goldStolen}.`));
+  }
 
   if (result.outcome === 'dead') {
     await die(tx, hero, season, floor.number, roomId, out);
@@ -227,12 +238,17 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     });
   }
   await addBadLuck(tx, hero, kind === 'fight' ? BAD_LUCK_PER_FIGHT : BAD_LUCK_PER_MINIBOSS);
-  const baseGold = monsters.reduce((s, m) => s + createRng(`${seed}:gold:${m.key}`).int(1, 4) * (floor.number + 1), 0) * (kind === 'fight' ? 1 : 10);
+  // Gold from every monster that fell (a thief that ran pays nothing); Gilded elites pay triple.
+  const fallen = monsters.filter((m) => result.defeated.includes(m.key));
+  const baseGold = fallen.reduce((s, m) => s + createRng(`${seed}:gold:${m.key}`).int(1, 4) * (floor.number + 1) * (m.elite === 'gilded' ? GILDED_GOLD : 1), 0)
+    * (kind === 'fight' ? 1 : 10);
   const gold = withGoldFind(hero, baseGold);
   out.gold += gold;
   await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
   hero.carriedGold += gold;
-  const drops = (kind === 'fight' ? (rng.chance(LOOT.fightDrop) ? 1 : 0) : LOOT.minibossItems) + (opts.bonusDrops ?? 0);
+  // Every elite that fell drops one more Item.
+  const elites = fallen.filter((m) => m.elite !== null).length;
+  const drops = (kind === 'fight' ? (rng.chance(LOOT.fightDrop) ? 1 : 0) : LOOT.minibossItems) + elites + (opts.bonusDrops ?? 0);
   if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind }, out);
   if (kind === 'fight' && rng.chance(LOOT.fightKey)) await dropStack(tx, hero, season, 'key-iron', 1, out);
   if (kind === 'miniboss' && rng.chance(LOOT.minibossChest)) await dropChest(tx, hero, season, floor.number, out);

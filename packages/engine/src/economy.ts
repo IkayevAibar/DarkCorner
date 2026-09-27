@@ -49,7 +49,7 @@ export function rollChestGrade(rng: Rng, floor: number): ChestGrade {
  */
 export const LOOT = {
   /** Chance of an Item per fight won. */
-  fightDrop: 0.3,
+  fightDrop: 0.2,
   /** Chance of an Iron key per fight won. */
   fightKey: 0.03,
   /** Treasure Rooms: how many Items, by weight. */
