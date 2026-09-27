@@ -8,6 +8,7 @@ import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { heroRoutes } from './routes/heroes.js';
 import { itemRoutes } from './routes/items.js';
+import { labyrinthRoutes } from './routes/labyrinth.js';
 import { meRoutes } from './routes/me.js';
 
 /** Builds the server without listening, so tests can drive it with inject(). */
@@ -65,6 +66,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(adminRoutes);
   await app.register(heroRoutes);
   await app.register(itemRoutes);
+  await app.register(labyrinthRoutes);
 
   return app;
 }

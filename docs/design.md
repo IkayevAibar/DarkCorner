@@ -192,7 +192,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 ### Doors, clues and the map
 
 - **Clues:** every Door carries a Clue about the Room behind it, such as "growling behind the door", "a faint golden glow" or "the smell of sulfur". About 80% of Clues are true and 20% lie *(v0)*.
-- **Spotting lies:** Rogues make a WIS Check to mark a lying Clue as suspicious, and Elves roll that Check with advantage.
+- **Spotting lies:** Rogues and Elves make a WIS Check (DC 13 *(v0)*) to mark a lying Clue as suspicious, and Elves roll it with advantage.
 - **Special doors:** cracked walls, which only a Fighter can smash through, and locked Doors, which need a Key or a Rogue.
 - **The Map:** each Player's Map shows every Room and Door their Hero has seen this Season. Everything else stays dark. Maps can't be shared in Season 0. (An idea for later: sell copies of your Map on the Market.)
 
@@ -234,7 +234,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 ### Getting in and out
 
 - **Entering:** go in through the Labyrinth gate, starting either from the entrance on Floor 1 or from any Waypoint your Hero has reached this Season.
-- **Leaving:** walk to any Waypoint you've reached, or read a **Town Portal** scroll anywhere outside a fight (50 gold *(v0)*).
+- **Leaving:** walk back out through the entrance on Floor 1, walk to any Waypoint you've reached, or read a **Town Portal** scroll anywhere outside a fight (50 gold *(v0)*).
 - **In the City:** returning fully heals the Hero and restores all its abilities. Gold picked up in the Labyrinth becomes safe from that moment.
 
 ### Waiting heroes and camps

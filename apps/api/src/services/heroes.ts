@@ -5,7 +5,7 @@ import type {
 import {
   ABILITY_REROLLS, type AbilitySet, BAG_SLOTS, BANNER_COLORS, CLASS_DEFS, CLASSES, type GearBase, PORTRAITS, RACE_DEFS,
   RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
-  createRng, currentStamina, portraitById, portraitsFor, rollAbilitySet, rollGear, slotsFor, startingHealth,
+  createRng, currentStamina, portraitById, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth,
   validateHeroChoices,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -38,6 +38,10 @@ function toDraftView(draft: { sets: Prisma.JsonValue; rerollsLeft: number }): He
   return { sets: (draft.sets as unknown as AbilitySet[]).map(toSetView), rerollsLeft: draft.rerollsLeft };
 }
 
+/** The Hero's portrait art, falling back to the hooded figure if its portrait was removed. */
+export const portraitUrlOf = (hero: Pick<Hero, 'portrait'>): string =>
+  (portraitById(hero.portrait) ?? PORTRAITS[PORTRAITS.length - 1]!).url;
+
 export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
   const slotOrder = (slot: string | null) => SLOTS.indexOf(slot as (typeof SLOTS)[number]);
   const worn = hero.items
@@ -45,7 +49,6 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     .sort((a, b) => slotOrder(a.slot) - slotOrder(b.slot))
     .map((i) => ({ slot: i.slot as SlotId, item: toItemView(i) }));
   const byAge = (a: Item, b: Item) => a.createdAt.getTime() - b.createdAt.getTime();
-  const portrait = portraitById(hero.portrait) ?? PORTRAITS[PORTRAITS.length - 1]!;
 
   return {
     id: hero.id,
@@ -54,7 +57,7 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     class: hero.class as HeroView['class'],
     talents: hero.talents as HeroView['talents'],
     portrait: hero.portrait,
-    portraitUrl: portrait.url,
+    portraitUrl: portraitUrlOf(hero),
     banner: hero.banner,
     level: hero.level,
     xp: hero.xp,
@@ -196,6 +199,8 @@ export async function createHero(player: Player, request: CreateHeroRequest): Pr
         hp: maxHp,
         gold: STARTING_GOLD + (retired?.gold ?? 0),
         stamina: STAMINA_MAX,
+        spellUses: restUses(request.class, 1).spells,
+        healUses: restUses(request.class, 1).heals,
       },
     });
 

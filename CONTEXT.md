@@ -97,8 +97,12 @@ A Player's personal record of the Rooms and Doors their Hero has seen this Seaso
 _Avoid_: minimap, atlas
 
 **Move**:
-Going through a Door into the next Room. Each Move costs Stamina.
+Going through a Door into the next Room, or taking the stairs to another Floor. Each Move costs Stamina.
 _Avoid_: step, turn
+
+**Landing**:
+The Room where a Hero arrives on a Floor: from the stairs above, or on Floor 1 from the Labyrinth gate (there it is called the entrance). The stairs back up start here.
+_Avoid_: spawn, start room
 
 **Stamina**:
 The points a Hero spends on Moves. They refill over real time.

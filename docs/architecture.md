@@ -1,6 +1,6 @@
 # Dark Corner: Architecture
 
-Status: week 1 of the [Season 0 plan](plan-season-0.md) is built (sign-in, admin approval, dice engine, web shell). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
+Status: weeks 1–3 of the [Season 0 plan](plan-season-0.md) are built: sign-in and admin approval, Heroes and Items, the Labyrinth and fights, and the production deployment ([deploy.md](deploy.md)). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
 
 ## Stack
 
@@ -32,6 +32,13 @@ packages/
 - **Contracts live in `packages/shared`.** API payloads and replay events are defined there once, and both apps import them. Changes need the owner's approval (see [AGENTS.md](../AGENTS.md)).
 - **Time.** Store UTC and schedule in `Asia/Almaty` (UTC+5, Astana time).
 - **Two languages.** Every player-facing string exists in both `en` and `ru`.
+
+## The Labyrinth
+
+- **Generated, never stored.** `generateLabyrinth(seed)` in the engine builds all 10 Floors from the Season's seed; the API caches it in memory. Changing generation means bumping `LABYRINTH_VERSION`, because a running Season must keep its Labyrinth.
+- **Per Hero:** `HeroFloor` holds the Rooms a Hero has seen on a Floor (its Map) and when it last cleared each one. The Hero row holds where it stands, its Stamina clock and its abilities left until the next rest.
+- **Shared:** Graves (48 hours) and `SpecialClaim` (who took a Mini-boss or Vault, and when).
+- **Fights:** a Move into a monster Room runs `simulateFight` on the server with a fresh seed (kept in the roll log). The events come back as a replay, checked against `fightReplaySchema` before they leave the API, and the web plays them back. `npm run fixtures:fights -w @dark/api` writes sample replays for `/sandbox`.
 
 ## Sign-in via the ugolok.world hub
 

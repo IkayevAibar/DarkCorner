@@ -1,4 +1,4 @@
-import type { ItemPlace, Player, Prisma } from '@prisma/client';
+import type { Player, Prisma } from '@prisma/client';
 import type { HeroView, SlotId } from '@dark/shared';
 import { BAG_SLOTS, type ClassId, type GearBase, STORAGE_SLOTS, baseById, canUse, isGear, slotsFor } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -6,7 +6,7 @@ import { ApiError } from '../lib/errors.js';
 import { toHeroView } from './heroes.js';
 import { currentSeason } from './seasons.js';
 
-const CAPACITY: Record<Exclude<ItemPlace, 'WORN'>, number> = { BAG: BAG_SLOTS, STORAGE: STORAGE_SLOTS };
+const CAPACITY: Record<'BAG' | 'STORAGE', number> = { BAG: BAG_SLOTS, STORAGE: STORAGE_SLOTS };
 
 /** The Player's living Hero and one of its Items, or a 404/409 explaining why not. */
 async function heroAndItem(tx: Prisma.TransactionClient, player: Player, itemId: string) {
@@ -15,6 +15,9 @@ async function heroAndItem(tx: Prisma.TransactionClient, player: Player, itemId:
   if (!hero) throw ApiError.conflict('no_hero', 'Create a Hero first');
   const item = await tx.item.findFirst({ where: { id: itemId, heroId: hero.id } });
   if (!item) throw ApiError.notFound('item_not_found', 'No such Item on your Hero');
+  if (item.place === 'STORAGE' && hero.location !== 'CITY') {
+    throw ApiError.conflict('storage_in_city', 'Storage is back in the City');
+  }
   return { hero, item };
 }
 
@@ -74,6 +77,7 @@ export async function moveItem(player: Player, itemId: string, to: 'bag' | 'stor
     const { hero, item } = await heroAndItem(tx, player, itemId);
     if (item.place === 'WORN') throw ApiError.conflict('worn', 'Take it off first');
     if (item.place === target) return hero.id;
+    if (target === 'STORAGE' && hero.location !== 'CITY') throw ApiError.conflict('storage_in_city', 'Storage is back in the City');
 
     const base = baseById(item.base);
     if (!isGear(base)) {

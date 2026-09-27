@@ -90,11 +90,80 @@ model Hero {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
-  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  // Where the Hero is. In the City `floor` and `room` are null.
+  location    HeroLocation @default(CITY)
+  floor       Int?
+  room        Int?
+  /// The last Room the Hero cleared, where surviving Death saves drags it back to.
+  prevRoom    Int?
+  bestFloor   Int          @default(0)
+  /// Floors whose Waypoint the Hero has reached.
+  waypoints   Int[]        @default([])
+  /// Uses left until the next long rest.
+  spellUses   Int          @default(0)
+  healUses    Int          @default(0)
+  /// Once-per-Run powers still available (Deathless Mail).
+  deathless   Boolean      @default(true)
+  /// When the Hero sat down in a Camp; four hours later it is fully rested.
+  campSince   DateTime?
+
+  player Player      @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season Season      @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   items  Item[]
+  floors HeroFloor[]
+  graves Grave[]
 
   @@index([playerId, seasonId])
+}
+
+enum HeroLocation {
+  CITY
+  LABYRINTH
+}
+
+/// What one Hero knows about one Floor: its Map, and which Rooms it cleared when.
+model HeroFloor {
+  id      String @id @default(cuid())
+  heroId  String
+  floor   Int
+  /// Room ids the Hero has stood in.
+  seen    Int[]  @default([])
+  /// { "<roomId>": "<ISO time cleared>" }; a cleared fight Room stays empty for that Hero for a day.
+  cleared Json   @default("{}")
+
+  hero Hero @relation(fields: [heroId], references: [id], onDelete: Cascade)
+
+  @@unique([heroId, floor])
+}
+
+/// Everything a dead Hero carried, lying where it fell. Anyone may loot it for 48 hours.
+model Grave {
+  id        String   @id @default(cuid())
+  seasonId  String
+  floor     Int
+  room      Int
+  heroId    String?
+  ownerName String
+  gold      Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  hero  Hero?  @relation(fields: [heroId], references: [id], onDelete: SetNull)
+  items Item[]
+
+  @@index([seasonId, floor, room])
+}
+
+/// First come, first served: a defeated Mini-boss or an opened Vault, for everyone.
+model SpecialClaim {
+  id        String   @id @default(cuid())
+  seasonId  String
+  floor     Int
+  room      Int
+  heroId    String
+  claimedAt DateTime @default(now())
+
+  @@unique([seasonId, floor, room])
 }
 
 /// Ability sets rolled while creating a Hero. One per Player per Season at a
@@ -118,6 +187,7 @@ enum ItemPlace {
   WORN
   BAG
   STORAGE
+  GRAVE
 }
 
 /// One Item, or one stack of a stackable. Exactly one place at a time.
@@ -146,11 +216,13 @@ model Item {
   owners     Json?
   /// The seed that rolled this Item, for the roll log.
   seed       String?
+  graveId    String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   hero   Hero?  @relation(fields: [heroId], references: [id], onDelete: SetNull)
+  grave  Grave? @relation(fields: [graveId], references: [id], onDelete: Cascade)
 
   @@index([heroId, place])
   @@unique([heroId, slot])
