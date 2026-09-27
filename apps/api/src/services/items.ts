@@ -1,0 +1,89 @@
+import type { Item, Prisma } from '@prisma/client';
+import type { ItemView, Tier } from '@dark/shared';
+import {
+  type GearRoll, STACK_TIER_HINT, baseById, bonusLines, buybackPrice, isGear, itemName, uniqueById,
+} from '@dark/engine';
+
+type BonusStats = GearRoll['bonusStats'];
+
+/** An Item as the web renders it. Fields that identifying reveals stay null until then. */
+export function toItemView(item: Item): ItemView {
+  const base = baseById(item.base);
+  if (!isGear(base)) {
+    return {
+      id: item.id,
+      kind: base.kind,
+      quantity: item.quantity,
+      tier: STACK_TIER_HINT[item.base] ?? 'common',
+      base: item.base,
+      icon: base.icon,
+      name: base.name,
+      itemLevel: 1,
+      identified: true,
+      quality: null,
+      bonusStats: null,
+      power: null,
+      radiant: null,
+      upgrade: 0,
+      serial: null,
+      owners: null,
+      art: null,
+      worth: 0,
+    };
+  }
+
+  const tier = item.tier as Tier;
+  const roll = {
+    base: item.base,
+    suffix: item.suffix,
+    uniqueId: item.uniqueId,
+    bonusStats: item.bonusStats as unknown as BonusStats,
+    radiant: item.radiant,
+    tier,
+    itemLevel: item.itemLevel,
+  };
+  const unique = item.uniqueId ? uniqueById(item.uniqueId) : null;
+  const known = item.identified;
+  const serialOf = unique?.copies;
+
+  return {
+    id: item.id,
+    kind: 'gear',
+    quantity: 1,
+    tier,
+    base: item.base,
+    icon: base.icon,
+    // Unidentified uniques keep their secret: only the base shows.
+    name: known ? itemName(roll) : base.name,
+    itemLevel: item.itemLevel,
+    identified: known,
+    quality: known ? item.quality : null,
+    bonusStats: known ? bonusLines(roll) : null,
+    power: known && unique ? unique.power : null,
+    radiant: known ? item.radiant : null,
+    upgrade: item.upgrade,
+    serial: known && item.serial && serialOf ? { number: item.serial, of: serialOf } : null,
+    owners: known && Array.isArray(item.owners) ? (item.owners as string[]) : null,
+    art: known ? (unique?.art ?? null) : null,
+    worth: buybackPrice(roll),
+  };
+}
+
+/** Columns for a new gear Item from an engine roll. */
+export function gearData(roll: GearRoll, seed: string): Pick<
+  Prisma.ItemUncheckedCreateInput,
+  'base' | 'tier' | 'itemLevel' | 'quality' | 'bonusStats' | 'suffix' | 'uniqueId' | 'radiant' | 'identified' | 'seed'
+> {
+  return {
+    base: roll.base,
+    tier: roll.tier,
+    itemLevel: roll.itemLevel,
+    quality: roll.quality,
+    bonusStats: roll.bonusStats as unknown as Prisma.InputJsonValue,
+    suffix: roll.suffix,
+    uniqueId: roll.uniqueId,
+    radiant: roll.radiant,
+    identified: roll.identified,
+    seed,
+  };
+}

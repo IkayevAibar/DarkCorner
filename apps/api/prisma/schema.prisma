@@ -1,4 +1,4 @@
-// Terms follow CONTEXT.md. Heroes and Items arrive in week 2 with their rules.
+// Terms follow CONTEXT.md.
 
 generator client {
   provider = "prisma-client-js"
@@ -28,6 +28,8 @@ model Player {
 
   feedEvents FeedEvent[]
   rolls      RollLog[]
+  heroes     Hero[]
+  drafts     HeroDraft[]
 }
 
 enum SeasonStatus {
@@ -51,6 +53,107 @@ model Season {
   createdAt  DateTime     @default(now())
 
   feedEvents FeedEvent[]
+  heroes     Hero[]
+  drafts     HeroDraft[]
+  items      Item[]
+}
+
+/// A Player's character for one Season. A retired Hero stays, marked retiredAt.
+model Hero {
+  id          String    @id @default(cuid())
+  playerId    String
+  seasonId    String
+  name        String
+  race        String
+  class       String
+  talents     String[]
+  portrait    String
+  banner      String
+  level       Int       @default(1)
+  xp          Int       @default(0)
+  str         Int
+  dex         Int
+  con         Int
+  int         Int
+  wis         Int
+  cha         Int
+  maxHp       Int
+  hp          Int
+  /// Safe in the City.
+  gold        Int       @default(0)
+  /// Picked up on the current Run; lost on death, banked on reaching the City.
+  carriedGold Int       @default(0)
+  stamina     Int
+  /// When `stamina` was last worked out; refills are counted from here.
+  staminaAt   DateTime  @default(now())
+  retiredAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  items  Item[]
+
+  @@index([playerId, seasonId])
+}
+
+/// Ability sets rolled while creating a Hero. One per Player per Season at a
+/// time, so abandoning the screen can't fish for better rolls.
+model HeroDraft {
+  id          String   @id @default(cuid())
+  playerId    String
+  seasonId    String
+  /// AbilitySet[] from the engine, in the order rolled.
+  sets        Json
+  rerollsLeft Int
+  createdAt   DateTime @default(now())
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, seasonId])
+}
+
+enum ItemPlace {
+  WORN
+  BAG
+  STORAGE
+}
+
+/// One Item, or one stack of a stackable. Exactly one place at a time.
+model Item {
+  id         String    @id @default(cuid())
+  seasonId   String
+  heroId     String?
+  place      ItemPlace
+  /// Worn Items only: main, off, head, body, hands, feet, amulet, ring1, ring2.
+  slot       String?
+  base       String
+  tier       String
+  quantity   Int       @default(1)
+  itemLevel  Int       @default(1)
+  quality    Int?
+  /// [{ stat, value }] from the engine's GearRoll.
+  bonusStats Json      @default("[]")
+  suffix     Int?
+  uniqueId   String?
+  radiant    Boolean   @default(false)
+  identified Boolean   @default(true)
+  upgrade    Int       @default(0)
+  /// Relic copy number within the Season.
+  serial     Int?
+  /// Relic owner history: display names, oldest first.
+  owners     Json?
+  /// The seed that rolled this Item, for the roll log.
+  seed       String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  hero   Hero?  @relation(fields: [heroId], references: [id], onDelete: SetNull)
+
+  @@index([heroId, place])
+  @@unique([heroId, slot])
 }
 
 /// Every roll that matters, with the seed that produced it, so it can be replayed.
