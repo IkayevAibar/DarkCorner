@@ -1,0 +1,226 @@
+[
+  {
+    "file": "ember-fang.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 612270
+  },
+  {
+    "file": "gravewhisper.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 777401
+  },
+  {
+    "file": "oathbreaker.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 923072
+  },
+  {
+    "file": "hollow-crown.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1431122
+  },
+  {
+    "file": "ashen-aegis.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 2004658
+  },
+  {
+    "file": "wardens-longbow.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 732630
+  },
+  {
+    "file": "lantern-of-the-deep.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1554906
+  },
+  {
+    "file": "saints-knuckle.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 1146048
+  },
+  {
+    "file": "wyrmfire.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 1156357
+  },
+  {
+    "file": "last-ember.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 707805
+  },
+  {
+    "file": "deathless-mail.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2153682
+  },
+  {
+    "file": "luckstone.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1620706
+  },
+  {
+    "file": "drowned-crown.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1710175
+  },
+  {
+    "file": "phylactery.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1633504
+  },
+  {
+    "file": "eye-of-the-abyss.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 1552094
+  },
+  {
+    "file": "first-kings-crown.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1578553
+  }
+]

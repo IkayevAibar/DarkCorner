@@ -1,0 +1,394 @@
+[
+  {
+    "file": "human-fighter-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1899163
+  },
+  {
+    "file": "human-rogue-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 1954325
+  },
+  {
+    "file": "human-rogue-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2195242
+  },
+  {
+    "file": "human-wizard-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2409341
+  },
+  {
+    "file": "human-wizard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2106988
+  },
+  {
+    "file": "human-cleric-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2134608
+  },
+  {
+    "file": "human-cleric-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2398757
+  },
+  {
+    "file": "elf-fighter-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2127806
+  },
+  {
+    "file": "elf-fighter-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1899203
+  },
+  {
+    "file": "elf-rogue-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2252314
+  },
+  {
+    "file": "elf-rogue-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 2009124
+  },
+  {
+    "file": "elf-wizard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1998216
+  },
+  {
+    "file": "elf-cleric-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2431298
+  },
+  {
+    "file": "elf-cleric-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2483762
+  },
+  {
+    "file": "dwarf-fighter-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2634756
+  },
+  {
+    "file": "dwarf-fighter-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2267086
+  },
+  {
+    "file": "dwarf-rogue-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 1959766
+  },
+  {
+    "file": "dwarf-rogue-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2293422
+  },
+  {
+    "file": "dwarf-wizard-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2598796
+  },
+  {
+    "file": "dwarf-wizard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 2250188
+  },
+  {
+    "file": "dwarf-cleric-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2400845
+  },
+  {
+    "file": "halfling-fighter-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2197609
+  },
+  {
+    "file": "halfling-fighter-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2176266
+  },
+  {
+    "file": "halfling-rogue-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2161698
+  },
+  {
+    "file": "halfling-wizard-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2176668
+  },
+  {
+    "file": "halfling-wizard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 1995930
+  },
+  {
+    "file": "halfling-cleric-1.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 253,
+    "bytes": 2074856
+  },
+  {
+    "file": "halfling-cleric-2.png",
+    "width": 1254,
+    "height": 1254,
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 254,
+    "bytes": 2261133
+  }
+]
