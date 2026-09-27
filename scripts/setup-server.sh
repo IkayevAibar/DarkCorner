@@ -210,9 +210,10 @@ remote() {
 banner "Dark Corner: first deploy to $DOMAIN"
 
 stage "Before you start"
-say "The server deploys the main branch, so the week 1 and week 2 work must be merged."
-open_url "https://github.com/IkayevAibar/DarkCorner/pulls"
-step "Merge the pull requests for claude/week-1 and claude/week-2 into main."
+say "The server deploys the main branch. The claude/* branches are one stack, and its top"
+say "(claude/codex-integration) holds all of it, Codex's merged pull requests included."
+open_url "https://github.com/IkayevAibar/DarkCorner/compare/main...claude/codex-integration"
+step "Open a pull request from claude/codex-integration into main, and merge it."
 confirm "Is that code on main now?" || { warn "Merge first, then run this again."; exit 1; }
 SERVER=""
 ask SERVER "Server to deploy to [root@92.38.49.9]:"
