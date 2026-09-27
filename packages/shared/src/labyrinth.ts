@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { itemViewSchema, localizedTextSchema } from './items.js';
+import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 
 export const ROOM_TYPES = [
   'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss',
@@ -94,6 +94,73 @@ export type Exit = z.infer<typeof exitSchema>;
 
 export const mapDoorSchema = z.object({ a: z.number().int(), b: z.number().int(), kind: doorKindSchema });
 
+// ─── Event rooms ──────────────────────────────────────────────────────────
+
+export const EVENT_KINDS = [
+  'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
+] as const;
+export const eventKindSchema = z.enum(EVENT_KINDS);
+export type EventKindId = z.infer<typeof eventKindSchema>;
+
+export const chestContentSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('item'), tier: tierSchema }),
+  z.object({ kind: z.literal('gold'), amount: z.number().int() }),
+  z.object({ kind: z.literal('mimic') }),
+]);
+
+/** What an Event room offers this Hero today, and what it has already done there. */
+export const eventViewSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('three-chests'),
+    done: z.boolean(),
+    /** Contents stay hidden until one chest is picked; then all three show. */
+    chests: z.array(z.object({ picked: z.boolean(), content: chestContentSchema.nullable() })),
+  }),
+  z.object({ kind: z.literal('shrine'), done: z.boolean() }),
+  z.object({ kind: z.literal('gambler'), done: z.boolean(), maxBet: z.number().int() }),
+  z.object({
+    kind: z.literal('merchant'),
+    done: z.boolean(),
+    wares: z.array(z.object({ id: z.string(), item: itemViewSchema, price: z.number().int(), sold: z.boolean() })),
+    /** The merchant pays this many times the Buyback price. */
+    buysAt: z.number(),
+  }),
+  z.object({ kind: z.literal('trapped-corridor'), done: z.boolean() }),
+  z.object({ kind: z.literal('cursed-altar'), done: z.boolean() }),
+  z.object({ kind: z.literal('locked-cache'), done: z.boolean(), canOpen: z.boolean(), free: z.boolean() }),
+  z.object({ kind: z.literal('lockpicking'), done: z.boolean() }),
+]);
+export type EventView = z.infer<typeof eventViewSchema>;
+
+/** POST /api/labyrinth/event — what the Hero does in the Event room it stands in. */
+export const eventActionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('pick'), chest: z.number().int().min(0).max(2) }),
+  z.object({ action: z.literal('pray') }),
+  z.object({ action: z.literal('bet-gold'), amount: z.number().int().min(1) }),
+  z.object({ action: z.literal('bet-item'), itemId: z.string() }),
+  z.object({ action: z.literal('buy'), ware: z.string() }),
+  z.object({ action: z.literal('sell'), itemId: z.string() }),
+  z.object({ action: z.literal('offer'), itemId: z.string() }),
+  z.object({ action: z.literal('open') }),
+  z.object({ action: z.literal('pick-lock') }),
+]);
+export type EventAction = z.infer<typeof eventActionSchema>;
+
+/** A Check rolled on screen: traps, Shrines, locks (docs/design.md → Dice shown on screen). */
+export const checkViewSchema = z.object({
+  label: localizedTextSchema,
+  /** Every d20 that hit the table (two with advantage, a Halfling's rerolled 1 too). */
+  dice: z.array(z.number().int()),
+  natural: z.number().int(),
+  modifier: z.number().int(),
+  total: z.number().int(),
+  dc: z.number().int(),
+  success: z.boolean(),
+  /** A Lucky charm or Luckstone rolled a failed d20 again: the first roll. */
+  rerolled: z.number().int().nullable(),
+});
+export type CheckView = z.infer<typeof checkViewSchema>;
+
 export const graveViewSchema = z.object({
   id: z.string(),
   owner: z.string(),
@@ -141,6 +208,8 @@ export const labyrinthViewSchema = z.object({
     cleared: z.boolean(),
     /** When a Hero waiting here is fully rested (Camps only). */
     restedAt: z.string().nullable(),
+    /** Event rooms: what is on offer and what the Hero has done. */
+    eventView: eventViewSchema.nullable(),
   }).nullable(),
   exits: z.array(exitSchema),
   /** The Hero's own Map of this Floor: Rooms stood in, the Rooms next to them, and the Doors between. */
@@ -161,6 +230,10 @@ export const labyrinthResultSchema = z.object({
   died: z.boolean(),
   /** A line for the screen: "the Waypoint hums awake", "your Bag was full…". */
   notices: z.array(localizedTextSchema),
+  /** Checks to roll on screen, in order. */
+  checks: z.array(checkViewSchema),
+  /** The Goblin gambler's dice: both d20s. */
+  duel: z.object({ hero: z.number().int(), goblin: z.number().int(), win: z.boolean() }).nullable(),
 });
 export type LabyrinthResult = z.infer<typeof labyrinthResultSchema>;
 

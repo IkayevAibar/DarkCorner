@@ -1,43 +1,31 @@
 import type { Hero, HeroFloor, Player, Season } from '@prisma/client';
+import type { Direction, EventAction, Exit, LabyrinthResult, LabyrinthView } from '@dark/shared';
 import {
-  type Combatant, type Direction, type Exit, type FightReplay, type ItemView, type LabyrinthResult, type LabyrinthView,
-  type LocalizedText, fightReplaySchema,
-} from '@dark/shared';
-import {
-  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, type Labyrinth,
-  type MonsterInstance, RACE_DEFS, type RaceId, STAMINA_MAX, STAMINA_REFILL_MS, THEMES, type TalentId, XP_FOR_LEVEL,
-  abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf, generateLabyrinth, heroCombat, monsterById,
-  proficiencyBonus, restUses, simulateFight, spawnEncounter,
+  BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
+  STAMINA_REFILL_MS, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
+  generateLabyrinth, proficiencyBonus, restUses,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
+import { enterEvent, eventAction, eventView } from './events.js';
 import { feed } from './feed.js';
-import { giveStarterKit, portraitUrlOf } from './heroes.js';
+import { DAY_MS, type Outcome, emptyOutcome, fight, heroFloor, isCleared, markCleared, t } from './fights.js';
+import { portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, lockHero } from './ledger.js';
-import { addBadLuck, dropChest, dropGear, dropStack, withGoldFind } from './loot.js';
+import { dropChest, dropGear, withGoldFind } from './loot.js';
 import { gainXp } from './progression.js';
 import { currentSeason } from './seasons.js';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const GRAVE_MS = 48 * 60 * 60 * 1000;
 const REST_MS = 4 * 60 * 60 * 1000;
 /** Clues: a WIS Check against this sees through a lie (v0). */
 const CLUE_DC = 13;
-// Loot (docs/design.md → Where loot comes from; all v0).
-/** An Item drops from about 40% of won fights. */
-const DROP_CHANCE = 0.4;
-/** Iron keys turn up now and then. */
-const KEY_CHANCE = 0.03;
-/** Treasure Rooms: 1–3 Items, and sometimes a Chest. */
+/** Treasure Rooms: 1–3 Items, and sometimes a Chest (v0). */
 const TREASURE_ITEMS: [number, number][] = [[1, 50], [2, 35], [3, 15]];
 const TREASURE_CHEST = 0.25;
-const MINIBOSS_CHEST = 0.5;
-/** XP for setting foot on a Floor for the first time, per Floor number. */
+/** XP for setting foot on a Floor for the first time, per Floor number (v0). */
 const NEW_FLOOR_XP = 50;
-
-const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 // ─── The Labyrinth itself ─────────────────────────────────────────────────
 
@@ -71,22 +59,17 @@ function direction(floor: Floor, from: number, to: number): Direction {
 /** Every Labyrinth action works on the locked Hero, so two taps can't both spend the same Stamina. */
 const loadHero = lockHero;
 
-async function heroFloor(tx: Tx, heroId: string, floor: number): Promise<HeroFloor> {
-  return tx.heroFloor.upsert({ where: { heroId_floor: { heroId, floor } }, create: { heroId, floor }, update: {} });
-}
-
-const clearedAt = (hf: HeroFloor | null, room: number): Date | null => {
-  const iso = (hf?.cleared as Record<string, string> | undefined)?.[String(room)];
-  return iso ? new Date(iso) : null;
-};
-const isCleared = (hf: HeroFloor | null, room: number, now: Date) => {
-  const at = clearedAt(hf, room);
-  return at !== null && now.getTime() - at.getTime() < DAY_MS;
-};
-
 const bagCount = (hero: HeroWithItems) => hero.items.filter((i) => i.place === 'BAG').length;
 const stackIn = (hero: HeroWithItems, base: string) => hero.items.find((i) => i.place === 'BAG' && i.base === base) ?? null;
 const wears = (hero: HeroWithItems, uniqueId: string) => hero.items.some((i) => i.place === 'WORN' && i.uniqueId === uniqueId);
+
+/** The Hero's Floor and Room, or a 409 when it is in the City. */
+function whereIs(hero: HeroWithItems, lab: Labyrinth): { floor: Floor; room: number } {
+  if (hero.location !== 'LABYRINTH' || hero.floor === null || hero.room === null) {
+    throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
+  }
+  return { floor: floorOf(lab, hero.floor), room: hero.room };
+}
 
 // ─── Seeing the Labyrinth ─────────────────────────────────────────────────
 
@@ -197,6 +180,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       map: room.map,
       cleared: isCleared(hf, room.id, now),
       restedAt: room.type === 'camp' && hero.campSince ? new Date(hero.campSince.getTime() + REST_MS).toISOString() : null,
+      eventView: room.type === 'event' ? await eventView(tx, hero, season, floor, room.id, now) : null,
     },
     exits,
     map: { rooms, doors: [...doors.values()] },
@@ -205,18 +189,6 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
 }
 
 // ─── Results ──────────────────────────────────────────────────────────────
-
-interface Outcome {
-  fight: FightReplay | null;
-  loot: ItemView[];
-  gold: number;
-  xp: number;
-  levelUp: number | null;
-  died: boolean;
-  notices: LocalizedText[];
-}
-
-const emptyOutcome = (): Outcome => ({ fight: null, loot: [], gold: 0, xp: 0, levelUp: null, died: false, notices: [] });
 
 async function respond(heroId: string, season: Season, outcome: Outcome): Promise<LabyrinthResult> {
   const now = new Date();
@@ -230,6 +202,8 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
     levelUp: outcome.levelUp,
     died: outcome.died,
     notices: outcome.notices,
+    checks: outcome.checks,
+    duel: outcome.duel,
   };
 }
 
@@ -266,11 +240,8 @@ export async function enterLabyrinth(player: Player, floorNumber: number): Promi
     }
     const floor = floorOf(lab, floorNumber);
     const room = floorNumber === 1 ? floor.landing : floor.rooms.find((r) => r.type === 'waypoint')!.id;
-    await heroFloor(tx, hero.id, floorNumber);
-    await tx.heroFloor.update({
-      where: { heroId_floor: { heroId: hero.id, floor: floorNumber } },
-      data: { seen: { push: room } },
-    });
+    const hf = await heroFloor(tx, hero.id, floorNumber);
+    if (!hf.seen.includes(room)) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: room } } });
     await tx.hero.update({
       where: { id: hero.id },
       data: {
@@ -292,12 +263,9 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
 
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
-    if (hero.location !== 'LABYRINTH' || hero.floor === null || hero.room === null) {
-      throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
-    }
+    const { floor, room: from } = whereIs(hero, lab);
     await restIfDue(tx, hero, now);
-    const floor = floorOf(lab, hero.floor);
-    const exit = doorsOf(floor, hero.room).find((d) => d.to === to);
+    const exit = doorsOf(floor, from).find((d) => d.to === to);
     if (!exit) throw ApiError.badRequest('no_door', 'No Door leads there');
     if (!canPass(exit.door, hero)) {
       throw ApiError.conflict(exit.door.kind === 'cracked' ? 'wall' : 'locked', 'You cannot get through that Door');
@@ -317,21 +285,14 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     }
 
     const hf = await heroFloor(tx, hero.id, floor.number);
-    await tx.heroFloor.update({
-      where: { id: hf.id },
-      data: hf.seen.includes(to) ? {} : { seen: { push: to } },
-    });
+    if (!hf.seen.includes(to)) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: to } } });
     await tx.hero.update({
       where: { id: hero.id },
-      data: {
-        stamina: stamina.stamina - 1,
-        staminaAt: stamina.savedAt,
-        room: to,
-        campSince: target.type === 'camp' ? now : null,
-      },
+      data: { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt, room: to, campSince: target.type === 'camp' ? now : null },
     });
+    hero.room = to;
 
-    await resolveRoom(tx, { ...hero, room: to }, season, floor, to, hf, now, outcome);
+    await resolveRoom(tx, hero, season, floor, to, hf, now, outcome);
     return hero.id;
   });
   return respond(heroId, season, outcome);
@@ -378,7 +339,7 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
       }
       break;
     case 'event':
-      out.notices.push(t('Something strange is here… (Event rooms open in week 4.)', 'Здесь что-то странное… (Комнаты-события появятся на 4-й неделе.)'));
+      await enterEvent(tx, hero, season, floor, roomId, now, out);
       break;
     case 'vault':
       out.notices.push(t('A sealed Vault. (Vaults open in week 5.)', 'Запечатанная сокровищница. (Откроется на 5-й неделе.)'));
@@ -388,141 +349,20 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
   }
 }
 
-async function markCleared(tx: Tx, hf: HeroFloor, room: number, now: Date) {
-  const cleared = { ...(hf.cleared as Record<string, string>), [String(room)]: now.toISOString() };
-  await tx.heroFloor.update({ where: { id: hf.id }, data: { cleared } });
-}
-
-function combatant(key: string, m: MonsterInstance): Combatant {
-  const def = monsterById(m.id);
-  return { key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null };
-}
-
-async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: 'fight' | 'miniboss' | 'boss', out: Outcome) {
+/** Whatever the Hero does in the Event room it stands in. */
+export async function actInEvent(player: Player, action: EventAction): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const lab = labyrinthFor(season);
   const now = new Date();
-  // Personal monsters: the same Room shows the same group to one Hero for a day.
-  const spawnSeed = `${season.seed}:${hero.id}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
-  const monsters = spawnEncounter(createRng(spawnSeed), floor.number, kind);
-
-  const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => ({
-    base: i.base, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
-    bonusStats: i.bonusStats as { stat: string; value: number }[], uniqueId: i.uniqueId,
-  }));
-  const combat = heroCombat({
-    name: hero.name, class: hero.class as ClassId, race: hero.race as RaceId, level: hero.level,
-    talents: hero.talents as TalentId[], scores: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
-    maxHp: hero.maxHp, hp: hero.hp, worn,
+  const outcome = emptyOutcome();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await loadHero(tx, player, season.id);
+    const { floor, room } = whereIs(hero, lab);
+    if (floor.rooms[room]!.type !== 'event') throw ApiError.conflict('no_event', 'Nothing to do here');
+    await eventAction(tx, hero, season, floor, room, action, now, outcome);
+    return hero.id;
   });
-  const potionStacks = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion');
-  const seed = newSeed();
-  const result = simulateFight(createRng(seed), {
-    hero: combat,
-    monsters,
-    uses: { spells: hero.spellUses, heals: hero.healUses },
-    potions: potionStacks.reduce((s, i) => s + i.quantity, 0),
-    runPowers: { deathless: hero.deathless, lucky: hero.lucky },
-  });
-  await tx.rollLog.create({
-    data: { playerId: hero.playerId, kind: 'fight', seed, detail: { floor: floor.number, room: roomId, kind, outcome: result.outcome, spawnSeed } },
-  });
-
-  out.fight = fightReplaySchema.parse({
-    map: floor.rooms[roomId]!.map,
-    hero: {
-      key: 'hero', name: { en: hero.name, ru: hero.name }, art: portraitUrlOf(hero), hp: combat.hp, maxHp: combat.maxHp, ac: combat.ac,
-      boss: false, banner: hero.banner,
-    },
-    monsters: monsters.map((m) => combatant(m.key, m)),
-    events: result.events,
-    outcome: result.outcome,
-  });
-
-  // Potions drunk come out of the Bag.
-  let drink = result.potionsUsed;
-  for (const stack of potionStacks) {
-    if (drink <= 0) break;
-    const used = Math.min(drink, stack.quantity);
-    drink -= used;
-    if (used === stack.quantity) await tx.item.delete({ where: { id: stack.id } });
-    else await tx.item.update({ where: { id: stack.id }, data: { quantity: stack.quantity - used } });
-  }
-
-  if (result.outcome === 'dead') {
-    await die(tx, hero, season, floor.number, roomId, out);
-    return;
-  }
-
-  const rng = createRng(`${seed}:after`);
-  const levelUp = gainXp(rng, { ...hero, hp: result.hp }, result.xp);
-  out.xp = result.xp;
-  out.levelUp = levelUp.newLevel;
-  await tx.hero.update({
-    where: { id: hero.id },
-    data: {
-      hp: result.hp,
-      spellUses: result.uses.spells,
-      healUses: result.uses.heals,
-      deathless: result.runPowers.deathless,
-      lucky: result.runPowers.lucky,
-      ...levelUp.data,
-      ...(result.outcome === 'victory' ? { prevRoom: roomId } : { room: hero.prevRoom ?? floor.landing }),
-    },
-  });
-
-  if (result.outcome === 'survived') {
-    out.notices.push(t('Barely alive, you crawl back to the last Room you cleared.', 'Едва живы, вы отползаете в последнюю зачищенную комнату.'));
-    return;
-  }
-
-  // Victory: the Room stays clear for a day, the Bad-luck meter ticks, and there is loot.
-  if (kind === 'fight') {
-    const hf = await heroFloor(tx, hero.id, floor.number);
-    await markCleared(tx, hf, roomId, now);
-  } else {
-    await tx.specialClaim.upsert({
-      where: { seasonId_floor_room: { seasonId: season.id, floor: floor.number, room: roomId } },
-      create: { seasonId: season.id, floor: floor.number, room: roomId, heroId: hero.id },
-      update: { heroId: hero.id, claimedAt: now },
-    });
-  }
-  await addBadLuck(tx, hero, kind === 'fight' ? BAD_LUCK_PER_FIGHT : BAD_LUCK_PER_MINIBOSS);
-  const baseGold = monsters.reduce((s, m) => s + createRng(`${seed}:gold:${m.key}`).int(1, 4) * (floor.number + 1), 0) * (kind === 'fight' ? 1 : 10);
-  const gold = withGoldFind(hero, baseGold);
-  out.gold += gold;
-  await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
-  const drops = kind === 'fight' ? (rng.chance(DROP_CHANCE) ? 1 : 0) : 2;
-  if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind }, out);
-  if (kind === 'fight' && rng.chance(KEY_CHANCE)) await dropStack(tx, hero, season, 'key-iron', 1, out);
-  if (kind === 'miniboss' && rng.chance(MINIBOSS_CHEST)) await dropChest(tx, hero, season, floor.number, out);
-}
-
-/** Death: everything carried goes into a Grave here; the Hero wakes at the Temple with a Starter kit. */
-async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumber: number, roomId: number, out: Outcome) {
-  const grave = await tx.grave.create({
-    data: {
-      seasonId: season.id, floor: floorNumber, room: roomId, heroId: hero.id, ownerName: hero.name,
-      gold: hero.carriedGold, expiresAt: new Date(Date.now() + GRAVE_MS),
-    },
-  });
-  await tx.item.updateMany({
-    where: { heroId: hero.id, place: { in: ['WORN', 'BAG'] } },
-    data: { place: 'GRAVE', heroId: null, slot: null, graveId: grave.id },
-  });
-  const uses = restUses(hero.class as ClassId, hero.level);
-  const updated = await tx.hero.update({
-    where: { id: hero.id },
-    data: {
-      location: 'CITY', floor: null, room: null, prevRoom: null, hp: hero.maxHp, carriedGold: 0,
-      spellUses: uses.spells, healUses: uses.heals, deathless: true, lucky: true, campSince: null,
-    },
-  });
-  await giveStarterKit(tx, updated, season.id);
-  out.died = true;
-  await feed(tx, season, hero, 'death', { floor: floorNumber, grave: grave.id });
-  out.notices.push(t(
-    'You died. Everything you carried lies in a Grave for 48 hours. You wake at the Temple with a Starter kit.',
-    'Вы погибли. Всё, что было при вас, лежит в могиле 48 часов. Вы очнулись в Храме с начальным снаряжением.',
-  ));
+  return respond(heroId, season, outcome);
 }
 
 /** Down the stairs to the next Floor's landing, for one Stamina. */
@@ -533,21 +373,19 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
   const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
-    if (hero.floor === null || hero.room === null) throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
-    const floor = floorOf(lab, hero.floor);
-    if (floor.rooms[hero.room]!.type !== 'stairs' || hero.floor >= FLOOR_COUNT) {
+    const { floor, room } = whereIs(hero, lab);
+    if (floor.rooms[room]!.type !== 'stairs' || floor.number >= FLOOR_COUNT) {
       throw ApiError.conflict('no_stairs', 'There are no stairs down here');
     }
     const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
     if (stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
-    const next = floorOf(lab, hero.floor + 1);
+    const next = floorOf(lab, floor.number + 1);
     const hf = await heroFloor(tx, hero.id, next.number);
     if (!hf.seen.includes(next.landing)) {
       await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: next.landing } } });
     }
     // A Floor never reached before is worth XP.
-    const firstTime = next.number > hero.bestFloor;
-    const levelUp = firstTime ? gainXp(createRng(newSeed()), hero, NEW_FLOOR_XP * next.number) : null;
+    const levelUp = next.number > hero.bestFloor ? gainXp(createRng(newSeed()), hero, NEW_FLOOR_XP * next.number) : null;
     if (levelUp) {
       outcome.xp = NEW_FLOOR_XP * next.number;
       outcome.levelUp = levelUp.newLevel;
@@ -578,12 +416,11 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
   const now = new Date();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
-    if (hero.floor === null || hero.room === null) throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
-    const floor = floorOf(lab, hero.floor);
-    if (hero.floor === 1 || hero.room !== floor.landing) throw ApiError.conflict('no_stairs_up', 'There are no stairs up here');
+    const { floor, room: at } = whereIs(hero, lab);
+    if (floor.number === 1 || at !== floor.landing) throw ApiError.conflict('no_stairs_up', 'There are no stairs up here');
     const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
     if (stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
-    const above = floorOf(lab, hero.floor - 1);
+    const above = floorOf(lab, floor.number - 1);
     const hf = await heroFloor(tx, hero.id, above.number);
     const stairs = above.rooms.filter((r) => r.type === 'stairs');
     const room = (stairs.find((r) => hf.seen.includes(r.id)) ?? stairs[0]!).id;
@@ -609,16 +446,16 @@ async function goHome(tx: Tx, hero: Hero) {
   });
 }
 
-/** Leave from a Waypoint Room this Hero has woken. */
+/** Leave from the entrance, or from a Waypoint Room this Hero has woken. */
 export async function leaveByWaypoint(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const lab = labyrinthFor(season);
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
-    if (hero.floor === null || hero.room === null) throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
-    const room = floorOf(lab, hero.floor).rooms[hero.room]!;
-    const atEntrance = hero.floor === 1 && room.type === 'landing';
-    if (!atEntrance && !(room.type === 'waypoint' && hero.waypoints.includes(hero.floor))) {
+    const { floor, room: at } = whereIs(hero, lab);
+    const room = floor.rooms[at]!;
+    const atEntrance = floor.number === 1 && room.type === 'landing';
+    if (!atEntrance && !(room.type === 'waypoint' && hero.waypoints.includes(floor.number))) {
       throw ApiError.conflict('not_at_waypoint', 'You can only leave from a Waypoint or the entrance');
     }
     await goHome(tx, hero);
@@ -649,9 +486,13 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
   const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
+    // The Grave's row is the lock: two Heroes looting at once take turns.
+    await tx.$queryRaw`SELECT id FROM "Grave" WHERE id = ${graveId} FOR UPDATE`;
     const grave = await tx.grave.findUnique({ where: { id: graveId }, include: { items: true } });
     if (!grave || grave.seasonId !== season.id || grave.expiresAt <= new Date()) throw ApiError.notFound('no_grave', 'No such Grave');
-    if (hero.floor !== grave.floor || hero.room !== grave.room) throw ApiError.conflict('not_here', 'That Grave is not in this Room');
+    if (hero.location !== 'LABYRINTH' || hero.floor !== grave.floor || hero.room !== grave.room) {
+      throw ApiError.conflict('not_here', 'That Grave is not in this Room');
+    }
     let free = BAG_SLOTS - bagCount(hero);
     for (const item of grave.items) {
       if (free <= 0) break;
@@ -671,4 +512,3 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
   });
   return respond(heroId, season, outcome);
 }
-

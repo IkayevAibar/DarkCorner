@@ -1,8 +1,8 @@
 import type { FastifyInstance } from 'fastify';
-import { type LabyrinthResult, enterRequestSchema, moveRequestSchema } from '@dark/shared';
+import { type LabyrinthResult, enterRequestSchema, eventActionSchema, moveRequestSchema } from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import {
-  ascend, descend, enterLabyrinth, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal,
+  actInEvent, ascend, descend, enterLabyrinth, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal,
 } from '../services/labyrinth.js';
 
 export async function labyrinthRoutes(app: FastifyInstance) {
@@ -23,6 +23,8 @@ export async function labyrinthRoutes(app: FastifyInstance) {
   app.post('/api/labyrinth/descend', guard, async (request): Promise<LabyrinthResult> => descend(request.player!));
   app.post('/api/labyrinth/ascend', guard, async (request): Promise<LabyrinthResult> => ascend(request.player!));
   app.post('/api/labyrinth/leave', guard, async (request): Promise<LabyrinthResult> => leaveByWaypoint(request.player!));
+  app.post('/api/labyrinth/event', guard, async (request): Promise<LabyrinthResult> =>
+    actInEvent(request.player!, eventActionSchema.parse(request.body)));
   app.post('/api/labyrinth/portal', guard, async (request): Promise<LabyrinthResult> => readPortal(request.player!));
 
   app.post<{ Params: { id: string } }>('/api/labyrinth/graves/:id/loot', guard, async (request): Promise<LabyrinthResult> =>

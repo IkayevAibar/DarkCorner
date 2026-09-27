@@ -52,6 +52,9 @@ export const MONSTERS: MonsterDef[] = [
   m({ id: 'kobold', name: text('Kobold', 'Кобольд'), theme: 'lair', kin: 'dragonkin', art: null, role: 'minion', hp: 16, ac: 13, attack: 6, damage: [1, 6, 3], dex: 15, xp: 60, weight: 3 }),
   m({ id: 'drake', name: text('Drake', 'Дрейк'), theme: 'lair', kin: 'dragonkin', art: null, role: 'brute', hp: 70, ac: 16, attack: 8, damage: [2, 8, 5], dex: 12, xp: 250, weight: 2 }),
   m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.png', role: 'boss', hp: 480, ac: 20, attack: 13, damage: [4, 10, 8], dex: 10, xp: 5000, weight: 0 }),
+
+  // Anywhere: the chest that bites (Three chests). Scales from Floor 1 like the warrens.
+  m({ id: 'mimic', name: text('Mimic', 'Мимик'), theme: 'warrens', kin: 'beast', art: null, role: 'brute', hp: 16, ac: 12, attack: 4, damage: [1, 8, 2], dex: 12, xp: 40, weight: 0 }),
 ];
 
 const BY_ID = new Map(MONSTERS.map((d) => [d.id, d]));
