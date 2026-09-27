@@ -111,3 +111,26 @@ describe('generateLabyrinth', () => {
     }
   });
 });
+
+describe('the way through', () => {
+  it('never lets a Mini-boss or a Vault be the only way to anything', () => {
+    for (let i = 0; i < 60; i++) {
+      for (const floor of generateLabyrinth(`through-${i}`).floors) {
+        const special = new Set(floor.rooms.filter((r) => r.type === 'miniboss' || r.type === 'vault').map((r) => r.id));
+        const reached = new Set([floor.landing]);
+        const queue = [floor.landing];
+        while (queue.length > 0) {
+          const cur = queue.shift()!;
+          for (const { door, to } of doorsOf(floor, cur)) {
+            if (reached.has(to) || special.has(to) || door.kind !== 'open') continue;
+            reached.add(to);
+            queue.push(to);
+          }
+        }
+        // Everything but the special Rooms themselves and the hidden rooms (behind secret Doors).
+        const hidden = floor.rooms.filter((r) => r.type === 'hidden').length;
+        expect(reached.size).toBe(floor.rooms.length - special.size - hidden);
+      }
+    }
+  });
+});

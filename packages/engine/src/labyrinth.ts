@@ -9,7 +9,7 @@ import { type Rng, createRng } from './rng.js';
  * only regenerated (and cached). Bump LABYRINTH_VERSION whenever generation
  * changes, because a running Season must keep the Labyrinth it started with.
  */
-export const LABYRINTH_VERSION = 3;
+export const LABYRINTH_VERSION = 4;
 
 /** About 1 Clue in 5 lies (docs/design.md, v0). */
 export const CLUE_LIE_CHANCE = 0.2;
@@ -224,16 +224,45 @@ function generateFloor(rng: Rng, number: number): Floor {
     return placed;
   };
 
+  // A Mini-boss or a Vault is never the only way through: every other Room stays reachable
+  // from the landing by open Doors without entering one, so neither can bar the way down.
+  const openAround = new Map<number, number[]>();
+  for (const d of doors.values()) {
+    if (d.kind !== 'open') continue;
+    openAround.set(d.a, [...(openAround.get(d.a) ?? []), d.b]);
+    openAround.set(d.b, [...(openAround.get(d.b) ?? []), d.a]);
+  }
+  const walls = new Set<number>();
+  const cutsOff = (id: number): boolean => {
+    const blocked = new Set([...walls, id]);
+    const reached = new Set([landing]);
+    const queue = [landing];
+    while (queue.length > 0) {
+      const cur = queue.shift()!;
+      for (const next of openAround.get(cur) ?? []) {
+        if (reached.has(next) || blocked.has(next)) continue;
+        reached.add(next);
+        queue.push(next);
+      }
+    }
+    return reached.size < count - blocked.size;
+  };
+  const placeAside = (type: RoomType, pick: number[], n: number) => {
+    const placed = place(type, pick.filter((id) => !cutsOff(id)), n);
+    for (const id of placed) walls.add(id);
+    return placed;
+  };
+
   if (isLair) {
     const farthest = byDistance(free()).pop()!;
     types[farthest] = 'boss';
   } else {
     place('stairs', free().filter((id) => within(id, 0.7, 1)), rng.int(2, 4), 3);
-    place('miniboss', free().filter((id) => within(id, 0.6, 1)), 1);
+    placeAside('miniboss', free().filter((id) => within(id, 0.6, 1)), 1);
     const deadEnds = free().filter((id) => degree[id] === 1 && within(id, 0.4, 1));
     const vaults = rng.int(1, 2);
-    const placedVaults = place('vault', deadEnds, vaults);
-    place('vault', free().filter((id) => within(id, 0.4, 1)), vaults - placedVaults.length);
+    const placedVaults = placeAside('vault', deadEnds, vaults);
+    placeAside('vault', free().filter((id) => within(id, 0.4, 1)), vaults - placedVaults.length);
   }
   place('waypoint', free().filter((id) => within(id, 0.3, 0.7)), 1);
   place('camp', free().filter((id) => dist[id]! >= 2), isLair ? 2 : 4, 3);
