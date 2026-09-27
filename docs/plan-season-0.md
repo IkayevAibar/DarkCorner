@@ -156,6 +156,8 @@
 
 ## Week 6: Test season and launch (Nov 2 – 6)
 
+The checklist for each day is in [launch.md](launch.md).
+
 - **Mon:** start a short test season on the real server with 2–3 friends.
 - **Mon–Wed:** fix what they find and tune numbers. Check on Android and iPhone. Test backups by actually restoring one.
 - **Thu:** decide go or no-go, then wipe the test season.

@@ -4,7 +4,8 @@ A season-based dark-fantasy browser game for a small group of friends. It lives 
 
 - **What the game is:** [docs/design.md](docs/design.md). Words the game uses: [CONTEXT.md](CONTEXT.md).
 - **How it's built:** [docs/architecture.md](docs/architecture.md).
-- **What's next:** [docs/plan-season-0.md](docs/plan-season-0.md).
+- **What's next:** [docs/plan-season-0.md](docs/plan-season-0.md); launch week step by step: [docs/launch.md](docs/launch.md).
+- **Running it:** [docs/deploy.md](docs/deploy.md) (the server, and running a Season from the admin page).
 - **For Claude and Codex:** [AGENTS.md](AGENTS.md).
 
 ## Run it locally
