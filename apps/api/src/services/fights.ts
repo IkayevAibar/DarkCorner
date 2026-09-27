@@ -13,6 +13,7 @@ import { addBadLuck, dropChest, dropGear, dropStack, withGoldFind } from './loot
 import { boostedXp, gainXp } from './progression.js';
 import { grantRelic } from './relics.js';
 import { trackBounties } from './bounties.js';
+import { trackHunt } from './hunts.js';
 import { omenOf } from './omens.js';
 
 // Fights, death and what one Hero has cleared: shared by Moves and Event rooms.
@@ -276,10 +277,11 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   if (kind === 'miniboss' && floor.number >= DEEP_FLOOR && rng.chance(RELIC_CHANCE.deepMiniboss)) {
     await grantRelic(tx, hero, season, floor.number, 'miniboss', out);
   }
+  const kins = fallen.map((m) => monsterById(m.id).kin);
   await trackBounties(tx, hero, {
-    type: 'fight-won', floor: floor.number, kins: fallen.map((m) => monsterById(m.id).kin), elites, threat: opts.threat ?? null,
-    miniboss: kind === 'miniboss',
+    type: 'fight-won', floor: floor.number, kins, elites, threat: opts.threat ?? null, miniboss: kind === 'miniboss',
   }, out);
+  await trackHunt(tx, season, hero, kins, out, now);
   return 'victory';
 }
 

@@ -317,6 +317,14 @@ Each day the whole Labyrinth leans one way, for everyone *(v0)*. The day's Omen 
 
 The Threat a Door shows already counts the day's Omen.
 
+### The Hunt
+
+Once a week the whole server hunts together *(v0)*.
+
+- **The quarry:** every Monday (00:00 UTC) the Tavern posts a Hunt against one kin of monster: goblins, beasts, undead, demons, cultists or dragonkin. It is drawn from the kins that live on the Floors down to where most Heroes are, so everyone can take part.
+- **The target:** 40 for every Hero seen that week, never fewer than 120; a Hunt first posted mid-week (a new Season) asks only its share for the days left. Every monster of that kin any Hero defeats counts, and the board shows the total, your own kills and the top three hunters.
+- **The reward:** when the server reaches the target, every Hero with 10 or more kills gets a Silver Chest in its room at the Tavern, and the top hunter a Gold Chest instead. The Hunt and its end go in the Feed.
+
 ### Tavern bounties
 
 Small goals give each session a reason to go down today *(v0)*.
@@ -563,7 +571,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 ### Feed and broadcasts
 
 - **No in-game chat.** Friends talk on Discord.
-- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records, weekly bounties, hidden rooms found and attempts at the Boss.
+- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records, weekly bounties, the week's Hunt, hidden rooms found and attempts at the Boss.
 - **Broadcasts:** the game posts to the friends' Discord channel through a webhook when:
   - a Mythic or a Relic is found
   - a Radiant Legendary or better drops

@@ -120,6 +120,10 @@ _Avoid_: dive, expedition, trip, raid
 A Room that, once reached, lets a Hero enter or leave the Labyrinth there.
 _Avoid_: checkpoint, teleport
 
+**Hunt**:
+A weekly goal the whole server shares: defeating monsters of one kin, with a Chest for everyone who helped enough.
+_Avoid_: raid, contract, community event
+
 **Town Portal**:
 A scroll that takes a Hero from anywhere in the Labyrinth to the City, and stays open behind it for a day so it can step back through once.
 _Avoid_: recall, teleport, hearthstone

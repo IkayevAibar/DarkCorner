@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { BountiesView, BountyView, HallEntry, SeasonView } from '@dark/shared';
+import type { BountiesView, BountyView, HallEntry, HuntView, SeasonView } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { Building, Loading } from '../../components/Building';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
@@ -97,6 +97,7 @@ function Bounties() {
         <span className="text-xs text-muted">{t('bounty.resets', { time: formatDuration(t, midnight - now) })}</span>
       </div>
       <p className="m-0 text-sm text-muted">{t('bounty.hint')}</p>
+      {data.hunt && <HuntCard hunt={data.hunt} />}
       <span className="sub-heading">{t('bounty.daily')}</span>
       {data.daily.map((b) => <BountyCard key={b.id} bounty={b} onSwap={() => void swap(b.id)} />)}
       {data.weekly && (
@@ -107,6 +108,27 @@ function Bounties() {
       )}
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
     </section>
+  );
+}
+
+/** The week's Hunt: everyone's kills against one kin, and who leads. */
+function HuntCard({ hunt }: { hunt: HuntView }) {
+  const { t } = useI18n();
+  const text = useText();
+  const now = useNow(60_000);
+  return (
+    <div className={`grid gap-1.5 rounded-[2px] border p-2.5 ${hunt.done ? 'border-tier-uncommon/60' : 'border-tier-epic/50'}`}>
+      <div className="flex items-baseline justify-between gap-2">
+        <span className={`font-head text-lg font-extrabold ${hunt.done ? 'text-tier-uncommon' : 'text-tier-epic'}`}>{hunt.done ? '✓ ' : ''}{text(hunt.title)}</span>
+        {!hunt.done && <span className="text-xs text-muted">{t('hunt.ends', { time: formatDuration(t, new Date(hunt.endsAt).getTime() - now) })}</span>}
+      </div>
+      <Meter label={t('hunt.server')} value={hunt.total} max={hunt.target} kind="stamina" />
+      <span className="text-sm">{t('hunt.mine', { n: hunt.mine, min: hunt.min })}</span>
+      {hunt.top.length > 0 && (
+        <span className="text-sm text-muted">{t('hunt.top', { list: hunt.top.map((h) => `${h.hero} ${h.count}`).join(', ') })}</span>
+      )}
+      <span className="text-xs text-muted">{hunt.done ? t('hunt.done') : t('hunt.reward', { min: hunt.min })}</span>
+    </div>
   );
 }
 

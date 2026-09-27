@@ -10,6 +10,7 @@ import { stackView } from './items.js';
 import { type HeroWithItems, type Tx, dayNumber, lockHero } from './ledger.js';
 import { t, type Outcome } from './fights.js';
 import { feed } from './feed.js';
+import { huntView } from './hunts.js';
 import { currentSeason } from './seasons.js';
 
 // Tavern bounties (docs/design.md → Tavern bounties). What a bounty asks comes from
@@ -72,7 +73,8 @@ export async function ensureBounties(tx: Tx, hero: HeroWithItems, now: Date): Pr
  * Puts a reward Item into the Hero's room at the Tavern (its Storage), topping up
  * a stack first. With Storage full, the Item is paid out at twice its Buyback price.
  */
-async function deliver(tx: Tx, hero: HeroWithItems, seasonId: string, item: NonNullable<BountyReward['item']>): Promise<number> {
+/** Puts a reward into Storage (topping up stacks); what doesn't fit comes back as its gold, twice its Buyback price. */
+export async function deliver(tx: Tx, hero: HeroWithItems, seasonId: string, item: NonNullable<BountyReward['item']>): Promise<number> {
   const base = baseById(item.base);
   const max = 'maxStack' in base ? base.maxStack : 1;
   let left = item.quantity;
@@ -146,11 +148,13 @@ export async function bountiesView(player: Player): Promise<BountiesView> {
   const season = await currentSeason();
   return prisma.$transaction(async (tx) => {
     const hero = await lockHero(tx, player, season.id);
-    const rows = await ensureBounties(tx, hero, new Date());
+    const now = new Date();
+    const rows = await ensureBounties(tx, hero, now);
     const swappedToday = rows.some((b) => !b.weekly && b.swapped);
     return {
       daily: rows.filter((b) => !b.weekly).map((b) => view(b, !swappedToday)),
       weekly: rows.filter((b) => b.weekly).map((b) => view(b, false))[0] ?? null,
+      hunt: season.status === 'ACTIVE' || season.status === 'FINALE' ? await huntView(tx, season, hero, now) : null,
     };
   });
 }

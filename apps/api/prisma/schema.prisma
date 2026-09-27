@@ -438,3 +438,32 @@ model Bounty {
   @@unique([heroId, day, weekly, slot])
 }
 
+
+/// The week's Hunt: the whole server against one kin of monster (docs/design.md → The Hunt).
+model Hunt {
+  id        String       @id @default(cuid())
+  seasonId  String
+  /// The Monday it began, as a day number (days since 1970-01-01, UTC).
+  week      Int
+  kin       String
+  target    Int
+  total     Int          @default(0)
+  doneAt    DateTime?
+  createdAt DateTime     @default(now())
+  hunters   HuntHunter[]
+
+  @@unique([seasonId, week])
+}
+
+/// One Hero's kills in a Hunt.
+model HuntHunter {
+  id       String @id @default(cuid())
+  huntId   String
+  heroId   String
+  heroName String
+  count    Int    @default(0)
+  hunt     Hunt   @relation(fields: [huntId], references: [id], onDelete: Cascade)
+
+  @@unique([huntId, heroId])
+  @@index([huntId, count])
+}

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { type Floor, doorsOf, generateLabyrinth } from '@dark/engine';
+import { type Floor, MONSTERS, doorsOf, generateLabyrinth, huntTarget, weekOf } from '@dark/engine';
 import { bountiesViewSchema, labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
@@ -102,5 +102,35 @@ describe('Tavern bounties', () => {
     expect(new Set(swapped.daily.map((b) => b.title.en)).size).toBe(3);
     expect((await post(`/api/tavern/bounties/${view.daily[1]!.id}/swap`)).json().error).toBe('swap_used');
     expect((await post(`/api/tavern/bounties/${view.weekly!.id}/swap`)).json().error).toBe('no_bounty');
+  });
+});
+
+describe('the Hunt', () => {
+  it('posts a Hunt a week for the whole server and pays its hunters when the target falls', async () => {
+    const posted = (await bounties()).hunt!;
+    // One Hero seen this week; a Hunt posted mid-week asks only its share for the days left.
+    const day = Math.floor(Date.now() / 86_400_000);
+    expect(posted).toMatchObject({ total: 0, mine: 0, min: 10, done: false, target: huntTarget(1, weekOf(day) + 7 - day) });
+    expect(await prisma.feedEvent.count({ where: { kind: 'hunt' } })).toBe(1);
+
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999, str: 30 } });
+    const facing = (await act('/api/labyrinth/move', { to: fightRoom })).view.room!.facing!;
+    // Make this Room's first monster the quarry, one kill short of the target.
+    const kin = MONSTERS.find((m) => m.name.en === facing.monsters[0]!.name.en)!.kin;
+    const h = await hero();
+    const hunt = await prisma.hunt.findFirstOrThrow();
+    await prisma.hunt.update({ where: { id: hunt.id }, data: { kin, total: hunt.target - 1 } });
+    await prisma.huntHunter.create({ data: { huntId: hunt.id, heroId: h.id, heroName: h.name, count: 20 } });
+
+    const won = await act('/api/labyrinth/face', { action: 'fight' });
+    expect(won.fight?.outcome).toBe('victory');
+    expect(won.notices.some((n) => n.en.includes('you led it'))).toBe(true);
+    const after = (await bounties()).hunt!;
+    expect(after.done).toBe(true);
+    expect(after.mine).toBeGreaterThan(20);
+    expect(after.top[0]).toMatchObject({ hero: 'Garrick' });
+    expect(await prisma.item.count({ where: { base: 'chest-gold', place: 'STORAGE' } })).toBe(1);
+    expect(await prisma.feedEvent.count({ where: { kind: 'hunt-done' } })).toBe(1);
   });
 });

@@ -24,3 +24,4 @@ export * from './content/paths.js';
 export * from './content/bounties.js';
 export * from './content/omens.js';
 export * from './content/riddles.js';
+export * from './content/hunts.js';

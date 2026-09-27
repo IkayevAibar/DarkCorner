@@ -43,7 +43,7 @@ export type BountyEvent =
   | { type: 'depth'; floor: number };
 
 /** Which kin a Hero this deep meets most, for "defeat N …" bounties. */
-const KIN_OF: Record<ThemeId, MonsterKin[]> = {
+export const KIN_OF: Record<ThemeId, MonsterKin[]> = {
   warrens: ['goblinoid', 'beast'],
   crypts: ['undead'],
   depths: ['demon', 'humanoid'],
@@ -137,7 +137,7 @@ export function bountyStep(spec: BountySpec, event: BountyEvent): number {
   }
 }
 
-const KIN_NAMES: Record<MonsterKin, Text> = {
+export const KIN_NAMES: Record<MonsterKin, Text> = {
   goblinoid: text('goblins', 'гоблинов'),
   beast: text('beasts', 'зверей'),
   undead: text('undead', 'нежить'),

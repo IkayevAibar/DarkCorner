@@ -77,8 +77,29 @@ export const bountyViewSchema = z.object({
 });
 export type BountyView = z.infer<typeof bountyViewSchema>;
 
-/** GET /api/tavern/bounties: today's three and this week's one. */
-export const bountiesViewSchema = z.object({ daily: z.array(bountyViewSchema), weekly: bountyViewSchema.nullable() });
+/** The week's Hunt: the whole server against one kin of monster (docs/design.md → The Hunt). */
+export const huntViewSchema = z.object({
+  title: localizedTextSchema,
+  target: z.number().int(),
+  total: z.number().int(),
+  /** This Hero's kills. */
+  mine: z.number().int(),
+  /** The top hunters so far, at most three. */
+  top: z.array(z.object({ hero: z.string(), count: z.number().int() })),
+  /** Kills a Hero needs to share the reward. */
+  min: z.number().int(),
+  done: z.boolean(),
+  /** Next Monday, 00:00 UTC. */
+  endsAt: z.string(),
+});
+export type HuntView = z.infer<typeof huntViewSchema>;
+
+/** GET /api/tavern/bounties: today's three, this week's one, and the server's Hunt. */
+export const bountiesViewSchema = z.object({
+  daily: z.array(bountyViewSchema),
+  weekly: bountyViewSchema.nullable(),
+  hunt: huntViewSchema.nullable(),
+});
 export type BountiesView = z.infer<typeof bountiesViewSchema>;
 
 export const HALL_KINDS = ['champion', 'second', 'third', 'relic', 'best-drop', 'deepest', 'highest-level'] as const;

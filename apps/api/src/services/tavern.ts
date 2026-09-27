@@ -1,6 +1,6 @@
 import type { FeedEvent, Player } from '@prisma/client';
 import type { FeedEntry, HallView, LocalizedText, TavernView, Tier } from '@dark/shared';
-import { baseById, uniqueById, OMEN_DEFS, type OmenId } from '@dark/engine';
+import { KIN_NAMES, baseById, type MonsterKin, uniqueById, OMEN_DEFS, type OmenId } from '@dark/engine';
 import { prisma } from '../db.js';
 import { seasonView } from './seasonLife.js';
 import { currentSeason } from './seasons.js';
@@ -65,6 +65,14 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
     case 'omen': {
       const omen = OMEN_DEFS[d.omen as OmenId];
       return { tier: null, text: omen ? { en: `Today's Omen: ${omen.name.en}`, ru: `Знамение дня: ${omen.name.ru}` } : { en: 'A new day', ru: 'Новый день' } };
+    }
+    case 'hunt': {
+      const kin = KIN_NAMES[d.kin as MonsterKin];
+      return { tier: null, text: { en: `The week's Hunt is on: ${d.target} ${kin.en}`, ru: `Объявлена охота недели на ${kin.ru}: нужно ${d.target}` } };
+    }
+    case 'hunt-done': {
+      const kin = KIN_NAMES[d.kin as MonsterKin];
+      return { tier: 'epic', text: { en: `The Hunt for ${kin.en} is done! ${d.leader} led it with ${d.count}`, ru: `Охота на ${kin.ru} окончена! Лучший охотник — ${d.leader}: ${d.count}` } };
     }
     case 'gate-open':
       return { tier: null, text: { en: 'The Boss gate is open', ru: 'Врата босса открыты' } };
