@@ -30,6 +30,13 @@ export const ru: Record<MessageKey, string> = {
   'account.title': 'Аккаунт',
   'account.language': 'Язык',
   'account.admin': 'Админ: игроки',
+  'account.sound': 'Звук и вибрация',
+  'account.on': 'Вкл.',
+  'account.off': 'Выкл.',
+  'account.credits': 'Авторы',
+  'credits.icons': 'Иконки: Lorc, Delapouite и Willdabeast с game-icons.net, CC BY 3.0.',
+  'credits.sounds': 'Звуки: Kenney (kenney.nl), CC0. Спасибо!',
+  'credits.srdTitle': 'Правила D&D',
 
   'city.shop': 'Лавки',
   'city.shop.blurb': 'Зелья, свитки, ключи и простое снаряжение. Покупают всё.',

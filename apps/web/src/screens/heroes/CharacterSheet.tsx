@@ -7,6 +7,7 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
+import { play, playTier } from '../../sound';
 
 type Place = 'worn' | 'bag' | 'storage';
 
@@ -197,17 +198,23 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
     <div className="grid gap-2">
       <div className="flex flex-wrap gap-2">
         {place === 'worn' && (
-          <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(() => api.unequipItem(item.id))}>
+          <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(async () => {
+            play('equip');
+            await api.unequipItem(item.id);
+          })}>
             {t('item.unequip')}
           </button>
         )}
         {place !== 'worn' && wearable && item.identified && (
-          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(() => api.equipItem(item.id))}>
+          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(async () => {
+            play('equip');
+            await api.equipItem(item.id);
+          })}>
             {t('item.equip')}
           </button>
         )}
         {wearable && !item.identified && (
-          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(() => api.identify(item.id))}>
+          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(async () => playTier((await api.identify(item.id)).item.tier))}>
             {t('loot.identifyFree')}
           </button>
         )}

@@ -6,9 +6,21 @@ import { ItemPicker } from '../../components/ItemPicker';
 import { useSheet } from '../../components/Sheet';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { play, type Sound } from '../../sound';
 import type { MessageKey } from '../../i18n/en';
 
 type Act = (call: () => Promise<LabyrinthResult>) => Promise<void>;
+
+/** The sound as the Hero acts; what follows (dice, loot, coins) plays with the result. */
+const ACTION_SOUND: Partial<Record<EventAction['action'], Sound>> = {
+  pick: 'latch',
+  'bet-gold': 'shake',
+  'bet-item': 'shake',
+  buy: 'coins',
+  sell: 'coins',
+  open: 'latch',
+  'pick-lock': 'latch',
+};
 
 const ALTAR_TIERS = ['common', 'uncommon', 'rare'];
 
@@ -17,7 +29,10 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
   const { t } = useI18n();
   const text = useText();
   const { openSheet, closeSheet } = useSheet();
-  const send = (action: EventAction) => act(() => api.eventAction(action));
+  const send = (action: EventAction) => {
+    play(ACTION_SOUND[action.action] ?? 'page');
+    return act(() => api.eventAction(action));
+  };
   const pickFromBag = (title: string, filter: (i: ItemView) => boolean, note: (i: ItemView) => string | null, action: (i: ItemView) => EventAction) =>
     openSheet({
       title,

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
-import type { CheckView, Direction, Exit, LabyrinthResult, LabyrinthView } from '@dark/shared';
+import { TIERS, type CheckView, type Direction, type Exit, type LabyrinthResult, type LabyrinthView } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
@@ -8,6 +8,7 @@ import { useSheet } from '../../components/Sheet';
 import { Token } from '../../components/Token';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
+import { play, playTier } from '../../sound';
 import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { EventPanel } from './EventPanel';
 import { FightPlayback } from './FightPlayback';
@@ -182,7 +183,10 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
             type="button"
             className={`btn ${n === 1 ? 'btn-primary' : ''}`}
             disabled={busy || shut}
-            onClick={() => void act(() => api.enterLabyrinth(n))}
+            onClick={() => {
+              play('door', { rate: 0.8 });
+              void act(() => api.enterLabyrinth(n));
+            }}
           >
             {n === 1 ? t('lab.enter') : t('lab.enterWaypoint', { n })}
           </button>
@@ -200,7 +204,15 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
   const floor = view.floor!;
   const room = view.room!;
   const exits = [...view.exits].sort((a, b) => DIRECTION_ORDER.indexOf(a.direction) - DIRECTION_ORDER.indexOf(b.direction));
-  const move = (to: number) => void act(() => api.moveTo(to));
+  const move = (to: number) => {
+    play(exits.find((e) => e.to === to)?.kind === 'open' ? 'door' : 'creak');
+    void act(() => api.moveTo(to));
+  };
+  const walk = (call: () => Promise<LabyrinthResult>) => {
+    play('step');
+    play('step', { delay: 260 });
+    void act(call);
+  };
   const canLeave = (floor.number === 1 && room.type === 'landing') || (room.type === 'waypoint' && view.waypoints.includes(floor.number));
   const canAscend = floor.number > 1 && room.type === 'landing';
   const label = floor.number === 1 && room.type === 'landing' ? t('room.entrance') : t(`room.${room.type}`);
@@ -257,22 +269,25 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
       {(room.type === 'stairs' || canAscend || canLeave || view.hero.portalScrolls > 0) && (
         <section className="grid gap-2">
           {room.type === 'stairs' && (
-            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void act(api.descend)}>
+            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => walk(api.descend)}>
               {t('lab.descend')}
             </button>
           )}
           {canAscend && (
-            <button type="button" className="btn" disabled={busy} onClick={() => void act(api.ascend)}>
+            <button type="button" className="btn" disabled={busy} onClick={() => walk(api.ascend)}>
               {t('lab.ascend')}
             </button>
           )}
           {canLeave && (
-            <button type="button" className="btn" disabled={busy} onClick={() => void act(api.leaveLabyrinth)}>
+            <button type="button" className="btn" disabled={busy} onClick={() => walk(api.leaveLabyrinth)}>
               {t('lab.leave')}
             </button>
           )}
           {view.hero.portalScrolls > 0 && !canLeave && (
-            <button type="button" className="btn" disabled={busy} onClick={() => void act(api.readPortal)}>
+            <button type="button" className="btn" disabled={busy} onClick={() => {
+                play('page');
+                void act(api.readPortal);
+              }}>
               {t('lab.portal', { n: view.hero.portalScrolls })}
             </button>
           )}
@@ -387,6 +402,16 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
   const text = useText();
   const { openSheet } = useSheet();
   const outcome = result.fight?.outcome ?? (result.died ? 'dead' : null);
+
+  useEffect(() => {
+    if (result.checks.length > 0 || result.duel) play('die');
+    const best = result.loot.reduce<number>((top, item) => Math.max(top, TIERS.indexOf(item.tier)), -1);
+    if (best >= 0) playTier(TIERS[best]!);
+    else if (result.gold > 0 && !result.fight) play('coins');
+    if (result.levelUp !== null) play('chips', { delay: 260 });
+    if (result.died && !result.fight) play('grave');
+  }, [result]);
+
   return (
     <section className="panel anim-pop grid gap-2.5 p-3.5" aria-live="polite">
       <div className="flex items-start justify-between gap-3">

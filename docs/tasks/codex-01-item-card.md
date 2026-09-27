@@ -27,7 +27,7 @@ Match these:
 - Tier colors are the `--color-tier-*` tokens in `apps/web/src/styles.css`.
 - Legendary and Mythic pulse softly. Relics get the animated gold border (`@property --angle`) and a `#2/3` serial on the tile.
 - Radiant shows the shimmer sweep and the rainbow `RADIANT` stamp.
-- Items without `art` use the SVG for their `icon` key. Claude already ported the look test's icons to `apps/web/src/components/items/icons.ts` (`iconSvg(icon)`); game-icons.net replaces them in week 4. `art` (Legendary and above) is an image URL.
+- Items without `art` use the game-icons.net icon for their `icon` key: `iconPath(icon)` in `apps/web/src/components/items/icons.ts` gives the path data for an `<svg viewBox={ICON_VIEWBOX} fill="currentColor">`. `art` (Legendary and above) is an image URL.
 - Stackables (`kind` other than `gear`) show `quantity` as `×N` and have no Quality or Bonus stats. Their `tier` is only a color hint.
 - Tile sizes 62, 76 and 84 px. The card is full width inside the bottom sheet.
 

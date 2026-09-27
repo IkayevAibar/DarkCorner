@@ -1,15 +1,16 @@
 import { NavLink } from 'react-router';
-import { iconSvg } from '../../components/items/icons';
+import { BUILDING_ICONS, type BuildingIcon } from '../../components/buildingIcons';
+import { ICON_VIEWBOX } from '../../components/items/icons';
 import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
 
-const BUILDINGS: { to: string; icon: string; name: MessageKey; blurb: MessageKey }[] = [
-  { to: '/city/tavern', icon: 'potion', name: 'city.tavern', blurb: 'city.tavern.blurb' },
-  { to: '/city/shop', icon: 'chest', name: 'city.shop', blurb: 'city.shop.blurb' },
-  { to: '/city/forge', icon: 'mace', name: 'city.forge', blurb: 'city.forge.blurb' },
-  { to: '/city/market', icon: 'key', name: 'city.market', blurb: 'city.market.blurb' },
-  { to: '/city/temple', icon: 'holy-symbol', name: 'city.temple', blurb: 'city.temple.blurb' },
-  { to: '/labyrinth', icon: 'sword', name: 'city.gate', blurb: 'city.gate.blurb' },
+const BUILDINGS: { to: string; icon: BuildingIcon; name: MessageKey; blurb: MessageKey }[] = [
+  { to: '/city/tavern', icon: 'tavern', name: 'city.tavern', blurb: 'city.tavern.blurb' },
+  { to: '/city/shop', icon: 'shop', name: 'city.shop', blurb: 'city.shop.blurb' },
+  { to: '/city/forge', icon: 'forge', name: 'city.forge', blurb: 'city.forge.blurb' },
+  { to: '/city/market', icon: 'market', name: 'city.market', blurb: 'city.market.blurb' },
+  { to: '/city/temple', icon: 'temple', name: 'city.temple', blurb: 'city.temple.blurb' },
+  { to: '/labyrinth', icon: 'gate', name: 'city.gate', blurb: 'city.gate.blurb' },
 ];
 
 /**
@@ -27,7 +28,9 @@ export function City() {
         {BUILDINGS.map((b) => (
           <NavLink key={b.to} to={b.to} className="panel grid gap-1 p-3 text-bone no-underline active:translate-y-px">
             <span className="flex items-center gap-2 font-head text-lg font-extrabold">
-              <svg viewBox="0 0 64 64" fill="currentColor" className="size-6 text-gold" aria-hidden="true" dangerouslySetInnerHTML={{ __html: iconSvg(b.icon) }} />
+              <svg viewBox={ICON_VIEWBOX} fill="currentColor" className="size-6 text-gold" aria-hidden="true">
+                <path d={BUILDING_ICONS[b.icon]} />
+              </svg>
               {t(b.name)}
             </span>
             <span className="text-sm leading-snug text-muted">{t(b.blurb)}</span>

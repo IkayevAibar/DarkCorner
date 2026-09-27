@@ -1,6 +1,6 @@
 import type { ItemView, LocalizedText } from '@dark/shared';
 import { useI18n } from '../../i18n';
-import { iconSvg } from './icons';
+import { ICON_VIEWBOX, iconPath } from './icons';
 
 /** Picks the current language out of engine content. */
 export function useText() {
@@ -33,12 +33,13 @@ export function ItemChip({ item, size = 62, onClick }: { item: ItemView; size?: 
         <img src={item.art} alt="" className="size-[96%] object-contain" draggable={false} />
       ) : (
         <svg
-          viewBox="0 0 64 64"
+          viewBox={ICON_VIEWBOX}
           fill="currentColor"
-          className={`size-[56%] drop-shadow-[0_2px_2px_rgb(0_0_0/0.6)] ${item.identified ? '' : 'opacity-50'}`}
+          className={`size-[62%] drop-shadow-[0_2px_2px_rgb(0_0_0/0.6)] ${item.identified ? '' : 'opacity-50'}`}
           aria-hidden="true"
-          dangerouslySetInnerHTML={{ __html: iconSvg(item.icon) }}
-        />
+        >
+          <path d={iconPath(item.icon)} />
+        </svg>
       )}
       {!item.identified && (
         <span className="absolute top-0.5 right-1.5 font-head text-base font-extrabold text-white [text-shadow:0_1px_2px_#000]">?</span>

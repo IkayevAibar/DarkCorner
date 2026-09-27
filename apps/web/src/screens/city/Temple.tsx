@@ -4,6 +4,7 @@ import { useText } from '../../components/items/ItemChip';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { play } from '../../sound';
 import { formatDuration, useNow } from '../../time';
 import { NeedHero } from './NeedHero';
 
@@ -38,7 +39,10 @@ export function Temple() {
               type="button"
               className="btn btn-primary"
               disabled={busy || hero.gold < b.price || !hero.inCity}
-              onClick={() => void run(async () => setData(await api.bless(b.id)))}
+              onClick={() => void run(async () => {
+                setData(await api.bless(b.id));
+                play('reveal', { rate: 0.8 });
+              })}
             >
               {t('temple.buy', { n: b.price })}
             </button>

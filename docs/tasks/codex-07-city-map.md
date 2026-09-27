@@ -20,7 +20,7 @@ The City is an inked town map seen from above, with Buildings you tap ([design.m
 ## Where
 
 - `apps/web/src/screens/city/City.tsx` (Claude's version: map plus cards). Components under `apps/web/src/components/city/`.
-- Icons for pins can wait for the game-icons.net set (`docs/art/icons-and-sounds.md` lists the Building files); until then use the Item icons in `components/items/icons.ts` as `City.tsx` does.
+- Pin icons: `BUILDING_ICONS` in `components/buildingIcons.ts` (game-icons.net path data on `ICON_VIEWBOX`), as `City.tsx` uses them.
 
 ## Done when
 

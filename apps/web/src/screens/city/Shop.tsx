@@ -7,6 +7,7 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { play } from '../../sound';
 import { formatDuration, useNow } from '../../time';
 import { NeedHero } from './NeedHero';
 
@@ -76,6 +77,7 @@ function BuySheet({ offer, stackable, gold, onDone }: { offer: ShopOffer; stacka
   const { busy, error, run } = useAction();
   const buy = (quantity: number) => void run(async () => {
     await api.shopBuy(offer.id, quantity);
+    play('coins');
     onDone();
   });
   return (
@@ -98,6 +100,7 @@ function SellSheet({ item, hero, onDone }: { item: ItemView; hero: HeroView; onD
   const { busy, error, run } = useAction();
   const sell = (quantity: number) => void run(async () => {
     await api.sell(item.id, quantity);
+    play('coins');
     onDone();
   });
   return (

@@ -4,6 +4,7 @@ import type { Combatant, FightEventView, FightReplay } from '@dark/shared';
 import { useText } from '../../components/items/ItemChip';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
 import { useI18n } from '../../i18n';
+import { buzz, play } from '../../sound';
 
 /**
  * Plays a fight replay back, event by event.
@@ -26,6 +27,10 @@ export function FightPlayback({ replay, onDone }: { replay: FightReplay; onDone:
   const names = useMemo(() => displayNames(replay, text), [replay, text]);
   const frame = useMemo(() => frameAt(replay, step), [replay, step]);
   const event = step > 0 ? replay.events[step - 1]! : null;
+
+  useEffect(() => {
+    if (event) sound(event);
+  }, [event]);
   const lines = useMemo(
     () => replay.events.slice(0, step).map((e) => describe(t, e, names)).filter((l): l is string => l !== null).slice(-4),
     [replay.events, step, t, names],
@@ -203,6 +208,39 @@ function effectOn(key: string, event: FightEventView | null): Effect | null {
       return key === 'hero' ? { shake: true } : null;
     default:
       return null;
+  }
+}
+
+/** The sound of each event as it shows. */
+function sound(event: FightEventView): void {
+  switch (event.type) {
+    case 'initiative': play('draw'); break;
+    case 'attack':
+      if (!event.hit) play('miss');
+      else if (event.crit) {
+        play('crit');
+        play('hit', { delay: 70 });
+        if (event.actor === 'hero' && event.natural === 20) buzz(60);
+      } else play('hit');
+      break;
+    case 'burst':
+      play('hit', { rate: 0.8 });
+      play('hit', { delay: 110 });
+      break;
+    case 'blocked': play('crit', { volume: 0.45, rate: 1.25 }); break;
+    case 'defeated': play('loot', { rate: 0.75, volume: 0.7 }); break;
+    case 'down': play('loot', { rate: 0.6 }); break;
+    case 'death-save':
+    case 'reroll':
+      play('die');
+      if (event.natural === 20) buzz([60, 40, 60]);
+      break;
+    case 'rise': play('equip'); break;
+    case 'end':
+      if (event.outcome === 'victory') play('coins', { delay: 150 });
+      else if (event.outcome === 'dead') play('grave');
+      break;
+    default: break;
   }
 }
 

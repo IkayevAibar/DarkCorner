@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ItemView, OpenChestResult, Tier } from '@dark/shared';
 import { ItemChip, ItemDetails } from '../../components/items/ItemChip';
 import { useI18n } from '../../i18n';
+import { play, playTier } from '../../sound';
 
 const TILE = 76;
 const COUNT = 34;
@@ -12,7 +13,7 @@ const DECOY_ICONS = ['sword', 'axe', 'dagger', 'bow', 'staff', 'mace', 'shield',
 /**
  * The Spin: a strip of Items scrolls past and slows to a stop on the prize.
  *
- * Stand-in until Codex's version with sound and Tier effects lands
+ * Stand-in until Codex's version with Tier effects lands
  * (docs/tasks/codex-05-chest-spin.md): same props.
  */
 export function ChestSpin({ result, onDone }: { result: OpenChestResult; onDone: () => void }) {
@@ -37,6 +38,33 @@ export function ChestSpin({ result, onDone }: { result: OpenChestResult; onDone:
     }));
   }, [result]);
 
+  // A tick each time a tile passes the needle, read off the strip as it moves.
+  const stripRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (landed || reduced) return;
+    play('latch');
+    let frame = 0;
+    let under = 0;
+    const listen = () => {
+      const strip = stripRef.current;
+      if (strip) {
+        const shift = -new DOMMatrixReadOnly(getComputedStyle(strip).transform).m41;
+        const index = Math.floor(shift / (TILE + 8));
+        if (index !== under) {
+          under = index;
+          play('tick');
+        }
+      }
+      frame = requestAnimationFrame(listen);
+    };
+    frame = requestAnimationFrame(listen);
+    return () => cancelAnimationFrame(frame);
+  }, [landed, reduced]);
+
+  useEffect(() => {
+    if (landed) playTier(result.prize.tier);
+  }, [landed, result.prize.tier]);
+
   useEffect(() => {
     const start = requestAnimationFrame(() => setSpun(true));
     const stop = setTimeout(() => setLanded(true), reduced ? 50 : 3600);
@@ -52,6 +80,7 @@ export function ChestSpin({ result, onDone }: { result: OpenChestResult; onDone:
       <div className="grid w-full max-w-[540px] gap-4">
         <div className="relative h-[100px] overflow-hidden rounded-[2px] border border-brass-dim bg-[#0e0c0a]">
           <div
+            ref={stripRef}
             className="absolute top-3 left-1/2 flex gap-2"
             style={{
               transform: `translateX(-${spun ? offset : TILE / 2}px)`,

@@ -470,6 +470,8 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 
 ## Credits and licenses
 
-- **D&D rules, Class names and Race names:** from the System Reference Document 5.2 by Wizards of the Coast, licensed CC BY 4.0. The credits screen must include the SRD attribution statement.
-- **Icons:** from game-icons.net, licensed CC BY 3.0. Credit each icon's author on the credits screen.
-- **Sound effects:** credited according to each library's license.
+The credits are on the account sheet (Account → Credits) and in the README.
+
+- **D&D rules, Class names and Race names:** from the System Reference Document 5.2 by Wizards of the Coast, licensed CC BY 4.0. The credits include the SRD attribution statement word for word.
+- **Icons:** from game-icons.net by Lorc, Delapouite and Willdabeast, licensed CC BY 3.0.
+- **Sound effects:** Kenney's RPG Audio and Casino Audio packs, CC0 (credited anyway).

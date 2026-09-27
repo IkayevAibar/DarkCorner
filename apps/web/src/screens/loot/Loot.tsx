@@ -8,6 +8,7 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { playTier } from '../../sound';
 import { formatDuration, useNow } from '../../time';
 import { NeedHero } from '../city/NeedHero';
 import { ChestSpin } from './ChestSpin';
@@ -127,6 +128,7 @@ function IdentifySheet({ item, scrolls, free, onDone, onClose }: { item: ItemVie
       <ItemDetails item={item} />
       <button type="button" className="btn btn-primary" disabled={busy || (!free && scrolls === 0)} onClick={() => void run(async () => {
         const r = await api.identify(item.id);
+        playTier(r.item.tier);
         setRevealed(r.item);
         onDone();
       })}>

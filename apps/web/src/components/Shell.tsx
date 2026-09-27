@@ -3,6 +3,7 @@ import type { Locale } from '@dark/shared';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
 import { useSession } from '../session';
+import { setSoundOn, useSoundOn } from '../sound';
 import { Icon, type IconName } from './Icon';
 import { useSheet } from './Sheet';
 
@@ -57,10 +58,15 @@ function TopBar() {
   );
 }
 
+/** The SRD's attribution statement, kept word for word in both languages as its license asks. */
+const SRD_ATTRIBUTION =
+  'This work includes material from the System Reference Document 5.2 (“SRD 5.2”) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.';
+
 function AccountSheet() {
   const { t, locale } = useI18n();
   const { session, signOut, changeLocale } = useSession();
   const { closeSheet } = useSheet();
+  const soundOn = useSoundOn();
   if (session.state !== 'signedIn') return null;
   const { player } = session;
 
@@ -85,6 +91,21 @@ function AccountSheet() {
           ))}
         </div>
       </div>
+      <div className="grid gap-2">
+        <span className="sub-heading">{t('account.sound')}</span>
+        <div className="flex gap-2">
+          {([true, false] as const).map((value) => (
+            <button
+              key={String(value)}
+              type="button"
+              className={`btn btn-small ${value === soundOn ? 'btn-primary' : ''}`}
+              onClick={() => setSoundOn(value)}
+            >
+              {value ? t('account.on') : t('account.off')}
+            </button>
+          ))}
+        </div>
+      </div>
       {player.isAdmin && (
         <NavLink to="/admin" className="btn text-center no-underline" onClick={closeSheet}>
           {t('account.admin')}
@@ -100,6 +121,14 @@ function AccountSheet() {
       >
         {t('signOut')}
       </button>
+      <details className="text-sm text-muted">
+        <summary className="cursor-pointer font-head font-bold text-bone">{t('account.credits')}</summary>
+        <div className="mt-2 grid gap-2">
+          <p className="m-0">{t('credits.icons')}</p>
+          <p className="m-0">{t('credits.sounds')}</p>
+          <p className="m-0"><strong className="text-bone">{t('credits.srdTitle')}.</strong> {SRD_ATTRIBUTION}</p>
+        </div>
+      </details>
     </div>
   );
 }

@@ -8,7 +8,17 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { play } from '../../sound';
 import { NeedHero } from './NeedHero';
+
+/** What an Upgrade sounds like once the hammer lands. */
+const UPGRADE_SOUND: Record<UpgradeResult['outcome'], () => void> = {
+  success: () => play('chips', { delay: 180 }),
+  failed: () => play('miss', { delay: 180 }),
+  saved: () => play('page', { delay: 180 }),
+  dropped: () => play('creak', { delay: 180 }),
+  destroyed: () => play('grave', { delay: 180 }),
+};
 
 const MATERIALS = ['scrap', 'essence', 'soulstone'];
 
@@ -124,7 +134,9 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
             className="btn btn-primary"
             disabled={busy || !affordable(up.cost, gold)}
             onClick={() => void run(async () => {
+              play('anvil');
               const r = await api.upgrade(item.id, up.risky && protect && up.protectionScrolls > 0);
+              UPGRADE_SOUND[r.outcome]();
               setLast(r);
               if (r.outcome === 'destroyed') {
                 setDestroyed(true);
@@ -144,7 +156,9 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
           <span className="sub-heading">{t('forge.reforge')}</span>
           <Cost cost={q.reforge} gold={gold} />
           <button type="button" className="btn" disabled={busy || !affordable(q.reforge, gold)} onClick={() => void run(async () => {
+            play('anvil');
             await api.reforge(item.id);
+            play('reveal', { delay: 200 });
             await after();
           })}>
             {t('forge.reforgeGo')}
@@ -157,7 +171,9 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
           <span className="sub-heading">{t('forge.salvage')}</span>
           <SalvageLine min={q.salvage.min} max={q.salvage.max} name={q.salvage.name} />
           <button type="button" className="btn" disabled={busy} onClick={() => void run(async () => {
+            play('anvil', { rate: 1.15 });
             await api.salvage(item.id);
+            play('loot', { delay: 150 });
             onChanged();
             closeSheet();
           })}>
@@ -196,6 +212,7 @@ function CraftRow({ recipe, hero, onDone }: { recipe: { id: string; makes: { nam
       <div className="flex items-center justify-between gap-3">
         <span className="font-head font-bold">{text(recipe.makes.name)}</span>
         <button type="button" className="btn btn-small" disabled={busy || !recipe.canCraft || !hero.inCity} onClick={() => void run(async () => {
+          play('anvil');
           await api.craft(recipe.id);
           onDone();
         })}>

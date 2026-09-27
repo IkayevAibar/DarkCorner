@@ -5,6 +5,7 @@ import {
 import { api, ApiRequestError } from '../../api';
 import { useText } from '../../components/items/ItemChip';
 import { useI18n } from '../../i18n';
+import { play } from '../../sound';
 import type { MessageKey } from '../../i18n/en';
 
 const STEPS = ['race', 'class', 'abilities', 'talents', 'look', 'confirm'] as const;
@@ -67,6 +68,7 @@ export function CreateHero({ options, initialDraft, onCreated }: {
   };
 
   const roll = () => run(async () => {
+    play('dice');
     const { draft: next } = draft ? await api.rerollDraft() : await api.startDraft();
     setDraft(next);
     setSetIndex(next.sets.length - 1);

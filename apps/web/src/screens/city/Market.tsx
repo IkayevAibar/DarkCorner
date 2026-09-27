@@ -8,6 +8,7 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { play } from '../../sound';
 import { formatDuration, useNow } from '../../time';
 import { NeedHero } from './NeedHero';
 
@@ -100,6 +101,7 @@ function BuyListing({ listing, gold, onDone }: { listing: Listing; gold: number;
       <span className="text-sm text-muted">{t('market.soldBy', { name: listing.seller })}</span>
       <button type="button" className="btn btn-primary" disabled={busy || gold < listing.price} onClick={() => void run(async () => {
         await api.buyListing(listing.id);
+        play('coins');
         onDone();
       })}>
         {t('shop.buyFor', { n: listing.price.toLocaleString() })}
@@ -118,6 +120,7 @@ function TakeBack({ listing, onDone }: { listing: Listing; onDone: () => void })
       <span className="text-sm text-muted">{t('market.listedFor', { n: listing.price.toLocaleString() })}</span>
       <button type="button" className="btn" disabled={busy} onClick={() => void run(async () => {
         await api.cancelListing(listing.id);
+        play('loot');
         onDone();
       })}>
         {t('market.takeBack')}
@@ -143,6 +146,7 @@ function ListItem({ item, tax, onDone }: { item: ItemView; tax: number; onDone: 
       </label>
       <button type="button" className="btn btn-primary" disabled={busy || !valid} onClick={() => void run(async () => {
         await api.list(item.id, value);
+        play('page');
         onDone();
       })}>
         {t('market.listGo')}

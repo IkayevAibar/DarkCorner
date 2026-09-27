@@ -27,3 +27,11 @@ Open <http://localhost:5180>. The dev login lets you sign in as anyone. Tick "ad
 | `npm run typecheck` | Type-checks every package |
 | `npm run build` | Builds the API bundle and the web app |
 | `npm run db:down` | Stops the local database. Your data stays in a Docker volume |
+
+## Credits
+
+- Icons by Lorc, Delapouite and Willdabeast from [game-icons.net](https://game-icons.net), CC BY 3.0.
+- Sound effects from Kenney's [RPG Audio](https://kenney.nl/assets/rpg-audio) and [Casino Audio](https://kenney.nl/assets/casino-audio), CC0. Thank you, Kenney.
+- This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at <https://www.dndbeyond.com/srd>. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at <https://creativecommons.org/licenses/by/4.0/legalcode>.
+
+The same credits are in the game: account sheet → Credits. [docs/art/icons-and-sounds.md](docs/art/icons-and-sounds.md) lists every icon and sound file.
