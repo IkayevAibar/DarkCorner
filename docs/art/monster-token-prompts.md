@@ -1,0 +1,40 @@
+# Monster tokens: 17 image prompts
+
+Every monster fights as a round token. Only four have art so far, from the look test: the Goblin, the Skeleton, the Imp and the Dragon (`apps/web/public/art/tokens/`). The other 17 fight as a lettered disc. Each prompt below draws the monster so its power reads at a glance ([design.md → Monsters](../design.md#monsters)).
+
+## How to use
+
+1. Use one chat for the whole batch. Send the **style block** first.
+2. Send each prompt below. Every prompt repeats the framing, so none depends on the one before.
+3. Save each result as PNG in `art/monsters/` under the file name shown, e.g. `giant-rat.png`.
+4. Keep the exact prompts in `art/monsters/generation-prompts.json` and check the files into `art/monsters/validation.json`, as the portrait batch did (`art/portraits/`). Claude shrinks them for phones and adds them to the game.
+
+The three Mini-bosses are drawn a little grander, since they fight on a larger token; the Dragon is done.
+
+## Style block
+
+```
+For every image in this chat: a monster portrait for a round game token in a dark fantasy ink illustration with a gothic comic-book feel, matching a set that already has a goblin, a skeleton, an imp and a dragon. Heavy black ink linework, deep shadows, rough cross-hatching, visible brush texture. A muted, desaturated palette: charcoal, bone white, cold stone grey and faded sepia, with small touches of dried-blood red, tarnished brass and sickly green; fire and magic glow in dull orange or cold blue, never neon. Head and shoulders (or the front of the body for beasts), facing the viewer, the head centered and readable at 48 pixels, with the face and essential silhouette inside a central circle so it can be cropped round. Square 1:1. Genuinely transparent background; if unavailable, solid pure black. No scenery, no frame, no text, letters, numbers or watermarks. Any marks or symbols are abstract shapes, never writing. Reply "Ready" and wait.
+```
+
+## Prompts
+
+| File | Floors | Prompt |
+|---|---|---|
+| `giant-rat.png` | 1–3 | A giant rat: matted grey fur, a scarred snout, long yellowed teeth, small red eyes, whiskers caught in the light. |
+| `goblin-archer.png` | 1–3 | A goblin archer: a hood of rat fur, one eye squinting along a nocked arrow, a crude shortbow, crow feathers tied in its hair. |
+| `goblin-cutpurse.png` | 1–3 | A goblin cutpurse: a sly, greedy grin, a stolen coin purse clutched to its chest, a hooked little knife, too many mismatched rings. |
+| `wolf.png` | 1–3 | A lean grey wolf, head and forequarters: hackles raised, a torn ear, bared fangs, pale hungry eyes, breath steaming in the cold. |
+| `goblin-chieftain.png` | 1–3, Mini-boss | A goblin chieftain, grander than a goblin: a scarred brute with a crown of teeth and bent nails over a spiked iron helm, a necklace of trophies, a heavy notched cleaver on the shoulder. |
+| `zombie.png` | 4–6 | A shambling zombie: grey rotting skin, a slack jaw, crude stitches across the face, torn burial clothes, clouded empty eyes. |
+| `ghoul.png` | 4–6 | A ghoul: emaciated and hunched, grey skin tight over the skull, a long tongue, cracked claws raised, a sickly green glint in its eyes. |
+| `wraith.png` | 4–6 | A wraith: a hooded shape of torn black shroud with no face, only two cold blue points of light, wisps of shadow drifting off its edges. |
+| `bone-knight.png` | 4–6, Mini-boss | A bone knight, grander than a skeleton: a skeleton in a rusted great helm and cracked plate armor, a tattered crimson tabard, a notched longsword, a dull red glow in its eye sockets. |
+| `cultist.png` | 7–9 | A cultist: a hooded robe of faded crimson, a cracked bone mask over the upper face, a curved ritual dagger, drips of candle wax on the knuckles. |
+| `hellhound.png` | 7–9 | A hellhound, head and forequarters: a black-furred hound with cracked, ember-lit skin, smoke pouring from its nostrils, glowing orange eyes, burning drool. |
+| `demon-brute.png` | 7–9 | A demon brute: a massive horned demon with grey-red hide, a broken tusk, a scarred brow, heavy chains wrapped around two huge fists. |
+| `horned-tyrant.png` | 7–9, Mini-boss | A horned tyrant, grander than the other demons: a demon lord with a crown of curling black horns, a scarred face, burning eyes that make you look away, a black iron collar and a torn mantle. |
+| `kobold.png` | 10 | A kobold: a small reptilian with rust-red scales, a snout full of little teeth, a crude spear and a shield made from one old dragon scale. |
+| `drake.png` | 10 | A drake: a wingless young dragon, head and neck, bronze-black scales, a long toothy snout, smoke curling from its jaws, amber eyes. |
+| `doppelganger.png` | any (the false prisoner) | A doppelganger: a pale, half-finished face caught between two people, eyes too wide, grey featureless skin at the edges, a torn prisoner's shirt and a broken shackle at the throat. |
+| `mimic.png` | any (the chest that bites) | A mimic: a wooden treasure chest seen from the front, its lid a mouth of jagged teeth, a long purple tongue, rusted iron bands, small yellow eyes along the lid. |
