@@ -14,7 +14,7 @@ export interface ThemeDef {
 export const THEMES: Record<ThemeId, ThemeDef> = {
   warrens: { id: 'warrens', name: text('Goblin warrens', 'Гоблинские норы'), maps: ['goblins-1'] },
   crypts: { id: 'crypts', name: text('Undead crypts', 'Склепы нежити'), maps: ['crypt-1'] },
-  depths: { id: 'depths', name: text('Demon-touched depths', 'Глубины, тронутые демонами'), maps: ['demons-1'] },
+  depths: { id: 'depths', name: text('Demon-touched depths', 'Осквернённые демонами глубины'), maps: ['demons-1'] },
   lair: { id: 'lair', name: text('The Dragon’s lair', 'Логово дракона'), maps: ['demons-1'] },
 };
 

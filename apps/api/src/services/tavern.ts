@@ -35,15 +35,15 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
     case 'drop':
       return { tier, text: { en: `${hero} found a ${tierName?.en} ${baseName(d.base).en.toLowerCase()} on Floor ${d.floor}`, ru: `${hero}: находка на этаже ${d.floor} — ${tierName?.ru} предмет (${baseName(d.base).ru.toLowerCase()})` } };
     case 'chest':
-      return { tier, text: { en: `${hero} opened ${GRADE_NAMES[String(d.grade)]?.en} Chest: ${tierName?.en}!`, ru: `${hero} открывает ${GRADE_NAMES[String(d.grade)]?.ru} сундук: ${tierName?.ru}!` } };
+      return { tier, text: { en: `${hero} opened ${GRADE_NAMES[String(d.grade)]?.en} Chest: ${tierName?.en}!`, ru: `${hero} открывает ${GRADE_NAMES[String(d.grade)]?.ru} сундук, а в нём — ${tierName?.ru} предмет!` } };
     case 'identify':
-      return { tier, text: { en: `${hero} identified ${unique?.en ?? 'an Item'}${d.radiant ? ' — Radiant!' : ''}`, ru: `${hero} опознаёт: ${unique?.ru ?? 'предмет'}${d.radiant ? ' — сияющий!' : ''}` } };
+      return { tier, text: { en: `${hero} identified ${unique?.en ?? 'an Item'}${d.radiant ? ' — Radiant!' : ''}`, ru: `${hero} опознаёт: ${unique?.ru ?? 'предмет'}${d.radiant ? ' — сияет!' : ''}` } };
     case 'relic':
       return { tier: 'relic', text: { en: `${hero} found a Relic: ${unique?.en} #${d.serial}/${d.of}`, ru: `${hero}: найдена реликвия — ${unique?.ru} №${d.serial}/${d.of}` } };
     case 'upgrade10':
-      return { tier, text: { en: `${hero} forged a +10 ${baseName(d.base).en.toLowerCase()}!`, ru: `${hero}: выковано +10 (${baseName(d.base).ru.toLowerCase()})!` } };
+      return { tier, text: { en: `${hero} forged a +10 ${baseName(d.base).en.toLowerCase()}!`, ru: `${hero} доводит до +10: ${baseName(d.base).ru.toLowerCase()}!` } };
     case 'market-sale':
-      return { tier, text: { en: `${hero} bought a ${tierName?.en} ${baseName(d.base).en.toLowerCase()} from ${d.seller} for ${d.price} gold`, ru: `${hero} покупает у ${d.seller}: ${baseName(d.base).ru.toLowerCase()} (${tierName?.ru}) за ${d.price} золота` } };
+      return { tier, text: { en: `${hero} bought from ${d.seller} for ${d.price} gold: ${tierName?.en} ${baseName(d.base).en.toLowerCase()}`, ru: `${hero} покупает на рынке: ${baseName(d.base).ru.toLowerCase()} (ранг: ${tierName?.ru}) за ${d.price} золота. Продавец: ${d.seller}` } };
     case 'death':
       return { tier: null, text: { en: `${hero} died on Floor ${d.floor}`, ru: `${hero} погибает на этаже ${d.floor}` } };
     case 'depth':
@@ -53,9 +53,9 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
     case 'vault-announced':
       return { tier: null, text: { en: `A sealed Vault on Floor ${d.floor} will open soon`, ru: `Скоро откроется сокровищница на этаже ${d.floor}` } };
     case 'boss-attempt':
-      return { tier: null, text: { en: `${hero} challenged the Dragon: ${d.outcome === 'dead' ? 'and died' : 'and fell back'}`, ru: `${hero} бросает вызов дракону: ${d.outcome === 'dead' ? 'и гибнет' : 'и отступает'}` } };
+      return { tier: null, text: { en: `${hero} challenged the Dragon and ${d.outcome === 'dead' ? 'died' : d.outcome === 'victory' ? 'won' : 'fell back'}`, ru: `${hero} бросает вызов дракону и ${d.outcome === 'dead' ? 'гибнет' : d.outcome === 'victory' ? 'побеждает' : 'отступает'}` } };
     case 'boss-kill':
-      return { tier: 'mythic', text: { en: d.place === 1 ? `${hero} slew the Dragon: Champion!` : `${hero} slew the Dragon: place ${d.place}`, ru: d.place === 1 ? `${hero} побеждает дракона — чемпион!` : `${hero} побеждает дракона — ${d.place}-е место` } };
+      return { tier: 'mythic', text: { en: d.place === 1 ? `${hero} slew the Dragon: Champion!` : `${hero} slew the Dragon: ${d.place === 2 ? '2nd' : '3rd'} place`, ru: d.place === 1 ? `${hero} побеждает дракона — чемпион!` : `${hero} побеждает дракона — ${d.place}-е место` } };
     case 'gate-open':
       return { tier: null, text: { en: 'The Boss gate is open', ru: 'Врата босса открыты' } };
     case 'weaken':
@@ -99,7 +99,7 @@ export async function hallView(): Promise<HallView> {
       const detail: LocalizedText | null = r.kind === 'relic' && typeof d.uniqueId === 'string'
         ? { en: `${uniqueById(d.uniqueId).name.en} #${d.serial}/${d.of}`, ru: `${uniqueById(d.uniqueId).name.ru} №${d.serial}/${d.of}` }
         : r.kind === 'deepest' ? { en: `Floor ${d.floor}`, ru: `Этаж ${d.floor}` }
-        : r.kind === 'best-drop' ? { en: `${TIER_NAMES[String(d.tier)]?.en} ${baseName(d.base).en.toLowerCase()}`, ru: `${baseName(d.base).ru} (${TIER_NAMES[String(d.tier)]?.ru})` }
+        : r.kind === 'best-drop' ? { en: `${TIER_NAMES[String(d.tier)]?.en} ${baseName(d.base).en.toLowerCase()}`, ru: `${baseName(d.base).ru} (ранг: ${TIER_NAMES[String(d.tier)]?.ru})` }
         : r.kind === 'highest-level' || typeof d.level === 'number' ? { en: `Level ${d.level}`, ru: `Уровень ${d.level}` }
         : null;
       return { season: r.seasonNumber, kind: r.kind as HallView['entries'][number]['kind'], player: r.playerName, hero: r.heroName, detail, at: r.createdAt.toISOString() };

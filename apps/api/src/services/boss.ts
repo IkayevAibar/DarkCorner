@@ -39,7 +39,7 @@ export async function bossVictory(tx: Tx, hero: HeroWithItems, season: Season, f
       await schedule(tx, 'wipe', wipeAt, { seasonId: season.id });
       await broadcast(tx, {
         en: `🐉 ${hero.name} has slain the Ancient Dragon and is the Champion of Season ${season.number}! The Finale begins: 72 hours to take 2nd and 3rd place before the Wipe.`,
-        ru: `🐉 Древний дракон повержен! ${hero.name} — чемпион сезона ${season.number}! Начинается финал: 72 часа, чтобы занять 2-е и 3-е место до вайпа.`,
+        ru: `🐉 Древний дракон повержен! ${hero.name} — чемпион сезона ${season.number}! Начинается финал: 72 часа, чтобы занять 2-е и 3-е места до вайпа.`,
       });
       out.notices.push(t(
         'The Dragon falls. You are the Champion of this Season! The Finale has begun.',
@@ -47,10 +47,10 @@ export async function bossVictory(tx: Tx, hero: HeroWithItems, season: Season, f
       ));
     } else {
       await broadcast(tx, {
-        en: `🐉 ${hero.name} has slain the Dragon too and takes place ${place}.`,
+        en: `🐉 ${hero.name} has slain the Dragon too and takes ${place === 2 ? '2nd' : '3rd'} place.`,
         ru: `🐉 Ещё одна победа над драконом: ${hero.name} занимает ${place}-е место.`,
       });
-      out.notices.push(t(`The Dragon falls. You take place ${place} on the podium!`, `Дракон пал. Вы занимаете ${place}-е место!`));
+      out.notices.push(t(`The Dragon falls. You take ${place === 2 ? '2nd' : '3rd'} place on the podium!`, `Дракон пал. Вы занимаете ${place}-е место!`));
     }
   } else {
     out.notices.push(t('The Dragon falls again. Its hoard is yours.', 'Дракон снова пал. Его сокровища ваши.'));

@@ -34,7 +34,7 @@ export async function enterVault(tx: Tx, hero: HeroWithItems, season: Season, fl
   const vault = await vaultState(tx, season.id, floor, room, now);
   if (vault.state === 'sealed') {
     const at = clock(vault.opensAt!);
-    out.notices.push(t(`A sealed Vault. Its seals break at ${at} (game time).`, `Запечатанная сокровищница. Печати спадут в ${at} (время игры).`));
+    out.notices.push(t(`A sealed Vault. Its seals break at ${at} (game time).`, `Запечатанная сокровищница. Печати спадут в ${at} по игровому времени.`));
     return;
   }
   if (vault.state === 'claimed') {

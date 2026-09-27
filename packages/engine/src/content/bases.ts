@@ -83,7 +83,7 @@ export const BASES: ItemBase[] = [
   // Stackables
   stack({ id: 'potion', kind: 'potion', name: text('Healing potion', 'Зелье лечения'), icon: 'potion', maxStack: 10 }),
   stack({ id: 'scroll-identify', kind: 'scroll', name: text('Scroll of Identify', 'Свиток опознания'), icon: 'scroll', maxStack: 20 }),
-  stack({ id: 'scroll-portal', kind: 'scroll', name: text('Town Portal scroll', 'Свиток городского портала'), icon: 'scroll', maxStack: 10 }),
+  stack({ id: 'scroll-portal', kind: 'scroll', name: text('Town Portal scroll', 'Свиток портала в город'), icon: 'scroll', maxStack: 10 }),
   stack({ id: 'scroll-protection', kind: 'scroll', name: text('Protection scroll', 'Свиток защиты'), icon: 'scroll', maxStack: 10 }),
   stack({ id: 'key-iron', kind: 'key', name: text('Iron key', 'Железный ключ'), icon: 'key', maxStack: 20 }),
   stack({ id: 'key-silver', kind: 'key', name: text('Silver key', 'Серебряный ключ'), icon: 'key', maxStack: 20 }),

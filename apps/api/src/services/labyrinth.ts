@@ -524,7 +524,7 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
     }
     const left = await tx.item.count({ where: { graveId: grave.id } });
     if (left === 0) await tx.grave.delete({ where: { id: grave.id } });
-    else outcome.notices.push(t('Your Bag is full; the rest stays in the Grave.', 'Сумка полна; остальное осталось в могиле.'));
+    else outcome.notices.push(t('Your Bag is full; the rest stays in the Grave.', 'Сумка полна; остальное остаётся в могиле.'));
     return hero.id;
   });
   return respond(heroId, season, outcome);

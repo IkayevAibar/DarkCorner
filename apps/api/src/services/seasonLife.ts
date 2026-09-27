@@ -164,7 +164,7 @@ export async function announceVault(season: Season, now = new Date(), minutes?: 
     await tx.feedEvent.create({ data: { seasonId: season.id, kind: 'vault-announced', data: { floor: floorNumber, opensAt: opensAt.toISOString() } } });
     await broadcast(tx, {
       en: `🗝️ A sealed Vault on Floor ${floorNumber} opens today at ${at} (game time). The first Hero in takes everything.`,
-      ru: `🗝️ Запечатанная сокровищница на этаже ${floorNumber} откроется сегодня в ${at} (время игры). Всё достанется первому.`,
+      ru: `🗝️ Запечатанная сокровищница на этаже ${floorNumber} откроется сегодня в ${at} по игровому времени. Всё достанется первому.`,
     });
   });
   return { floor: floorNumber, opensAt };

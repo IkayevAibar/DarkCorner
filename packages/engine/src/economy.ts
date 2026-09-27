@@ -275,7 +275,7 @@ export const BLESSINGS: Record<BlessingId, BlessingDef> = {
   },
   providence: {
     id: 'providence', name: text('Blessing of Providence', 'Благословение провидения'),
-    description: text('Your Bad-luck meter fills twice as fast for 3 hours.', 'Счётчик невезения наполняется вдвое быстрее 3 часа.'),
+    description: text('Your Bad-luck meter fills twice as fast for 3 hours.', 'Счётчик невезения 3 часа наполняется вдвое быстрее.'),
     price: 200, magicFind: 0, goldFind: 0, badLuck: 2,
   },
 };

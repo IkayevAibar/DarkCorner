@@ -53,7 +53,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     armor: ['light'],
     fights: text(
       'Critical hits, strikes first, Sneak attack on the first hit of a fight.',
-      'Критические удары, бьёт первым, скрытная атака первым ударом боя.',
+      'Критические удары, первый ход в бою, скрытая атака при первом попадании.',
     ),
     trick: text(
       'Picks locks, disarms traps, spots lying Clues, has the best odds on Escape rolls.',
@@ -69,7 +69,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     weapons: ['dagger', 'staff'],
     offHands: ['orb'],
     armor: ['robes'],
-    fights: text('Big spell damage, but fragile. Limited spells per rest.', 'Мощные заклинания, но хрупок. Заклинаний на отдых немного.'),
+    fights: text('Big spell damage, but fragile. Limited spells per rest.', 'Мощные заклинания, но мало здоровья. Число заклинаний до отдыха ограничено.'),
     trick: text('Senses traps and curses. Identifies Items for free.', 'Чует ловушки и проклятия. Опознаёт предметы бесплатно.'),
     starterKit: ['staff', 'orb', 'robes'],
   },
@@ -81,7 +81,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     weapons: ['mace', 'staff'],
     offHands: ['shield', 'holy-symbol'],
     armor: ['medium', 'light', 'robes'],
-    fights: text('Heals itself. Its spells are deadly to undead.', 'Лечит себя. Его заклинания губительны для нежити.'),
+    fights: text('Heals itself. Its spells are deadly to undead.', 'Лечит себя, а заклинания губительны для нежити.'),
     trick: text('Rolls with advantage at Shrines.', 'Бросает с преимуществом у святилищ.'),
     starterKit: ['mace', 'shield', 'breastplate'],
   },

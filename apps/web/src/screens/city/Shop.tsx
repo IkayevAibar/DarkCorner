@@ -113,7 +113,7 @@ function SellSheet({ item, hero, onDone }: { item: ItemView; hero: HeroView; onD
             </button>
           )}
           <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => sell(item.quantity)}>
-            {t('shop.sellFor', { n: sellPrice(hero, item) })}
+            {t(item.quantity > 1 ? 'shop.sellAll' : 'shop.sellFor', { n: sellPrice(hero, item) })}
           </button>
         </div>
       )}

@@ -107,7 +107,7 @@ export async function enterEvent(tx: Tx, hero: HeroWithItems, season: Season, fl
     out.notices.push(t(`The trap springs: ${hero.hp - hp} damage.`, `Ловушка срабатывает: ${hero.hp - hp} урона.`));
     hero.hp = hp;
   } else {
-    out.notices.push(t('You slip past the trap unhurt.', 'Вы проскальзываете мимо ловушки невредимым.'));
+    out.notices.push(t('You slip past the trap unhurt.', 'Вы проскальзываете мимо ловушки без единой царапины.'));
   }
   await logRoll(tx, hero, seed, { event: kind, floor: floor.number, room, damage: trap.damage, disarmed: rogue });
   await finish(tx, visit, hero, floor.number, room, now);
@@ -225,7 +225,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
           out.gold += action.amount;
           out.notices.push(t(`You win ${action.amount} gold!`, `Вы выигрываете ${action.amount} золота!`));
         } else {
-          out.notices.push(t(`The goblin sweeps up your ${action.amount} gold.`, `Гоблин сгребает ваши ${action.amount} золота.`));
+          out.notices.push(t(`The goblin sweeps up your ${action.amount} gold.`, `Гоблин сгребает вашу ставку: ${action.amount} золота.`));
         }
       } else if (action.action === 'bet-item') {
         const item = bagGear(hero, action.itemId);
@@ -298,7 +298,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
           },
         });
         out.loot.push(toItemView(updated));
-        out.notices.push(t(`The altar drinks the offering, and your ${name.en} glows ${r.tier}.`, `Алтарь принимает подношение: «${name.ru}» разгорается новым цветом.`));
+        out.notices.push(t(`The altar drinks the offering. Your ${name.en} rises a Tier.`, `Алтарь принимает подношение: «${name.ru}» поднимается на ранг выше.`));
       } else {
         await destroyItem(tx, hero, item);
         out.notices.push(t(`The altar swallows your ${name.en}.`, `Алтарь поглощает «${name.ru}».`));

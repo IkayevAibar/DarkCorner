@@ -33,7 +33,7 @@ export async function identifyItem(player: Player, itemId: string): Promise<Iden
       if (item.radiant && item.uniqueId) {
         const name = uniqueById(item.uniqueId).name;
         await broadcast(tx, {
-          en: `🌈 ${hero.name} identified a Radiant ${name.en}!`,
+          en: `🌈 ${hero.name} identified a Radiant Item: ${name.en}!`,
           ru: `🌈 Сияющий предмет у героя ${hero.name}: ${name.ru}!`,
         });
       }

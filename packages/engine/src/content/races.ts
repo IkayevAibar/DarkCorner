@@ -35,7 +35,7 @@ export const RACE_DEFS: Record<RaceId, RaceDef> = {
     name: text('Elf', 'Эльф'),
     trait: text(
       'Keen senses: advantage on Checks to see through lying Clues, and against charm.',
-      'Острые чувства: преимущество на проверки лживых подсказок и против очарования.',
+      'Острые чувства: преимущество в проверках против лживых подсказок и против очарования.',
     ),
     clueAdvantage: true,
     charmAdvantage: true,

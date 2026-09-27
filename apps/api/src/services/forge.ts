@@ -106,7 +106,7 @@ export async function upgradeItem(player: Player, itemId: string, protect: boole
     if (result.outcome === 'success' && result.level === MAX_UPGRADE) {
       await feed(tx, season, hero, 'upgrade10', { item: item.id, base: item.base, tier: item.tier });
       const name = itemName(item);
-      await broadcast(tx, { en: `⚒️ ${hero.name} forged ${name.en} to +10!`, ru: `⚒️ ${hero.name}: «${name.ru}» выкован до +10!` });
+      await broadcast(tx, { en: `⚒️ ${hero.name} forged an Item to +10: ${name.en}!`, ru: `⚒️ ${hero.name} доводит до +10: «${name.ru}»!` });
     }
     return { heroId: hero.id, result, updated };
   });

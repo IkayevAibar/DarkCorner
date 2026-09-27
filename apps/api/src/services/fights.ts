@@ -229,6 +229,6 @@ export async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumb
   await feed(tx, season, hero, 'death', { floor: floorNumber, grave: grave.id });
   out.notices.push(t(
     'You died. Everything you carried lies in a Grave for 48 hours. You wake at the Temple with a Starter kit.',
-    'Вы погибли. Всё, что было при вас, лежит в могиле 48 часов. Вы очнулись в Храме с начальным снаряжением.',
+    'Вы погибли. Всё, что было при вас, лежит в могиле 48 часов. Вы очнулись в храме с начальным снаряжением.',
   ));
 }
