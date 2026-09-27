@@ -13,11 +13,22 @@ export type LocalizedText = z.infer<typeof localizedTextSchema>;
  * An Item as the web app renders it: a tile, a card, a line in the Feed.
  * Fields that identifying reveals are null while `identified` is false.
  */
+export const ITEM_KINDS = ['gear', 'potion', 'scroll', 'key', 'chest', 'material'] as const;
+export const itemKindSchema = z.enum(ITEM_KINDS);
+export type ItemKind = z.infer<typeof itemKindSchema>;
+
 export const itemViewSchema = z.object({
   id: z.string(),
+  /** Only gear has Quality, Bonus stats and Upgrades; the rest stack. */
+  kind: itemKindSchema,
+  /** Stack size; always 1 for gear. */
+  quantity: z.number().int().min(1),
+  /** For stackables the Tier is a color hint: a Silver chest shows as Rare. */
   tier: tierSchema,
-  /** Base type such as "longsword" or "helm"; picks the icon and the type line. */
+  /** Base type such as "longsword" or "helm". */
   base: z.string(),
+  /** Icon key for the base, e.g. "sword" (see apps/web/src/components/items/icons.ts). */
+  icon: z.string(),
   name: localizedTextSchema,
   /** Comes from the Floor it dropped on; scales base damage or armor. */
   itemLevel: z.number().int().min(1),

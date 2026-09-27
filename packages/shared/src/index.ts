@@ -9,3 +9,4 @@ export * from './auth.js';
 export * from './admin.js';
 export * from './errors.js';
 export * from './items.js';
+export * from './heroes.js';
