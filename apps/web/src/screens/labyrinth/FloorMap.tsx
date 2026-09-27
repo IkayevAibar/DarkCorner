@@ -54,9 +54,9 @@ export function FloorMap({ width, height, map, current, banner, exits, disabled,
           <line
             key={`${d.a}-${d.b}`}
             x1={p.x} y1={p.y} x2={q.x} y2={q.y}
-            stroke={d.kind === 'locked' ? '#c9a24a' : d.kind === 'cracked' ? '#8a7a60' : '#6e5530'}
+            stroke={d.kind === 'secret' ? '#b066ff' : d.kind === 'locked' ? '#c9a24a' : d.kind === 'cracked' ? '#8a7a60' : '#6e5530'}
             strokeWidth={d.kind === 'open' ? 1.6 : 1.2}
-            strokeDasharray={d.kind === 'cracked' ? '0.8 0.8' : d.kind === 'locked' ? '1.6 0.6' : undefined}
+            strokeDasharray={d.kind === 'cracked' || d.kind === 'secret' ? '0.8 0.8' : d.kind === 'locked' ? '1.6 0.6' : undefined}
           />
         );
       })}
@@ -136,6 +136,8 @@ function Glyph({ room, cx, cy }: { room: MapRoom; cx: number; cy: number }) {
       return <circle cx={cx} cy={cy} r={1.7} fill="#9e2020" stroke="#000" strokeWidth={0.3} />;
     case 'boss':
       return <circle cx={cx} cy={cy} r={2.3} fill="#9e2020" stroke="#e0b86a" strokeWidth={0.5} />;
+    case 'hidden':
+      return <path d={`M${cx} ${cy - 2} l1.8 2 -1.8 2 -1.8 -2 z`} fill={dim ? '#5e4a2a' : '#b066ff'} />;
     case 'fight':
       return (
         <path

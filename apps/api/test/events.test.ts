@@ -190,4 +190,45 @@ describe('Event rooms', () => {
     await placeAt(floor.number, from);
     expect((await post('/api/labyrinth/event', { action: 'pray' })).json().error).toBe('no_event');
   });
+
+  it('the Fountain heals, rests, or sickens, once a day', async () => {
+    const { floor, room } = roomWith('fountain');
+    await placeAt(floor.number, room, { hp: 100 });
+    const r = await act({ action: 'drink' });
+    expect(r.checks).toHaveLength(1);
+    const after = await hero();
+    expect(after.hp === 100).toBe(false);
+    expect((await post('/api/labyrinth/event', { action: 'drink' })).json().error).toBe('event_done');
+  });
+
+  it('the Prisoner wants a key, then thanks you or turns out to be a doppelganger', async () => {
+    const { floor, room } = roomWith('prisoner');
+    await placeAt(floor.number, room);
+    expect((await view()).room!.eventView).toMatchObject({ kind: 'prisoner', canOpen: false, free: false });
+    expect((await post('/api/labyrinth/event', { action: 'free' })).json().error).toBe('no_key');
+    await prisma.item.create({ data: { heroId, seasonId, base: 'key-iron', place: 'BAG', quantity: 1, tier: 'common' } });
+    const r = await act({ action: 'free' });
+    expect(r.fight !== null || r.loot.length > 0).toBe(true);
+    expect(await prisma.item.count({ where: { base: 'key-iron' } })).toBe(0);
+  });
+
+  it('the Library teaches or bites, with an INT Check on screen', async () => {
+    const { floor, room } = roomWith('library');
+    await placeAt(floor.number, room);
+    const before = await hero();
+    const r = await act({ action: 'read' });
+    expect(r.checks).toHaveLength(1);
+    const after = await hero();
+    if (r.checks[0]!.success) expect(after.xp).toBeGreaterThan(before.xp);
+    else expect(after.xp).toBe(before.xp);
+  });
+
+  it('the Bone pile pays an old adventurer’s purse, sometimes after a fight', async () => {
+    const { floor, room } = roomWith('bone-pile');
+    await placeAt(floor.number, room, { str: 30 });
+    const r = await act({ action: 'search' });
+    if (r.fight) expect(r.fight.events[1]).toEqual({ type: 'surprise', side: 'hero' });
+    if (!r.fight || r.fight.outcome === 'victory') expect(r.gold).toBeGreaterThan(0);
+  });
 });
+

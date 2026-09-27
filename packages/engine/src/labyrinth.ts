@@ -9,12 +9,13 @@ import { type Rng, createRng } from './rng.js';
  * only regenerated (and cached). Bump LABYRINTH_VERSION whenever generation
  * changes, because a running Season must keep the Labyrinth it started with.
  */
-export const LABYRINTH_VERSION = 1;
+export const LABYRINTH_VERSION = 2;
 
 /** About 1 Clue in 5 lies (docs/design.md, v0). */
 export const CLUE_LIE_CHANCE = 0.2;
 
-export type DoorKind = 'open' | 'cracked' | 'locked';
+/** Secret Doors lead to hidden rooms and show only to a Hero who spots them. */
+export type DoorKind = 'open' | 'cracked' | 'locked' | 'secret';
 
 export interface Clue {
   text: Text;
@@ -61,8 +62,48 @@ export interface Labyrinth {
 
 export function generateLabyrinth(seed: string): Labyrinth {
   const floors: Floor[] = [];
-  for (let n = 1; n <= FLOOR_COUNT; n++) floors.push(generateFloor(createRng(`${seed}:floor:${n}`), n));
+  for (let n = 1; n <= FLOOR_COUNT; n++) {
+    floors.push(hideRooms(createRng(`${seed}:floor:${n}:secrets`), generateFloor(createRng(`${seed}:floor:${n}`), n)));
+  }
   return { seed, floors };
+}
+
+/** Rooms that can become hidden rooms: plain ones, a dead end with a single ordinary Door, a few steps from the landing. */
+const HIDEABLE: RoomType[] = ['fight', 'empty', 'event', 'treasure'];
+
+/**
+ * 1–2 dead-end Rooms per Floor (not the lair) become hidden rooms behind a
+ * secret Door (v0). It runs on its own RNG after the rest, so it changes only
+ * those Rooms and their Doors.
+ */
+function hideRooms(rng: Rng, floor: Floor): Floor {
+  if (floor.number >= FLOOR_COUNT) return floor;
+  const doorsTouching = (id: number) => floor.doors.filter((d) => d.a === id || d.b === id);
+  const x = (id: number) => id % floor.width;
+  const y = (id: number) => Math.floor(id / floor.width);
+  const steps = (a: number, b: number) => Math.abs(x(a) - x(b)) + Math.abs(y(a) - y(b));
+  const candidates = floor.rooms.filter((r) => {
+    if (!HIDEABLE.includes(r.type) || steps(r.id, floor.landing) < 3) return false;
+    const touching = doorsTouching(r.id);
+    return touching.length === 1 && touching[0]!.kind === 'open';
+  });
+  const wanted = rng.int(1, 2);
+  const hidden: number[] = [];
+  while (hidden.length < wanted && candidates.length > 0) {
+    const pick = candidates.splice(rng.int(0, candidates.length - 1), 1)[0]!;
+    if (hidden.some((h) => steps(h, pick.id) < 4)) continue;
+    hidden.push(pick.id);
+  }
+  const clue = (): Clue => ({ text: rng.pick(cluesFor('hidden', floor.theme)), lie: false });
+  return {
+    ...floor,
+    rooms: floor.rooms.map((r) => (hidden.includes(r.id) ? { ...r, type: 'hidden', event: null } : r)),
+    doors: floor.doors.map((d) => {
+      if (hidden.includes(d.b)) return { ...d, kind: 'secret', clueFromA: clue() };
+      if (hidden.includes(d.a)) return { ...d, kind: 'secret', clueFromB: clue() };
+      return d;
+    }),
+  };
 }
 
 const pairKey = (a: number, b: number) => (a < b ? `${a}-${b}` : `${b}-${a}`);

@@ -63,10 +63,10 @@ const clearedAt = (hf: HeroFloor | null, room: number): Date | null => {
   return iso ? new Date(iso) : null;
 };
 
-/** A Room this Hero cleared in the last 24 hours stays clear for it. */
-export const isCleared = (hf: HeroFloor | null, room: number, now: Date): boolean => {
+/** A Room this Hero cleared in the last 24 hours (or `within`) stays clear for it. */
+export const isCleared = (hf: HeroFloor | null, room: number, now: Date, within = DAY_MS): boolean => {
   const at = clearedAt(hf, room);
-  return at !== null && now.getTime() - at.getTime() < DAY_MS;
+  return at !== null && now.getTime() - at.getTime() < within;
 };
 
 export async function markCleared(tx: Tx, hf: HeroFloor, room: number, now: Date): Promise<void> {

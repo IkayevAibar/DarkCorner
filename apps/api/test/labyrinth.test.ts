@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { type Floor, doorsOf, generateLabyrinth, instantiate, monsterById } from '@dark/engine';
+import { type Floor, abilityModifier, check, createRng, doorsOf, generateLabyrinth, instantiate, monsterById } from '@dark/engine';
 import { labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
@@ -309,4 +309,37 @@ describe('the Labyrinth', () => {
     const response = await post(`/api/items/${potion.id}/move`, { to: 'storage' });
     expect(response.json().error).toBe('storage_in_city');
   });
+
+  it('shows a secret Door only to a Hero who spots it, and pays a hoard behind it once a week', async () => {
+    const hidden = floor1.rooms.find((r) => r.type === 'hidden')!;
+    const door = floor1.doors.find((d) => d.a === hidden.id || d.b === hidden.id)!;
+    const outside = door.a === hidden.id ? door.b : door.a;
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.hero.updateMany({ data: { room: outside, prevRoom: outside, maxHp: 999, hp: 999 } });
+    await prisma.heroFloor.updateMany({ data: { seen: { push: outside } } });
+    const h = await hero();
+    // The same daily WIS Check the server rolls (a human Fighter: no advantage).
+    const day = Math.floor(Date.now() / 86_400_000);
+    const spotted = check(createRng(`${h.id}:secret:1:${door.a}-${door.b}:${day}`), {
+      modifier: abilityModifier(h.wis), dc: 14, edge: 'normal', rerollOnes: false,
+    }).success;
+    const here = labyrinthResultSchema.parse((await app.inject({ url: '/api/labyrinth', headers: { cookie } })).json());
+    expect(here.view.exits.some((e) => e.to === hidden.id)).toBe(spotted);
+    if (!spotted) expect((await post('/api/labyrinth/move', { to: hidden.id })).json().error).toBe('no_door');
+
+    // Once the room has been found, the way stays open.
+    await prisma.heroFloor.updateMany({ data: { seen: { push: hidden.id } } });
+    await refill();
+    const hoard = await act('/api/labyrinth/move', { to: hidden.id });
+    expect(hoard.view.room?.type).toBe('hidden');
+    expect(hoard.loot.length).toBeGreaterThanOrEqual(2);
+    expect(await prisma.feedEvent.count({ where: { kind: 'hidden' } })).toBe(1);
+    await refill();
+    await act('/api/labyrinth/move', { to: outside }).catch(() => null);
+    await prisma.hero.updateMany({ data: { room: outside, facing: false } });
+    const again = await act('/api/labyrinth/move', { to: hidden.id });
+    expect(again.loot).toHaveLength(0);
+    expect(again.notices.some((n) => n.en.includes('fills again'))).toBe(true);
+  });
 });
+

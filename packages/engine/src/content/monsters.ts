@@ -109,6 +109,10 @@ export const MONSTERS: MonsterDef[] = [
   m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.png', role: 'boss', hp: 620, ac: 20, attack: 13, damage: [2, 10, 6], dex: 10, xp: 5000, weight: 0,
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'breath', dice: [12, 6], dc: 17 }, { id: 'frighten', dc: 15, rounds: 2 }, { id: 'enrage' }] }),
 
+  // Anywhere: the prisoner who isn't one (Prisoner). Scales from Floor 1 like the warrens.
+  m({ id: 'doppelganger', name: text('Doppelganger', 'Двойник'), theme: 'warrens', kin: 'humanoid', art: null, role: 'brute', hp: 20, ac: 13, attack: 5, damage: [1, 8, 2], dex: 16, xp: 45, weight: 0,
+    powers: [{ id: 'quick' }] }),
+
   // Anywhere: the chest that bites (Three chests). Scales from Floor 1 like the warrens.
   m({ id: 'mimic', name: text('Mimic', 'Мимик'), theme: 'warrens', kin: 'beast', art: null, role: 'brute', hp: 16, ac: 12, attack: 4, damage: [1, 8, 2], dex: 12, xp: 40, weight: 0 }),
 ];

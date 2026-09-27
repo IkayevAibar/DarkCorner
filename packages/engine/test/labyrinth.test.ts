@@ -35,10 +35,30 @@ describe('generateLabyrinth', () => {
     ]);
   });
 
-  it('lets anyone reach every Room through ordinary Doors', () => {
+  it('lets anyone reach every Room through ordinary Doors, apart from hidden ones behind a secret Door', () => {
     for (const seed of seeds) {
       for (const floor of generateLabyrinth(seed).floors) {
-        expect(reachable(floor, ['open']).size).toBe(floor.rooms.length);
+        const hidden = floor.rooms.filter((r) => r.type === 'hidden');
+        expect(reachable(floor, ['open']).size).toBe(floor.rooms.length - hidden.length);
+        expect(reachable(floor, ['open', 'secret']).size).toBe(floor.rooms.length);
+      }
+    }
+  });
+
+  it('hides 1–2 dead-end Rooms per Floor above the lair, each behind one secret Door', () => {
+    for (const seed of seeds) {
+      for (const floor of generateLabyrinth(seed).floors) {
+        const hidden = floor.rooms.filter((r) => r.type === 'hidden');
+        if (floor.number === FLOOR_COUNT) {
+          expect(hidden).toHaveLength(0);
+          continue;
+        }
+        expect(hidden.length).toBeGreaterThanOrEqual(1);
+        expect(hidden.length).toBeLessThanOrEqual(2);
+        for (const room of hidden) {
+          const doors = floor.doors.filter((d) => d.a === room.id || d.b === room.id);
+          expect(doors.map((d) => d.kind)).toEqual(['secret']);
+        }
       }
     }
   });

@@ -493,7 +493,7 @@ function DoorMarker({ exit, disabled, onMove }: { exit: Exit; disabled: boolean;
       onClick={() => onMove(exit.to)}
       className={`absolute grid size-11 place-items-center rounded-full border-2 bg-black/70 p-0 shadow-[0_0_0_1px_#000] transition-transform active:scale-95 disabled:opacity-40 ${
         MARKER_PLACE[exit.direction]
-      } ${exit.kind === 'locked' ? 'border-[#c9a24a] text-[#e8cf9a]' : exit.visited ? 'border-bone/40 text-bone/70' : 'border-gold text-gold'}`}
+      } ${exit.kind === 'secret' ? 'border-dashed border-tier-epic text-tier-epic' : exit.kind === 'locked' ? 'border-[#c9a24a] text-[#e8cf9a]' : exit.visited ? 'border-bone/40 text-bone/70' : 'border-gold text-gold'}`}
     >
       <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d={ARROW[exit.direction]} />
@@ -513,6 +513,7 @@ function ExitButton({ exit, disabled, onMove }: { exit: Exit; disabled: boolean;
     notes.push({ key: 'lock', line: exit.passable ? t('lab.exit.lockedOpen') : t('lab.exit.lockedShut'), tone: 'text-[#e8cf9a]' });
   }
   if (exit.kind === 'cracked') notes.push({ key: 'crack', line: t('lab.exit.cracked'), tone: 'text-[#e8cf9a]' });
+  if (exit.kind === 'secret') notes.push({ key: 'secret', line: t('lab.exit.secret'), tone: 'text-tier-epic' });
   if (exit.suspicious) notes.push({ key: 'lie', line: t('lab.exit.suspicious'), tone: 'text-[#ff9a8a]' });
   if (exit.visited) notes.push({ key: 'seen', line: t('lab.exit.visited'), tone: 'text-muted' });
 

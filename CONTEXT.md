@@ -165,6 +165,10 @@ _Avoid_: stealth, skip
 To back away from a Room's monsters, before any fight, to the last safe Room.
 _Avoid_: flee, run (those happen during a fight, by Escape roll)
 
+**Hidden room**:
+A dead-end Room behind a secret Door, holding a hoard for whoever spots the way in.
+_Avoid_: secret room, stash
+
 **Omen**:
 How the whole Labyrinth leans for one day, for everyone: tougher monsters and more gold, easier Sneaking, a hotter Forge…
 _Avoid_: weather, modifier, event

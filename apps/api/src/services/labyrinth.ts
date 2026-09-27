@@ -3,7 +3,7 @@ import type { Direction, EventAction, Exit, FaceAction, Facing, LabyrinthResult,
 import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
-  PATH_MASTERY, type ThreatId, fightOdds, generateLabyrinth, onPath, proficiencyBonus, restUses, sneakCheck, threatOf,
+  PATH_MASTERY, type ThreatId, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, restUses, sneakCheck, threatOf,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -28,6 +28,10 @@ import { enterVault, vaultState } from './vaults.js';
 const REST_MS = 4 * 60 * 60 * 1000;
 /** Clues: a WIS Check against this sees through a lie (v0). */
 const CLUE_DC = 13;
+/** Secret Doors: a WIS Check against this spots one, a new try each day (v0). */
+const SECRET_DC = 14;
+/** A hidden room's hoard comes back a week after it is taken (v0). */
+const HOARD_MS = 7 * DAY_MS;
 
 /** XP for setting foot on a Floor for the first time, per Floor number (v0). */
 const NEW_FLOOR_XP = 50;
@@ -131,6 +135,24 @@ function facingView(hero: HeroWithItems, season: Season, floor: Floor, roomId: n
 
 // ─── Seeing the Labyrinth ─────────────────────────────────────────────────
 
+/**
+ * Whether the Hero knows a secret Door is there: it has been through it, wears
+ * the Eye of the Abyss, or spots it today (a WIS Check, Rogues and Elves with
+ * advantage; the same answer all day).
+ */
+function spotsSecret(hero: HeroWithItems, floor: Floor, door: Door, seen: ReadonlySet<number>, now: Date): boolean {
+  const hidden = floor.rooms[door.a]!.type === 'hidden' ? door.a : door.b;
+  if (seen.has(hidden) || wears(hero, 'eye-of-the-abyss')) return true;
+  const race = RACE_DEFS[hero.race as RaceId];
+  const rng = createRng(`${hero.id}:secret:${floor.number}:${door.a}-${door.b}:${Math.floor(now.getTime() / DAY_MS)}`);
+  return check(rng, {
+    modifier: abilityModifier(hero.wis) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0),
+    dc: SECRET_DC,
+    edge: hero.class === 'rogue' || race.clueAdvantage ? 'advantage' : 'normal',
+    rerollOnes: race.rerollOnes,
+  }).success;
+}
+
 function canPass(door: Door, hero: HeroWithItems): boolean {
   if (door.kind === 'cracked') return hero.class === 'fighter';
   if (door.kind === 'locked') return hero.class === 'rogue' || stackIn(hero, 'key-iron') !== null;
@@ -199,6 +221,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
 
   const exits: Exit[] = doorsOf(floor, room.id)
     .filter(({ door }) => door.kind !== 'cracked' || hero.class === 'fighter')
+    .filter(({ door }) => door.kind !== 'secret' || spotsSecret(hero, floor, door, seen, now))
     .map(({ door, to, clue }) => {
       // The Hollow Crown: Clues never lie to its wearer.
       const truth = clue.lie && wears(hero, 'hollow-crown')
@@ -222,16 +245,18 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
   for (const id of seen) {
     for (const { door, to } of doorsOf(floor, id)) {
       if (door.kind === 'cracked' && hero.class !== 'fighter') continue;
+      if (door.kind === 'secret' && !spotsSecret(hero, floor, door, seen, now)) continue;
       known.add(to);
       doors.set(`${door.a}-${door.b}`, { a: door.a, b: door.b, kind: door.kind });
     }
   }
   // The Eye of the Abyss shows every Special room on the Floor.
   const eye = wears(hero, 'eye-of-the-abyss');
-  if (eye) for (const r of floor.rooms) if (r.type === 'vault' || r.type === 'miniboss') known.add(r.id);
+  const special = (type: string) => type === 'vault' || type === 'miniboss' || type === 'hidden';
+  if (eye) for (const r of floor.rooms) if (special(r.type)) known.add(r.id);
   const rooms = [...known].sort((a, b) => a - b).map((id) => {
     const r = floor.rooms[id]!;
-    const shown = seen.has(id) || (eye && (r.type === 'vault' || r.type === 'miniboss'));
+    const shown = seen.has(id) || (eye && special(r.type));
     return { id, x: r.x, y: r.y, type: shown ? r.type : null, visited: seen.has(id), cleared: isCleared(hf, id, now) };
   });
 
@@ -353,6 +378,10 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     }
     const exit = doorsOf(floor, from).find((d) => d.to === to);
     if (!exit) throw ApiError.badRequest('no_door', 'No Door leads there');
+    if (exit.door.kind === 'secret') {
+      const known = await tx.heroFloor.findUnique({ where: { heroId_floor: { heroId: hero.id, floor: floor.number } } });
+      if (!spotsSecret(hero, floor, exit.door, new Set(known?.seen ?? []), now)) throw ApiError.badRequest('no_door', 'No Door leads there');
+    }
     if (!canPass(exit.door, hero)) {
       throw ApiError.conflict(exit.door.kind === 'cracked' ? 'wall' : 'locked', 'You cannot get through that Door');
     }
@@ -386,6 +415,14 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     hero.facing = waiting !== null;
 
     if (!waiting) await resolveRoom(tx, hero, season, floor, to, hf, now, outcome);
+    // A sharp eye catches a way into a hidden room.
+    const seenNow = new Set([...hf.seen, to]);
+    for (const { door } of doorsOf(floor, to)) {
+      const hidden = floor.rooms[door.a]!.type === 'hidden' ? door.a : door.b;
+      if (door.kind === 'secret' && !seenNow.has(hidden) && spotsSecret(hero, floor, door, seenNow, now)) {
+        outcome.notices.push(t('A thin draft through a crack in the stones: a secret Door!', 'Тонкий сквозняк из трещины в камнях: потайная дверь!'));
+      }
+    }
     return hero.id;
   });
   return respond(heroId, season, outcome);
@@ -409,6 +446,23 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
       break;
     case 'camp':
       out.notices.push(t('A safe Camp. Wait here four hours and you will be fully rested.', 'Безопасный лагерь. Подождите здесь четыре часа — и вы полностью отдохнёте.'));
+      break;
+    case 'hidden':
+      if (!isCleared(hf, roomId, now, HOARD_MS)) {
+        const rng = createRng(newSeed());
+        await dropGear(tx, hero, season, { floor: floor.number, count: 2, odds: dropOdds(Math.min(10, floor.number + 2)), source: 'hidden' }, out);
+        if (rng.chance(0.25)) await dropChest(tx, hero, season, floor.number, out);
+        const gold = withGoldFind(hero, Math.round(rng.int(20, 60) * (floor.number + 1) * (omenOf(season, now)?.gold ?? 1)));
+        await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
+        hero.carriedGold += gold;
+        out.gold += gold;
+        await markCleared(tx, hf, roomId, now);
+        out.notices.push(t('A hidden hoard, untouched for years!', 'Потайной клад, нетронутый годами!'));
+        await feed(tx, season, hero, 'hidden', { floor: floor.number });
+        await trackBounties(tx, hero, { type: 'treasure' }, out, now);
+      } else {
+        out.notices.push(t('The hoard here is taken. It fills again in a week.', 'Клад здесь уже взят. Он наполнится через неделю.'));
+      }
       break;
     case 'treasure':
       if (!isCleared(hf, roomId, now)) {

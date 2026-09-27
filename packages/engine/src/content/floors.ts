@@ -34,10 +34,13 @@ export function floorSize(floor: number): { width: number; height: number } {
 export type RoomType =
   | 'landing' | 'stairs' | 'waypoint' | 'camp'
   | 'fight' | 'empty' | 'event' | 'treasure'
-  | 'vault' | 'miniboss' | 'boss';
+  | 'vault' | 'miniboss' | 'boss'
+  /** Behind a secret Door: a hoard for whoever spots the way in. */
+  | 'hidden';
 
 export const EVENT_KINDS = [
   'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
+  'fountain', 'prisoner', 'library', 'bone-pile',
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 
@@ -62,6 +65,7 @@ export const CLUES: Record<RoomType, Text[] | Record<ThemeId, Text[]>> = {
   vault: [text('Iron bands and a great lock', 'Железные обручи и огромный замок')],
   miniboss: [text('Something big breathing behind the door', 'За дверью дышит что-то большое'), text('Heavy footsteps and the smell of blood', 'Тяжёлые шаги и запах крови')],
   boss: [text('The heat of a dragon’s breath', 'Жар драконьего дыхания')],
+  hidden: [text('A thin draft through a crack in the stones', 'Тонкий сквозняк из трещины в камнях'), text('Scratches on the wall, as if something slid here', 'Царапины на стене, будто здесь что-то сдвигали')],
 };
 
 export function cluesFor(type: RoomType, theme: ThemeId): Text[] {

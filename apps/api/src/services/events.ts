@@ -4,7 +4,7 @@ import {
   ALTAR_TIERS, BLESSING_MS, BLESSINGS, type CheckResult, type ClassId, type EventKind, type Floor, type GearRoll, MERCHANT_BUYS_AT,
   MERCHANT_MARKUP, RACE_DEFS, type RaceId, SUFFIXES, type Tier, abilityModifier, baseById, buybackPrice, cacheContents,
   chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
-  pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests,
+  pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
@@ -15,6 +15,7 @@ import {
   type HeroWithItems, type Tx, dayNumber, destroyItem, earnCarried, giveItem, ownItem, spendCarried, stackTotal, takeStack,
 } from './ledger.js';
 import { dropGear, dropStack, withGoldFind } from './loot.js';
+import { boostedXp, gainXp } from './progression.js';
 import { trackBounties } from './bounties.js';
 
 // Event rooms (docs/design.md → Event rooms). What a room holds comes from a seed
@@ -143,6 +144,7 @@ export async function eventView(tx: Tx, hero: HeroWithItems, season: Season, flo
       };
     }
     case 'locked-cache':
+    case 'prisoner':
       return { kind, done, canOpen: hero.class === 'rogue' || stackTotal(hero, 'key-iron') > 0, free: hero.class === 'rogue' };
     default:
       return { kind, done };
@@ -338,6 +340,105 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       await logRoll(tx, hero, rollSeed, { event: kind, success: picked.check.success, chest: picked.chest });
       if (picked.chest) await dropStack(tx, hero, season, chestBase(picked.chest), 1, out);
       else out.notices.push(t('The lock jams for good.', 'Замок заклинило намертво.'));
+      return;
+    }
+
+    case 'fountain': {
+      if (action.action !== 'drink') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      const sip = await withLuck(tx, hero, t('The fountain’s water', 'Вода из фонтана'), () => drinkFountain(rng, { rerollOnes: race(hero).rerollOnes }), out);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      await logRoll(tx, hero, rollSeed, { event: kind, outcome: sip.outcome });
+      const full = fullHealth(hero);
+      if (sip.outcome === 'foul') {
+        const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(full * 0.2)));
+        await tx.hero.update({ where: { id: hero.id }, data: { hp: hero.hp - lost } });
+        out.notices.push(t(`The water is foul: ${lost} damage.`, `Вода гнилая: ${lost} урона.`));
+      } else if (sip.outcome === 'clean') {
+        const hp = Math.min(full, hero.hp + Math.round(full * 0.5));
+        await tx.hero.update({ where: { id: hero.id }, data: { hp } });
+        out.notices.push(t(`Cool, clean water: +${hp - hero.hp} health.`, `Прохладная чистая вода: +${hp - hero.hp} здоровья.`));
+      } else {
+        const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
+        await tx.hero.update({ where: { id: hero.id }, data: { hp: full, spellUses: uses.spells, healUses: uses.heals } });
+        if (sip.outcome === 'spirit') {
+          const b = BLESSINGS[rng.pick([...BLESSING_IDS])];
+          await tx.hero.update({ where: { id: hero.id }, data: { blessing: b.id, blessingUntil: new Date(now.getTime() + BLESSING_MS) } });
+          out.notices.push(t(`A spirit rises from the water and blesses you: ${b.name.en}. Fully healed and rested.`, `Из воды поднимается дух и благословляет вас: ${b.name.ru}. Здоровье и силы полностью восстановлены.`));
+        } else {
+          out.notices.push(t('The water glows as you drink: fully healed and rested.', 'Вода светится, пока вы пьёте: здоровье и силы полностью восстановлены.'));
+        }
+      }
+      return;
+    }
+
+    case 'prisoner': {
+      if (action.action !== 'free') throw wrong();
+      if (hero.class !== 'rogue') await takeStack(tx, hero, 'key-iron', 1, 'no_key');
+      const { seed: rollSeed, rng } = seeded();
+      const freed = freePrisoner(rng, floor.number);
+      await logRoll(tx, hero, rollSeed, { event: kind, ...freed });
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      if (freed.trap) {
+        out.notices.push(t('The chains fall away, and the prisoner’s face melts into yours. A doppelganger!', 'Цепи падают, и лицо узника расплывается в ваше. Двойник!'));
+        await fight(tx, hero, season, floor, room, 'fight', out, {
+          monsters: [instantiate(monsterById('doppelganger'), floor.number, 'm0')], bonusDrops: 1, clears: false, surprise: 'hero',
+        });
+        return;
+      }
+      await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[freed.tier!, 1]], source: 'prisoner' }, out);
+      const gold = withGoldFind(hero, freed.gold);
+      await earnCarried(tx, hero, gold);
+      out.gold += gold;
+      out.notices.push(t('The prisoner presses their last treasures into your hands and slips away.', 'Узник вкладывает вам в руки последнее, что у него было, и исчезает.'));
+      return;
+    }
+
+    case 'library': {
+      if (action.action !== 'read') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      const wizard = hero.class === 'wizard';
+      const tome = await withLuck(tx, hero, t('Intelligence over the tome', 'Интеллект над фолиантом'), () => readTome(rng, {
+        modifier: mod(hero.int) + (wizard ? proficiencyBonus(hero.level) : 0), advantage: wizard, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+      }), out);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      await logRoll(tx, hero, rollSeed, { event: kind, xp: tome.xp, curse: tome.curse });
+      if (tome.xp > 0) {
+        const xp = await boostedXp(tx, hero, season, tome.xp);
+        const levelUp = gainXp(rng, hero, xp);
+        await tx.hero.update({ where: { id: hero.id }, data: levelUp.data });
+        Object.assign(hero, levelUp.data);
+        out.xp += xp;
+        out.levelUp = levelUp.newLevel ?? out.levelUp;
+        out.notices.push(t('The old words make sense at last.', 'Древние слова наконец обретают смысл.'));
+      } else if (tome.curse) {
+        const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(fullHealth(hero) * 0.1)));
+        await tx.hero.update({ where: { id: hero.id }, data: { hp: hero.hp - lost } });
+        out.notices.push(t(`The pages bite back: ${lost} damage.`, `Страницы кусаются: ${lost} урона.`));
+      } else {
+        out.notices.push(t('The script swims before your eyes.', 'Буквы плывут перед глазами.'));
+      }
+      return;
+    }
+
+    case 'bone-pile': {
+      if (action.action !== 'search') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      const bones = searchBones(rng, floor.number);
+      await logRoll(tx, hero, rollSeed, { event: kind, ...bones });
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      if (bones.rise) {
+        out.notices.push(t('The bones clatter together and stand up!', 'Кости со стуком собираются и встают!'));
+        const count = floor.number >= 4 ? 2 : 1;
+        const risen = Array.from({ length: count }, (_, i) => instantiate(monsterById('skeleton'), Math.max(4, floor.number), `m${i}`));
+        const result = await fight(tx, hero, season, floor, room, 'fight', out, { monsters: risen, clears: false, surprise: 'hero' });
+        if (result !== 'victory') return;
+      }
+      const gold = withGoldFind(hero, bones.gold);
+      await earnCarried(tx, hero, gold);
+      out.gold += gold;
+      if (bones.tier) await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[bones.tier, 1]], source: 'bone-pile' }, out);
+      out.notices.push(t('Among the bones: an old adventurer’s purse.', 'Среди костей — кошель давнего искателя приключений.'));
       return;
     }
 

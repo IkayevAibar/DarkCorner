@@ -143,3 +143,57 @@ export function pickLock(rng: Rng, o: CheckOptions & { floor: number }): { check
   const result = roll(rng, LOCKPICK_DC, o);
   return { check: result, chest: result.success ? rollChestGrade(rng, Math.min(10, o.floor + 3)) : null };
 }
+
+// ─── Fountain ─────────────────────────────────────────────────────────────
+
+export type FountainOutcome = 'foul' | 'clean' | 'glowing' | 'spirit';
+
+/**
+ * Drinking: a plain d20 shown on screen. 1–4 foul (a fifth of full health
+ * lost), 5–12 clean (half of it back), 13–19 glowing (all of it, and rest uses),
+ * 20 a spirit (all of it, and a Blessing).
+ */
+export function drinkFountain(rng: Rng, o: Pick<CheckOptions, 'rerollOnes'>): { check: CheckResult; outcome: FountainOutcome } {
+  const result = check(rng, { modifier: 0, dc: 5, rerollOnes: o.rerollOnes });
+  const n = result.roll.natural;
+  const outcome: FountainOutcome = n <= 4 ? 'foul' : n <= 12 ? 'clean' : n <= 19 ? 'glowing' : 'spirit';
+  return { check: result, outcome };
+}
+
+// ─── Prisoner ─────────────────────────────────────────────────────────────
+
+/** How often the chained figure is a doppelganger instead (v0). */
+export const PRISONER_TRAP = 0.2;
+
+/** Freeing the prisoner: thanks (an Item with the odds of two Floors deeper, and gold), or a doppelganger. */
+export function freePrisoner(rng: Rng, floor: number): { trap: boolean; tier: Tier | null; gold: number } {
+  if (rng.chance(PRISONER_TRAP)) return { trap: true, tier: null, gold: 0 };
+  return { trap: false, tier: rollTier(rng, dropOdds(Math.min(10, floor + 2))), gold: rng.int(10, 30) * (floor + 1) };
+}
+
+// ─── Library ──────────────────────────────────────────────────────────────
+
+export const libraryDc = (floor: number): number => 11 + Math.ceil(floor / 2);
+
+/**
+ * Reading a tome: an INT Check. Success teaches (XP, 60 per Floor number);
+ * failing by 5 or more, or a natural 1, the pages bite (a tenth of full health).
+ */
+export function readTome(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; xp: number; curse: boolean } {
+  const result = roll(rng, libraryDc(o.floor), o);
+  if (result.success) return { check: result, xp: 60 * o.floor, curse: false };
+  return { check: result, xp: 0, curse: result.fumble || result.total <= libraryDc(o.floor) - 5 };
+}
+
+// ─── Bone pile ────────────────────────────────────────────────────────────
+
+/** How often the bones rise when searched (v0). */
+export const BONES_RISE = 0.35;
+
+/** Searching: an old adventurer's gold and maybe an Item, or the bones rise and fight. */
+export function searchBones(rng: Rng, floor: number): { rise: boolean; gold: number; tier: Tier | null } {
+  const gold = rng.int(10, 40) * (floor + 1);
+  const tier = rng.chance(0.5) ? rollTier(rng, dropOdds(floor)) : null;
+  return { rise: rng.chance(BONES_RISE), gold, tier };
+}
+

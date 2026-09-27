@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ALTAR_SUCCESS, LOCKPICK_DC, SHRINE_DC, cacheContents, createRng, goblinDice, merchantWares, nextTier, offerAtAltar,
-  pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc,
+  pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones,
 } from '../src/index.js';
 
 const plain = { modifier: 0, advantage: false, rerollOnes: false };
@@ -125,5 +125,47 @@ describe('the Locked cache and Lockpicking', () => {
       expect(r.check.dc).toBe(LOCKPICK_DC);
       expect(r.chest !== null).toBe(r.check.success);
     }
+  });
+});
+
+describe('the newer Event rooms', () => {
+  it('the Fountain: foul on 1–4, clean to 12, glowing to 19, a spirit on 20', () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 400; i++) {
+      const { check, outcome } = drinkFountain(createRng(`f-${i}`), { rerollOnes: false });
+      const n = check.roll.natural;
+      expect(outcome).toBe(n <= 4 ? 'foul' : n <= 12 ? 'clean' : n <= 19 ? 'glowing' : 'spirit');
+      seen.add(outcome);
+    }
+    expect(seen.size).toBe(4);
+  });
+
+  it('the Prisoner is a doppelganger about one time in five', () => {
+    let traps = 0;
+    for (let i = 0; i < 2000; i++) {
+      const r = freePrisoner(createRng(`p-${i}`), 5);
+      if (r.trap) traps++;
+      else {
+        expect(r.tier).not.toBeNull();
+        expect(r.gold).toBeGreaterThan(0);
+      }
+    }
+    expect(traps / 2000).toBeGreaterThan(0.16);
+    expect(traps / 2000).toBeLessThan(0.24);
+  });
+
+  it('the Library teaches 60 XP per Floor number on a success', () => {
+    for (let i = 0; i < 200; i++) {
+      const r = readTome(createRng(`l-${i}`), { modifier: 3, advantage: false, rerollOnes: false, floor: 4 });
+      expect(r.xp).toBe(r.check.success ? 240 : 0);
+      if (r.curse) expect(r.check.success).toBe(false);
+    }
+  });
+
+  it('the Bone pile rises about a third of the time', () => {
+    let risen = 0;
+    for (let i = 0; i < 2000; i++) if (searchBones(createRng(`b-${i}`), 3).rise) risen++;
+    expect(risen / 2000).toBeGreaterThan(0.3);
+    expect(risen / 2000).toBeLessThan(0.4);
   });
 });

@@ -20,6 +20,10 @@ const ACTION_SOUND: Partial<Record<EventAction['action'], Sound>> = {
   sell: 'coins',
   open: 'latch',
   'pick-lock': 'latch',
+  drink: 'page',
+  free: 'latch',
+  read: 'page',
+  search: 'loot',
 };
 
 const ALTAR_TIERS = ['common', 'uncommon', 'rare'];
@@ -158,6 +162,24 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
 
       {event.kind === 'lockpicking' && !event.done && (
         <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'pick-lock' })}>{t('event.lockpicking.try')}</button>
+      )}
+
+      {event.kind === 'fountain' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'drink' })}>{t('event.fountain.drink')}</button>
+      )}
+
+      {event.kind === 'prisoner' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy || !event.canOpen} onClick={() => void send({ action: 'free' })}>
+          {event.free ? t('event.prisoner.pick') : event.canOpen ? t('event.prisoner.key') : t('event.prisoner.noKey')}
+        </button>
+      )}
+
+      {event.kind === 'library' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'read' })}>{t('event.library.read')}</button>
+      )}
+
+      {event.kind === 'bone-pile' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'search' })}>{t('event.bone-pile.search')}</button>
       )}
     </section>
   );

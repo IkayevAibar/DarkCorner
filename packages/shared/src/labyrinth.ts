@@ -3,12 +3,13 @@ import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 import { omenViewSchema, seasonStatusSchema } from './season.js';
 
 export const ROOM_TYPES = [
-  'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss',
+  'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss', 'hidden',
 ] as const;
 export const roomTypeSchema = z.enum(ROOM_TYPES);
 export type RoomTypeId = z.infer<typeof roomTypeSchema>;
 
-export const doorKindSchema = z.enum(['open', 'cracked', 'locked']);
+/** A secret Door shows only to a Hero who has spotted it. */
+export const doorKindSchema = z.enum(['open', 'cracked', 'locked', 'secret']);
 export const directionSchema = z.enum(['n', 's', 'e', 'w']);
 export type Direction = z.infer<typeof directionSchema>;
 
@@ -182,6 +183,7 @@ export const mapDoorSchema = z.object({ a: z.number().int(), b: z.number().int()
 
 export const EVENT_KINDS = [
   'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
+  'fountain', 'prisoner', 'library', 'bone-pile',
 ] as const;
 export const eventKindSchema = z.enum(EVENT_KINDS);
 export type EventKindId = z.infer<typeof eventKindSchema>;
@@ -213,6 +215,11 @@ export const eventViewSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('cursed-altar'), done: z.boolean() }),
   z.object({ kind: z.literal('locked-cache'), done: z.boolean(), canOpen: z.boolean(), free: z.boolean() }),
   z.object({ kind: z.literal('lockpicking'), done: z.boolean() }),
+  z.object({ kind: z.literal('fountain'), done: z.boolean() }),
+  /** The chains need an Iron key, or a Rogue's hands. */
+  z.object({ kind: z.literal('prisoner'), done: z.boolean(), canOpen: z.boolean(), free: z.boolean() }),
+  z.object({ kind: z.literal('library'), done: z.boolean() }),
+  z.object({ kind: z.literal('bone-pile'), done: z.boolean() }),
 ]);
 export type EventView = z.infer<typeof eventViewSchema>;
 
@@ -227,6 +234,10 @@ export const eventActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('offer'), itemId: z.string() }),
   z.object({ action: z.literal('open') }),
   z.object({ action: z.literal('pick-lock') }),
+  z.object({ action: z.literal('drink') }),
+  z.object({ action: z.literal('free') }),
+  z.object({ action: z.literal('read') }),
+  z.object({ action: z.literal('search') }),
 ]);
 export type EventAction = z.infer<typeof eventActionSchema>;
 

@@ -352,7 +352,7 @@ Small goals give each session a reason to go down today *(v0)*.
 
 - **Clues:** every Door carries a Clue about the Room behind it, such as "growling behind the door", "a faint golden glow" or "the smell of sulfur". About 80% of Clues are true and 20% lie *(v0)*.
 - **Spotting lies:** Rogues and Elves make a WIS Check (DC 13 *(v0)*) to mark a lying Clue as suspicious, and Elves roll it with advantage.
-- **Special doors:** cracked walls, which only a Fighter can smash through, and locked Doors, which need a Key or a Rogue.
+- **Special doors:** cracked walls, which only a Fighter can smash through; locked Doors, which need a Key or a Rogue; and secret Doors (see Hidden rooms).
 - **The Map:** each Player's Map shows every Room and Door their Hero has seen this Season. Everything else stays dark. Maps can't be shared in Season 0. (An idea for later: sell copies of your Map on the Market.)
 
 ### Room types
@@ -368,6 +368,7 @@ Small goals give each session a reason to go down today *(v0)*.
 | Waypoint | 1 per Floor | Once reached, you can enter or leave the Labyrinth here. |
 | Vault | 1–2 per Floor | Special room: see below. |
 | Mini-boss | 1 per Floor | Special room: see below. |
+| Hidden room | 1–2 per Floor (not the lair) | Behind a secret Door: see below. Personal. |
 
 ### Event rooms (Season 0)
 
@@ -381,11 +382,21 @@ Small goals give each session a reason to go down today *(v0)*.
 | Cursed altar | Offer a Common, Uncommon or Rare Item: 40% chance its Tier goes up by one and it gains a Bonus stat, 60% it is destroyed *(v0)*. |
 | Locked cache | Needs an Iron key or a Rogue. Two Items with the odds of three Floors deeper, plus gold *(v0)*. |
 | Lockpicking | A 10–20 second minigame: stop the moving pin in the sweet spot. Rogues get a wider sweet spot. Until the minigame is built it is a DEX Check against 14 (Rogues with advantage), and success gives a Chest. |
+| Fountain | Drink: a plain d20 on screen. 1–4 foul (a fifth of full health lost), 5–12 clean (half of it back), 13–19 glowing (all of it, and abilities restored), 20 a spirit (all that, and a Blessing) *(v0)*. |
+| Prisoner | Free them with an Iron key, or a Rogue picks the chains. 80% they give an Item with the odds of two Floors deeper and gold; 20% a doppelganger that strikes first *(v0)*. |
+| Library | Read a tome: an INT Check against 11 + half the Floor number (Wizards add proficiency and roll with advantage). Success teaches 60 XP per Floor number; failing by 5 or more, or a natural 1, costs a tenth of full health *(v0)*. |
+| Bone pile | Search: an old adventurer's purse, 10–40 × (Floor + 1) gold and half the time an Item. 35% of the time the bones rise first and strike first: one Skeleton, two from Floor 4 *(v0)*. |
 
 - **Daily and personal:** what an Event room holds comes from the Hero, the Room and the day, so leaving and coming back doesn't reroll it. Each Event room works once a day per Hero (the merchant sells until his wares are gone).
 - **Luck:** a Hero with the Lucky charm or the Luckstone rerolls one failed Check or death save per Run and keeps the better roll.
 
-Later: the shell game (a goblin hides a gem under one of three cups) and more minigames.
+Later: the shell game (a goblin hides a gem under one of three cups), a riddling statue, and more minigames.
+
+### Hidden rooms
+
+- **Where:** 1–2 dead-end Rooms per Floor (not the lair) sit behind a **secret Door**, the only way in *(v0)*.
+- **Spotting it:** a WIS Check against 14 in the Room outside, a fresh try each day. Rogues add their proficiency bonus, and Rogues and Elves roll with advantage. Once a Hero has been inside, the Door stays visible to it; the Eye of the Abyss shows every hidden room on the Floor, and its Door.
+- **Inside:** a hoard: 2 Items with the odds of two Floors deeper, 20–60 × (Floor + 1) gold, and a 25% chance of a Chest. It is personal, and fills again a week after it is taken. Finding one goes in the Feed.
 
 ### Special rooms and announced vaults
 
@@ -540,7 +551,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 ### Feed and broadcasts
 
 - **No in-game chat.** Friends talk on Discord.
-- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records, weekly bounties and attempts at the Boss.
+- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records, weekly bounties, hidden rooms found and attempts at the Boss.
 - **Broadcasts:** the game posts to the friends' Discord channel through a webhook when:
   - a Mythic or a Relic is found
   - a Radiant Legendary or better drops
