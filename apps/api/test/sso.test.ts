@@ -8,6 +8,7 @@ process.env.SSO_SECRET = SECRET;
 const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
 const { mintSsoToken, SSO_COOKIE } = await import('../src/lib/sso.js');
+const { env } = await import('../src/env.js');
 
 let app: FastifyInstance;
 
@@ -52,6 +53,20 @@ describe('with SSO (production)', () => {
   it('approves configured admins at once', async () => {
     const me = await app.inject({ url: '/api/me', headers: { cookie: cookieFor('111111111111111111') } });
     expect(me.json().player).toMatchObject({ isAdmin: true, status: 'approved' });
+  });
+
+  it('promotes a Player added to the admins after their first visit', async () => {
+    const id = '333333333333333333';
+    const cookie = cookieFor(id);
+    expect((await app.inject({ url: '/api/me', headers: { cookie } })).json().player).toMatchObject({ isAdmin: false, status: 'pending' });
+    env.ADMIN_DISCORD_IDS.push(id);
+    try {
+      // Same Discord details as before, so only the admin list has changed.
+      const me = await app.inject({ url: '/api/me', headers: { cookie } });
+      expect(me.json().player).toMatchObject({ isAdmin: true, status: 'approved' });
+    } finally {
+      env.ADMIN_DISCORD_IDS.splice(env.ADMIN_DISCORD_IDS.indexOf(id), 1);
+    }
   });
 
   it('rejects a cookie signed with another secret', async () => {

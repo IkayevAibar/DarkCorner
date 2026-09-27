@@ -2,7 +2,7 @@ import type { Player } from '@prisma/client';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { prisma } from '../db.js';
 import { env, ssoEnabled } from '../env.js';
-import { playerStatus, upsertPlayer } from '../services/players.js';
+import { owedAdminRights, playerStatus, upsertPlayer } from '../services/players.js';
 import { ApiError } from './errors.js';
 import { SSO_COOKIE, type SsoIdentity, verifySsoToken } from './sso.js';
 
@@ -59,7 +59,8 @@ export async function currentPlayer(request: FastifyRequest): Promise<Player | n
     const unchanged = existing
       && existing.username === identity.username
       && existing.globalName === identity.name
-      && existing.avatar === identity.avatar;
+      && existing.avatar === identity.avatar
+      && !owedAdminRights(existing);
     if (unchanged) return existing;
     return upsertPlayer({
       discordId: identity.sub,

@@ -12,6 +12,10 @@ export interface DiscordIdentity {
 
 const isConfiguredAdmin = (discordId: string) => env.ADMIN_DISCORD_IDS.includes(discordId);
 
+/** In ADMIN_DISCORD_IDS but not yet an approved admin, say when added after their first visit. */
+export const owedAdminRights = (player: Pick<Player, 'discordId' | 'isAdmin' | 'approvedAt'>) =>
+  isConfiguredAdmin(player.discordId) && !(player.isAdmin && player.approvedAt);
+
 /**
  * Creates the Player on first sight and refreshes their Discord details after.
  * Admins from ADMIN_DISCORD_IDS are approved on the spot; everyone else waits
