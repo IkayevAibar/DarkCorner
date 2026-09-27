@@ -1,0 +1,24 @@
+# Local development database. Port 5433 so it never collides with another
+# project's Postgres on the default port.
+name: dark-corner-dev
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: dark
+      POSTGRES_PASSWORD: dark
+      POSTGRES_DB: dark_corner
+    ports:
+      - "5433:5432"
+    volumes:
+      - dark-corner-pg:/var/lib/postgresql/data
+      - ./docker/dev-init.sql:/docker-entrypoint-initdb.d/dev-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dark -d dark_corner"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  dark-corner-pg:
