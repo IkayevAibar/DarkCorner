@@ -438,6 +438,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
   - 3 failures: the Hero dies.
 - **No Death saves against Players.**
 - **Grave:** a dead Hero drops **everything it Carried** (worn gear, Bag and the gold it picked up on this Run) into a Grave in that Room. The Grave stays for 48 hours, and anyone who reaches it can loot it, including the owner with a new set of gear. After 48 hours its contents are destroyed.
+- **Falling to the Boss:** nobody can Sneak past the Boss, so its lair would keep a Grave out of reach; a Hero who dies to it leaves the Grave on the lair's doorstep instead, the last safe Room before it.
 - **Killed by another Hero:** the winner takes everything instead. Whatever doesn't fit in the winner's Bag goes into a Grave.
 - **Waking up:** the Hero wakes at the Temple with a free **Starter kit** (a Common weapon for its Class, Common armor and 2 potions).
 - **Never lost:** levels, ability scores, Talents, Storage and gold in the City.
@@ -458,7 +459,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 - **Bonus stats:**
   - Common has 0, Uncommon 1, Rare 2, Epic 3, Legendary 4, Mythic 5.
   - They come from a pool of about 15 kinds: ability scores, max health, armor, damage %, critical chance, spell power, healing, escape chance, gold find, magic find, resistances and life steal.
-  - Each is rolled within a range that grows with item level and Tier *(v0)*. Ability scores and armor are the exception: they live on the d20, where every point counts, so they grow with Tier only, one point more at Epic and another at Relic.
+  - Each is rolled within a range that grows with item level and Tier *(v0)*. Ability scores, armor and life steal are the exception: the first two live on the d20, where every point counts, and life steal stacked across a whole kit makes a Hero nothing can wear down, so they grow with Tier only, one point more at Epic and another at Relic.
 - **Unique power:** Legendary and Mythic Items also carry a named unique power.
 - **Radiant:** 1 in 200 Items of any Tier *(v0)*. It glows and gets +10% to all its numbers.
 - **Upgrade level:** from +0 to +10. Each level adds +4% base damage or armor *(v0)*.

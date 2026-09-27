@@ -52,11 +52,14 @@ export function rollTier(rng: Rng, odds: readonly (readonly [Tier, number])[], m
   return weightedPick(rng, odds.map(([tier, w]) => [tier, tierRank(tier) >= tierRank('rare') ? w * boost : w] as const));
 }
 
-/** Ability scores and armor live on the d20, where every point counts: they grow with Tier only. */
-export const D20_STATS: readonly BonusStatId[] = ['str', 'dex', 'con', 'int', 'wis', 'cha', 'armor'];
+/**
+ * Stats that grow with Tier only. Ability scores and armor live on the d20, where every
+ * point counts; life steal stacks across a whole kit into a Hero nothing can wear down.
+ */
+export const D20_STATS: readonly BonusStatId[] = ['str', 'dex', 'con', 'int', 'wis', 'cha', 'armor', 'lifeSteal'];
 
 /**
- * A bonus stat value (v0): d20 numbers gain a point at Epic and another at Relic;
+ * A bonus stat value (v0): Tier-only stats gain a point at Epic and another at Relic;
  * the rest grow 10% per item level and 18% per Tier step.
  */
 function rollStatValue(rng: Rng, def: BonusStatDef, itemLevel: number, tier: Tier): number {

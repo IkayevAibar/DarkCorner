@@ -213,7 +213,8 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   }
 
   if (result.outcome === 'dead') {
-    await die(tx, hero, season, floor.number, roomId, out);
+    // Nobody can Sneak past the Boss, so a Grave in its lair could never be reached: it lies on the doorstep.
+    await die(tx, hero, season, floor.number, kind === 'boss' ? (hero.prevRoom ?? floor.landing) : roomId, out);
     return 'dead';
   }
 

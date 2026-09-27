@@ -65,6 +65,26 @@ beforeEach(async () => {
 });
 
 describe('the Season', () => {
+  it('leaves the Grave of a Hero who falls to the Boss on the lair’s doorstep', async () => {
+    await post(admin, '/api/admin/season', { action: 'start' });
+    await post(admin, '/api/admin/season', { action: 'gate' });
+    const boss = roomOfType('boss');
+    const hero = await prisma.hero.findFirstOrThrow({ where: { name: 'Admira' } });
+    // Level 1, one health and Bold: the Dragon wins, though a lucky death save can put that off a try or two.
+    let died = false;
+    for (let i = 0; i < 30 && !died; i++) {
+      await prisma.hero.update({
+        where: { id: hero.id },
+        data: { location: 'LABYRINTH', floor: boss.floor, room: boss.from, prevRoom: boss.from, facing: false, hp: 1, stance: 'bold', stamina: 20, staminaAt: new Date() },
+      });
+      await post(admin, '/api/labyrinth/move', { to: boss.room });
+      died = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/face', { action: 'fight' })).json()).died;
+    }
+    expect(died).toBe(true);
+    const grave = await prisma.grave.findFirstOrThrow();
+    expect({ floor: grave.floor, room: grave.room }).toEqual({ floor: boss.floor, room: boss.from });
+  });
+
   it('starts, schedules its jobs, and refuses to start twice', async () => {
     const r = await post(admin, '/api/admin/season', { action: 'start' });
     expect(r.statusCode).toBe(200);
