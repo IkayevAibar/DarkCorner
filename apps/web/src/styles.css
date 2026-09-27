@@ -1,0 +1,176 @@
+/* Look B · Crypt, chosen in the look test (docs/design.md → Look and feel). */
+@import "tailwindcss";
+
+@theme {
+  --font-head: "Alegreya SC", Georgia, serif;
+  --font-body: "Alegreya", Georgia, serif;
+
+  --color-page: #0b0a09;
+  --color-panel: #15120f;
+  --color-panel-2: #1d1915;
+  --color-sheet: #120f0c;
+  --color-bone: #e6dac4;
+  --color-muted: #9a8a70;
+  --color-line: #3a3026;
+  --color-brass: #9b7a3e;
+  --color-brass-dim: #5e4a2a;
+  --color-gold: #e0b86a;
+  --color-blood: #7d1818;
+  --color-blood-dark: #4f0e0e;
+
+  --color-tier-common: #a8a39a;
+  --color-tier-uncommon: #5fbf4f;
+  --color-tier-rare: #4b8dff;
+  --color-tier-epic: #b066ff;
+  --color-tier-legendary: #ff8c1a;
+  --color-tier-mythic: #ff3344;
+  --color-tier-relic: #f1c75b;
+}
+
+:root {
+  --noise: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .3  0 0 0 0 .22  0 0 0 0 .12  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  --nav-h: 62px;
+  color-scheme: dark;
+}
+
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+  }
+  body {
+    margin: 0;
+    background: var(--noise), radial-gradient(ellipse at 50% -10%, #221a12 0%, var(--color-page) 55%), var(--color-page);
+    background-attachment: fixed;
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    line-height: 1.4;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: default;
+  }
+}
+
+@layer components {
+  /* A stone panel with tarnished-brass corner brackets. */
+  .panel {
+    position: relative;
+    background: var(--noise), var(--color-panel);
+    border: 1px solid var(--color-brass-dim);
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px #000, 0 10px 24px rgb(0 0 0 / 0.5);
+  }
+  .panel::before,
+  .panel::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--color-brass);
+    pointer-events: none;
+  }
+  .panel::before {
+    top: -3px;
+    left: -3px;
+    border-right: 0;
+    border-bottom: 0;
+  }
+  .panel::after {
+    bottom: -3px;
+    right: -3px;
+    border-left: 0;
+    border-top: 0;
+  }
+
+  .btn {
+    appearance: none;
+    border: 1px solid #6e5530;
+    background: #1b1713;
+    color: #d9c7a3;
+    padding: 11px 14px;
+    border-radius: 2px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    transition: transform 0.1s, filter 0.15s;
+  }
+  .btn:hover:not(:disabled) {
+    filter: brightness(1.12);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  .btn:disabled {
+    opacity: 0.45;
+  }
+  .btn-primary {
+    background: linear-gradient(var(--color-blood), var(--color-blood-dark));
+    color: #f3e3c3;
+    border-color: #a0782f;
+    box-shadow: inset 0 1px 0 rgb(255 220 160 / 0.25), 0 0 0 1px #000;
+    text-shadow: 0 1px 0 #000;
+  }
+  .btn-small {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 2px;
+    border: 1px solid #4a3a26;
+    background: #16120e;
+    color: #d9c7a3;
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Section heading: small caps in brass with a blood-red diamond. */
+  .sub-heading {
+    font-family: var(--font-head);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #c9a96a;
+  }
+  .sub-heading::before {
+    content: "◆ ";
+    color: #9e2020;
+  }
+
+  .field {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 2px;
+    border: 1px solid #4a3a26;
+    background: #0e0c0a;
+    color: var(--color-bone);
+    font: inherit;
+  }
+  .field:focus {
+    outline: 1px solid var(--color-gold);
+  }
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.screen-in {
+  animation: screen-in 0.25s ease;
+}
