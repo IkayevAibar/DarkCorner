@@ -60,7 +60,7 @@ Each Player has one Hero per Season. Fights are automatic in Season 0. Player co
    - A set that totals less than 65 *(v0)* is rerolled automatically and doesn't count toward the 3.
 3. **Talents:** choose one origin Talent. Humans choose two.
 4. **Look:** choose a portrait from the set for that Race and Class, a name and a banner color.
-5. **Start:** the Hero receives its Starter kit and appears in the Tavern.
+5. **Start:** the Hero receives its Starter kit and 100 gold *(v0)*, and appears in the Tavern.
 
 ### Races (Season 0)
 
