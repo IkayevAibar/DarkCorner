@@ -3,7 +3,8 @@ import type { Direction, EventAction, Exit, FaceAction, Facing, LabyrinthResult,
 import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
-  PATH_MASTERY, type ThreatId, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck, threatOf,
+  PATH_MASTERY, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
+  threatOf, tierRank,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -771,7 +772,7 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
     }
     // The Grave's row is the lock: two Heroes looting at once take turns.
     await tx.$queryRaw`SELECT id FROM "Grave" WHERE id = ${graveId} FOR UPDATE`;
-    const grave = await tx.grave.findUnique({ where: { id: graveId }, include: { items: true } });
+    const grave = await tx.grave.findUnique({ where: { id: graveId }, include: { items: true, hero: { select: { playerId: true } } } });
     if (!grave || grave.seasonId !== season.id || grave.expiresAt <= new Date()) throw ApiError.notFound('no_grave', 'No such Grave');
     if (hero.location !== 'LABYRINTH' || hero.floor !== grave.floor || hero.room !== grave.room) {
       throw ApiError.conflict('not_here', 'That Grave is not in this Room');
@@ -791,6 +792,13 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
     const left = await tx.item.count({ where: { graveId: grave.id } });
     if (left === 0) await tx.grave.delete({ where: { id: grave.id } });
     else outcome.notices.push(t('Your Bag is full; the rest stays in the Grave.', 'Сумка полна; остальное остаётся в могиле.'));
+    // Someone else's Grave: the Feed tells the friends who looted whom, naming the best Tier from Rare up.
+    const took = outcome.loot.length > 0 || outcome.gold > 0;
+    if (took && grave.hero?.playerId !== hero.playerId) {
+      const best = outcome.loot.map((i) => i.tier as Tier).sort((a, b) => tierRank(b) - tierRank(a))[0];
+      const tier = best && tierRank(best) >= tierRank('rare') ? best : null;
+      await feed(tx, season, hero, 'grave-looted', { owner: grave.ownerName, floor: grave.floor, tier });
+    }
     return hero.id;
   });
   return respond(heroId, season, outcome);

@@ -445,7 +445,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
   - 3 successes: the Hero survives with 1 health, loses the fight, and is dragged back to the last safe Room.
   - 3 failures: the Hero dies.
 - **No Death saves against Players.**
-- **Grave:** a dead Hero drops **everything it Carried** (worn gear, Bag and the gold it picked up on this Run) into a Grave in that Room. The Grave stays for 48 hours, and anyone who reaches it can loot it, including the owner with a new set of gear. After 48 hours its contents are destroyed.
+- **Grave:** a dead Hero drops **everything it Carried** (worn gear, Bag and the gold it picked up on this Run) into a Grave in that Room. The Grave stays for 48 hours, and anyone who reaches it can loot it, including the owner with a new set of gear. Looting someone else's Grave shows in the Feed. After 48 hours its contents are destroyed.
 - **Falling to the Boss:** nobody can Sneak past the Boss, so its lair would keep a Grave out of reach; a Hero who dies to it leaves the Grave on the lair's doorstep instead, the last safe Room before it.
 - **Killed by another Hero:** the winner takes everything instead. Whatever doesn't fit in the winner's Bag goes into a Grave.
 - **Waking up:** the Hero wakes at the Temple with a free **Starter kit** (a Common weapon for its Class, Common armor and 2 potions).
@@ -571,7 +571,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 ### Feed and broadcasts
 
 - **No in-game chat.** Friends talk on Discord.
-- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records, weekly bounties, the week's Hunt, hidden rooms found and attempts at the Boss.
+- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records, weekly bounties, the week's Hunt, hidden rooms found, attempts at the Boss, and Graves looted by anyone but their owner (with the best Tier taken, from Rare up).
 - **Broadcasts:** the game posts to the friends' Discord channel through a webhook when:
   - a Mythic or a Relic is found
   - a Radiant Legendary or better drops

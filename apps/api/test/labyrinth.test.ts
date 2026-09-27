@@ -318,6 +318,26 @@ describe('the Labyrinth', () => {
     await act('/api/labyrinth/face', { action: 'fight' });
     const looted = await act(`/api/labyrinth/graves/${grave.id}/loot`);
     expect(looted.loot.length).toBeGreaterThan(0);
+    // Taking back your own things is no news.
+    expect(await prisma.feedEvent.count({ where: { kind: 'grave-looted' } })).toBe(0);
+  });
+
+  it('tells the Feed when a Hero loots someone else’s Grave', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    const h = await hero();
+    const grave = await prisma.grave.create({
+      data: { seasonId: h.seasonId, floor: 1, room: floor1.landing, ownerName: 'Pip', gold: 40, expiresAt: new Date(Date.now() + 86_400_000) },
+    });
+    await prisma.item.create({
+      data: { graveId: grave.id, seasonId: h.seasonId, base: 'longsword', place: 'GRAVE', quantity: 1, tier: 'legendary', itemLevel: 3, identified: true },
+    });
+
+    const looted = await act(`/api/labyrinth/graves/${grave.id}/loot`);
+    expect(looted.gold).toBe(40);
+    const line = await prisma.feedEvent.findFirstOrThrow({ where: { kind: 'grave-looted' } });
+    expect(line.data).toMatchObject({ hero: 'Garrick', owner: 'Pip', floor: 1, tier: 'legendary' });
+    const tavern = (await app.inject({ url: '/api/tavern', headers: { cookie } })).json();
+    expect(tavern.entries[0].text.en).toBe("Garrick looted Pip's Grave on Floor 1 (Legendary among the spoils)");
   });
 
   it('leaves from the entrance with the gold carried, fully healed', async () => {

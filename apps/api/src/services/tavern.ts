@@ -46,6 +46,11 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
       return { tier, text: { en: `${hero} bought from ${d.seller} for ${d.price} gold: ${tierName?.en} ${baseName(d.base).en.toLowerCase()}`, ru: `${hero} покупает на рынке: ${baseName(d.base).ru.toLowerCase()} (ранг: ${tierName?.ru}) за ${d.price} золота. Продавец: ${d.seller}` } };
     case 'death':
       return { tier: null, text: { en: `${hero} died on Floor ${d.floor}`, ru: `${hero} погибает на этаже ${d.floor}` } };
+    case 'grave-looted':
+      return { tier, text: {
+        en: `${hero} looted ${d.owner}'s Grave on Floor ${d.floor}${tierName ? ` (${tierName.en} among the spoils)` : ''}`,
+        ru: `${hero} обирает могилу героя ${d.owner} на этаже ${d.floor}${tierName ? ` (среди добычи — ${tierName.ru} предмет)` : ''}`,
+      } };
     case 'depth':
       return { tier: null, text: { en: `${hero} reached Floor ${d.floor} for the first time`, ru: `${hero} впервые спускается на этаж ${d.floor}` } };
     case 'vault':
