@@ -23,6 +23,8 @@ model Player {
   isAdmin    Boolean   @default(false)
   approvedAt DateTime?
   bannedAt   DateTime?
+  /// Updated at most once a minute, for "who's online" in the Tavern.
+  lastSeenAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -307,6 +309,64 @@ model RollLog {
 
   @@index([playerId, createdAt])
   @@index([kind, createdAt])
+}
+
+/// A place on the Boss podium: 1 is the Champion, 2 and 3 are won in the Finale.
+model BossKill {
+  id        String   @id @default(cuid())
+  seasonId  String
+  playerId  String
+  heroId    String
+  heroName  String
+  place     Int
+  createdAt DateTime @default(now())
+
+  @@unique([seasonId, place])
+  @@unique([seasonId, playerId])
+}
+
+/// A Relic copy found this Season; serials count from 1 per design and never repeat.
+model RelicFind {
+  id        String   @id @default(cuid())
+  seasonId  String
+  uniqueId  String
+  serial    Int
+  playerId  String
+  heroName  String
+  itemId    String?
+  source    String
+  createdAt DateTime @default(now())
+
+  @@unique([seasonId, uniqueId, serial])
+}
+
+/// An announced Vault: sealed until `opensAt`, then the first Hero in claims it.
+model VaultOpening {
+  id          String    @id @default(cuid())
+  seasonId    String
+  floor       Int
+  room        Int
+  opensAt     DateTime
+  announcedAt DateTime  @default(now())
+  claimedAt   DateTime?
+  heroId      String?
+
+  @@index([seasonId, floor, room])
+}
+
+/// Glory: what survives every Wipe. Names are copied, so entries outlive Heroes.
+model HallEntry {
+  id           String   @id @default(cuid())
+  seasonNumber Int
+  /// champion, second, third, relic, deepest, highest-level
+  kind         String
+  playerId     String?
+  playerName   String
+  heroName     String
+  detail       Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  @@index([seasonNumber])
 }
 
 /// Work scheduled for later (Boss gate, weakening, Vault openings). Idempotent.

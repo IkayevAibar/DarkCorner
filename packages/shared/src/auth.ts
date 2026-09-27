@@ -62,6 +62,16 @@ export const ssoSummarySchema = z.object({
     .object({
       name: z.string(),
       status: playerStatusSchema,
+      /** The hub card's details: the Hero this Season, if there is one. */
+      hero: z
+        .object({
+          name: z.string(),
+          level: z.number().int(),
+          bestFloor: z.number().int(),
+          bestItem: z.object({ name: z.object({ en: z.string(), ru: z.string() }), tier: z.string() }).nullable(),
+        })
+        .nullable()
+        .optional(),
     })
     .nullable(),
 });

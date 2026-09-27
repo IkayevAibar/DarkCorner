@@ -77,6 +77,11 @@ export async function requirePlayer(request: FastifyRequest): Promise<void> {
   const player = await currentPlayer(request);
   if (!player) throw ApiError.unauthorized();
   request.player = player;
+  // "Who's online" in the Tavern: a heartbeat at most once a minute.
+  const now = new Date();
+  if (!player.lastSeenAt || now.getTime() - player.lastSeenAt.getTime() > 60_000) {
+    await prisma.player.update({ where: { id: player.id }, data: { lastSeenAt: now } });
+  }
 }
 
 /** preHandler: signed in and approved by an admin. */

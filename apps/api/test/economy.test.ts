@@ -43,7 +43,7 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await resetDatabase();
-  seasonId = (await prisma.season.create({ data: { number: 0, seed: 'economy' } })).id;
+  seasonId = (await prisma.season.create({ data: { number: 0, seed: 'economy', status: 'ACTIVE', startsAt: new Date() } })).id;
 });
 
 describe('the Shops', () => {

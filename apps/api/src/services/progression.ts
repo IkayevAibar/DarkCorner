@@ -1,8 +1,21 @@
-import type { Hero } from '@prisma/client';
+import type { Hero, Prisma, Season } from '@prisma/client';
 import {
-  type Ability, CLASS_DEFS, type ClassId, MAX_LEVEL, RACE_DEFS, type RaceId, type Rng, abilityModifier, levelForXp,
-  restUses, rollDie,
+  type Ability, CLASS_DEFS, type ClassId, MAX_LEVEL, RACE_DEFS, type RaceId, type Rng, abilityModifier, lateJoinerBoost,
+  levelForXp, medianLevel, restUses, rollDie,
 } from '@dark/engine';
+
+/**
+ * Extra XP for Heroes who joined late: +25% per full week after the Season
+ * started, up to +100%, until they reach the Season's median level
+ * (docs/design.md → Seasons, Late joiners). Returns the XP to add.
+ */
+export async function boostedXp(tx: Prisma.TransactionClient, hero: Hero, season: Season, gained: number): Promise<number> {
+  const boost = lateJoinerBoost(season.startsAt, hero.createdAt);
+  if (boost === 0 || gained === 0) return gained;
+  const levels = await tx.hero.findMany({ where: { seasonId: season.id, retiredAt: null }, select: { level: true } });
+  if (hero.level >= medianLevel(levels.map((l) => l.level))) return gained;
+  return Math.round(gained * (1 + boost));
+}
 
 /** Ability score increases come at these levels (SRD); v0 puts +2 into the Class's main ability. */
 const ASI_LEVELS = new Set([4, 8, 12, 16, 19]);

@@ -12,3 +12,4 @@ export * from './items.js';
 export * from './heroes.js';
 export * from './labyrinth.js';
 export * from './economy.js';
+export * from './season.js';

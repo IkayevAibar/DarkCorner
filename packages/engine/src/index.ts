@@ -17,4 +17,5 @@ export * from './content/portraits.js';
 export * from './combat.js';
 export * from './economy.js';
 export * from './events.js';
+export * from './season.js';
 export * from './content/monsters.js';

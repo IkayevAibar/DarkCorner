@@ -1,7 +1,8 @@
 import type { HeroFloor, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
-  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, type Floor, LOOT, type MonsterInstance, type RaceId, type TalentId,
+  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type Floor, LOOT, type MonsterInstance, RELIC_CHANCE, type RaceId,
+  type TalentId, weakeningAt,
   createRng, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
@@ -9,7 +10,8 @@ import { feed } from './feed.js';
 import { giveStarterKit, portraitUrlOf } from './heroes.js';
 import type { HeroWithItems, Tx } from './ledger.js';
 import { addBadLuck, dropChest, dropGear, dropStack, withGoldFind } from './loot.js';
-import { gainXp } from './progression.js';
+import { boostedXp, gainXp } from './progression.js';
+import { grantRelic } from './relics.js';
 
 // Fights, death and what one Hero has cleared: shared by Moves and Event rooms.
 
@@ -94,7 +96,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   const now = new Date();
   // Personal monsters: the same Room shows the same group to one Hero for a day.
   const spawnSeed = `${season.seed}:${hero.id}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
-  const monsters = opts.monsters ?? spawnEncounter(createRng(spawnSeed), floor.number, kind);
+  const monsters = opts.monsters ?? spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now));
 
   const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => ({
     base: i.base, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
@@ -144,14 +146,17 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     }
   }
 
+  if (kind === 'boss') await feed(tx, season, hero, 'boss-attempt', { outcome: result.outcome });
+
   if (result.outcome === 'dead') {
     await die(tx, hero, season, floor.number, roomId, out);
     return 'dead';
   }
 
   const rng = createRng(`${seed}:after`);
-  const levelUp = gainXp(rng, { ...hero, hp: result.hp }, result.xp);
-  out.xp += result.xp;
+  const xp = await boostedXp(tx, hero, season, result.xp);
+  const levelUp = gainXp(rng, { ...hero, hp: result.hp }, xp);
+  out.xp += xp;
   out.levelUp = levelUp.newLevel ?? out.levelUp;
   const after = {
     hp: result.hp,
@@ -169,6 +174,9 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     out.notices.push(t('Barely alive, you crawl back to the last Room you cleared.', 'Едва живы, вы отползаете в последнюю зачищенную комнату.'));
     return 'survived';
   }
+
+  // The Boss pays out on its own terms (boss.ts).
+  if (kind === 'boss') return 'victory';
 
   // Victory: the Room stays clear for a day, the Bad-luck meter ticks, and there is loot.
   if (kind === 'fight') {
@@ -190,6 +198,9 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind }, out);
   if (kind === 'fight' && rng.chance(LOOT.fightKey)) await dropStack(tx, hero, season, 'key-iron', 1, out);
   if (kind === 'miniboss' && rng.chance(LOOT.minibossChest)) await dropChest(tx, hero, season, floor.number, out);
+  if (kind === 'miniboss' && floor.number >= DEEP_FLOOR && rng.chance(RELIC_CHANCE.deepMiniboss)) {
+    await grantRelic(tx, hero, season, floor.number, 'miniboss', out);
+  }
   return 'victory';
 }
 

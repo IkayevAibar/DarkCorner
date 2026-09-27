@@ -4,7 +4,7 @@ import type {
 } from '@dark/shared';
 import {
   ABILITY_REROLLS, type AbilitySet, BAD_LUCK_MAX, BAG_SLOTS, BANNER_COLORS, BLESSINGS, type BlessingId, CLASS_DEFS, CLASSES,
-  type GearBase, PORTRAITS, RACE_DEFS, luckOf,
+  DAY_MS, type GearBase, PORTRAITS, RACE_DEFS, type Tier, UNCOMMON_KIT_AFTER_DAYS, isGear, itemName, luckOf, tierRank,
   RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
   createRng, currentStamina, portraitById, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth,
   validateHeroChoices,
@@ -248,14 +248,19 @@ export async function createHero(player: Player, request: CreateHeroRequest): Pr
   return toHeroView(hero);
 }
 
-/** The free Common kit: worn where a slot is free, otherwise into the Bag; plus potions. */
+/**
+ * The free kit: worn where a slot is free, otherwise into the Bag; plus potions.
+ * Common, or Uncommon once the Season is two weeks old (late joiners).
+ */
 export async function giveStarterKit(tx: Prisma.TransactionClient, hero: Hero, seasonId: string): Promise<void> {
   const worn = new Set(
     (await tx.item.findMany({ where: { heroId: hero.id, place: 'WORN' }, select: { slot: true } })).map((i) => i.slot),
   );
+  const season = await tx.season.findUnique({ where: { id: seasonId } });
+  const late = season?.startsAt && Date.now() - season.startsAt.getTime() >= UNCOMMON_KIT_AFTER_DAYS * DAY_MS;
   for (const baseId of CLASS_DEFS[hero.class as keyof typeof CLASS_DEFS].starterKit) {
     const seed = newSeed();
-    const roll = rollGear(createRng(seed), { tier: 'common', itemLevel: 1, baseId, identified: true, radiant: false, quality: 50 });
+    const roll = rollGear(createRng(seed), { tier: late ? 'uncommon' : 'common', itemLevel: 1, baseId, identified: true, radiant: false, quality: 50 });
     const slot = slotsFor(baseById(baseId) as GearBase).find((s) => !worn.has(s)) ?? null;
     if (slot) worn.add(slot);
     await tx.item.create({
@@ -282,4 +287,21 @@ export async function retireHero(player: Player): Promise<void> {
     });
     await tx.hero.update({ where: { id: active.id }, data: { retiredAt: new Date() } });
   });
+}
+
+/** For the hub's dashboard card: the Hero this Season, its depth and its best identified Item. */
+export async function heroSummary(playerId: string) {
+  const season = await currentSeason();
+  const hero = await prisma.hero.findFirst({ where: { playerId, seasonId: season.id, retiredAt: null }, include: { items: true } });
+  if (!hero) return null;
+  const rank = (tier: string) => tierRank(tier as Tier);
+  const best = hero.items
+    .filter((i) => i.place !== 'GRAVE' && i.place !== 'MARKET' && i.identified && isGear(baseById(i.base)))
+    .sort((a, b) => rank(b.tier) - rank(a.tier) || b.upgrade - a.upgrade)[0];
+  return {
+    name: hero.name,
+    level: hero.level,
+    bestFloor: hero.bestFloor,
+    bestItem: best ? { name: itemName(best), tier: best.tier } : null,
+  };
 }

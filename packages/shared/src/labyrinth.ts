@@ -210,6 +210,8 @@ export const labyrinthViewSchema = z.object({
     restedAt: z.string().nullable(),
     /** Event rooms: what is on offer and what the Hero has done. */
     eventView: eventViewSchema.nullable(),
+    /** Vaults: open to the first Hero in, sealed until an announced time, or already emptied. */
+    vault: z.object({ state: z.enum(['open', 'sealed', 'claimed']), opensAt: z.string().nullable() }).nullable(),
   }).nullable(),
   exits: z.array(exitSchema),
   /** The Hero's own Map of this Floor: Rooms stood in, the Rooms next to them, and the Doors between. */

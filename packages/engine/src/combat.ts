@@ -127,6 +127,8 @@ export interface MonsterInstance {
   damage: [number, number, number];
   dex: number;
   xp: number;
+  /** A weakened Boss hits softer (1 = full strength). */
+  damageFactor: number;
 }
 
 const THEME_START: Record<ThemeId, number> = { warrens: 1, crypts: 4, depths: 7, lair: 10 };
@@ -145,6 +147,7 @@ export function instantiate(def: MonsterDef, floor: number, key: string, weakeni
     damage: [def.damage[0], def.damage[1], def.damage[2] + depth],
     dex: def.dex,
     xp: Math.round(def.xp * (1 + 0.1 * depth)),
+    damageFactor: 1 - weakening,
   };
 }
 
@@ -380,7 +383,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     }
     if (hit) {
       const [n, sides, plus] = mm.damage;
-      damage = Math.max(1, sum(rollDice(rng, crit ? n * 2 : n, sides)) + plus);
+      damage = Math.max(1, Math.round((sum(rollDice(rng, crit ? n * 2 : n, sides)) + plus) * mm.damageFactor));
       if (dodgeReady) {
         dodgeReady = false;
         damage = Math.max(1, Math.floor(damage / 2));

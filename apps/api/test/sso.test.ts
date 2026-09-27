@@ -46,7 +46,7 @@ describe('with SSO (production)', () => {
     expect(me.json().player.avatarUrl).toMatch(/^https:\/\/cdn\.discordapp\.com\/embed\/avatars\/\d\.png$/);
 
     const summary = await app.inject({ url: '/api/sso/summary', headers: { cookie } });
-    expect(summary.json()).toEqual({ registered: true, profile: { name: 'Friend', status: 'pending' } });
+    expect(summary.json()).toEqual({ registered: true, profile: { name: 'Friend', status: 'pending', hero: null } });
   });
 
   it('approves configured admins at once', async () => {

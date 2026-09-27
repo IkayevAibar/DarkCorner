@@ -57,7 +57,7 @@ afterAll(async () => {
 });
 beforeEach(async () => {
   await resetDatabase();
-  await prisma.season.create({ data: { number: 0, seed: SEED } });
+  await prisma.season.create({ data: { number: 0, seed: SEED, status: 'ACTIVE', startsAt: new Date() } });
   cookie = await devLogin(app, 'Owner', true);
   await post('/api/heroes/draft');
   await post('/api/heroes', { name: 'Garrick', race: 'human', class: 'fighter', talents: ['alert', 'tough'], portrait: 'human-fighter-1', banner: '#9e2a2a', set: 0 });

@@ -8,6 +8,7 @@ import {
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
+import { bossVictory } from './boss.js';
 import { enterEvent, eventAction, eventView } from './events.js';
 import { feed } from './feed.js';
 import { DAY_MS, type Outcome, emptyOutcome, fight, heroFloor, isCleared, markCleared, t } from './fights.js';
@@ -15,8 +16,9 @@ import { portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, lockHero } from './ledger.js';
 import { dropChest, dropGear, withGoldFind } from './loot.js';
-import { gainXp } from './progression.js';
+import { boostedXp, gainXp } from './progression.js';
 import { currentSeason } from './seasons.js';
+import { enterVault, vaultState } from './vaults.js';
 
 const REST_MS = 4 * 60 * 60 * 1000;
 /** Clues: a WIS Check against this sees through a lie (v0). */
@@ -179,11 +181,17 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       cleared: isCleared(hf, room.id, now),
       restedAt: room.type === 'camp' && hero.campSince ? new Date(hero.campSince.getTime() + REST_MS).toISOString() : null,
       eventView: room.type === 'event' ? await eventView(tx, hero, season, floor, room.id, now) : null,
+      vault: room.type === 'vault' ? await vaultView(tx, season, floor.number, room.id, now) : null,
     },
     exits,
     map: { rooms, doors: [...doors.values()] },
     graves: graves.map((g) => ({ id: g.id, owner: g.ownerName, items: g.items.length, gold: g.gold, expiresAt: g.expiresAt.toISOString() })),
   };
+}
+
+async function vaultView(tx: Tx, season: Season, floor: number, room: number, now: Date) {
+  const v = await vaultState(tx, season.id, floor, room, now);
+  return { state: v.state, opensAt: v.opensAt?.toISOString() ?? null };
 }
 
 // ─── Results ──────────────────────────────────────────────────────────────
@@ -233,6 +241,7 @@ export async function enterLabyrinth(player: Player, floorNumber: number): Promi
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
     if (hero.location !== 'CITY') throw ApiError.conflict('already_inside', 'Already in the Labyrinth');
+    if (season.status === 'PLANNED') throw ApiError.conflict('season_not_started', 'The Season has not started yet');
     if (floorNumber !== 1 && !hero.waypoints.includes(floorNumber)) {
       throw ApiError.conflict('no_waypoint', 'You have not reached that Waypoint yet');
     }
@@ -312,7 +321,11 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
       break;
     }
     case 'boss':
-      await fight(tx, hero, season, floor, roomId, 'boss', out);
+      if (isCleared(hf, roomId, now)) {
+        out.notices.push(t('The lair is quiet. The Dragon will be back tomorrow.', 'В логове тихо. Дракон вернётся завтра.'));
+      } else if ((await fight(tx, hero, season, floor, roomId, 'boss', out)) === 'victory') {
+        await bossVictory(tx, hero, season, floor.number, roomId, out);
+      }
       break;
     case 'waypoint':
       if (!hero.waypoints.includes(floor.number)) {
@@ -340,7 +353,7 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
       await enterEvent(tx, hero, season, floor, roomId, now, out);
       break;
     case 'vault':
-      out.notices.push(t('A sealed Vault. (Vaults open in week 5.)', 'Запечатанная сокровищница. (Откроется на 5-й неделе.)'));
+      await enterVault(tx, hero, season, floor.number, roomId, now, out);
       break;
     default:
       break;
@@ -383,9 +396,10 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
       await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: next.landing } } });
     }
     // A Floor never reached before is worth XP.
-    const levelUp = next.number > hero.bestFloor ? gainXp(createRng(newSeed()), hero, NEW_FLOOR_XP * next.number) : null;
+    const firstXp = next.number > hero.bestFloor ? await boostedXp(tx, hero, season, NEW_FLOOR_XP * next.number) : 0;
+    const levelUp = firstXp > 0 ? gainXp(createRng(newSeed()), hero, firstXp) : null;
     if (levelUp) {
-      outcome.xp = NEW_FLOOR_XP * next.number;
+      outcome.xp = firstXp;
       outcome.levelUp = levelUp.newLevel;
       outcome.notices.push(t(`A new depth: Floor ${next.number}.`, `Новая глубина: этаж ${next.number}.`));
       await feed(tx, season, hero, 'depth', { floor: next.number });

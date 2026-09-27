@@ -4,6 +4,7 @@ import { prisma } from '../db.js';
 import { accountLoginUrl, accountOrigin, devLoginEnabled, env, ssoEnabled } from '../env.js';
 import { ApiError } from '../lib/errors.js';
 import { clearLocalSession, readSsoIdentity, setLocalSession } from '../lib/session.js';
+import { heroSummary } from '../services/heroes.js';
 import { playerStatus, toPlayerView, upsertPlayer } from '../services/players.js';
 
 const slug = (name: string) => name.toLowerCase().replace(/[^a-z0-9а-яё]+/gi, '-').replace(/^-|-$/g, '');
@@ -50,6 +51,6 @@ export async function authRoutes(app: FastifyInstance) {
     if (!identity) throw ApiError.unauthorized();
     const player = await prisma.player.findUnique({ where: { discordId: identity.sub } });
     if (!player) return { registered: false, profile: null };
-    return { registered: true, profile: { name: toPlayerView(player).name, status: playerStatus(player) } };
+    return { registered: true, profile: { name: toPlayerView(player).name, status: playerStatus(player), hero: await heroSummary(player.id) } };
   });
 }
