@@ -42,7 +42,9 @@ execSync('npx prisma migrate deploy', { stdio: 'ignore', env: { ...process.env }
 const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
 const { resetDatabase, devLogin } = await import('../test/helpers.js');
-const { CLASS_DEFS, RIDDLES, TIERS, baseById, canUse, isGear } = await import('@dark/engine');
+const { CLASS_DEFS, CLUES, RIDDLES, TIERS, baseById, canUse, isGear } = await import('@dark/engine');
+/** What a Door says when a Waypoint is behind it (it can lie, as Clues do). */
+const WAYPOINT_CLUES = new Set((CLUES.waypoint as { en: string }[]).map((c) => c.en));
 
 const DAYS = Number(process.argv[2] ?? 14);
 const SESSIONS_PER_DAY = 3;
@@ -56,7 +58,7 @@ interface Stats {
   fights: number; won: number; escaped: number; survived: number; deaths: number; sneaks: number; caught: number; retreats: number;
   events: number; bounties: number; hidden: number; graves: number; moves: number; xp: number; items: Record<string, number>;
   minibosses: number; minibossWins: number; chests: number; dropped: number;
-  salvaged: number; forge: Record<string, number>; goldForged: number;
+  salvaged: number; forge: Record<string, number>; goldForged: number; portals: number;
   market: { listed: number; bought: number; spent: number; expired: number };
   threats: Record<Threat, number>; errors: string[]; deathLog: string[];
 }
@@ -80,7 +82,7 @@ interface Bot {
 
 const newStats = (): Stats => ({
   fights: 0, won: 0, escaped: 0, survived: 0, deaths: 0, sneaks: 0, caught: 0, retreats: 0, events: 0, bounties: 0, hidden: 0, graves: 0,
-  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
+  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
 });
 
 async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: object): Promise<{ ok: boolean; status: number; body: T & { error?: string } }> {
@@ -262,9 +264,16 @@ async function forge(bot: Bot) {
 async function enter(bot: Bot): Promise<boolean> {
   const view = await look(bot);
   if (bot.grave && bot.grave.until < Date.now()) bot.grave = null;
+  bot.looted.clear();
+  // Back through the open Town Portal, unless a Grave waits on another Floor.
+  if (view.portal && (!bot.grave || bot.grave.floor === view.portal.floor)) {
+    if ((await act(bot, '/api/labyrinth/enter', { portal: true })) !== null) {
+      bot.stats.portals++;
+      return true;
+    }
+  }
   const reachable = bot.grave ? view.waypoints.filter((w) => w <= bot.grave!.floor) : view.waypoints;
   const floor = Math.max(1, ...reachable);
-  bot.looted.clear();
   return (await act(bot, '/api/labyrinth/enter', { floor })) !== null;
 }
 
@@ -471,7 +480,9 @@ async function session(bot: Bot) {
           : wantStairs ? nextStep(bot, view, (id) => known.get(id)?.type === 'stairs') ?? nextStep(bot, view, unvisited)
             : nextStep(bot, view, unvisited);
     const exits = view.exits.filter((e) => e.passable && !bot.avoid.has(`${floor}:${e.to}`));
-    const to = target ?? exits[Math.floor(Math.random() * exits.length)]?.to;
+    // A Door that hums like a Waypoint on a Floor whose Waypoint isn't woken yet: take it.
+    const waypointDoor = !view.waypoints.includes(floor) && !goHome ? exits.find((e) => !e.visited && WAYPOINT_CLUES.has(e.clue.en)) : undefined;
+    const to = waypointDoor?.to ?? target ?? exits[Math.floor(Math.random() * exits.length)]?.to;
     if (to === undefined) return;
     bot.doing = `walking into F${floor} room ${to}`;
     const moved = await act(bot, '/api/labyrinth/move', { to }, view);
@@ -516,7 +527,7 @@ for (let day = 1; day <= DAYS; day++) {
     const s = bot.stats;
     rows.push(`${bot.cls.padEnd(7)} lv ${String(h.level).padStart(2)} F${String(h.bestFloor).padStart(2)} ${(h.path ?? '-').padEnd(9)} gold ${String(h.gold).padStart(5)} `
       + `worn ${TIERS[best]!.padEnd(9)} won ${s.won}/${s.fights} ran ${s.escaped} dead ${s.deaths} graves ${s.graves} sneak ${s.sneaks - s.caught}/${s.sneaks} `
-      + `back ${s.retreats} boss ${s.minibossWins}/${s.minibosses} chests ${s.chests} bounties ${s.bounties} hidden ${s.hidden}`);
+      + `back ${s.retreats} boss ${s.minibossWins}/${s.minibosses} chests ${s.chests} bounties ${s.bounties} hidden ${s.hidden} portals ${s.portals} wp ${h.waypoints.length}`);
   }
   console.log(`— day ${day}\n${rows.join('\n')}`);
 }
