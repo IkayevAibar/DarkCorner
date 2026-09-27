@@ -1,6 +1,6 @@
 # Dark Corner: Architecture
 
-Status: weeks 1–3 of the [Season 0 plan](plan-season-0.md) are built: sign-in and admin approval, Heroes and Items, the Labyrinth and fights, and the production deployment ([deploy.md](deploy.md)). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
+Status: weeks 1–4 of the [Season 0 plan](plan-season-0.md) are built: sign-in and admin approval, Heroes and Items, the Labyrinth and fights, loot and the economy (Shops, Forge, Market, Temple, Event rooms), and the production deployment ([deploy.md](deploy.md)). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
 
 ## Stack
 
@@ -28,7 +28,7 @@ packages/
 - **The server decides.** Every random roll, fight, drop, and every change to gold or Items happens in `apps/api`, using `packages/engine`. The browser only shows results.
 - **The engine is deterministic.** Engine functions take a seeded random number generator, so any fight or drop can be replayed exactly and tested. A fight returns a **replay**, a list of events that the web plays back.
 - **Rolls are logged.** Every roll that matters (drops, Forge, Chests, Death saves, Escape rolls) is stored with its seed and result, so any argument about a roll can be checked.
-- **Items can't be duplicated.** Every change to gold or Items runs in one Postgres transaction with row locks. An Item has exactly one place at a time: worn, in a Bag, in Storage, on the Market, in a Grave, or destroyed.
+- **Items can't be duplicated.** Every change to gold or Items runs in one Postgres transaction that starts by locking the Hero's row (`apps/api/src/services/ledger.ts`); Market listings and Graves are locked the same way. An Item has exactly one place at a time: worn, in a Bag, in Storage, on the Market, in a Grave, or destroyed. `apps/api/test/economy.test.ts` races requests against each other to prove it.
 - **Contracts live in `packages/shared`.** API payloads and replay events are defined there once, and both apps import them. Changes need the owner's approval (see [AGENTS.md](../AGENTS.md)).
 - **Time.** Store UTC and schedule in `Asia/Almaty` (UTC+5, Astana time).
 - **Two languages.** Every player-facing string exists in both `en` and `ru`.

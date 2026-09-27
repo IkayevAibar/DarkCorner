@@ -205,8 +205,12 @@ Breaking an Item down into Materials at the Forge.
 _Avoid_: dismantle, disenchant
 
 **Materials**:
-Items made by Salvage and spent on Upgrades, Reforges and crafting.
+Items made by Salvage and spent on Upgrades, Reforges and crafting: Scrap, Essence and Soulstone.
 _Avoid_: dust, resources
+
+**Magic find**:
+A Bonus stat (and a Blessing) that makes Rare-or-better drops more likely. Its partner, gold find, adds to gold picked up.
+_Avoid_: luck stat, drop rate
 
 **Chest**:
 A tradable Item opened with a matching Key, which reveals its prize with the Spin. The chests in the Three chests event are opened on the spot and are not Items.
@@ -236,6 +240,10 @@ _Avoid_: coins, money
 **Market**:
 The City board where Players list Items at their own price, for anyone to buy at any time.
 _Avoid_: auction house, trading post, bazaar
+
+**Listing**:
+One Item (or a whole stack) put up on the Market at a price. It leaves the Hero until it sells or its seller takes it back.
+_Avoid_: offer, lot, order
 
 **Auction**:
 A 24-hour bidding sale of one Item.

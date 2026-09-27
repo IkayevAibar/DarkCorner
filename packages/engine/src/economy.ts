@@ -41,6 +41,24 @@ export function rollChestGrade(rng: Rng, floor: number): ChestGrade {
   return odds.find(([, w]) => (r -= w) < 0)?.[0] ?? 'iron';
 }
 
+// ─── How much loot Rooms give ─────────────────────────────────────────────
+
+/**
+ * Loot per Room (docs/design.md → Where loot comes from). Tuned with
+ * `npm run balance:season` against the design's targets.
+ */
+export const LOOT = {
+  /** Chance of an Item per fight won. */
+  fightDrop: 0.3,
+  /** Chance of an Iron key per fight won. */
+  fightKey: 0.03,
+  /** Treasure Rooms: how many Items, by weight. */
+  treasureItems: [[1, 60], [2, 30], [3, 10]] as [number, number][],
+  treasureChest: 0.2,
+  minibossItems: 2,
+  minibossChest: 0.5,
+};
+
 // ─── The Bad-luck meter ───────────────────────────────────────────────────
 
 /** At this, the next Item that drops is Legendary or better. */

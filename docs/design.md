@@ -123,7 +123,7 @@ Weapons and armor come in types. Each Class can use some of the types, and the t
 
 ### Levels, health and power
 
-- **Levels:** a Hero goes from level 1 to 20 each Season. XP comes from fights, events and reaching a new Floor for the first time. An active Player should be about level 10 when the Boss gate opens and level 18–20 by the end of the Season *(v0)*.
+- **Levels:** a Hero goes from level 1 to 20 each Season. XP comes from fights, events and reaching a new Floor for the first time (50 × the Floor's number *(v0)*). An active Player should be about level 10 when the Boss gate opens and level 18–20 by the end of the Season *(v0)*.
 - **Health on level-up:** roll the Class hit die, but never take less than its average. For example, a d10 always gives at least 6.
 - **Ability score increases:** at levels 4, 8, 12, 16 and 19, add +2 to one score or +1 to two.
 - **Where power comes from:** about 70% from gear and 30% from the Hero itself (level, ability scores, Talents, and later Academy Talents and training).
@@ -214,14 +214,17 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 
 | Event | What happens |
 |---|---|
-| Three chests | Pick one of three. One of them may be a mimic, which means a fight. |
-| Shrine | Pray for a random Blessing, at the risk of a curse. Clerics roll with advantage. |
-| Goblin gambler | Double-or-nothing on gold, or bet an Item on a dice roll. |
-| Wandering merchant | Sells rare Items at steep prices, and buys yours for more than the Shops pay. |
-| Trapped corridor | A DEX Check to get through unhurt. A Rogue disarms it. |
-| Cursed altar | Offer an Item: 40% chance its Tier goes up by one and it gains a Bonus stat, 60% it is destroyed *(v0)*. |
-| Locked cache | Needs a Key or a Rogue. Better loot inside. |
-| Lockpicking | A 10–20 second minigame: stop the moving pin in the sweet spot. Rogues get a wider sweet spot. |
+| Three chests | Pick one of three: one holds gold, two hold an Item each, and 30% of the time one of those is a mimic, which means a fight *(v0)*. |
+| Shrine | Pray for a random Blessing, at the risk of a curse. A WIS Check against 12; failing by 5 or more (or a natural 1) burns a quarter of max health. Clerics roll with advantage, and Wizards sense the curse and step back *(v0)*. |
+| Goblin gambler | Double-or-nothing on carried gold: both roll a d20 and ties go to the goblin. Or bet an Item for one a Tier higher (not Mythics or Relics). One bet per visit *(v0)*. |
+| Wandering merchant | Sells 3 rare Items (Rare, Epic, sometimes Legendary) at 6 times the Buyback price, and buys yours at twice the Buyback price *(v0)*. |
+| Trapped corridor | A DEX Check (11 + half the Floor) to get through unhurt, or take 2d6 + the Floor number in damage, never below 1 health. A Rogue disarms it; Wizards roll with advantage *(v0)*. |
+| Cursed altar | Offer a Common, Uncommon or Rare Item: 40% chance its Tier goes up by one and it gains a Bonus stat, 60% it is destroyed *(v0)*. |
+| Locked cache | Needs an Iron key or a Rogue. Two Items with the odds of three Floors deeper, plus gold *(v0)*. |
+| Lockpicking | A 10–20 second minigame: stop the moving pin in the sweet spot. Rogues get a wider sweet spot. Until the minigame is built it is a DEX Check against 14 (Rogues with advantage), and success gives a Chest. |
+
+- **Daily and personal:** what an Event room holds comes from the Hero, the Room and the day, so leaving and coming back doesn't reroll it. Each Event room works once a day per Hero (the merchant sells until his wares are gone).
+- **Luck:** a Hero with the Lucky charm or the Luckstone rerolls one failed Check or death save per Run and keeps the better roll.
 
 Later: the shell game (a goblin hides a gem under one of three cups) and more minigames.
 
@@ -293,22 +296,24 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 
 ### Where loot comes from
 
-- **Fight Rooms:** about a 40% chance of an Item per fight *(v0)*, plus gold.
-- **Treasure Rooms:** 1–3 Items, sometimes a Chest.
-- **Elsewhere:** Event rooms, Mini-bosses, Vaults and the Boss.
+- **Fight Rooms:** a 30% chance of an Item per fight, a 3% chance of an Iron key, plus gold *(v0)*.
+- **Treasure Rooms:** 1–3 Items (60% one, 30% two, 10% three), a 20% chance of a Chest, plus gold *(v0)*.
+- **Mini-bosses:** 2 Items, a 50% chance of a Chest, and ten times the gold *(v0)*.
+- **Elsewhere:** Event rooms, Vaults and the Boss.
+- **Magic find** makes every Rare-or-better chance that many percent bigger. **Gold find** adds to gold picked up.
 
 Chances of each Tier when an Item drops *(v0)*:
 
 | Tier | Floors 1–3 | Floors 4–6 | Floors 7–9 | Floor 10 |
 |---|--:|--:|--:|--:|
-| Common | 60% | 45% | 30% | 20% |
+| Common | 60% | 45% | 30.15% | 20.25% |
 | Uncommon | 27% | 31% | 32% | 30% |
 | Rare | 10% | 16% | 24% | 30% |
 | Epic | 2.69% | 6.6% | 11% | 15% |
 | Legendary | 0.3% | 1.3% | 2.6% | 4.3% |
-| Mythic | 0.01% | 0.1% | 0.4% | 0.7% |
+| Mythic | 0.01% | 0.1% | 0.25% | 0.45% |
 
-**What a Player should see:** about one Legendary every 2–3 days for an active Player, 1–2 Mythics per Player per Season, and about 10 Relics per Season across the server.
+**What a Player should see:** about one Legendary every 2–3 days for an active Player, 1–2 Mythics per Player per Season, and about 10 Relics per Season across the server. `npm run balance:season -w @dark/engine` simulates a Season and checks the first two; on 2026-09-27 it gave a Legendary every 2.3 days and 1.8 Mythics per Player, after lowering the deep-Floor Mythic odds (from 0.4% and 0.7%) and the fight and Treasure drops.
 
 ### Bad-luck meter
 
@@ -336,14 +341,15 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 
   - A failure on the way to +5 costs only the gold and Materials.
   - A failure at +6 or higher gives a 50% chance the Item drops one level and a 50% chance it is destroyed.
-  - A Protection scroll turns "destroyed" into "drops one level".
+  - A Protection scroll turns "destroyed" into "drops one level". It burns only when it saves the Item.
   - A successful +10 is Broadcast.
-- **Reforge:** rerolls all Bonus stats. Tier, Quality, Radiant and the unique power stay the same. The cost rises with the Tier.
-- **Salvage:** breaks an Item into Materials *(v0)*:
-  - Common and Uncommon give Scrap.
-  - Rare and Epic give Essence.
-  - Legendary and above give Soulstone.
-- **Craft:** Keys and Protection scrolls, made from Materials.
+  - Cost *(v0)*: 20 × (the new level)² gold, times 1 (Common), 1.5, 2.5, 4, 7, 12 or 15 (Relic). Plus Scrap for +1 to +3 (2–4), Essence for +4 to +7 (2–5), Soulstone for +8 to +10 (1–3).
+- **Reforge:** rerolls all Bonus stats. Tier, Quality, Radiant and the unique power stay the same. Cost *(v0)*: Uncommon 100 gold + 3 Scrap, Rare 250 + 1 Essence, Epic 600 + 3 Essence, Legendary 2,000 + 1 Soulstone, Mythic 6,000 + 3 Soulstone, Relic 10,000 + 5 Soulstone.
+- **Salvage:** breaks an Item into Materials *(v0)*, plus one more for every 3 Upgrade levels. Relics can't be salvaged.
+  - Common: 1–2 Scrap. Uncommon: 2–4 Scrap.
+  - Rare: 1–2 Essence. Epic: 2–4 Essence.
+  - Legendary: 1 Soulstone. Mythic: 2–3 Soulstone.
+- **Craft** *(v0)*: Iron key from 6 Scrap, Silver key from 4 Essence, Gold key from 2 Soulstone, Protection scroll from 3 Essence.
 
 ## Economy
 
@@ -361,8 +367,10 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - base price: Common 5, Uncommon 15, Rare 60, Epic 250, Legendary 1,200, Mythic 6,000 gold
   - multiplied by (1 + item level ÷ 10)
 
-  The price is kept low on purpose, so the Market is always the better place to sell, yet loot is never worthless.
-- **Market:** list an Item at your price for up to 7 days *(v0)*. Anyone can buy it at any time. The seller receives the price minus a 5% tax.
+  The price is kept low on purpose, so the Market is always the better place to sell, yet loot is never worthless. Stackables have their own small Buyback prices (a potion 6, an Iron key 12, Scrap 2…). Haggler: Shops pay 10% more and sell for 10% less.
+- **Shops** *(v0)*: potions 25 gold, Scrolls of Identify 20, Town Portal 50, Protection 200, Keys 50 / 250 / 1,000. Plus a stock of 4 Common and 2 Uncommon pieces a day, chosen for the Hero's Class and depth, at 4 times their Buyback price; each sells once per Hero per day. Shops, the Forge, the Market and the Temple only work in the City.
+- **Market:** list an Item (a whole stack) at your price for up to 7 days *(v0)*. Anyone can buy it at any time. The seller receives the price minus a 5% tax, even while away in the Labyrinth. Up to 20 listings per Player; expired ones wait for the seller to take them back.
+- **Blessings** *(v0)*: the Temple sells Blessing of Fortune (+25% magic find, 150 gold), of Greed (+50% gold find, 100 gold) and of Providence (the Bad-luck meter fills twice as fast, 200 gold). A Blessing lasts 3 hours and a new one replaces the old; Shrines give them for free.
 - **Direct trade:** two Players in the City swap Items and gold, and both confirm. No tax.
 - **Auctions** (a later Season): 24-hour bidding for top Items.
 

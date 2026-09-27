@@ -1,7 +1,7 @@
 import type { HeroFloor, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
-  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, type Floor, type MonsterInstance, type RaceId, type TalentId,
+  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, type Floor, LOOT, type MonsterInstance, type RaceId, type TalentId,
   createRng, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
@@ -15,12 +15,6 @@ import { gainXp } from './progression.js';
 
 export const DAY_MS = 24 * 60 * 60 * 1000;
 const GRAVE_MS = 48 * 60 * 60 * 1000;
-// Loot (docs/design.md → Where loot comes from; all v0).
-/** An Item drops from about 40% of won fights. */
-const DROP_CHANCE = 0.4;
-/** Iron keys turn up now and then. */
-const KEY_CHANCE = 0.03;
-const MINIBOSS_CHEST = 0.5;
 
 export const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
@@ -192,10 +186,10 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   out.gold += gold;
   await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
   hero.carriedGold += gold;
-  const drops = (kind === 'fight' ? (rng.chance(DROP_CHANCE) ? 1 : 0) : 2) + (opts.bonusDrops ?? 0);
+  const drops = (kind === 'fight' ? (rng.chance(LOOT.fightDrop) ? 1 : 0) : LOOT.minibossItems) + (opts.bonusDrops ?? 0);
   if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind }, out);
-  if (kind === 'fight' && rng.chance(KEY_CHANCE)) await dropStack(tx, hero, season, 'key-iron', 1, out);
-  if (kind === 'miniboss' && rng.chance(MINIBOSS_CHEST)) await dropChest(tx, hero, season, floor.number, out);
+  if (kind === 'fight' && rng.chance(LOOT.fightKey)) await dropStack(tx, hero, season, 'key-iron', 1, out);
+  if (kind === 'miniboss' && rng.chance(LOOT.minibossChest)) await dropChest(tx, hero, season, floor.number, out);
   return 'victory';
 }
 

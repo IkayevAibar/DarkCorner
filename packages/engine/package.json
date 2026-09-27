@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "balance:fights": "tsx scripts/fight-balance.ts"
+    "balance:fights": "tsx scripts/fight-balance.ts",
+    "balance:season": "tsx scripts/season-balance.ts"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

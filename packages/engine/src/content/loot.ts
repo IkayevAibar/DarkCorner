@@ -28,8 +28,8 @@ export const BUYBACK_BASE: Record<Tier, number> = {
 export const DROP_ODDS: { floors: [number, number]; odds: [Tier, number][] }[] = [
   { floors: [1, 3], odds: [['common', 60], ['uncommon', 27], ['rare', 10], ['epic', 2.69], ['legendary', 0.3], ['mythic', 0.01]] },
   { floors: [4, 6], odds: [['common', 45], ['uncommon', 31], ['rare', 16], ['epic', 6.6], ['legendary', 1.3], ['mythic', 0.1]] },
-  { floors: [7, 9], odds: [['common', 30], ['uncommon', 32], ['rare', 24], ['epic', 11], ['legendary', 2.6], ['mythic', 0.4]] },
-  { floors: [10, 10], odds: [['common', 20], ['uncommon', 30], ['rare', 30], ['epic', 15], ['legendary', 4.3], ['mythic', 0.7]] },
+  { floors: [7, 9], odds: [['common', 30.15], ['uncommon', 32], ['rare', 24], ['epic', 11], ['legendary', 2.6], ['mythic', 0.25]] },
+  { floors: [10, 10], odds: [['common', 20.25], ['uncommon', 30], ['rare', 30], ['epic', 15], ['legendary', 4.3], ['mythic', 0.45]] },
 ];
 
 export type BonusStatId =

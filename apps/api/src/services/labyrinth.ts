@@ -1,7 +1,7 @@
 import type { Hero, HeroFloor, Player, Season } from '@prisma/client';
 import type { Direction, EventAction, Exit, LabyrinthResult, LabyrinthView } from '@dark/shared';
 import {
-  BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
+  BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   STAMINA_REFILL_MS, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
   generateLabyrinth, proficiencyBonus, restUses,
 } from '@dark/engine';
@@ -21,9 +21,7 @@ import { currentSeason } from './seasons.js';
 const REST_MS = 4 * 60 * 60 * 1000;
 /** Clues: a WIS Check against this sees through a lie (v0). */
 const CLUE_DC = 13;
-/** Treasure Rooms: 1–3 Items, and sometimes a Chest (v0). */
-const TREASURE_ITEMS: [number, number][] = [[1, 50], [2, 35], [3, 15]];
-const TREASURE_CHEST = 0.25;
+
 /** XP for setting foot on a Floor for the first time, per Floor number (v0). */
 const NEW_FLOOR_XP = 50;
 
@@ -328,10 +326,10 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
     case 'treasure':
       if (!isCleared(hf, roomId, now)) {
         const rng = createRng(newSeed());
-        let r = rng.next() * 100;
-        const count = TREASURE_ITEMS.find(([, w]) => (r -= w) < 0)?.[0] ?? 1;
+        let r = rng.next() * LOOT.treasureItems.reduce((sum, [, w]) => sum + w, 0);
+        const count = LOOT.treasureItems.find(([, w]) => (r -= w) < 0)?.[0] ?? 1;
         await dropGear(tx, hero, season, { floor: floor.number, count, source: 'treasure' }, out);
-        if (rng.chance(TREASURE_CHEST)) await dropChest(tx, hero, season, floor.number, out);
+        if (rng.chance(LOOT.treasureChest)) await dropChest(tx, hero, season, floor.number, out);
         const gold = withGoldFind(hero, rng.int(5, 15) * (floor.number + 1));
         await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
         out.gold += gold;
