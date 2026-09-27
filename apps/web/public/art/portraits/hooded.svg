@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="65%">
+      <stop offset="0" stop-color="#2a221a"/>
+      <stop offset="1" stop-color="#0c0a08"/>
+    </radialGradient>
+    <radialGradient id="face" cx="50%" cy="45%" r="50%">
+      <stop offset="0" stop-color="#000"/>
+      <stop offset="1" stop-color="#15110d"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Hood and shoulders -->
+  <path d="M256 70c-78 0-128 64-132 150-3 58 14 96 30 122-60 24-104 62-118 170h440c-14-108-58-146-118-170 16-26 33-64 30-122-4-86-54-150-132-150z" fill="#4a3d2f" stroke="#1a140e" stroke-width="10"/>
+  <path d="M256 120c-52 0-86 46-88 104-2 44 12 80 36 104h104c24-24 38-60 36-104-2-58-36-104-88-104z" fill="url(#face)"/>
+  <path d="M168 150c24-40 56-58 88-58s64 18 88 58" fill="none" stroke="#6b5a45" stroke-width="6" opacity=".6"/>
+  <!-- Two faint eyes in the dark -->
+  <circle cx="226" cy="236" r="6" fill="#e0b86a" opacity=".55"/>
+  <circle cx="286" cy="236" r="6" fill="#e0b86a" opacity=".55"/>
+</svg>

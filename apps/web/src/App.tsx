@@ -2,7 +2,8 @@ import { Navigate, Route, Routes } from 'react-router';
 import { Shell } from './components/Shell';
 import { Admin } from './screens/Admin';
 import { LoadError, Loading, SignIn, Waiting } from './screens/Gate';
-import { City, Heroes, Labyrinth, Loot } from './screens/Placeholders';
+import { Heroes } from './screens/heroes/Heroes';
+import { City, Labyrinth, Loot } from './screens/Placeholders';
 import { Sandbox } from './screens/Sandbox';
 import { useSession } from './session';
 
