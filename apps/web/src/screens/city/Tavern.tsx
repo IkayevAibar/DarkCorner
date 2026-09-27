@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { HallEntry, SeasonView } from '@dark/shared';
 import { api } from '../../api';
 import { Building, Loading } from '../../components/Building';
@@ -17,6 +17,12 @@ export function Tavern() {
   const [tab, setTab] = useState<'feed' | 'hall'>('feed');
   const tavern = useLoad(api.tavern);
   const hall = useLoad(api.hall);
+  // No websockets in Season 0: look again every 25 seconds while the Tavern is open.
+  const { reload } = tavern;
+  useEffect(() => {
+    const id = setInterval(() => void reload(), 25_000);
+    return () => clearInterval(id);
+  }, [reload]);
   if (!tavern.data) return <Loading failed={tavern.failed !== null} onRetry={() => void tavern.reload()} />;
   const { season, online, entries } = tavern.data;
 

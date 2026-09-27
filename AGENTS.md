@@ -21,6 +21,8 @@ A dark-fantasy browser dungeon game for a small group of friends that runs in se
   - animations and sound hooks
 
   Codex builds against `packages/shared` types, using fake data on the `/sandbox` page. Codex also reviews Claude's pull requests.
+
+  Codex's tasks are briefs in `docs/tasks/` (`codex-NN-*.md`), each naming its branch, contract and "done when". Claude leaves a working stand-in with the same props wherever a Codex component will go, so the swap is small.
 - Each agent works inside its own area. If you need something from the other side, write it as a request in your pull request description.
 
 ## Working rules
