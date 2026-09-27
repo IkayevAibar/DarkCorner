@@ -422,7 +422,12 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - 2 portraits per Race and Class pair (32 in total)
   - monster tokens for each monster family
   - the Dragon
-- **Look test first:** before any real game code, a test page with sample art shows the City map, a Room with a fight, Item cards for every Tier, the Spin and the identify reveal. The prompts are in [art/look-test-prompts.md](art/look-test-prompts.md).
+- **UI look: B · Crypt**, chosen in the look test on 2026-09-27:
+  - dark stone panels with a faint texture
+  - tarnished-brass borders with corner brackets
+  - Alegreya SC small caps for headings, Alegreya for body text (both have Cyrillic)
+  - blood-red primary buttons and gold highlights
+- **Look test:** done on 2026-09-27. It is kept on the `prototype/look-test` branch (`npm run look-test` there). The image prompts are in [art/look-test-prompts.md](art/look-test-prompts.md).
 
 ## Scope
 
