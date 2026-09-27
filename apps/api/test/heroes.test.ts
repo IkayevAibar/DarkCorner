@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { talentOffer } from '@dark/engine';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
 import { devLogin, resetDatabase } from './helpers.js';
@@ -120,5 +121,72 @@ describe('retiring', () => {
 
     const again = await post('/api/heroes/retire');
     expect(again.json().error).toBe('retire_used');
+  });
+});
+
+describe('growing a Hero', () => {
+  const makeGarrick = async () => {
+    await post('/api/heroes/draft');
+    return (await post('/api/heroes', garrick)).json().hero;
+  };
+
+  it('chooses a Path once, from level 3, and only its own Class’s', async () => {
+    await makeGarrick();
+    expect((await post('/api/heroes/path', { path: 'champion' })).json().error).toBe('too_early');
+    await prisma.hero.updateMany({ data: { level: 3 } });
+    const me = (await get('/api/heroes/me')).json().hero;
+    expect(me.pathChoices.map((p: { id: string }) => p.id)).toEqual(['champion', 'guardian']);
+    expect((await post('/api/heroes/path', { path: 'assassin' })).json().error).toBe('wrong_class');
+    const chosen = (await post('/api/heroes/path', { path: 'champion' })).json().hero;
+    expect(chosen.path).toMatchObject({ id: 'champion' });
+    expect(chosen.path.features.map((f: { unlocked: boolean }) => f.unlocked)).toEqual([true, false]);
+    expect(chosen.pathChoices).toBeNull();
+    expect((await post('/api/heroes/path', { path: 'guardian' })).json().error).toBe('path_chosen');
+  });
+
+  it('waits for a choice at each growth level: an ability, two, or an offered Talent', async () => {
+    const hero = await makeGarrick();
+    await prisma.hero.updateMany({ data: { level: 8 } });
+    let me = (await get('/api/heroes/me')).json().hero;
+    expect(me.pendingGrowth).toEqual([4, 8]);
+    expect(me.talentOffer).toHaveLength(3);
+
+    expect((await post('/api/heroes/grow', { level: 12, choice: { kind: 'ability', ability: 'str' } })).json().error).toBe('no_growth');
+    me = (await post('/api/heroes/grow', { level: 4, choice: { kind: 'ability', ability: 'str' } })).json().hero;
+    expect(me.abilities.str).toBe(hero.abilities.str + 2);
+    expect(me.pendingGrowth).toEqual([8]);
+
+    const offered = me.talentOffer.map((t: { id: string }) => t.id);
+    const notOffered = ['iron-will', 'fireproof', 'scavenger', 'treasure-hunter', 'light-step', 'heavy-hitter', 'battle-hardened', 'lucky-charm']
+      .find((t) => !offered.includes(t))!;
+    expect((await post('/api/heroes/grow', { level: 8, choice: { kind: 'talent', talent: notOffered } })).json().error).toBe('invalid_growth');
+    me = (await post('/api/heroes/grow', { level: 8, choice: { kind: 'talent', talent: offered[0] } })).json().hero;
+    expect(me.talents).toContain(offered[0]);
+    expect(me.pendingGrowth).toEqual([]);
+    expect(me.talentOffer).toBeNull();
+  });
+
+  it('counts Tough for every level already gained', async () => {
+    await makeGarrick();
+    const hero = await prisma.hero.findFirstOrThrow();
+    // Offers are fixed per Hero: give this one an id whose level-4 offer includes Tough (Items follow the id).
+    let id = '';
+    for (let i = 0; !talentOffer(id, 4, ['alert']).includes('tough'); i++) id = `tough-${i}`;
+    await prisma.hero.update({ where: { id: hero.id }, data: { id, level: 4, talents: ['alert'] } });
+    const response = await post('/api/heroes/grow', { level: 4, choice: { kind: 'talent', talent: 'tough' } });
+    expect(response.statusCode, response.body).toBe(200);
+    const after = response.json().hero;
+    expect(after.maxHp).toBe(hero.maxHp + 8);
+    expect(after.talents).toEqual(['alert', 'tough']);
+  });
+
+  it('fills health to what the gear allows', async () => {
+    await makeGarrick();
+    const hero = await prisma.hero.findFirstOrThrow();
+    const armor = await prisma.item.findFirstOrThrow({ where: { place: 'WORN', slot: 'body' } });
+    await prisma.item.update({ where: { id: armor.id }, data: { bonusStats: [{ stat: 'maxHp', value: 25 }] } });
+    const me = (await get('/api/heroes/me')).json().hero;
+    expect(me.maxHp).toBe(hero.maxHp + 25);
+    expect(me.hp).toBe(hero.hp);
   });
 });

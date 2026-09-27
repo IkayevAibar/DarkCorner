@@ -2,7 +2,7 @@ import type { Hero, HeroFloor, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT, type MonsterInstance,
-  RELIC_CHANCE, type RaceId, type StanceId, type TalentId, weakeningAt,
+  type PathId, RELIC_CHANCE, type RaceId, type StanceId, type TalentId, weakeningAt,
   createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
@@ -99,7 +99,8 @@ export function combatOf(hero: HeroWithItems): HeroCombat {
   }));
   return heroCombat({
     name: hero.name, class: hero.class as ClassId, race: hero.race as RaceId, level: hero.level,
-    talents: hero.talents as TalentId[], scores: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
+    talents: hero.talents as TalentId[], path: hero.path as PathId | null,
+    scores: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
     maxHp: hero.maxHp, hp: hero.hp, worn,
   });
 }
@@ -270,7 +271,7 @@ export async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumb
     where: { heroId: hero.id, place: { in: ['WORN', 'BAG'] } },
     data: { place: 'GRAVE', heroId: null, slot: null, graveId: grave.id },
   });
-  const uses = restUses(hero.class as ClassId, hero.level);
+  const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
   const updated = await tx.hero.update({
     where: { id: hero.id },
     data: {

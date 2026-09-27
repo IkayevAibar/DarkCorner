@@ -1,7 +1,8 @@
-import { abilityModifier } from './abilities.js';
+import { type Ability, ABILITIES, abilityModifier } from './abilities.js';
 import { CLASS_DEFS, type ClassId } from './content/classes.js';
 import { RACE_DEFS, type RaceId } from './content/races.js';
-import { TALENTS, type TalentId } from './content/talents.js';
+import { ORIGIN_TALENTS, TALENTS, type TalentId } from './content/talents.js';
+import { createRng } from './rng.js';
 
 export const STAMINA_MAX = 20;
 /** One Stamina point comes back every 24 minutes: an empty bar refills in 8 hours (v0). */
@@ -46,7 +47,7 @@ export function validateHeroChoices(choices: HeroChoices): string[] {
   const picks = RACE_DEFS[choices.race]?.talentPicks ?? 1;
   const unique = new Set(choices.talents);
   if (choices.talents.length !== picks || unique.size !== picks) problems.push('talent_count');
-  if (choices.talents.some((t) => !TALENTS.includes(t))) problems.push('unknown_talent');
+  if (choices.talents.some((t) => !(ORIGIN_TALENTS as readonly string[]).includes(t))) problems.push('unknown_talent');
   return problems;
 }
 
@@ -60,3 +61,53 @@ export function currentStamina(saved: number, savedAt: Date, now: Date): { stami
   const next = stamina >= STAMINA_MAX ? now : new Date(savedAt.getTime() + gained * STAMINA_REFILL_MS);
   return { stamina, savedAt: next };
 }
+
+// ─── Growing ──────────────────────────────────────────────────────────────
+
+/**
+ * Levels where a Hero grows (the SRD's ability score increase levels): +2 to one
+ * ability, +1 to two, or a new Talent (docs/design.md → Growing, v0).
+ */
+export const GROWTH_LEVELS = [4, 8, 12, 16, 19] as const;
+export const TALENTS_OFFERED = 3;
+export const ABILITY_CAP = 20;
+
+export type GrowthChoice =
+  | { kind: 'ability'; ability: Ability }
+  | { kind: 'abilities'; abilities: [Ability, Ability] }
+  | { kind: 'talent'; talent: TalentId };
+export type Growth = GrowthChoice & { level: number };
+
+/** Growth levels reached and not yet chosen, lowest first. */
+export function pendingGrowth(level: number, growths: readonly Pick<Growth, 'level'>[]): number[] {
+  return GROWTH_LEVELS.filter((l) => l <= level && !growths.some((g) => g.level === l));
+}
+
+/** The Talents offered at one growth level: three the Hero lacks, the same every time it looks. */
+export function talentOffer(heroId: string, level: number, owned: readonly TalentId[]): TalentId[] {
+  const rng = createRng(`${heroId}:talents:${level}`);
+  const pool = TALENTS.filter((t) => !owned.includes(t));
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = rng.int(0, i);
+    [pool[i], pool[j]] = [pool[j]!, pool[i]!];
+  }
+  return pool.slice(0, TALENTS_OFFERED);
+}
+
+/** Problems with a growth choice, as stable codes. Empty means valid. */
+export function validateGrowth(choice: GrowthChoice, scores: Record<Ability, number>, offer: readonly TalentId[]): string[] {
+  switch (choice.kind) {
+    case 'ability':
+      if (!ABILITIES.includes(choice.ability)) return ['unknown_ability'];
+      return scores[choice.ability] + 2 > ABILITY_CAP ? ['ability_cap'] : [];
+    case 'abilities': {
+      const [a, b] = choice.abilities;
+      if (!ABILITIES.includes(a) || !ABILITIES.includes(b)) return ['unknown_ability'];
+      if (a === b) return ['same_ability'];
+      return scores[a] + 1 > ABILITY_CAP || scores[b] + 1 > ABILITY_CAP ? ['ability_cap'] : [];
+    }
+    case 'talent':
+      return offer.includes(choice.talent) ? [] : ['not_offered'];
+  }
+}
+

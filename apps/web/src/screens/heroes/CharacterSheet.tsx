@@ -8,6 +8,7 @@ import { useAction } from '../../components/useAction';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
 import { play, playTier } from '../../sound';
+import { Growth } from './Growth';
 
 type Place = 'worn' | 'bag' | 'storage';
 
@@ -138,6 +139,8 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
           </div>
         </div>
       </article>
+
+      <Growth hero={hero} onChanged={onChanged} />
 
       <ItemGrid title={t('hero.bag', { n: hero.bag.length, m: hero.bagSlots })} items={hero.bag} onPick={(i) => showItem(i, 'bag')} />
       <ItemGrid

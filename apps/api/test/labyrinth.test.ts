@@ -100,6 +100,8 @@ describe('the Labyrinth', () => {
     expect(facing.sneak).toMatchObject({ dc: 10 + 2 * (facing.monsters.length - 1), edge: 'disadvantage' });
     expect((await post('/api/labyrinth/move', { to: floor1.landing })).json().error).toBe('facing');
 
+    // Sturdy enough that the fight can't end the test in the City.
+    await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999 } });
     const fought = await act('/api/labyrinth/face', { action: 'fight' });
     expect(fought.fight).not.toBeNull();
     expect(fought.fight!.monsters.map((m) => m.key)).toEqual(facing.monsters.map((m) => m.key));
@@ -228,7 +230,8 @@ describe('the Labyrinth', () => {
   });
 
   it('walks to the stairs, goes down a Floor, and back up', async () => {
-    await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999 } });
+    // Strong as well as sturdy: a Mini-boss on the way must fall well inside the round limit.
+    await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999, str: 30, level: 10 } });
     await act('/api/labyrinth/enter', { floor: 1 });
     expect((await post('/api/labyrinth/ascend')).json().error).toBe('no_stairs_up');
     const stairs = floor1.rooms.find((r) => r.type === 'stairs')!;

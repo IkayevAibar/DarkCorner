@@ -56,8 +56,8 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     offHands: [],
     armor: ['light'],
     fights: text(
-      'Critical hits, strikes first, Sneak attack on the first hit of a fight.',
-      'Критические удары, первый ход в бою, скрытая атака при первом попадании.',
+      'Critical hits, strikes first, a big Sneak attack on the first hit of a fight and a smaller one each round after.',
+      'Критические удары, первый ход в бою, мощная скрытая атака первым попаданием и послабее — каждый следующий раунд.',
     ),
     trick: text(
       'Picks locks, disarms traps, spots lying Clues, has the best odds on Escape rolls.',

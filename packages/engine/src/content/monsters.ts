@@ -74,7 +74,7 @@ export const MONSTERS: MonsterDef[] = [
     powers: [{ id: 'thief' }] }),
   m({ id: 'wolf', name: text('Wolf', 'Волк'), theme: 'warrens', kin: 'beast', art: null, role: 'brute', hp: 11, ac: 12, attack: 3, damage: [2, 4, 0], dex: 15, xp: 18, weight: 2,
     powers: [{ id: 'pack' }] }),
-  m({ id: 'goblin-chieftain', name: text('Goblin chieftain', 'Вождь гоблинов'), theme: 'warrens', kin: 'goblinoid', art: null, role: 'miniboss', hp: 26, ac: 15, attack: 5, damage: [2, 6, 2], dex: 14, xp: 90, weight: 0,
+  m({ id: 'goblin-chieftain', name: text('Goblin chieftain', 'Вождь гоблинов'), theme: 'warrens', kin: 'goblinoid', art: null, role: 'miniboss', hp: 34, ac: 15, attack: 5, damage: [2, 6, 3], dex: 14, xp: 90, weight: 0,
     escort: ['goblin-archer'] }),
 
   // Floors 4–6: undead crypts
@@ -86,7 +86,7 @@ export const MONSTERS: MonsterDef[] = [
     powers: [{ id: 'paralyze', dc: 10 }] }),
   m({ id: 'wraith', name: text('Wraith', 'Призрак'), theme: 'crypts', kin: 'undead', art: null, role: 'brute', hp: 28, ac: 13, attack: 5, damage: [2, 8, 1], dex: 16, xp: 90, weight: 1,
     powers: [{ id: 'drain' }] }),
-  m({ id: 'bone-knight', name: text('Bone knight', 'Костяной рыцарь'), theme: 'crypts', kin: 'undead', art: null, role: 'miniboss', hp: 55, ac: 17, attack: 6, damage: [2, 8, 4], dex: 12, xp: 250, weight: 0,
+  m({ id: 'bone-knight', name: text('Bone knight', 'Костяной рыцарь'), theme: 'crypts', kin: 'undead', art: null, role: 'miniboss', hp: 70, ac: 17, attack: 6, damage: [2, 8, 5], dex: 12, xp: 250, weight: 0,
     powers: [{ id: 'undying' }], escort: ['skeleton'] }),
 
   // Floors 7–9: demon-touched depths
@@ -98,7 +98,7 @@ export const MONSTERS: MonsterDef[] = [
     powers: [{ id: 'breath', dice: [3, 6], dc: 13 }] }),
   m({ id: 'demon-brute', name: text('Demon brute', 'Демон-громила'), theme: 'depths', kin: 'demon', art: null, role: 'brute', hp: 60, ac: 14, attack: 7, damage: [1, 8, 3], dex: 10, xp: 160, weight: 1,
     powers: [{ id: 'multiattack', attacks: 2 }] }),
-  m({ id: 'horned-tyrant', name: text('Horned tyrant', 'Рогатый тиран'), theme: 'depths', kin: 'demon', art: null, role: 'miniboss', hp: 80, ac: 16, attack: 8, damage: [1, 8, 3], dex: 12, xp: 500, weight: 0,
+  m({ id: 'horned-tyrant', name: text('Horned tyrant', 'Рогатый тиран'), theme: 'depths', kin: 'demon', art: null, role: 'miniboss', hp: 85, ac: 16, attack: 8, damage: [1, 10, 3], dex: 12, xp: 500, weight: 0,
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'frighten', dc: 14, rounds: 2 }], escort: ['imp'] }),
 
   // Floor 10: the Dragon's lair
@@ -106,8 +106,8 @@ export const MONSTERS: MonsterDef[] = [
     powers: [{ id: 'pack' }] }),
   m({ id: 'drake', name: text('Drake', 'Дрейк'), theme: 'lair', kin: 'dragonkin', art: null, role: 'brute', hp: 70, ac: 16, attack: 8, damage: [2, 8, 4], dex: 12, xp: 250, weight: 2,
     powers: [{ id: 'breath', dice: [5, 6], dc: 14 }] }),
-  m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.png', role: 'boss', hp: 480, ac: 20, attack: 13, damage: [2, 8, 6], dex: 10, xp: 5000, weight: 0,
-    powers: [{ id: 'multiattack', attacks: 2 }, { id: 'breath', dice: [10, 6], dc: 16 }, { id: 'frighten', dc: 14, rounds: 2 }, { id: 'enrage' }] }),
+  m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.png', role: 'boss', hp: 620, ac: 20, attack: 13, damage: [2, 10, 6], dex: 10, xp: 5000, weight: 0,
+    powers: [{ id: 'multiattack', attacks: 2 }, { id: 'breath', dice: [12, 6], dc: 17 }, { id: 'frighten', dc: 15, rounds: 2 }, { id: 'enrage' }] }),
 
   // Anywhere: the chest that bites (Three chests). Scales from Floor 1 like the warrens.
   m({ id: 'mimic', name: text('Mimic', 'Мимик'), theme: 'warrens', kin: 'beast', art: null, role: 'brute', hp: 16, ac: 12, attack: 4, damage: [1, 8, 2], dex: 12, xp: 40, weight: 0 }),

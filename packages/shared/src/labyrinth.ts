@@ -71,6 +71,11 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     type: z.literal('heal'), actor: z.string(), ability: z.enum(['second-wind', 'cure-wounds', 'potion', 'life-steal']),
     amount: z.number().int(), hp: z.number().int(),
   }),
+  /** A Hero's Path at work: Survivor heals, Indomitable stands at 1, an Abjurer's ward rises (`left`) or soaks `amount`. */
+  z.object({
+    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward']),
+    amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(),
+  }),
   /** A monster's power at work: `amount` is gold stolen, health restored or damage dealt; `hp` the target's health after. */
   z.object({
     type: z.literal('power'), actor: z.string(), power: monsterPowerSchema,

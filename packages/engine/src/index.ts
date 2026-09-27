@@ -20,3 +20,4 @@ export * from './events.js';
 export * from './season.js';
 export * from './content/monsters.js';
 export * from './content/stances.js';
+export * from './content/paths.js';

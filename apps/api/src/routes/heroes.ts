@@ -1,7 +1,11 @@
 import type { FastifyInstance } from 'fastify';
-import { type CreationOptions, type HeroDraft, type MyHeroResponse, createHeroRequestSchema } from '@dark/shared';
+import {
+  type CreationOptions, type HeroDraft, type HeroResponse, type MyHeroResponse, choosePathRequestSchema, createHeroRequestSchema, growRequestSchema,
+} from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
-import { createHero, creationOptions, myHeroState, rerollDraft, retireHero, startDraft } from '../services/heroes.js';
+import {
+  choosePath, createHero, creationOptions, growHero, myHeroState, rerollDraft, retireHero, startDraft,
+} from '../services/heroes.js';
 
 export async function heroRoutes(app: FastifyInstance) {
   const guard = { preHandler: requireApproved };
@@ -22,6 +26,14 @@ export async function heroRoutes(app: FastifyInstance) {
     const body = createHeroRequestSchema.parse(request.body);
     return { hero: await createHero(request.player!, body) };
   });
+
+  app.post('/api/heroes/path', guard, async (request): Promise<HeroResponse> => ({
+    hero: await choosePath(request.player!, choosePathRequestSchema.parse(request.body).path),
+  }));
+
+  app.post('/api/heroes/grow', guard, async (request): Promise<HeroResponse> => ({
+    hero: await growHero(request.player!, growRequestSchema.parse(request.body)),
+  }));
 
   app.post('/api/heroes/retire', guard, async (request): Promise<MyHeroResponse> => {
     await retireHero(request.player!);

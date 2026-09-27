@@ -9,6 +9,7 @@ import {
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { type CheckOutcome, type Outcome, fight, heroFloor, markCleared, t } from './fights.js';
+import { fullHealth } from './heroes.js';
 import { gearData, rollView, toItemView } from './items.js';
 import {
   type HeroWithItems, type Tx, dayNumber, destroyItem, earnCarried, giveItem, ownItem, spendCarried, stackTotal, takeStack,
@@ -203,7 +204,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         await tx.hero.update({ where: { id: hero.id }, data: { blessing: b.id, blessingUntil: new Date(now.getTime() + BLESSING_MS) } });
         out.notices.push(t(`The Shrine blesses you: ${b.name.en}. ${b.description.en}`, `Святилище благословляет вас: ${b.name.ru}. ${b.description.ru}`));
       } else if (prayer.outcome === 'curse') {
-        const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(hero.maxHp * 0.25)));
+        const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(fullHealth(hero) * 0.25)));
         await tx.hero.update({ where: { id: hero.id }, data: { hp: hero.hp - lost } });
         out.notices.push(t(`The Shrine burns you: ${lost} damage.`, `Святилище обжигает вас: ${lost} урона.`));
       } else if (prayer.outcome === 'sensed') {

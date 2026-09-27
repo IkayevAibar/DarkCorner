@@ -7,8 +7,8 @@
  * Tune monsters (content/monsters.ts) until early Floors are forgiving and deep ones bite.
  */
 import {
-  CLASS_DEFS, type ClassId, type HeroCombat, type MonsterInstance, STANCES, type StanceId, createRng, heroCombat, restUses, simulateFight,
-  spawnEncounter, startingHealth,
+  CLASS_DEFS, type ClassId, type HeroCombat, type MonsterInstance, type PathId, STANCES, type StanceId, createRng, heroCombat, pathsOf, restUses,
+  simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
 const stance = (process.argv[2] ?? 'steady') as StanceId;
@@ -18,7 +18,7 @@ const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric'] as const;
 type Gear = 'starter' | 'decent' | 'endgame';
 
 /** A Hero of a Class and level: its Starter kit, or the same bases better rolled, upgraded and with Bonus stats. */
-function hero(cls: ClassId, level: number, gear: Gear = 'starter'): HeroCombat {
+function hero(cls: ClassId, level: number, gear: Gear = 'starter', path: PathId | null = null): HeroCombat {
   const primary = CLASS_DEFS[cls].primary;
   const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, [primary]: gear === 'endgame' ? 20 : 16 };
   const perLevel = Math.ceil(CLASS_DEFS[cls].hitDie / 2) + 1 + 2 + 2;
@@ -31,15 +31,16 @@ function hero(cls: ClassId, level: number, gear: Gear = 'starter'): HeroCombat {
   const worn = CLASS_DEFS[cls].starterKit.map((base, i) => ({
     base, quality: rolled.quality, upgrade: rolled.upgrade, radiant: false, bonusStats: i === 0 ? rolled.bonusStats : [], uniqueId: null,
   }));
-  return heroCombat({ name: 'T', class: cls, race: 'human', level, talents: ['alert', 'tough'], scores, maxHp: hp, hp, worn });
+  const h = heroCombat({ name: 'T', class: cls, race: 'human', level, talents: ['alert', 'tough'], path, scores, maxHp: hp, hp, worn });
+  return { ...h, hp: h.maxHp };
 }
 
 const pct = (x: number, n: number) => `${Math.round((100 * x) / n)}%`.padStart(4);
 
 /** Runs `n` fights and prints one cell per Class. */
-function row(label: string, n: number, make: (cls: ClassId, i: number) => { hero: HeroCombat; monsters: MonsterInstance[]; potions: number }) {
+function row(label: string, n: number, make: (cls: ClassId, i: number) => { hero: HeroCombat; monsters: MonsterInstance[]; potions: number }, classes: readonly ClassId[] = CLASSES) {
   const cells: string[] = [];
-  for (const cls of CLASSES) {
+  for (const cls of classes) {
     let wins = 0;
     let dead = 0;
     let away = 0;
@@ -47,7 +48,7 @@ function row(label: string, n: number, make: (cls: ClassId, i: number) => { hero
     for (let i = 0; i < n; i++) {
       const { hero: h, monsters, potions } = make(cls, i);
       const r = simulateFight(createRng(`${label}-${cls}-${i}`), {
-        hero: h, monsters, uses: restUses(cls, h.level), potions, runPowers: { deathless: false, lucky: false }, stance,
+        hero: h, monsters, uses: restUses(cls, h.level, h.path), potions, runPowers: { deathless: false, lucky: false }, stance,
       });
       if (r.outcome === 'victory') {
         wins++;
@@ -86,4 +87,14 @@ for (const [level, weakening] of [[18, 0], [20, 0], [20, 0.2], [20, 0.4]] as con
     monsters: spawnEncounter(createRng('boss'), 10, 'boss', weakening),
     potions: 5,
   }));
+}
+
+console.log('\nPaths: the Floor 8 Mini-boss at level 9 in decent gear, and the full-strength Dragon at levels 16 and 20 in endgame gear');
+for (const cls of CLASSES) {
+  for (const path of [null, ...pathsOf(cls).map((p) => p.id)]) {
+    const label = `${cls} ${path ?? '(no Path)'}`;
+    row(`${label} F8`, 400, () => ({ hero: hero(cls, 9, 'decent', path), monsters: spawnEncounter(createRng('miniboss'), 8, 'miniboss'), potions: 3 }), [cls]);
+    row(`${label} dragon lv16`, 300, () => ({ hero: hero(cls, 16, 'endgame', path), monsters: spawnEncounter(createRng('boss'), 10, 'boss'), potions: 5 }), [cls]);
+    row(`${label} dragon lv20`, 300, () => ({ hero: hero(cls, 20, 'endgame', path), monsters: spawnEncounter(createRng('boss'), 10, 'boss'), potions: 5 }), [cls]);
+  }
 }

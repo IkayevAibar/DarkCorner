@@ -97,7 +97,7 @@ Season 0 starts with the classic party of four. Each later Season adds two Class
 | Class | Hit die | In fights | In the Labyrinth |
 |---|---|---|---|
 | Fighter | d10 | Most health, heavy armor, extra attacks. Second wind heals once per fight. | Smashes cracked walls to open shortcuts other Classes can't use. |
-| Rogue | d8 | Critical hits, strikes first, Sneak attack on the first hit of a fight. | Picks locks, disarms traps, spots lying Clues, has the best odds on Escape rolls. |
+| Rogue | d8 | Critical hits, strikes first. A full Sneak attack (half its level in d6) on the first hit of a fight, and a smaller one (a sixth of its level) on its first hit of each later round. | Picks locks, disarms traps, spots lying Clues, has the best odds on Sneaking and Escape rolls. |
 | Wizard | d6 | Big spell damage but fragile. Limited spells per rest. | Senses traps and curses. Identifies Items for free. |
 | Cleric | d8 | Heals itself. Its spells are deadly to undead. | Rolls with advantage at Shrines. |
 
@@ -127,13 +127,47 @@ Weapons and armor come in types. Each Class can use some of the types, and the t
 
 - **Levels:** a Hero goes from level 1 to 20 each Season. XP comes from fights, events and reaching a new Floor for the first time (50 × the Floor's number *(v0)*). An active Player should be about level 10 when the Boss gate opens and level 18–20 by the end of the Season *(v0)*.
 - **Health on level-up:** roll the Class hit die, but never take less than its average. For example, a d10 always gives at least 6.
-- **Ability score increases:** at levels 4, 8, 12, 16 and 19, add +2 to one score or +1 to two.
+- **Growing:** at level 3 the Player chooses a Path; at levels 4, 8, 12, 16 and 19, +2 to one ability score, +1 to two, or a new Talent (see Growing: Paths and Talents).
 - **Where power comes from:** about 70% from gear and 30% from the Hero itself (level, ability scores, Talents, and later Academy Talents and training).
-- **What death never takes:** levels, ability scores and Talents.
+- **What death never takes:** levels, ability scores, Talents and the Path.
+- **Full health** counts gear: a Hero's own health plus its "+max health" Bonus stats. The City, a Camp's rest and potions fill up to it.
+
+### Growing: Paths and Talents
+
+Every few levels the Player chooses how the Hero grows. The choice waits on the Heroes tab until it is made; nothing is lost by waiting.
+
+- **Path (level 3):** one of two for the Hero's Class, for the rest of the Season (only Retiring changes it). Each Path gives a feature at level 3 and another at level 9 *(v0)*:
+
+  | Class | Path | Level 3 | Level 9 |
+  |---|---|---|---|
+  | Fighter | Champion | Critical hits on a roll one lower | Below half health, regain 2 + CON modifier at the start of each turn |
+  | Fighter | Guardian | Once per round, strike back at a monster that misses | Once per fight, a blow that would drop the Hero leaves it at 1 health |
+  | Rogue | Thief | The first potion of a fight doesn't cost the turn; +20% gold find | +5 to Sneak and Escape rolls; can Sneak past Mini-bosses |
+  | Rogue | Assassin | Full Sneak attack every round | The first hit of every fight is a critical hit |
+  | Wizard | Evoker | Spells add the INT modifier twice | One more burst per rest; a burst hits even a lone enemy, twice as hard |
+  | Wizard | Abjurer | Each fight starts behind a ward of 3 × level + INT modifier that takes damage first | Advantage on every saving throw |
+  | Cleric | Life | Cure wounds and potions heal 25% more | One more Cure wounds per rest |
+  | Cleric | War | The first hit each turn deals +1d8 | Two attacks each turn |
+
+  Each Class has one Path built for the Boss and one for the long road: Thief, Abjurer and Life trade damage for gold, safety and healing.
+- **Growth (levels 4, 8, 12, 16, 19):** +2 to one ability score, +1 to two (never above 20), or one of three Talents offered. The three are drawn from the Talents the Hero doesn't have yet, and stay the same however often the Player looks.
+- **Talents learned by growing** *(v0)*, on top of the origin Talents:
+
+  | Talent | Effect |
+  |---|---|
+  | Iron will | Proficiency in CON and WIS saves |
+  | Fireproof | Fire breath and burning deal half damage |
+  | Scavenger | +10% magic find |
+  | Treasure hunter | +20% gold find |
+  | Light step | +2 to Sneak and Escape rolls; heavy armor no longer hinders Sneaking |
+  | Heavy hitter | +2 damage on every hit |
+  | Battle-hardened | +1 AC |
+
+  Tough learned late counts for every level the Hero already has.
 
 ### Retiring
 
-Once per Season, a Player may Retire their Hero at the Temple and create a new one, with a new Race, Class and ability roll, starting at level 1. Gold and Storage are kept, and the old Hero's gear moves into Storage.
+Once per Season, a Player may Retire their Hero at the Temple and create a new one, with a new Race, Class and ability roll, starting at level 1. Gold and Storage are kept, and the old Hero's gear moves into Storage. It is also the only way to try another Path.
 
 ## Dice and fights
 
@@ -152,6 +186,7 @@ The rules are a light version of the D&D System Reference Document (SRD 5.2).
 - **Before a fight:** see below.
 - **Abilities:** some work once per fight. Others have a few uses per rest, and those come back after a long rest at a Camp or on returning to the City.
 - **Health:** damage carries over from Room to Room. Heroes heal with potions, Shrines, Cleric spells, a long rest at a Camp, or fully in the City.
+- **Healing potions** *(v0)*: 2d4 + 2 plus a tenth of the Hero's full health, so they still matter deep down. In a fight a Hero drinks one below 30% health, at most 3 per fight.
 - **Monsters:** they come in groups, and deeper Floors have stronger ones. Each kind has a power of its own (see Monsters below).
 - **Saving throws:** some powers call for a save: a d20 plus the ability modifier, plus proficiency in the Class's two saves (Fighter STR and CON, Rogue DEX and INT, Wizard INT and WIS, Cleric WIS and CHA). The DC is set by the power, +1 for every two Floors deeper into its theme.
 - **Weapons wound differently:** slashing (swords, axes), piercing (rapiers, daggers, bows) or blunt (maces, hammers, mauls, staves). It matters against some monsters.

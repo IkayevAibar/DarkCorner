@@ -5,6 +5,8 @@ import { type Text, text } from './content/text.js';
 import { type GearRoll, buybackPrice, rollGear, rollTier } from './items.js';
 import type { Rng } from './rng.js';
 import { canUse } from './stats.js';
+import { type PathId, onPath } from './content/paths.js';
+import type { TalentId } from './content/talents.js';
 
 // All numbers here are v0 (docs/design.md → Items and loot, Economy).
 
@@ -286,6 +288,9 @@ export const BLESSINGS: Record<BlessingId, BlessingDef> = {
 export function luckOf(opts: {
   worn: { bonusStats: { stat: string; value: number }[]; radiant: boolean; uniqueId: string | null }[];
   blessing: BlessingId | null;
+  talents?: readonly TalentId[];
+  path?: PathId | null;
+  level?: number;
 }): { magicFind: number; goldFind: number; badLuckRate: number } {
   const sum = (stat: string) => opts.worn.reduce((t, g) => t + g.bonusStats
     .filter((b) => b.stat === stat)
@@ -293,8 +298,9 @@ export function luckOf(opts: {
   const blessing = opts.blessing ? BLESSINGS[opts.blessing] : null;
   const crown = opts.worn.some((g) => g.uniqueId === 'first-kings-crown') ? 2 : 1;
   return {
-    magicFind: sum('magicFind') + (blessing?.magicFind ?? 0),
-    goldFind: sum('goldFind') + (blessing?.goldFind ?? 0),
+    magicFind: sum('magicFind') + (blessing?.magicFind ?? 0) + (opts.talents?.includes('scavenger') ? 10 : 0),
+    goldFind: sum('goldFind') + (blessing?.goldFind ?? 0) + (opts.talents?.includes('treasure-hunter') ? 20 : 0)
+      + (onPath({ path: opts.path ?? null, level: opts.level ?? 0 }, 'thief') ? 20 : 0),
     badLuckRate: crown * (blessing?.badLuck ?? 1),
   };
 }

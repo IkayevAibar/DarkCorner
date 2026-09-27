@@ -2,8 +2,8 @@ import type { Hero, HeroFloor, Player, Season } from '@prisma/client';
 import type { Direction, EventAction, Exit, FaceAction, Facing, LabyrinthResult, LabyrinthView, Stance } from '@dark/shared';
 import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
-  STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
-  fightOdds, generateLabyrinth, proficiencyBonus, restUses, sneakCheck, threatOf,
+  type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
+  PATH_MASTERY, fightOdds, generateLabyrinth, onPath, proficiencyBonus, restUses, sneakCheck, threatOf,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -15,7 +15,7 @@ import {
   DAY_MS, type FightKind, type Outcome, combatOf, combatant, emptyOutcome, fight, fightInput, heroFloor, isCleared, markCleared,
   monstersFor, t,
 } from './fights.js';
-import { portraitUrlOf } from './heroes.js';
+import { fullHealth, portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, lockHero, stackTotal, takeStack } from './ledger.js';
 import { dropChest, dropGear, withGoldFind } from './loot.js';
@@ -107,13 +107,17 @@ async function stillFacing(tx: Tx, hero: HeroWithItems, season: Season, floor: F
   return kind;
 }
 
+/** Fight Rooms can be snuck past; Mini-bosses only by a Thief who has grown into its Path (Ghost); the Boss never. */
+const canSneak = (hero: Hero, kind: FightKind): boolean =>
+  kind === 'fight' || (kind === 'miniboss' && onPath({ path: hero.path as PathId | null, level: hero.level }, 'thief', PATH_MASTERY));
+
 /** What the Player sees before choosing: who waits, how dangerous in each Stance, and the Sneak Check. */
 function facingView(hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: FightKind, now: Date): Facing {
   const { monsters, spawnSeed } = monstersFor(season, hero, floor, roomId, kind, now);
   const combat = combatOf(hero);
   const rate = (stance: StanceId) =>
     threatOf(fightOdds(`${spawnSeed}:threat:${stance}`, fightInput(hero, combat, monsters, { stance })));
-  const sneak = kind === 'fight' ? sneakCheck(combat, floor.number, monsters.length) : null;
+  const sneak = canSneak(hero, kind) ? sneakCheck(combat, floor.number, monsters.length) : null;
   return {
     kind,
     monsters: monsters.map((m) => combatant(m.key, m)),
@@ -151,8 +155,8 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     name: hero.name,
     portraitUrl: portraitUrlOf(hero),
     banner: hero.banner,
-    hp: hero.hp,
-    maxHp: hero.maxHp,
+    hp: Math.min(hero.hp, fullHealth(hero)),
+    maxHp: fullHealth(hero),
     level: hero.level,
     xp: hero.xp,
     xpNext: hero.level < XP_FOR_LEVEL.length - 1 ? XP_FOR_LEVEL[hero.level + 1]! : null,
@@ -278,10 +282,10 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
 }
 
 /** A Hero sitting in a Camp for four hours gets up fully rested (and the clock starts again). */
-async function restIfDue(tx: Tx, hero: Hero, now: Date): Promise<void> {
+async function restIfDue(tx: Tx, hero: HeroWithItems, now: Date): Promise<void> {
   if (!hero.campSince || now.getTime() - hero.campSince.getTime() < REST_MS) return;
-  const uses = restUses(hero.class as ClassId, hero.level);
-  const rested = { hp: hero.maxHp, spellUses: uses.spells, healUses: uses.heals, campSince: now };
+  const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
+  const rested = { hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals, campSince: now };
   await tx.hero.update({ where: { id: hero.id }, data: rested });
   Object.assign(hero, rested);
 }
@@ -447,7 +451,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
     }
 
     if (action.action === 'sneak') {
-      if (kind !== 'fight') throw ApiError.conflict('no_sneaking', 'There is no sneaking past this one');
+      if (!canSneak(hero, kind)) throw ApiError.conflict('no_sneaking', 'There is no sneaking past this one');
       let slipped = true;
       if (action.smoke) {
         await takeStack(tx, hero, 'bomb-smoke', 1, 'no_bomb');
@@ -585,13 +589,13 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
 }
 
 /** Back to the City: gold becomes safe, health and abilities come back. */
-async function goHome(tx: Tx, hero: Hero) {
-  const uses = restUses(hero.class as ClassId, hero.level);
+async function goHome(tx: Tx, hero: HeroWithItems) {
+  const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
   await tx.hero.update({
     where: { id: hero.id },
     data: {
       location: 'CITY', floor: null, room: null, prevRoom: null, campSince: null,
-      gold: { increment: hero.carriedGold }, carriedGold: 0, hp: hero.maxHp, spellUses: uses.spells, healUses: uses.heals,
+      gold: { increment: hero.carriedGold }, carriedGold: 0, hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals,
     },
   });
 }

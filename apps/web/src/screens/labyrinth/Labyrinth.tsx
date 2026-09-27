@@ -555,6 +555,9 @@ function Graves({ view, busy, act }: { view: LabyrinthView; busy: boolean; act: 
   );
 }
 
+/** Levels where a Hero has something to choose: its Path, then growth. */
+const GROWS_AT = [3, 4, 8, 12, 16, 19];
+
 /** What the last action brought: the fight's outcome, XP, gold, loot and anything to know. */
 function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => void }) {
   const { t } = useI18n();
@@ -590,6 +593,9 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
       {(result.xp > 0 || result.gold > 0 || result.levelUp !== null) && (
         <div className="flex flex-wrap gap-1.5">
           {result.levelUp !== null && <span className="chip border-gold text-gold">{t('report.levelUp', { n: result.levelUp })}</span>}
+          {result.levelUp !== null && GROWS_AT.includes(result.levelUp) && (
+            <NavLink to="/heroes" className="chip border-gold text-gold no-underline">{t('report.grow')}</NavLink>
+          )}
           {result.xp > 0 && <span className="chip">{t('report.xp', { n: result.xp })}</span>}
           {result.gold > 0 && <span className="chip text-[#f1c75b]">{t('report.gold', { n: result.gold })}</span>}
         </div>

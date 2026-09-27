@@ -1,13 +1,14 @@
 import type { Hero, Item, Player, Prisma } from '@prisma/client';
 import type {
-  AbilitySetView, CreateHeroRequest, CreationOptions, HeroDraft, HeroView, MyHeroResponse, SlotId,
+  AbilitySetView, CreateHeroRequest, CreationOptions, GrowRequest, HeroDraft, HeroView, MyHeroResponse, PathView, SlotId,
 } from '@dark/shared';
 import {
   ABILITY_REROLLS, type AbilitySet, BAD_LUCK_MAX, BAG_SLOTS, BANNER_COLORS, BLESSINGS, type BlessingId, CLASS_DEFS, CLASSES,
   DAY_MS, type GearBase, PORTRAITS, RACE_DEFS, type Tier, UNCOMMON_KIT_AFTER_DAYS, isGear, itemName, luckOf, tierRank,
   RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
-  createRng, currentStamina, portraitById, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth,
-  validateHeroChoices,
+  type ClassId, type Growth, type GrowthChoice, ORIGIN_TALENTS, PATH_DEFS, PATH_LEVEL, type PathId, type TalentId, createRng, currentStamina, maxHealth,
+  pathsOf, pendingGrowth, portraitById, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth, talentArmor, talentOffer,
+  validateGrowth, validateHeroChoices,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -28,7 +29,9 @@ export function creationOptions(): CreationOptions {
       const c = CLASS_DEFS[id];
       return { id, name: c.name, hitDie: c.hitDie, fights: c.fights, trick: c.trick };
     }),
-    talents: TALENTS.map((id) => ({ id, name: TALENT_DEFS[id].name, description: TALENT_DEFS[id].description })),
+    talents: TALENTS.map((id) => ({
+      id, name: TALENT_DEFS[id].name, description: TALENT_DEFS[id].description, origin: (ORIGIN_TALENTS as readonly string[]).includes(id),
+    })),
     portraits: PORTRAITS.map((p) => ({ id: p.id, race: p.race, class: p.class, url: p.url })),
     banners: [...BANNER_COLORS],
   };
@@ -49,7 +52,14 @@ export function heroLuck(hero: Hero & { items: Item[] }, now = new Date()) {
   const worn = hero.items
     .filter((i) => i.place === 'WORN')
     .map((i) => ({ bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant, uniqueId: i.uniqueId }));
-  return luckOf({ worn, blessing: activeBlessing(hero, now) });
+  return luckOf({ worn, blessing: activeBlessing(hero, now), talents: hero.talents as TalentId[], path: hero.path as PathId | null, level: hero.level });
+}
+
+/** Full health with the gear the Hero wears: what the City, a Camp's rest and potions fill up to. */
+export function fullHealth(hero: Hero & { items: Item[] }): number {
+  return maxHealth(hero.maxHp, hero.items
+    .filter((i) => i.place === 'WORN')
+    .map((i) => ({ bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant })));
 }
 
 /** The Hero's portrait art, falling back to the hooded figure if its portrait was removed. */
@@ -76,9 +86,9 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     level: hero.level,
     xp: hero.xp,
     abilities: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
-    maxHp: hero.maxHp,
-    hp: hero.hp,
-    armorClass: armorClass(
+    maxHp: fullHealth(hero),
+    hp: Math.min(hero.hp, fullHealth(hero)),
+    armorClass: talentArmor(hero.talents as TalentId[]) + armorClass(
       hero.dex,
       hero.items
         .filter((i) => i.place === 'WORN')
@@ -100,6 +110,28 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     storageSlots: STORAGE_SLOTS,
     inCity: hero.location === 'CITY',
     luck: luckView(hero, now),
+    ...growthView(hero),
+  };
+}
+
+const talentView = (id: TalentId) => ({ id, name: TALENT_DEFS[id].name, description: TALENT_DEFS[id].description });
+
+function pathView(id: PathId, level: number): PathView {
+  const def = PATH_DEFS[id];
+  return {
+    id, name: def.name, blurb: def.blurb,
+    features: def.features.map((f) => ({ level: f.level, name: f.name, text: f.text, unlocked: level >= f.level })),
+  };
+}
+
+/** The Path, and the choices a Hero has waiting as it grows. */
+function growthView(hero: Hero): Pick<HeroView, 'path' | 'pathChoices' | 'pendingGrowth' | 'talentOffer'> {
+  const pending = pendingGrowth(hero.level, hero.growths as unknown as Growth[]);
+  return {
+    path: hero.path ? pathView(hero.path as PathId, hero.level) : null,
+    pathChoices: !hero.path && hero.level >= PATH_LEVEL ? pathsOf(hero.class as ClassId).map((p) => pathView(p.id, hero.level)) : null,
+    pendingGrowth: pending,
+    talentOffer: pending.length > 0 ? talentOffer(hero.id, pending[0]!, hero.talents as TalentId[]).map(talentView) : null,
   };
 }
 
@@ -270,6 +302,52 @@ export async function giveStarterKit(tx: Prisma.TransactionClient, hero: Hero, s
   await tx.item.create({
     data: { seasonId, heroId: hero.id, place: 'BAG', base: 'potion', tier: 'common', quantity: STARTER_POTIONS },
   });
+}
+
+/** At level 3 and up, once: the Hero chooses one of its Class's two Paths. */
+export async function choosePath(player: Player, path: PathId): Promise<HeroView> {
+  const season = await currentSeason();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    if (hero.path) throw ApiError.conflict('path_chosen', 'This Hero has already chosen its Path');
+    if (hero.level < PATH_LEVEL) throw ApiError.conflict('too_early', 'A Path is chosen at level 3');
+    if (PATH_DEFS[path].class !== hero.class) throw ApiError.badRequest('wrong_class', 'That Path is for another Class');
+    await tx.hero.update({ where: { id: hero.id }, data: { path } });
+    return hero.id;
+  });
+  return toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }));
+}
+
+/**
+ * At a growth level (4, 8, 12, 16, 19) the Hero takes +2 to one ability, +1 to
+ * two, or one of the three Talents offered to it. Tough counts for every level
+ * already gained.
+ */
+export async function growHero(player: Player, request: GrowRequest): Promise<HeroView> {
+  const season = await currentSeason();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    const growths = hero.growths as unknown as Growth[];
+    if (!pendingGrowth(hero.level, growths).includes(request.level)) throw ApiError.conflict('no_growth', 'Nothing to choose at that level');
+    const choice = request.choice as GrowthChoice;
+    const scores = { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha };
+    const problems = validateGrowth(choice, scores, talentOffer(hero.id, request.level, hero.talents as TalentId[]));
+    if (problems.length > 0) throw ApiError.badRequest('invalid_growth', 'That is not on offer', problems);
+
+    const data: Prisma.HeroUpdateInput = { growths: [...growths, { level: request.level, ...choice }] as unknown as Prisma.InputJsonValue };
+    if (choice.kind === 'ability') data[choice.ability] = { increment: 2 };
+    if (choice.kind === 'abilities') for (const a of choice.abilities) data[a] = { increment: 1 };
+    if (choice.kind === 'talent') {
+      data.talents = { push: choice.talent };
+      if (choice.talent === 'tough') {
+        data.maxHp = { increment: 2 * hero.level };
+        data.hp = { increment: 2 * hero.level };
+      }
+    }
+    await tx.hero.update({ where: { id: hero.id }, data });
+    return hero.id;
+  });
+  return toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }));
 }
 
 /** Once per Season: the Hero steps aside, and everything it had goes to Storage. */

@@ -195,6 +195,7 @@ function frameAt(replay: FightReplay, step: number): Frame {
         if (e.hp !== undefined) hp[e.power === 'drain' || e.power === 'undying' ? e.actor : (e.target ?? e.actor)] = e.hp;
         break;
       case 'tick': hp[e.target] = e.hp; break;
+      case 'feature': if (e.hp !== undefined) hp.hero = e.hp; break;
       case 'fled': frame.fallen.add(e.key); break;
       default: break;
     }
@@ -233,6 +234,11 @@ function effectOn(key: string, event: FightEventView | null): Effect | null {
       return key === 'hero' ? { d20: event.natural } : null;
     case 'tick':
       return event.target === key ? { shake: true, float: { text: `−${event.damage}`, tone: 'burn' } } : null;
+    case 'feature':
+      if (key !== 'hero') return null;
+      if (event.feature === 'survivor') return { float: { text: `+${event.amount ?? 0}`, tone: 'heal' } };
+      if (event.feature === 'ward' && event.amount !== undefined) return { float: { text: `◈${event.amount}`, tone: 'crit' } };
+      return { shake: true };
     case 'power':
       switch (event.power) {
         case 'breath':
@@ -290,6 +296,10 @@ function sound(event: FightEventView): void {
       break;
     case 'rise': play('equip'); break;
     case 'save': play('die'); break;
+    case 'feature':
+      if (event.feature === 'indomitable') play('equip', { rate: 0.8 });
+      else if (event.feature === 'ward') play('crit', { rate: 1.4, volume: 0.4 });
+      break;
     case 'tick': play('hit', { rate: 1.3, volume: 0.5 }); break;
     case 'fled': play('step'); play('step', { delay: 180 }); break;
     case 'power':
@@ -380,6 +390,12 @@ function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: 
     case 'status': return t(`fight.status.${e.status}`, { name: n(e.target) });
     case 'tick': return t('fight.tick', { name: n(e.target), n: e.damage });
     case 'held': return t('fight.held', { name: n(e.target) });
+    case 'feature':
+      if (e.feature === 'survivor') return t('fight.feature.survivor', { name: n('hero'), n: e.amount ?? 0 });
+      if (e.feature === 'indomitable') return t('fight.feature.indomitable', { name: n('hero') });
+      return e.amount === undefined
+        ? t('fight.feature.wardUp', { name: n('hero'), n: e.left ?? 0 })
+        : t('fight.feature.ward', { n: e.amount, left: e.left ?? 0 });
     case 'fled': return t('fight.fled', { name: n(e.key) });
     case 'end': return null;
   }

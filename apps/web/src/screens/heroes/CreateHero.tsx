@@ -147,7 +147,7 @@ export function CreateHero({ options, initialDraft, onCreated }: {
       {current === 'talents' && (
         <div className="grid gap-2">
           <span className="text-sm text-muted">{t('create.pickTalents', { n: picks })}</span>
-          {options.talents.map((tal) => (
+          {options.talents.filter((tal) => tal.origin).map((tal) => (
             <Choice
               key={tal.id}
               selected={talents.includes(tal.id)}

@@ -1,6 +1,6 @@
 import type {
   AdminGrant, AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, AdminSeasonView, ApiErrorBody, AuthStatus, BlessingIdView,
-  CreateHeroRequest, HallView, RollLogView, TavernView,
+  CreateHeroRequest, GrowRequest, HallView, PathIdView, RollLogView, TavernView,
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
@@ -52,6 +52,8 @@ export const api = {
   moveItem: (id: string, to: MoveItemRequest['to']) =>
     request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/move`, { to }),
 
+  choosePath: (path: PathIdView) => request<HeroResponse>('POST', '/api/heroes/path', { path }),
+  grow: (body: GrowRequest) => request<HeroResponse>('POST', '/api/heroes/grow', body),
   labyrinth: () => request<LabyrinthResult>('GET', '/api/labyrinth'),
   enterLabyrinth: (floor: number) => request<LabyrinthResult>('POST', '/api/labyrinth/enter', { floor }),
   moveTo: (to: number) => request<LabyrinthResult>('POST', '/api/labyrinth/move', { to }),

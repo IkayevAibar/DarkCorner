@@ -27,8 +27,12 @@ The six D&D scores (STR, DEX, CON, INT, WIS, CHA), rolled when a Hero is created
 _Avoid_: attributes, stats
 
 **Talent**:
-A small passive perk. Every Hero picks an origin Talent when it is created.
+A small passive perk. Every Hero picks an origin Talent when it is created, and may learn more as it grows.
 _Avoid_: feat, perk, skill
+
+**Path**:
+One of two ways a Class grows (Champion or Guardian for a Fighter, and so on), chosen at level 3. It adds a feature at level 3 and another at 9.
+_Avoid_: subclass, archetype, specialization
 
 **Proficiency**:
 A weapon or armor type that a Class can use.

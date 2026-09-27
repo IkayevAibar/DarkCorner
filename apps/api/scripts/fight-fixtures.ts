@@ -9,7 +9,7 @@ import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { type Combatant, type FightReplay, fightReplaySchema } from '@dark/shared';
 import {
-  BANNER_COLORS, CLASS_DEFS, type ClassId, type FightInput, type FightResult, type MonsterInstance, type RaceId, type StanceId, THEMES, createRng,
+  BANNER_COLORS, CLASS_DEFS, type ClassId, type FightInput, type FightResult, type MonsterInstance, type PathId, type RaceId, type StanceId, THEMES, createRng,
   fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter, startingHealth, themeOf,
 } from '@dark/engine';
 
@@ -22,6 +22,7 @@ interface Scenario {
   health: number;
   potions: number;
   stance?: StanceId;
+  path?: PathId;
   surprise?: FightInput['surprise'];
   bomb?: boolean;
   /** Carried gold, for thieves. */
@@ -107,6 +108,21 @@ const SCENARIOS: Record<string, Scenario> = {
     level: 8, floor: 8, kind: 'fight', health: 1, potions: 2,
     want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'power' && e.power === 'breath') && has(r, (e) => e.type === 'tick'),
   },
+  'abjurer-ward': {
+    hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.png', banner: BANNER_COLORS[1] },
+    level: 6, floor: 5, kind: 'fight', health: 1, potions: 1, path: 'abjurer',
+    want: (r) => r.outcome === 'victory' && r.events.filter((e) => e.type === 'feature' && e.feature === 'ward').length >= 3,
+  },
+  'champion-survivor': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.png', banner: BANNER_COLORS[0] },
+    level: 9, floor: 8, kind: 'fight', health: 0.45, potions: 0, path: 'champion',
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'feature' && e.feature === 'survivor'),
+  },
+  'guardian-indomitable': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.png', banner: BANNER_COLORS[0] },
+    level: 9, floor: 8, kind: 'fight', health: 0.3, potions: 0, path: 'guardian',
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'feature' && e.feature === 'indomitable'),
+  },
   'gilded-elite': {
     hero: { name: 'Pip', race: 'halfling', class: 'rogue', portrait: '/art/portraits/halfling-rogue-1.png', banner: BANNER_COLORS[5] },
     level: 4, floor: 3, kind: 'fight', health: 1, potions: 2,
@@ -131,10 +147,10 @@ function run(name: string, s: Scenario): FightReplay {
 
   for (let i = 0; i < 60_000; i++) {
     const hp = Math.max(1, Math.round(maxHp * s.health));
-    const hero = heroCombat({ name: s.hero.name, class: s.hero.class, race: s.hero.race, level: s.level, talents: ['alert', 'tough'], scores, maxHp, hp, worn });
+    const hero = heroCombat({ name: s.hero.name, class: s.hero.class, race: s.hero.race, level: s.level, talents: ['alert', 'tough'], path: s.path ?? null, scores, maxHp, hp, worn });
     const monsters = spawnEncounter(createRng(`${name}:spawn:${i}`), s.floor, s.kind);
     const result = simulateFight(createRng(`${name}:fight:${i}`), {
-      hero, monsters, uses: restUses(s.hero.class, s.level), potions: s.potions, runPowers: { deathless: false, lucky: false },
+      hero, monsters, uses: restUses(s.hero.class, s.level, s.path ?? null), potions: s.potions, runPowers: { deathless: false, lucky: false },
       stance: s.stance ?? 'bold', surprise: s.surprise ?? null, bomb: s.bomb ? fireBomb(s.floor) : null, gold: s.gold ?? 0,
     });
     if (!s.want(result, monsters)) continue;

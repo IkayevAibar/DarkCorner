@@ -3,18 +3,24 @@ import { itemViewSchema, localizedTextSchema } from './items.js';
 
 export const RACE_IDS = ['human', 'elf', 'dwarf', 'halfling'] as const;
 export const CLASS_IDS = ['fighter', 'rogue', 'wizard', 'cleric'] as const;
-export const TALENT_IDS = ['alert', 'tough', 'savage-attacker', 'lucky-charm', 'haggler', 'field-medic'] as const;
+export const TALENT_IDS = [
+  'alert', 'tough', 'savage-attacker', 'lucky-charm', 'haggler', 'field-medic',
+  'iron-will', 'fireproof', 'scavenger', 'treasure-hunter', 'light-step', 'heavy-hitter', 'battle-hardened',
+] as const;
+export const PATH_IDS = ['champion', 'guardian', 'thief', 'assassin', 'evoker', 'abjurer', 'life', 'war'] as const;
 export const ABILITY_IDS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
 export const SLOT_IDS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring1', 'ring2'] as const;
 
 export const raceIdSchema = z.enum(RACE_IDS);
 export const classIdSchema = z.enum(CLASS_IDS);
 export const talentIdSchema = z.enum(TALENT_IDS);
+export const pathIdSchema = z.enum(PATH_IDS);
 export const abilityIdSchema = z.enum(ABILITY_IDS);
 export const slotIdSchema = z.enum(SLOT_IDS);
 export type RaceId = z.infer<typeof raceIdSchema>;
 export type ClassId = z.infer<typeof classIdSchema>;
 export type TalentId = z.infer<typeof talentIdSchema>;
+export type PathIdView = z.infer<typeof pathIdSchema>;
 export type AbilityId = z.infer<typeof abilityIdSchema>;
 export type SlotId = z.infer<typeof slotIdSchema>;
 
@@ -32,7 +38,8 @@ export const creationOptionsSchema = z.object({
   classes: z.array(z.object({
     id: classIdSchema, name: localizedTextSchema, hitDie: z.number().int(), fights: localizedTextSchema, trick: localizedTextSchema,
   })),
-  talents: z.array(z.object({ id: talentIdSchema, name: localizedTextSchema, description: localizedTextSchema })),
+  /** Every Talent; `origin` ones can be picked when creating a Hero, the rest are learned by growing. */
+  talents: z.array(z.object({ id: talentIdSchema, name: localizedTextSchema, description: localizedTextSchema, origin: z.boolean() })),
   /** `race`/`class` null means the portrait suits anyone. */
   portraits: z.array(z.object({
     id: z.string(), race: raceIdSchema.nullable(), class: classIdSchema.nullable(), url: z.string(),
@@ -83,6 +90,17 @@ export const luckViewSchema = z.object({
 });
 export type LuckView = z.infer<typeof luckViewSchema>;
 
+export const talentViewSchema = z.object({ id: talentIdSchema, name: localizedTextSchema, description: localizedTextSchema });
+
+/** A Path and its two features; `unlocked` once the Hero's level reaches the feature's. */
+export const pathViewSchema = z.object({
+  id: pathIdSchema,
+  name: localizedTextSchema,
+  blurb: localizedTextSchema,
+  features: z.array(z.object({ level: z.number().int(), name: localizedTextSchema, text: localizedTextSchema, unlocked: z.boolean() })),
+});
+export type PathView = z.infer<typeof pathViewSchema>;
+
 export const heroSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -110,8 +128,30 @@ export const heroSchema = z.object({
   /** City buildings and Storage only work while the Hero is in the City. */
   inCity: z.boolean(),
   luck: luckViewSchema,
+  /** The Path chosen at level 3. */
+  path: pathViewSchema.nullable(),
+  /** From level 3 until a Path is chosen: the two on offer. */
+  pathChoices: z.array(pathViewSchema).nullable(),
+  /** Growth levels reached and not yet chosen, lowest first. */
+  pendingGrowth: z.array(z.number().int()),
+  /** The Talents offered for the lowest pending growth level, null when none is pending. */
+  talentOffer: z.array(talentViewSchema).nullable(),
 });
 export type HeroView = z.infer<typeof heroSchema>;
+
+/** POST /api/heroes/path */
+export const choosePathRequestSchema = z.object({ path: pathIdSchema });
+
+/** POST /api/heroes/grow: +2 to one ability, +1 to two, or one of the Talents offered at `level`. */
+export const growRequestSchema = z.object({
+  level: z.number().int(),
+  choice: z.discriminatedUnion('kind', [
+    z.object({ kind: z.literal('ability'), ability: abilityIdSchema }),
+    z.object({ kind: z.literal('abilities'), abilities: z.tuple([abilityIdSchema, abilityIdSchema]) }),
+    z.object({ kind: z.literal('talent'), talent: talentIdSchema }),
+  ]),
+});
+export type GrowRequest = z.infer<typeof growRequestSchema>;
 
 /** GET /api/heroes/me: the Player's state in the current Season. */
 export const myHeroResponseSchema = z.object({

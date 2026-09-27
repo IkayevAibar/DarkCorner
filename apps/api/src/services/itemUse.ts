@@ -1,7 +1,7 @@
 import type { Player } from '@prisma/client';
 import type { HeroView, IdentifyResult, OpenChestResult } from '@dark/shared';
 import {
-  CHEST_ODDS, baseById, chestBase, chestGradeOf, createRng, isGear, keyBase, rollChestTier, rollDice, rollGear, sum, tierRank,
+  CHEST_ODDS, baseById, chestBase, chestGradeOf, createRng, isGear, keyBase, potionHealing, rollChestTier, rollGear, tierRank,
   uniqueById,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -9,7 +9,7 @@ import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { broadcast } from './broadcast.js';
 import { feed } from './feed.js';
-import { toHeroView } from './heroes.js';
+import { fullHealth, toHeroView } from './heroes.js';
 import { gearData, toItemView } from './items.js';
 import { giveItem, lockHero, ownItem, takeStack } from './ledger.js';
 import { currentSeason } from './seasons.js';
@@ -85,10 +85,11 @@ export async function drinkPotion(player: Player, itemId: string): Promise<HeroV
     const hero = await lockHero(tx, player, season.id);
     const potion = ownItem(hero, itemId, ['BAG', 'STORAGE']);
     if (potion.base !== 'potion') throw ApiError.badRequest('not_a_potion', 'That is not a potion');
-    if (hero.hp >= hero.maxHp) throw ApiError.conflict('full_health', 'You are already at full health');
-    const healed = Math.round((sum(rollDice(createRng(newSeed()), 2, 4)) + 2) * (hero.talents.includes('field-medic') ? 1.5 : 1));
+    const full = fullHealth(hero);
+    if (hero.hp >= full) throw ApiError.conflict('full_health', 'You are already at full health');
+    const healed = Math.round(potionHealing(createRng(newSeed()), full, hero.talents.includes('field-medic')));
     await takeStack(tx, hero, 'potion', 1);
-    await tx.hero.update({ where: { id: hero.id }, data: { hp: Math.min(hero.maxHp, hero.hp + healed) } });
+    await tx.hero.update({ where: { id: hero.id }, data: { hp: Math.min(full, hero.hp + healed) } });
     return hero.id;
   });
   return heroView(heroId);

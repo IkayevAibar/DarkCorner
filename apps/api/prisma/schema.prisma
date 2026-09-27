@@ -70,6 +70,10 @@ model Hero {
   race        String
   class       String
   talents     String[]
+  /// The Path chosen at level 3; null before.
+  path        String?
+  /// Growth chosen at levels 4, 8, 12, 16 and 19: [{ level, kind, ... }] (engine: Growth).
+  growths     Json      @default("[]")
   portrait    String
   banner      String
   level       Int       @default(1)
