@@ -13,7 +13,7 @@
  * equip, sell, restock and grow.
  */
 import { execSync } from 'node:child_process';
-import type { ClassId, ForgeQuote, LabyrinthResult, LabyrinthView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
+import type { ClassId, ForgeQuote, HeroDraft, LabyrinthResult, LabyrinthView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
 import { TEST_DATABASE_URL } from '../test/test-db.js';
 
 // ─── A fake clock, installed before the app loads ─────────────────────────
@@ -58,7 +58,7 @@ interface Stats {
   fights: number; won: number; escaped: number; survived: number; deaths: number; sneaks: number; caught: number; retreats: number;
   events: number; bounties: number; hidden: number; graves: number; moves: number; xp: number; items: Record<string, number>;
   minibosses: number; minibossWins: number; chests: number; dropped: number;
-  salvaged: number; forge: Record<string, number>; goldForged: number; portals: number;
+  salvaged: number; forge: Record<string, number>; goldForged: number; portals: number; dragon: string[];
   market: { listed: number; bought: number; spent: number; expired: number };
   threats: Record<Threat, number>; errors: string[]; deathLog: string[];
 }
@@ -82,7 +82,7 @@ interface Bot {
 
 const newStats = (): Stats => ({
   fights: 0, won: 0, escaped: 0, survived: 0, deaths: 0, sneaks: 0, caught: 0, retreats: 0, events: 0, bounties: 0, hidden: 0, graves: 0,
-  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
+  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, dragon: [], market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
 });
 
 async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: object): Promise<{ ok: boolean; status: number; body: T & { error?: string } }> {
@@ -369,6 +369,7 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
   const tally = bot.seen.get(floor) ?? { all: 0, trivial: 0 };
   bot.seen.set(floor, { all: tally.all + 1, trivial: tally.trivial + (threat === 'trivial' ? 1 : 0) });
   const boss = facing.kind === 'miniboss';
+  const dragon = facing.kind === 'boss';
   const atGrave = bot.grave?.floor === floor && bot.grave.room === view.room!.id;
   const odds = facing.sneak ? sneakChance(facing.sneak) : 0;
   const full = hero.hp >= hero.maxHp * 0.9;
@@ -382,6 +383,7 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
     const r = await act(bot, '/api/labyrinth/face', { action: 'fight', bomb }, view);
     if (boss) bot.stats.minibosses++;
     if (boss && r?.fight?.outcome === 'victory') bot.stats.minibossWins++;
+    if (dragon) bot.stats.dragon.push(`day ${Math.floor(offset / 86_400_000) + 1} lv${hero.level} ${threat}: ${r?.fight?.outcome ?? 'no fight'}`);
   } else if (facing.sneak && odds >= 0.6) {
     bot.stats.sneaks++;
     bot.doing = `sneak (${Math.round(odds * 100)}%) past ${threat} ${names}`;
@@ -503,9 +505,14 @@ for (const [cls, race, portrait] of CLASSES) {
   const cookie = await devLogin(app, name, bots.length === 0);
   await prisma.player.updateMany({ where: { username: name }, data: { approvedAt: new Date() } });
   const bot: Bot = { name, cls, cookie, stats: newStats(), avoid: new Set(), handled: new Set(), grave: null, doing: '', seen: new Map(), looted: new Set() };
-  await call(bot, 'POST', '/api/heroes/draft');
+  // Like a Player would: use every reroll, then keep the set with the best primary ability (and CON).
+  let draft = (await call<{ draft: HeroDraft }>(bot, 'POST', '/api/heroes/draft')).body.draft;
+  while (draft.rerollsLeft > 0) draft = (await call<{ draft: HeroDraft }>(bot, 'POST', '/api/heroes/draft/reroll')).body.draft;
+  const primary = CLASS_DEFS[cls].primary;
+  const worth = (i: number) => draft.sets[i]!.scores[primary] * 2 + draft.sets[i]!.scores.con;
+  const set = draft.sets.map((_, i) => i).reduce((a, b) => (worth(b) > worth(a) ? b : a), 0);
   const talents = race === 'human' ? ['alert', 'tough'] : ['tough'];
-  const made = await call(bot, 'POST', '/api/heroes', { name, race, class: cls, talents, portrait, banner: '#9e2a2a', set: 0 });
+  const made = await call(bot, 'POST', '/api/heroes', { name, race, class: cls, talents, portrait, banner: '#9e2a2a', set });
   if (!made.ok) throw new Error(`${name}: ${JSON.stringify(made.body)}`);
   bots.push(bot);
 }
@@ -548,6 +555,11 @@ for (const bot of bots) {
 }
 console.log('\nGear found:');
 for (const bot of bots) console.log(`  ${bot.cls.padEnd(7)} ${TIERS.map((t) => `${t} ${bot.stats.items[t] ?? 0}`).join(', ')}`);
+console.log('\nThe Dragon:');
+for (const bot of bots) if (bot.stats.dragon.length) console.log(`  ${bot.cls.padEnd(7)} ${bot.stats.dragon.join('; ')}`);
+const season = await prisma.season.findFirstOrThrow({ orderBy: { createdAt: 'desc' } });
+const places = await prisma.bossKill.findMany({ where: { seasonId: season.id }, orderBy: { place: 'asc' } });
+console.log(`  Season ${season.status}; podium: ${places.map((p) => `${p.place}. ${p.heroName} (day ${Math.floor((p.createdAt.getTime() - season.startsAt!.getTime()) / 86_400_000) + 1})`).join(', ') || 'nobody yet'}`);
 console.log('\nDeaths:');
 for (const bot of bots) for (const d of bot.stats.deathLog) console.log(`  ${bot.cls.padEnd(7)} ${d}`);
 const errors = bots.flatMap((b) => b.stats.errors.map((e) => `${b.name}: ${e}`));
