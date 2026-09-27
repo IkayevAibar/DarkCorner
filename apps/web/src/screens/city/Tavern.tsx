@@ -84,7 +84,7 @@ function SeasonCard({ season }: { season: SeasonView }) {
   );
 }
 
-const HALL_ORDER: HallEntry['kind'][] = ['champion', 'second', 'third', 'relic', 'deepest', 'highest-level'];
+const HALL_ORDER: HallEntry['kind'][] = ['champion', 'second', 'third', 'relic', 'best-drop', 'deepest', 'highest-level'];
 
 function Hall({ entries }: { entries: HallEntry[] | null }) {
   const { t } = useI18n();

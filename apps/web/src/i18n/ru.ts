@@ -69,6 +69,7 @@ export const ru: Record<MessageKey, string> = {
   'hall.second': 'Второе место',
   'hall.third': 'Третье место',
   'hall.relic': 'Реликвия',
+  'hall.best-drop': 'Лучшая находка',
   'hall.deepest': 'Глубже всех',
   'hall.highest-level': 'Высший уровень',
   'city.away': 'Ваш герой в Лабиринте. Вернитесь в город, чтобы торговать здесь.',

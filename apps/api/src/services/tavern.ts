@@ -99,6 +99,7 @@ export async function hallView(): Promise<HallView> {
       const detail: LocalizedText | null = r.kind === 'relic' && typeof d.uniqueId === 'string'
         ? { en: `${uniqueById(d.uniqueId).name.en} #${d.serial}/${d.of}`, ru: `${uniqueById(d.uniqueId).name.ru} №${d.serial}/${d.of}` }
         : r.kind === 'deepest' ? { en: `Floor ${d.floor}`, ru: `Этаж ${d.floor}` }
+        : r.kind === 'best-drop' ? { en: `${TIER_NAMES[String(d.tier)]?.en} ${baseName(d.base).en.toLowerCase()}`, ru: `${baseName(d.base).ru} (${TIER_NAMES[String(d.tier)]?.ru})` }
         : r.kind === 'highest-level' || typeof d.level === 'number' ? { en: `Level ${d.level}`, ru: `Уровень ${d.level}` }
         : null;
       return { season: r.seasonNumber, kind: r.kind as HallView['entries'][number]['kind'], player: r.playerName, hero: r.heroName, detail, at: r.createdAt.toISOString() };

@@ -127,6 +127,16 @@ async function recordRecords(tx: Tx, season: Season): Promise<void> {
   });
   await entry('deepest', deepest, { floor: deepest.bestFloor });
   await entry('highest-level', highest, { level: highest.level });
+
+  // The best drop: the highest Tier anyone found (Relics have their own entries).
+  const finds = await tx.feedEvent.findMany({ where: { seasonId: season.id, kind: { in: ['drop', 'chest'] } }, orderBy: { id: 'asc' } });
+  const rank = (d: unknown) => ['legendary', 'mythic'].indexOf(String((d as { tier?: string }).tier));
+  const best = finds.filter((f) => rank(f.data) >= 0).sort((a, b) => rank(b.data) - rank(a.data))[0];
+  const finder = best && heroes.find((h) => h.playerId === best.playerId);
+  if (best && finder) {
+    const d = best.data as { tier: string; base: string };
+    await entry('best-drop', finder, { tier: d.tier, base: d.base });
+  }
 }
 
 /**

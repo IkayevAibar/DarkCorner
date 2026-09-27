@@ -123,11 +123,29 @@ describe('the Season', () => {
     season = await prisma.season.findFirstOrThrow({ where: { number: 0 } });
     expect(season.status).toBe('ENDED');
     const hall = (await get(admin, '/api/hall')).json().entries;
-    expect(hall.map((e: { kind: string }) => e.kind).sort()).toEqual(['champion', 'deepest', 'highest-level', 'second']);
+    // A best-drop entry comes too if the Dragon's hoard held a Legendary.
+    expect(hall.map((e: { kind: string }) => e.kind).filter((k: string) => k !== 'best-drop').sort()).toEqual(['champion', 'deepest', 'highest-level', 'second']);
     // The next Season begins empty: nobody has a Hero in it.
     const me = (await get(admin, '/api/heroes/me')).json();
     expect(me).toMatchObject({ season: 1, hero: null, canCreate: true });
     expect(await prisma.job.count({ where: { doneAt: null, kind: { not: 'broadcast' } } })).toBe(0);
+  });
+});
+
+describe('the Wipe', () => {
+  it('records the best drop of the Season', async () => {
+    await post(admin, '/api/admin/season', { action: 'start' });
+    const season = await prisma.season.findFirstOrThrow();
+    const player = await prisma.player.findFirstOrThrow({ where: { username: 'Admira' } });
+    await prisma.feedEvent.createMany({
+      data: [
+        { seasonId: season.id, playerId: player.id, kind: 'drop', data: { hero: 'Admira', tier: 'legendary', base: 'helm' } },
+        { seasonId: season.id, playerId: player.id, kind: 'chest', data: { hero: 'Admira', tier: 'mythic', base: 'ring', grade: 'gold' } },
+      ],
+    });
+    await post(admin, '/api/admin/season', { action: 'end' });
+    const best = (await get(admin, '/api/hall')).json().entries.find((e: { kind: string }) => e.kind === 'best-drop');
+    expect(best).toMatchObject({ hero: 'Admira', detail: { en: 'Mythic ring' } });
   });
 });
 

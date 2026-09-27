@@ -54,7 +54,7 @@ export const tavernViewSchema = z.object({
 });
 export type TavernView = z.infer<typeof tavernViewSchema>;
 
-export const HALL_KINDS = ['champion', 'second', 'third', 'relic', 'deepest', 'highest-level'] as const;
+export const HALL_KINDS = ['champion', 'second', 'third', 'relic', 'best-drop', 'deepest', 'highest-level'] as const;
 export const hallEntrySchema = z.object({
   season: z.number().int(),
   kind: z.enum(HALL_KINDS),

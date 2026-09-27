@@ -68,6 +68,7 @@ export const en = {
   'hall.second': 'Second',
   'hall.third': 'Third',
   'hall.relic': 'Relic found',
+  'hall.best-drop': 'Best drop',
   'hall.deepest': 'Deepest',
   'hall.highest-level': 'Highest level',
   'city.away': 'Your Hero is in the Labyrinth. Come back to the City to trade here.',
