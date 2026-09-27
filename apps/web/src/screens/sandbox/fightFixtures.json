@@ -23,7 +23,7 @@
      "en": "Giant rat",
      "ru": "Гигантская крыса"
     },
-    "art": null,
+    "art": "/art/tokens/giant-rat.webp",
     "hp": 4,
     "maxHp": 4,
     "ac": 11,
@@ -38,7 +38,7 @@
      "en": "Goblin archer",
      "ru": "Гоблин-лучник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-archer.webp",
     "hp": 6,
     "maxHp": 6,
     "ac": 12,
@@ -228,7 +228,7 @@
      "en": "Goblin cutpurse",
      "ru": "Гоблин-карманник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-cutpurse.webp",
     "hp": 9,
     "maxHp": 9,
     "ac": 13,
@@ -245,7 +245,7 @@
      "en": "Goblin cutpurse",
      "ru": "Гоблин-карманник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-cutpurse.webp",
     "hp": 9,
     "maxHp": 9,
     "ac": 13,
@@ -974,7 +974,7 @@
      "en": "Wolf",
      "ru": "Волк"
     },
-    "art": null,
+    "art": "/art/tokens/wolf.webp",
     "hp": 17,
     "maxHp": 17,
     "ac": 12,
@@ -1118,7 +1118,7 @@
      "en": "Zombie",
      "ru": "Зомби"
     },
-    "art": null,
+    "art": "/art/tokens/zombie.webp",
     "hp": 28,
     "maxHp": 28,
     "ac": 8,
@@ -1135,7 +1135,7 @@
      "en": "Zombie",
      "ru": "Зомби"
     },
-    "art": null,
+    "art": "/art/tokens/zombie.webp",
     "hp": 28,
     "maxHp": 28,
     "ac": 8,
@@ -1346,7 +1346,7 @@
      "en": "Zombie",
      "ru": "Зомби"
     },
-    "art": null,
+    "art": "/art/tokens/zombie.webp",
     "hp": 59,
     "maxHp": 59,
     "ac": 11,
@@ -1363,7 +1363,7 @@
      "en": "Zombie",
      "ru": "Зомби"
     },
-    "art": null,
+    "art": "/art/tokens/zombie.webp",
     "hp": 47,
     "maxHp": 47,
     "ac": 8,
@@ -1530,7 +1530,7 @@
      "en": "Bone knight",
      "ru": "Костяной рыцарь"
     },
-    "art": null,
+    "art": "/art/tokens/bone-knight.webp",
     "hp": 129,
     "maxHp": 129,
     "ac": 17,
@@ -2144,7 +2144,7 @@
      "en": "Goblin cutpurse",
      "ru": "Гоблин-карманник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-cutpurse.webp",
     "hp": 7,
     "maxHp": 7,
     "ac": 13,
@@ -2161,7 +2161,7 @@
      "en": "Giant rat",
      "ru": "Гигантская крыса"
     },
-    "art": null,
+    "art": "/art/tokens/giant-rat.webp",
     "hp": 5,
     "maxHp": 5,
     "ac": 11,
@@ -2326,7 +2326,7 @@
      "en": "Goblin archer",
      "ru": "Гоблин-лучник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-archer.webp",
     "hp": 9,
     "maxHp": 9,
     "ac": 12,
@@ -2343,7 +2343,7 @@
      "en": "Giant rat",
      "ru": "Гигантская крыса"
     },
-    "art": null,
+    "art": "/art/tokens/giant-rat.webp",
     "hp": 6,
     "maxHp": 6,
     "ac": 11,
@@ -2418,7 +2418,7 @@
      "en": "Ghoul",
      "ru": "Упырь"
     },
-    "art": null,
+    "art": "/art/tokens/ghoul.webp",
     "hp": 40,
     "maxHp": 40,
     "ac": 12,
@@ -2616,7 +2616,7 @@
      "en": "Goblin cutpurse",
      "ru": "Гоблин-карманник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-cutpurse.webp",
     "hp": 7,
     "maxHp": 7,
     "ac": 13,
@@ -2738,7 +2738,7 @@
      "en": "Zombie",
      "ru": "Зомби"
     },
-    "art": null,
+    "art": "/art/tokens/zombie.webp",
     "hp": 37,
     "maxHp": 37,
     "ac": 8,
@@ -2755,7 +2755,7 @@
      "en": "Ghoul",
      "ru": "Упырь"
     },
-    "art": null,
+    "art": "/art/tokens/ghoul.webp",
     "hp": 40,
     "maxHp": 40,
     "ac": 12,
@@ -3078,7 +3078,7 @@
      "en": "Hellhound",
      "ru": "Адская гончая"
     },
-    "art": null,
+    "art": "/art/tokens/hellhound.webp",
     "hp": 106,
     "maxHp": 106,
     "ac": 15,
@@ -3672,7 +3672,7 @@
      "en": "Zombie",
      "ru": "Зомби"
     },
-    "art": null,
+    "art": "/art/tokens/zombie.webp",
     "hp": 37,
     "maxHp": 37,
     "ac": 8,
@@ -3689,7 +3689,7 @@
      "en": "Zombie",
      "ru": "Зомби"
     },
-    "art": null,
+    "art": "/art/tokens/zombie.webp",
     "hp": 37,
     "maxHp": 37,
     "ac": 8,
@@ -3928,7 +3928,7 @@
      "en": "Cultist",
      "ru": "Культист"
     },
-    "art": null,
+    "art": "/art/tokens/cultist.webp",
     "hp": 51,
     "maxHp": 51,
     "ac": 12,
@@ -4164,7 +4164,7 @@
      "en": "Hellhound",
      "ru": "Адская гончая"
     },
-    "art": null,
+    "art": "/art/tokens/hellhound.webp",
     "hp": 106,
     "maxHp": 106,
     "ac": 15,
@@ -4451,7 +4451,7 @@
      "en": "Goblin cutpurse",
      "ru": "Гоблин-карманник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-cutpurse.webp",
     "hp": 14,
     "maxHp": 14,
     "ac": 13,
@@ -4468,7 +4468,7 @@
      "en": "Goblin archer",
      "ru": "Гоблин-лучник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-archer.webp",
     "hp": 9,
     "maxHp": 9,
     "ac": 12,

@@ -16,10 +16,10 @@ describe('art', () => {
     }
   });
 
-  it('points every portrait, unique Item and painted monster at a file the web serves', () => {
+  it('points every portrait, unique Item and monster at a file the web serves', () => {
     for (const p of PORTRAITS) expect(served(p.url), p.url).toBe(true);
     for (const u of UNIQUES) expect(u.art !== null && served(u.art), u.id).toBe(true);
-    for (const m of MONSTERS) if (m.art) expect(served(m.art), m.id).toBe(true);
+    for (const m of MONSTERS) expect(m.art !== null && served(m.art), m.id).toBe(true);
   });
 });
 
