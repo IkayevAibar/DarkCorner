@@ -92,7 +92,16 @@ async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: 
   return { ok: response.statusCode === 200, status: response.statusCode, body };
 }
 
-const me = async (bot: Bot) => (await call<MyHeroResponse>(bot, 'GET', '/api/heroes/me')).body.hero!;
+/** Thrown when the Season has been wiped under the bots: the playtest ends there. */
+class SeasonOver extends Error {}
+const me = async (bot: Bot) => {
+  const hero = (await call<MyHeroResponse>(bot, 'GET', '/api/heroes/me')).body.hero;
+  if (!hero) throw new SeasonOver();
+  return hero;
+};
+/** The fake clock's day of the Season, from 1. */
+const today = () => Math.floor(offset / 86_400_000) + 1;
+const kills: string[] = [];
 const look = async (bot: Bot) => (await call<LabyrinthResult>(bot, 'GET', '/api/labyrinth')).body.view;
 
 function tally(bot: Bot, result: LabyrinthResult, before: LabyrinthView | null) {
@@ -363,7 +372,9 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
   const names = facing.monsters.map((m) => `${m.elite ? `${m.elite} ` : ''}${m.name.en}`).join(' + ');
   // The Stance with the lowest Threat; ties keep the current one, then Bold.
   const order: Stance[] = [hero.stance, 'bold', 'steady', 'wary'];
-  const stance = order.reduce((best, s) => (THREAT_RANK[facing.threat[s]] < THREAT_RANK[facing.threat[best]] ? s : best), hero.stance);
+  const safest = order.reduce((best, s) => (THREAT_RANK[facing.threat[s]] < THREAT_RANK[facing.threat[best]] ? s : best), hero.stance);
+  // Against the Dragon, all in (Bold, no escape) once that looks winnable; otherwise probe it with an escape ready.
+  const stance: Stance = facing.kind === 'boss' && THREAT_RANK[facing.threat.bold] <= 2 ? 'bold' : safest;
   if (stance !== hero.stance) await call(bot, 'POST', '/api/labyrinth/stance', { stance });
   const threat = facing.threat[stance];
   bot.stats.threats[threat]++;
@@ -378,13 +389,14 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
   if (atGrave && facing.sneak && hero.bombs.smoke > 0) {
     bot.doing = `smoke to the Grave past ${names}`;
     await act(bot, '/api/labyrinth/face', { action: 'sneak', smoke: true }, view);
-  } else if (THREAT_RANK[threat] <= 2 || (threat === 'dangerous' && full && hero.bombs.fire > 0)) {
+  } else if (THREAT_RANK[threat] <= 2 || (threat === 'dangerous' && full && (hero.bombs.fire > 0 || (dragon && stance !== 'bold')))) {
     const bomb = hero.bombs.fire > 0 && THREAT_RANK[threat] >= 2;
     bot.doing = `fight ${threat} (${stance}${bomb ? ', bomb' : ''}) vs ${names}`;
     const r = await act(bot, '/api/labyrinth/face', { action: 'fight', bomb }, view);
     if (boss) bot.stats.minibosses++;
     if (boss && r?.fight?.outcome === 'victory') bot.stats.minibossWins++;
-    if (dragon) bot.stats.dragon.push(`day ${Math.floor(offset / 86_400_000) + 1} lv${hero.level} ${threat}: ${r?.fight?.outcome ?? 'no fight'}`);
+    if (dragon) bot.stats.dragon.push(`day ${today()} lv${hero.level} ${threat}: ${r?.fight?.outcome ?? 'no fight'}`);
+    if (dragon && r?.fight?.outcome === 'victory') kills.push(`${bot.name} on day ${today()} at level ${hero.level}`);
   } else if (facing.sneak && odds >= 0.6) {
     bot.stats.sneaks++;
     bot.doing = `sneak (${Math.round(odds * 100)}%) past ${threat} ${names}`;
@@ -519,10 +531,17 @@ for (const [cls, race, portrait] of CLASSES) {
 }
 
 console.log(`Playtest: ${bots.length} bots, ${DAYS} days, ${SESSIONS_PER_DAY} sessions a day\n`);
-for (let day = 1; day <= DAYS; day++) {
-  for (let s = 0; s < SESSIONS_PER_DAY; s++) {
-    for (const bot of bots) await session(bot);
-    advance(24 / SESSIONS_PER_DAY);
+let wipedOn: number | null = null;
+for (let day = 1; day <= DAYS && wipedOn === null; day++) {
+  try {
+    for (let s = 0; s < SESSIONS_PER_DAY; s++) {
+      for (const bot of bots) await session(bot);
+      advance(24 / SESSIONS_PER_DAY);
+    }
+  } catch (e) {
+    if (!(e instanceof SeasonOver)) throw e;
+    wipedOn = day;
+    break;
   }
   for (const bot of bots) {
     bot.avoid.clear();
@@ -560,7 +579,8 @@ console.log('\nThe Dragon:');
 for (const bot of bots) if (bot.stats.dragon.length) console.log(`  ${bot.cls.padEnd(7)} ${bot.stats.dragon.join('; ')}`);
 const season = await prisma.season.findFirstOrThrow({ orderBy: { createdAt: 'desc' } });
 const places = await prisma.bossKill.findMany({ where: { seasonId: season.id }, orderBy: { place: 'asc' } });
-console.log(`  Season ${season.status}; podium: ${places.map((p) => `${p.place}. ${p.heroName} (day ${Math.floor((p.createdAt.getTime() - season.startsAt!.getTime()) / 86_400_000) + 1})`).join(', ') || 'nobody yet'}`);
+console.log(`  Season ${season.status}${wipedOn ? `, wiped on day ${wipedOn}` : ''}; podium: ${places.map((p) => `${p.place}. ${p.heroName}`).join(', ') || 'nobody yet'}`);
+if (kills.length) console.log(`  Dragon kills: ${kills.join('; ')}`);
 console.log('\nDeaths:');
 for (const bot of bots) for (const d of bot.stats.deathLog) console.log(`  ${bot.cls.padEnd(7)} ${d}`);
 const errors = bots.flatMap((b) => b.stats.errors.map((e) => `${b.name}: ${e}`));
