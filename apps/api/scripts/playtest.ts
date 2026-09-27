@@ -13,7 +13,7 @@
  * equip, sell, restock and grow.
  */
 import { execSync } from 'node:child_process';
-import type { ClassId, LabyrinthResult, LabyrinthView, MyHeroResponse, Stance, Threat } from '@dark/shared';
+import type { ClassId, ForgeQuote, LabyrinthResult, LabyrinthView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
 import { TEST_DATABASE_URL } from '../test/test-db.js';
 
 // ─── A fake clock, installed before the app loads ─────────────────────────
@@ -56,6 +56,7 @@ interface Stats {
   fights: number; won: number; escaped: number; survived: number; deaths: number; sneaks: number; caught: number; retreats: number;
   events: number; bounties: number; hidden: number; graves: number; moves: number; xp: number; items: Record<string, number>;
   minibosses: number; minibossWins: number; chests: number; dropped: number;
+  salvaged: number; forge: Record<string, number>; goldForged: number;
   threats: Record<Threat, number>; errors: string[]; deathLog: string[];
 }
 interface Bot {
@@ -78,7 +79,7 @@ interface Bot {
 
 const newStats = (): Stats => ({
   fights: 0, won: 0, escaped: 0, survived: 0, deaths: 0, sneaks: 0, caught: 0, retreats: 0, events: 0, bounties: 0, hidden: 0, graves: 0,
-  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
+  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
 });
 
 async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: object): Promise<{ ok: boolean; status: number; body: T & { error?: string } }> {
@@ -174,7 +175,12 @@ async function city(bot: Bot) {
   }
   await equipBest(bot);
   hero = await me(bot);
-  for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.tier !== 'relic')) await call(bot, 'POST', `/api/items/${item.id}/sell`, {});
+  // Commons (and what can't be read) sell; the rest is Salvaged into Materials for the Forge.
+  for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.tier !== 'relic')) {
+    if (item.tier === 'common' || !item.identified) await call(bot, 'POST', `/api/items/${item.id}/sell`, {});
+    else if ((await call(bot, 'POST', `/api/items/${item.id}/salvage`)).ok) bot.stats.salvaged++;
+  }
+  await forge(bot);
   // Chests: open any with a Key bought for it.
   hero = await me(bot);
   for (const chest of [...hero.bag, ...hero.storage].filter((i) => i.kind === 'chest')) {
@@ -194,6 +200,30 @@ async function city(bot: Bot) {
   if (count('scroll-portal') < 2 && hero.gold >= 200) await call(bot, 'POST', '/api/shop/buy', { offer: 'scroll-portal', quantity: 2 - count('scroll-portal') });
   if (bot.grave && count('bomb-smoke') < 1 && hero.gold >= 30) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-smoke', quantity: 1 });
   if (count('bomb-fire') < 1 && hero.gold >= 400) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-fire', quantity: 1 });
+}
+
+/** Upgrades worn gear, weapon and armor first, up to +7: never below 40%, and past +5 only under a Protection scroll. */
+async function forge(bot: Bot) {
+  const order = ['main', 'body', 'off', 'head', 'hands', 'feet', 'amulet', 'ring1', 'ring2'];
+  for (let guard = 0; guard < 15; guard++) {
+    const hero = await me(bot);
+    const worn = order.map((slot) => hero.worn.find((w) => w.slot === slot)?.item).filter((i) => i !== undefined);
+    // The least upgraded piece first, so the whole kit climbs together.
+    const next = [...worn].sort((a, b) => a.upgrade - b.upgrade)[0];
+    if (!next) return;
+    const quote = (await call<ForgeQuote>(bot, 'GET', `/api/items/${next.id}/forge`)).body;
+    const up = quote.upgrade;
+    if (!up || up.to > 7 || up.chance < 40) return;
+    if (up.cost.materials.some((m) => m.have < m.quantity) || hero.gold < up.cost.gold + 300) return;
+    if (up.risky && up.protectionScrolls === 0) {
+      if (hero.gold < up.cost.gold + 500) return;
+      await call(bot, 'POST', '/api/shop/buy', { offer: 'scroll-protection', quantity: 1 });
+    }
+    const r = await call<UpgradeResult>(bot, 'POST', `/api/items/${next.id}/upgrade`, { protect: up.risky });
+    if (!r.ok) return;
+    bot.stats.forge[r.body.outcome] = (bot.stats.forge[r.body.outcome] ?? 0) + 1;
+    if (r.body.outcome === 'success') bot.stats.goldForged += up.cost.gold;
+  }
 }
 
 async function enter(bot: Bot): Promise<boolean> {
@@ -454,6 +484,12 @@ for (let day = 1; day <= DAYS; day++) {
 
 console.log('\nThreats met (after choosing a Stance):');
 for (const bot of bots) console.log(`  ${bot.cls.padEnd(7)} ${Object.entries(bot.stats.threats).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+console.log('\nThe Forge:');
+for (const bot of bots) {
+  const worn = await prisma.item.findMany({ where: { hero: { name: bot.name, retiredAt: null }, place: 'WORN' } });
+  const ups = worn.map((i) => `+${i.upgrade}`).join(' ');
+  console.log(`  ${bot.cls.padEnd(7)} salvaged ${bot.stats.salvaged}, upgrades ${JSON.stringify(bot.stats.forge)}, gold spent on successes ${bot.stats.goldForged}; worn ${ups}`);
+}
 console.log('\nGear found:');
 for (const bot of bots) console.log(`  ${bot.cls.padEnd(7)} ${TIERS.map((t) => `${t} ${bot.stats.items[t] ?? 0}`).join(', ')}`);
 console.log('\nDeaths:');
