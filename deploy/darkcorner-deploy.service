@@ -1,0 +1,10 @@
+[Unit]
+Description=Dark Corner: pull the latest commit and rebuild what changed
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/darkcorner
+ExecStart=/bin/bash /opt/darkcorner/scripts/deploy.sh
+TimeoutStartSec=1800

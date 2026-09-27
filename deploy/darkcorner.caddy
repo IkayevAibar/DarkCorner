@@ -1,0 +1,13 @@
+# Goes into the Aetherbound repo as docker/caddy-sites/darkcorner.caddy.
+# Its cg-caddy container also needs DARKCORNER_DOMAIN in its environment (see
+# docs/deploy.md), because {$VAR} is read from Caddy's own environment.
+{$DARKCORNER_DOMAIN:darkcorner.localhost} {
+	encode zstd gzip
+	reverse_proxy host.docker.internal:8089
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}

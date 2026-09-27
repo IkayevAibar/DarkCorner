@@ -1,0 +1,82 @@
+# Production stack on the ugolok VPS (/opt/darkcorner). Local development uses
+# docker-compose.dev.yml (the database only) plus `npm run dev`.
+#
+# Ports: the web app is published on the Docker bridge (172.17.0.1) so the
+# shared Caddy in /opt/cardgame can reach it as host.docker.internal:8089 —
+# loopback would be unreachable from Caddy and 0.0.0.0 would be public.
+
+name: darkcorner
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: dc-postgres
+    restart: unless-stopped
+    mem_limit: 256m
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-dark_corner}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    networks: [darkcorner]
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: dc-api
+    restart: unless-stopped
+    mem_limit: 384m
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      NODE_OPTIONS: --max-old-space-size=256
+      API_PORT: 4100
+      API_HOST: 0.0.0.0
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-dark_corner}?schema=public
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?set PUBLIC_WEB_URL in .env}
+      # Sign-in only works through the hub in production: this must equal the hub's SSO_SECRET.
+      SSO_SECRET: ${SSO_SECRET:?set SSO_SECRET in .env (same as the hub)}
+      ACCOUNT_ORIGIN: ${ACCOUNT_ORIGIN:-https://account.ugolok.world}
+      ADMIN_DISCORD_IDS: ${ADMIN_DISCORD_IDS:-}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      SERVER_TIMEZONE: ${SERVER_TIMEZONE:-Asia/Almaty}
+    ports:
+      - "127.0.0.1:${API_HOST_PORT:-4002}:4100"
+    healthcheck:
+      # The slim image has no curl or wget; Node's fetch does the job.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4100/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    networks: [darkcorner]
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: dc-web
+    restart: unless-stopped
+    mem_limit: 64m
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8089}:80"
+    networks: [darkcorner]
+
+volumes:
+  pgdata:
+
+networks:
+  darkcorner:

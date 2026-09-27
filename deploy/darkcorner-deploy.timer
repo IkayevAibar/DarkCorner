@@ -1,0 +1,12 @@
+[Unit]
+Description=Dark Corner: check for new commits every two minutes
+
+[Timer]
+# 3, 5 and 7 minutes are taken by the other projects on this box.
+OnBootSec=9min
+OnUnitActiveSec=2min
+RandomizedDelaySec=20
+Unit=darkcorner-deploy.service
+
+[Install]
+WantedBy=timers.target

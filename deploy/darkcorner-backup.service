@@ -1,0 +1,10 @@
+[Unit]
+Description=Dark Corner: nightly database dump
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/darkcorner
+ExecStart=/bin/bash /opt/darkcorner/scripts/backup.sh
+TimeoutStartSec=3600

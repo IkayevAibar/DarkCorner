@@ -1,0 +1,12 @@
+**/node_modules
+**/dist
+.git
+.github
+.claude
+art
+docs
+prototypes
+backups
+**/.env
+**/.env.*
+*.log

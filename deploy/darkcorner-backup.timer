@@ -1,0 +1,12 @@
+[Unit]
+Description=Dark Corner: nightly database dump
+
+[Timer]
+# 04:20 UTC is the Minecraft project's backup; run after it.
+OnCalendar=*-*-* 04:50:00 UTC
+RandomizedDelaySec=10min
+Persistent=true
+Unit=darkcorner-backup.service
+
+[Install]
+WantedBy=timers.target
