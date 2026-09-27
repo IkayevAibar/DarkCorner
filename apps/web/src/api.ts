@@ -85,7 +85,7 @@ export const api = {
   tavern: () => request<TavernView>('GET', '/api/tavern'),
   hall: () => request<HallView>('GET', '/api/hall'),
   adminSeason: () => request<AdminSeasonView>('GET', '/api/admin/season'),
-  adminSeasonAction: (action: 'start' | 'end' | 'gate' | 'vault', minutes?: number) =>
+  adminSeasonAction: (action: 'start' | 'end' | 'gate' | 'vault' | 'discard', minutes?: number) =>
     request<AdminSeasonView>('POST', '/api/admin/season', { action, minutes }),
   adminGrant: (body: AdminGrant) => request<{ ok: true }>('POST', '/api/admin/grant', body),
   adminRolls: (kind?: string) => request<RollLogView>('GET', `/api/admin/rolls${kind ? `?kind=${encodeURIComponent(kind)}` : ''}`),

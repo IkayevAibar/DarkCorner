@@ -4,6 +4,7 @@ import { api } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
+import { useAction } from '../../components/useAction';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
 
@@ -233,7 +234,7 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
 
 function RetireConfirm({ name, onDone }: { name: string; onDone: () => void }) {
   const { t } = useI18n();
-  const [busy, setBusy] = useState(false);
+  const { busy, error, run } = useAction();
   return (
     <div className="grid gap-4">
       <p className="m-0 text-muted">{t('hero.retireBody', { name })}</p>
@@ -241,18 +242,14 @@ function RetireConfirm({ name, onDone }: { name: string; onDone: () => void }) {
         type="button"
         className="btn btn-primary"
         disabled={busy}
-        onClick={async () => {
-          setBusy(true);
-          try {
-            await api.retireHero();
-            onDone();
-          } finally {
-            setBusy(false);
-          }
-        }}
+        onClick={() => void run(async () => {
+          await api.retireHero();
+          onDone();
+        })}
       >
         {t('hero.retireYes')}
       </button>
+      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
     </div>
   );
 }

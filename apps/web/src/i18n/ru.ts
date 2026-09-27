@@ -295,6 +295,8 @@ export const ru: Record<MessageKey, string> = {
   'admin.season.vault': 'Объявить сокровищницу (через N минут)',
   'admin.season.end': 'Завершить сезон (вайп)',
   'admin.season.endSure': 'Да, вайп сейчас',
+  'admin.season.discard': 'Отменить как тестовый сезон',
+  'admin.season.discardSure': 'Да, отменить: без славы, номер займёт следующий сезон',
   'admin.season.jobs': 'Запланированные задачи',
   'admin.grant.hint': 'Для тестов: золото и предметы прямо герою игрока.',
   'admin.grant.player': 'Выберите игрока',

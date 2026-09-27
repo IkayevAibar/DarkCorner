@@ -95,6 +95,24 @@ export async function endSeason(seasonId: string, now = new Date()): Promise<voi
   });
 }
 
+/**
+ * Ends a test Season and forgets it: no Hall of Fame entries, and its number
+ * moves below zero, so the next Season takes the number it had (docs/plan-season-0.md,
+ * week 6: the test season is wiped before Season 0 starts).
+ */
+export async function discardSeason(seasonId: string, now = new Date()): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    await lockSeason(tx, seasonId);
+    const season = await tx.season.findUniqueOrThrow({ where: { id: seasonId } });
+    if (season.status === 'PLANNED') throw ApiError.conflict('season_not_running', 'Only a started Season can be discarded');
+    const lowest = await tx.season.findFirst({ orderBy: { number: 'asc' } });
+    const number = Math.min(-1, (lowest?.number ?? 0) - 1);
+    await tx.hallEntry.deleteMany({ where: { seasonNumber: season.number } });
+    await tx.season.update({ where: { id: seasonId }, data: { status: 'ENDED', endedAt: season.endedAt ?? now, number } });
+    await tx.$executeRaw`UPDATE "Job" SET "doneAt" = ${now} WHERE "doneAt" IS NULL AND kind <> 'broadcast' AND payload->>'seasonId' = ${seasonId}`;
+  });
+}
+
 /** Records for the Hall of Fame at the Wipe: the deepest Floor and the highest level. */
 async function recordRecords(tx: Tx, season: Season): Promise<void> {
   const heroes = await tx.hero.findMany({ where: { seasonId: season.id }, include: { player: true } });

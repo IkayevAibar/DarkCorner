@@ -294,6 +294,8 @@ export const en = {
   'admin.season.vault': 'Announce a Vault (opens in N minutes)',
   'admin.season.end': 'End the Season (Wipe)',
   'admin.season.endSure': 'Yes, wipe it now',
+  'admin.season.discard': 'Discard as a test Season',
+  'admin.season.discardSure': 'Yes, discard it: no Glory, and the next Season takes its number',
   'admin.season.jobs': 'Scheduled jobs',
   'admin.grant.hint': 'For testing: gold and Items straight into a Player’s Hero.',
   'admin.grant.player': 'Choose a Player',

@@ -110,13 +110,13 @@ function SeasonPanel() {
   const { data, setData, reload } = useLoad(api.adminSeason);
   const { busy, error, run } = useAction();
   const [minutes, setMinutes] = useState('10');
-  const [confirmEnd, setConfirmEnd] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState<'end' | 'discard' | null>(null);
   if (!data) return <p className="text-muted">{t('loading')}</p>;
   const { season } = data;
   const when = (iso: string | null) => (iso ? `${new Date(iso).toLocaleDateString(locale)} ${formatClock(locale, iso)}` : '—');
-  const act = (action: 'start' | 'end' | 'gate' | 'vault', mins?: number) => void run(async () => {
+  const act = (action: 'start' | 'end' | 'gate' | 'vault' | 'discard', mins?: number) => void run(async () => {
     setData(await api.adminSeasonAction(action, mins));
-    setConfirmEnd(false);
+    setConfirmEnd(null);
   });
 
   return (
@@ -142,10 +142,15 @@ function SeasonPanel() {
               <input className="field w-24" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/\D/g, ''))} aria-label={t('admin.season.minutes')} />
               <button type="button" className="btn flex-1" disabled={busy} onClick={() => act('vault', Number(minutes || 0))}>{t('admin.season.vault')}</button>
             </div>
-            {confirmEnd ? (
+            {confirmEnd === 'end' ? (
               <button type="button" className="btn btn-primary" disabled={busy} onClick={() => act('end')}>{t('admin.season.endSure')}</button>
             ) : (
-              <button type="button" className="btn border-[#8a1c1c] text-[#ff9a8a]" disabled={busy} onClick={() => setConfirmEnd(true)}>{t('admin.season.end')}</button>
+              <button type="button" className="btn border-[#8a1c1c] text-[#ff9a8a]" disabled={busy} onClick={() => setConfirmEnd('end')}>{t('admin.season.end')}</button>
+            )}
+            {confirmEnd === 'discard' ? (
+              <button type="button" className="btn btn-primary" disabled={busy} onClick={() => act('discard')}>{t('admin.season.discardSure')}</button>
+            ) : (
+              <button type="button" className="btn border-[#8a1c1c] text-[#ff9a8a]" disabled={busy} onClick={() => setConfirmEnd('discard')}>{t('admin.season.discard')}</button>
             )}
           </>
         )}

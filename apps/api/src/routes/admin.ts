@@ -8,7 +8,7 @@ import { ApiError } from '../lib/errors.js';
 import { requireAdmin } from '../lib/session.js';
 import { adminSeasonView, grant, rollLog } from '../services/admin.js';
 import { toAdminPlayer } from '../services/players.js';
-import { announceVault, endSeason, openGateNow, startSeason } from '../services/seasonLife.js';
+import { announceVault, discardSeason, endSeason, openGateNow, startSeason } from '../services/seasonLife.js';
 import { runDueJobs } from '../services/scheduler.js';
 import { currentSeason } from '../services/seasons.js';
 
@@ -45,6 +45,7 @@ export async function adminRoutes(app: FastifyInstance) {
     const season = await currentSeason();
     if (action === 'start') await startSeason();
     if (action === 'end') await endSeason(season.id);
+    if (action === 'discard') await discardSeason(season.id);
     if (action === 'gate') await openGateNow();
     if (action === 'vault') {
       const announced = await announceVault(season, new Date(), minutes ?? 0);

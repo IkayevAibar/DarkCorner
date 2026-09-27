@@ -131,6 +131,19 @@ describe('the Season', () => {
   });
 });
 
+describe('a test Season', () => {
+  it('can be discarded without a trace in the Hall of Fame, freeing its number', async () => {
+    await post(admin, '/api/admin/season', { action: 'start' });
+    await prisma.hallEntry.create({ data: { seasonNumber: 0, kind: 'relic', playerName: 'A', heroName: 'B' } });
+    const r = await post(admin, '/api/admin/season', { action: 'discard' });
+    expect(r.statusCode).toBe(200);
+    expect(r.json().season).toMatchObject({ number: 0, status: 'planned' });
+    expect(await prisma.hallEntry.count()).toBe(0);
+    expect((await prisma.season.findMany({ orderBy: { number: 'asc' } })).map((s) => [s.number, s.status])).toEqual([[-1, 'ENDED'], [0, 'PLANNED']]);
+    expect(await prisma.job.count({ where: { doneAt: null, kind: { not: 'broadcast' } } })).toBe(0);
+  });
+});
+
 describe('Vaults and Relics', () => {
   it('lets the first Hero in empty a Vault, and seals an announced one until it opens', async () => {
     await post(admin, '/api/admin/season', { action: 'start' });

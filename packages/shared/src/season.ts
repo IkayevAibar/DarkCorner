@@ -89,9 +89,13 @@ export const adminSeasonViewSchema = z.object({
 });
 export type AdminSeasonView = z.infer<typeof adminSeasonViewSchema>;
 
-/** POST /api/admin/season/:action — `gate` opens the Boss gate now; `vault` announces a Vault opening in `minutes`. */
+/**
+ * POST /api/admin/season — `gate` opens the Boss gate now; `vault` announces a
+ * Vault opening in `minutes`; `discard` ends a test Season and forgets it, so the
+ * next one is numbered as if it never happened.
+ */
 export const adminSeasonActionSchema = z.object({
-  action: z.enum(['start', 'end', 'gate', 'vault']),
+  action: z.enum(['start', 'end', 'gate', 'vault', 'discard']),
   minutes: z.number().int().min(0).max(24 * 60).optional(),
 });
 
