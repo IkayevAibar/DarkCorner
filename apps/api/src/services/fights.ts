@@ -2,7 +2,7 @@ import type { Hero, HeroFloor, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT, type MonsterInstance,
-  type PathId, RELIC_CHANCE, type RaceId, type StanceId, type TalentId, weakeningAt,
+  type PathId, RELIC_CHANCE, type RaceId, type StanceId, type TalentId, type ThreatId, weakeningAt,
   createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
@@ -12,6 +12,7 @@ import type { HeroWithItems, Tx } from './ledger.js';
 import { addBadLuck, dropChest, dropGear, dropStack, withGoldFind } from './loot.js';
 import { boostedXp, gainXp } from './progression.js';
 import { grantRelic } from './relics.js';
+import { trackBounties } from './bounties.js';
 
 // Fights, death and what one Hero has cleared: shared by Moves and Event rooms.
 
@@ -140,6 +141,8 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   surprise?: 'hero' | 'monsters';
   /** A Fire bomb goes off before the first round (the caller has taken it from the Bag). */
   bomb?: boolean;
+  /** The Threat the Player saw before choosing to fight, for bounties. */
+  threat?: ThreatId | null;
 } = {}): Promise<'victory' | 'survived' | 'escaped' | 'dead'> {
   const now = new Date();
   const spawned = opts.monsters ? null : monstersFor(season, hero, floor, roomId, kind, now);
@@ -256,6 +259,10 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   if (kind === 'miniboss' && floor.number >= DEEP_FLOOR && rng.chance(RELIC_CHANCE.deepMiniboss)) {
     await grantRelic(tx, hero, season, floor.number, 'miniboss', out);
   }
+  await trackBounties(tx, hero, {
+    type: 'fight-won', floor: floor.number, kins: fallen.map((m) => monsterById(m.id).kin), elites, threat: opts.threat ?? null,
+    miniboss: kind === 'miniboss',
+  }, out);
   return 'victory';
 }
 

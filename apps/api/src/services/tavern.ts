@@ -56,6 +56,10 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
       return { tier: null, text: { en: `${hero} challenged the Dragon and ${d.outcome === 'dead' ? 'died' : d.outcome === 'victory' ? 'won' : 'fell back'}`, ru: `${hero} бросает вызов дракону и ${d.outcome === 'dead' ? 'гибнет' : d.outcome === 'victory' ? 'побеждает' : 'отступает'}` } };
     case 'boss-kill':
       return { tier: 'mythic', text: { en: d.place === 1 ? `${hero} slew the Dragon: Champion!` : `${hero} slew the Dragon: ${d.place === 2 ? '2nd' : '3rd'} place`, ru: d.place === 1 ? `${hero} побеждает дракона — чемпион!` : `${hero} побеждает дракона — ${d.place}-е место` } };
+    case 'bounty': {
+      const title = d.title as LocalizedText | undefined;
+      return { tier: null, text: { en: `${hero} finished a weekly bounty: ${title?.en ?? ''}`, ru: `${hero} выполняет недельное задание: ${title?.ru ?? ''}` } };
+    }
     case 'gate-open':
       return { tier: null, text: { en: 'The Boss gate is open', ru: 'Врата босса открыты' } };
     case 'weaken':

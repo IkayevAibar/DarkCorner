@@ -1,5 +1,5 @@
 import type {
-  AdminGrant, AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, AdminSeasonView, ApiErrorBody, AuthStatus, BlessingIdView,
+  AdminGrant, AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, AdminSeasonView, ApiErrorBody, AuthStatus, BlessingIdView, BountiesView,
   CreateHeroRequest, GrowRequest, HallView, PathIdView, RollLogView, TavernView,
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
@@ -87,6 +87,8 @@ export const api = {
   bless: (blessing: BlessingIdView) => request<TempleView>('POST', '/api/temple/bless', { blessing }),
 
   tavern: () => request<TavernView>('GET', '/api/tavern'),
+  bounties: () => request<BountiesView>('GET', '/api/tavern/bounties'),
+  swapBounty: (id: string) => request<BountiesView>('POST', `/api/tavern/bounties/${encodeURIComponent(id)}/swap`),
   hall: () => request<HallView>('GET', '/api/hall'),
   adminSeason: () => request<AdminSeasonView>('GET', '/api/admin/season'),
   adminSeasonAction: (action: 'start' | 'end' | 'gate' | 'vault' | 'discard', minutes?: number) =>

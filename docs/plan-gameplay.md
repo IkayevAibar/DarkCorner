@@ -21,7 +21,7 @@ A Player checks in 2–3 times a day and spends about 20 Moves each time. Those 
 
 ## The parts, in order
 
-### 1. Encounters: fight Rooms become choices
+### 1. Encounters: fight Rooms become choices (done)
 
 - Opening the Door of a Room with monsters shows who is inside and a **threat** rating: Trivial, Easy, Risky, Dangerous or Deadly. The server gets it by playing that fight 60 times with the Hero as it stands right now.
 - The Player chooses:
@@ -32,7 +32,7 @@ A Player checks in 2–3 times a day and spends about 20 Moves each time. Those 
 - **Bombs** from the Shops. A Fire bomb hurts every monster before the fight starts. A Smoke bomb makes sneaking past sure.
 - Mini-bosses and the Boss show themselves too. They offer only Fight or Retreat.
 
-### 2. Monster powers and elite packs
+### 2. Monster powers and elite packs (done)
 
 - Every monster gets one signature, for example:
   - the goblin cutpurse grabs gold and runs for it
@@ -52,17 +52,17 @@ A Player checks in 2–3 times a day and spends about 20 Moves each time. Those 
   - Swift
 - Elites show in the Encounter, so they feed the fight-or-sneak call. Status effects arrive with them: burning, which also makes Ember Fang do what its text says, and paralysis.
 
-### 3. Paths and Feats: choices on level up
+### 3. Paths and Talents: choices on level up (done)
 
 - **Level 3:** choose a Path, 2 per Class:
   - Fighter: Champion or Guardian
   - Rogue: Thief or Assassin
   - Wizard: Evoker or Abjurer
   - Cleric: Life or War
-- **Levels 4, 8, 12, 16 and 19:** choose +2 to one ability score, +1 to two, or one of three Feats offered to that Hero.
+- **Levels 4, 8, 12, 16 and 19:** choose +2 to one ability score, +1 to two, or one of three Talents offered to that Hero.
 - Retiring gets a real reason: trying the other Path.
 
-### 4. Tavern bounties: a reason to come back today
+### 4. Tavern bounties: a reason to come back today (done)
 
 - Three small bounties a day per Hero and one bigger weekly one. Examples: "Clear 6 fight Rooms on Floor 3 or deeper", "Sneak past 3 groups", "Win a Risky fight", "Open a Treasure room".
 - Rewards are gold, Keys and Chests, which feed the loot loop.

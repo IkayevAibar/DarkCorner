@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { localizedTextSchema, tierSchema } from './items.js';
+import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 
 // The Season, the Tavern's Feed, the Hall of Fame (docs/design.md → Seasons, Feed and broadcasts).
 
@@ -53,6 +53,23 @@ export const tavernViewSchema = z.object({
   season: seasonViewSchema,
 });
 export type TavernView = z.infer<typeof tavernViewSchema>;
+
+/** One Tavern bounty (docs/design.md → Tavern bounties). Its reward is paid the moment it is done. */
+export const bountyViewSchema = z.object({
+  id: z.string(),
+  title: localizedTextSchema,
+  progress: z.number().int(),
+  target: z.number().int(),
+  done: z.boolean(),
+  reward: z.object({ gold: z.number().int(), item: itemViewSchema.nullable() }),
+  /** One untouched daily bounty a day can be swapped for another. */
+  canSwap: z.boolean(),
+});
+export type BountyView = z.infer<typeof bountyViewSchema>;
+
+/** GET /api/tavern/bounties: today's three and this week's one. */
+export const bountiesViewSchema = z.object({ daily: z.array(bountyViewSchema), weekly: bountyViewSchema.nullable() });
+export type BountiesView = z.infer<typeof bountiesViewSchema>;
 
 export const HALL_KINDS = ['champion', 'second', 'third', 'relic', 'best-drop', 'deepest', 'highest-level'] as const;
 export const hallEntrySchema = z.object({

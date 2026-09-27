@@ -165,6 +165,10 @@ _Avoid_: stealth, skip
 To back away from a Room's monsters, before any fight, to the last safe Room.
 _Avoid_: flee, run (those happen during a fight, by Escape roll)
 
+**Bounty**:
+A small goal from the Tavern: three a day and one a week per Hero, paid the moment it is done.
+_Avoid_: quest, mission, task
+
 **Elite**:
 A monster with a gift (Gilded, Frenzied, Armored, Vampiric or Swift) that leads a group from Floor 2 down: tougher, and worth double XP and one more Item.
 _Avoid_: champion (the Season's winner), rare monster

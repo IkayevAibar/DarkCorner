@@ -279,7 +279,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 
 | Building | When | What it does |
 |---|---|---|
-| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, and the Feed. Later you can also find a Duo partner and play tavern games here. |
+| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, and your bounties. Later you can also find a Duo partner and play tavern games here. |
 | Shops | Season 0 | Sell Common and Uncommon gear, potions, scrolls (Identify, Town Portal, Protection) and Keys. Buy any Item at its Buyback price. |
 | Forge | Season 0 | Upgrade, Reforge, Salvage, and craft Keys and scrolls from Materials. |
 | Market | Season 0 | Players list Items at their own price, and anyone can buy at any time. |
@@ -290,6 +290,26 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 | Houses | later | Bought with gold. They give more Storage and a trophy wall friends can visit. |
 | Arena | later | Tournaments with nothing to lose: the loser is simply knocked out. |
 | Guild hall | later | Small Guilds. |
+
+### Tavern bounties
+
+Small goals give each session a reason to go down today *(v0)*.
+
+- **Three a day and one a week** per Hero, new at 00:00 UTC (05:00 game time) and on Mondays. They are drawn from a seed per Hero and day and sized to the deepest Floor the Hero has reached.
+- **Daily kinds:**
+  - defeat 6–10 monsters
+  - defeat 4–6 of the kin that lives that deep (goblins or beasts, undead, demons or cultists, dragonkin)
+  - win 3–5 fights on the Hero's deepest Floor − 1 or deeper
+  - Sneak past 2–3 groups
+  - loot 1–2 Treasure rooms
+  - deal with 2–3 Event rooms
+  - defeat an elite (from Floor 2)
+  - win 1–2 fights rated Risky or worse
+  - bring 60 × deepest Floor gold back to the City
+- **Daily reward:** 30 + 15 × deepest Floor gold (twice that for an elite, 1.5 times for a Risky fight), and often a small Item: 2 potions or 2 Scrolls of Identify, a Fire or Smoke bomb, or an Iron key.
+- **Weekly kinds:** defeat a Mini-boss, reach a new Floor, or defeat 60 monsters. The reward is 300 + 100 × deepest Floor gold and a Silver Chest. A finished weekly bounty goes in the Feed.
+- **Paid at once:** the moment a bounty is done, its gold is banked in the City (safe from death) and its Item waits in the Hero's room at the Tavern (Storage). With Storage full, the Item is paid out at twice its Buyback price.
+- **Swapping:** once a day, one untouched daily bounty can be swapped for another kind.
 
 ## The Labyrinth
 
@@ -503,7 +523,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 ### Feed and broadcasts
 
 - **No in-game chat.** Friends talk on Discord.
-- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records and attempts at the Boss.
+- **The Feed:** the Tavern shows notable drops, deaths, Market sales, records, weekly bounties and attempts at the Boss.
 - **Broadcasts:** the game posts to the friends' Discord channel through a webhook when:
   - a Mythic or a Relic is found
   - a Radiant Legendary or better drops

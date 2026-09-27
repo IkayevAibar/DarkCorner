@@ -133,6 +133,7 @@ model Hero {
   graves    Grave[]
   purchases ShopPurchase[]
   visits    EventVisit[]
+  bounties  Bounty[]
 
   @@index([playerId, seasonId])
 }
@@ -405,3 +406,29 @@ model FeedEvent {
 
   @@index([createdAt])
 }
+
+/// A Tavern bounty: three a day and one a week per Hero (docs/design.md → Tavern bounties).
+/// What each one asks comes from a seed per Hero and day; the row keeps its progress.
+model Bounty {
+  id        String    @id @default(cuid())
+  heroId    String
+  /// Days since the epoch, UTC: the day of a daily bounty, or the Monday of a weekly one.
+  day       Int
+  weekly    Boolean   @default(false)
+  slot      Int
+  kind      String
+  target    Int
+  progress  Int       @default(0)
+  params    Json      @default("{}")
+  /// { gold, item: { base, quantity } | null }, paid the moment it is done.
+  reward    Json
+  doneAt    DateTime?
+  /// Swapped for another today; each Hero may swap one bounty a day.
+  swapped   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  hero Hero @relation(fields: [heroId], references: [id], onDelete: Cascade)
+
+  @@unique([heroId, day, weekly, slot])
+}
+

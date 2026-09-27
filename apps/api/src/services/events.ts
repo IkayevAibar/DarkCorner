@@ -15,6 +15,7 @@ import {
   type HeroWithItems, type Tx, dayNumber, destroyItem, earnCarried, giveItem, ownItem, spendCarried, stackTotal, takeStack,
 } from './ledger.js';
 import { dropGear, dropStack, withGoldFind } from './loot.js';
+import { trackBounties } from './bounties.js';
 
 // Event rooms (docs/design.md → Event rooms). What a room holds comes from a seed
 // per Hero, Room and day, so it can't be rerolled by leaving and coming back;
@@ -38,12 +39,13 @@ async function visitOf(tx: Tx, hero: HeroWithItems, floor: number, room: number,
 
 const stateOf = (visit: EventVisit | null): VisitState => (visit?.state ?? {}) as VisitState;
 
-async function finish(tx: Tx, visit: EventVisit, hero: HeroWithItems, floor: number, room: number, now: Date, state?: VisitState) {
+async function finish(tx: Tx, visit: EventVisit, hero: HeroWithItems, floor: number, room: number, now: Date, state?: VisitState, out?: Outcome) {
   await tx.eventVisit.update({
     where: { id: visit.id },
     data: { doneAt: now, ...(state ? { state: state as Prisma.InputJsonValue } : {}) },
   });
   await markCleared(tx, await heroFloor(tx, hero.id, floor), room, now);
+  await trackBounties(tx, hero, { type: 'event' }, out ?? null, now);
 }
 
 /** A fresh seed and its Rng; event rolls are logged with the seed like every roll that matters. */
@@ -111,7 +113,7 @@ export async function enterEvent(tx: Tx, hero: HeroWithItems, season: Season, fl
     out.notices.push(t('You slip past the trap unhurt.', 'Вы проскальзываете мимо ловушки без единой царапины.'));
   }
   await logRoll(tx, hero, seed, { event: kind, floor: floor.number, room, damage: trap.damage, disarmed: rogue });
-  await finish(tx, visit, hero, floor.number, room, now);
+  await finish(tx, visit, hero, floor.number, room, now, undefined, out);
 }
 
 // ─── What the room shows ──────────────────────────────────────────────────
@@ -172,7 +174,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
     case 'three-chests': {
       if (action.action !== 'pick') throw wrong();
       const content = threeChests(createRng(seed), floor.number)[action.chest]!;
-      await finish(tx, visit, hero, floor.number, room, now, { picked: action.chest });
+      await finish(tx, visit, hero, floor.number, room, now, { picked: action.chest }, out);
       if (content.kind === 'gold') {
         const gold = withGoldFind(hero, content.amount);
         await earnCarried(tx, hero, gold);
@@ -197,7 +199,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         modifier: mod(hero.wis) + (cleric ? proficiencyBonus(hero.level) : 0), advantage: cleric, rerollOnes: race(hero).rerollOnes,
         sensesCurses: hero.class === 'wizard',
       }), out);
-      await finish(tx, visit, hero, floor.number, room, now);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       await logRoll(tx, hero, rollSeed, { event: kind, floor: floor.number, room, outcome: prayer.outcome, blessing: prayer.blessing });
       if (prayer.outcome === 'blessing') {
         const b = BLESSINGS[prayer.blessing!];
@@ -249,7 +251,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       } else {
         throw wrong();
       }
-      await finish(tx, visit, hero, floor.number, room, now);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       return;
     }
 
@@ -289,7 +291,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const r = offerAtAltar(rng, { tier: item.tier as Tier, itemLevel: item.itemLevel, bonusStats });
       const name = nameOf(item);
       await logRoll(tx, hero, rollSeed, { event: kind, itemId: item.id, from: item.tier, ...r });
-      await finish(tx, visit, hero, floor.number, room, now);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       if (r.success) {
         const updated = await tx.item.update({
           where: { id: item.id },
@@ -314,7 +316,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       const cache = cacheContents(rng, floor.number, 0);
       await logRoll(tx, hero, rollSeed, { event: kind, ...cache });
-      await finish(tx, visit, hero, floor.number, room, now);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       for (const tier of cache.tiers) {
         await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[tier, 1]], source: 'locked-cache' }, out);
       }
@@ -332,7 +334,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const picked = await withLuck(tx, hero, t('Dexterity at the lock', 'Ловкость у замка'), () => pickLock(rng, {
         modifier: mod(hero.dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
       }), out);
-      await finish(tx, visit, hero, floor.number, room, now);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       await logRoll(tx, hero, rollSeed, { event: kind, success: picked.check.success, chest: picked.chest });
       if (picked.chest) await dropStack(tx, hero, season, chestBase(picked.chest), 1, out);
       else out.notices.push(t('The lock jams for good.', 'Замок заклинило намертво.'));

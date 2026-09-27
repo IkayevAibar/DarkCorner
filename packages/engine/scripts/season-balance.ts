@@ -10,7 +10,8 @@
  * back through Rooms already cleared, going one Floor deeper every 3 days, and
  * opening half the Chests found. Every fight is fought (Sneaking past and Retreating
  * would only lower the numbers), and an elite in the group drops one more Item.
- * Relics come from Vaults and aren't modeled.
+ * The weekly Tavern bounty's Silver Chest is opened. Relics come from Vaults and
+ * aren't modeled.
  */
 import {
   BAD_LUCK_MAX, BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ChestGrade, ELITE_CHANCE, LOOT, type Rng, type Tier, createRng, dropOdds,
@@ -77,6 +78,13 @@ function simulatePlayer(rng: Rng): Tally {
         // About one Event in three gives an Item (three chests, caches, lucky bets).
         if (rng.chance(0.35)) drop(Math.min(10, floor + 3));
       }
+    }
+    // A weekly Tavern bounty pays a Silver Chest (its Key comes with it: opened).
+    if (day % 7 === 6) {
+      tally.chests++;
+      const tier = rollChestTier(rng, 'silver');
+      if (tierRank(tier) >= tierRank('legendary')) badLuck = 0;
+      count(tier);
     }
     // One Mini-boss a day.
     badLuck = Math.min(BAD_LUCK_MAX, badLuck + BAD_LUCK_PER_MINIBOSS);

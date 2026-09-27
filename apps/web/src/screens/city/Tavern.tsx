@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
-import type { HallEntry, SeasonView } from '@dark/shared';
-import { api } from '../../api';
+import type { BountiesView, BountyView, HallEntry, SeasonView } from '@dark/shared';
+import { api, ApiRequestError } from '../../api';
 import { Building, Loading } from '../../components/Building';
-import { useText } from '../../components/items/ItemChip';
+import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { Meter } from '../../components/Meter';
+import { useSheet } from '../../components/Sheet';
+import { describeError } from '../../errors';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { formatDuration, useNow } from '../../time';
@@ -29,6 +32,7 @@ export function Tavern() {
   return (
     <Building title={t('city.tavern')} blurb={t('tavern.blurb')} hero={null}>
       <SeasonCard season={season} />
+      <Bounties />
 
       <div className="grid grid-cols-2 gap-1.5">
         <button type="button" className={`btn btn-small ${tab === 'feed' ? 'btn-primary' : ''}`} onClick={() => setTab('feed')}>{t('tavern.feed')}</button>
@@ -59,6 +63,70 @@ export function Tavern() {
 
       {tab === 'hall' && <Hall entries={hall.data?.entries ?? null} />}
     </Building>
+  );
+}
+
+/** The Hero's bounties: today's three and this week's one, with progress and rewards. */
+function Bounties() {
+  const { t } = useI18n();
+  const now = useNow(60_000);
+  const [data, setData] = useState<BountiesView | null>(null);
+  const [state, setState] = useState<'loading' | 'ready' | 'noHero' | 'failed'>('loading');
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    api.bounties().then((b) => { setData(b); setState('ready'); }).catch((e) => {
+      setState(e instanceof ApiRequestError && e.body?.error === 'no_hero' ? 'noHero' : 'failed');
+    });
+  }, []);
+  if (state === 'noHero') return <p className="panel m-0 p-3.5 text-sm text-muted">{t('bounty.noHero')}</p>;
+  if (!data) return null;
+  const midnight = (Math.floor(now / 86_400_000) + 1) * 86_400_000;
+  const swap = async (id: string) => {
+    setError(null);
+    try {
+      setData(await api.swapBounty(id));
+    } catch (e) {
+      setError(describeError(t, e));
+    }
+  };
+  return (
+    <section className="panel grid gap-3 p-3.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-head text-xl font-extrabold">{t('bounty.title')}</span>
+        <span className="text-xs text-muted">{t('bounty.resets', { time: formatDuration(t, midnight - now) })}</span>
+      </div>
+      <p className="m-0 text-sm text-muted">{t('bounty.hint')}</p>
+      <span className="sub-heading">{t('bounty.daily')}</span>
+      {data.daily.map((b) => <BountyCard key={b.id} bounty={b} onSwap={() => void swap(b.id)} />)}
+      {data.weekly && (
+        <>
+          <span className="sub-heading">{t('bounty.weekly')}</span>
+          <BountyCard bounty={data.weekly} onSwap={() => {}} />
+        </>
+      )}
+      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+    </section>
+  );
+}
+
+function BountyCard({ bounty, onSwap }: { bounty: BountyView; onSwap: () => void }) {
+  const { t } = useI18n();
+  const text = useText();
+  const { openSheet } = useSheet();
+  const item = bounty.reward.item;
+  return (
+    <div className={`grid gap-1.5 rounded-[2px] border p-2.5 ${bounty.done ? 'border-tier-uncommon/60' : 'border-bone/20'}`}>
+      <div className="flex items-start justify-between gap-2">
+        <span className={`font-bold ${bounty.done ? 'text-tier-uncommon' : ''}`}>{bounty.done ? '✓ ' : ''}{text(bounty.title)}</span>
+        {bounty.canSwap && <button type="button" className="chip shrink-0" onClick={onSwap}>{t('bounty.swap')}</button>}
+      </div>
+      {!bounty.done && bounty.target > 1 && <Meter label="" value={bounty.progress} max={bounty.target} kind="stamina" />}
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-[#f1c75b]">{t('bounty.reward', { n: bounty.reward.gold })}</span>
+        {item && <ItemChip item={item} size={34} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />}
+        {bounty.done && <span className="ml-auto font-head text-xs font-bold text-tier-uncommon">{t('bounty.done')}</span>}
+      </div>
+    </div>
   );
 }
 

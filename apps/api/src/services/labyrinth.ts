@@ -3,12 +3,13 @@ import type { Direction, EventAction, Exit, FaceAction, Facing, LabyrinthResult,
 import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
-  PATH_MASTERY, fightOdds, generateLabyrinth, onPath, proficiencyBonus, restUses, sneakCheck, threatOf,
+  PATH_MASTERY, type ThreatId, fightOdds, generateLabyrinth, onPath, proficiencyBonus, restUses, sneakCheck, threatOf,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { bossVictory } from './boss.js';
+import { trackBounties } from './bounties.js';
 import { enterEvent, eventAction, eventView, withLuck } from './events.js';
 import { feed } from './feed.js';
 import {
@@ -413,8 +414,10 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
         if (rng.chance(LOOT.treasureChest)) await dropChest(tx, hero, season, floor.number, out);
         const gold = withGoldFind(hero, rng.int(5, 15) * (floor.number + 1));
         await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
+        hero.carriedGold += gold;
         out.gold += gold;
         await markCleared(tx, hf, roomId, now);
+        await trackBounties(tx, hero, { type: 'treasure' }, out, now);
       }
       break;
     case 'event':
@@ -468,6 +471,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
       if (slipped) {
         await tx.hero.update({ where: { id: hero.id }, data: { facing: false } });
         if (!action.smoke) outcome.notices.push(t('You slip past unseen.', 'Вы незаметно прокрадываетесь мимо.'));
+        await trackBounties(tx, hero, { type: 'sneak' }, outcome, now);
         return hero.id;
       }
       outcome.notices.push(t('They spot you! The monsters strike first.', 'Вас заметили! Монстры бьют первыми.'));
@@ -476,7 +480,10 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
     }
 
     if (action.bomb) await takeStack(tx, hero, 'bomb-fire', 1, 'no_bomb');
-    await fightHere(tx, hero, season, floor, room, kind, outcome, { bomb: action.bomb });
+    // The Threat the Player was shown, for bounties that ask for a hard fight.
+    const { monsters, spawnSeed } = monstersFor(season, hero, floor, room, kind, now);
+    const threat = threatOf(fightOdds(`${spawnSeed}:threat:${hero.stance}`, fightInput(hero, combatOf(hero), monsters)));
+    await fightHere(tx, hero, season, floor, room, kind, outcome, { bomb: action.bomb, threat });
     return hero.id;
   });
   return respond(heroId, season, outcome);
@@ -486,6 +493,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
 async function fightHere(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: FightKind, out: Outcome, opts: {
   surprise?: 'hero';
   bomb?: boolean;
+  threat?: ThreatId;
 }) {
   const result = await fight(tx, hero, season, floor, roomId, kind, out, opts);
   if (kind === 'boss' && result === 'victory') await bossVictory(tx, hero, season, floor.number, roomId, out);
@@ -546,6 +554,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
       outcome.notices.push(t(`A new depth: Floor ${next.number}.`, `Новая глубина: этаж ${next.number}.`));
       await feed(tx, season, hero, 'depth', { floor: next.number });
     }
+    await trackBounties(tx, hero, { type: 'depth', floor: next.number }, outcome, now);
     await tx.hero.update({
       where: { id: hero.id },
       data: {
@@ -589,7 +598,8 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
 }
 
 /** Back to the City: gold becomes safe, health and abilities come back. */
-async function goHome(tx: Tx, hero: HeroWithItems) {
+async function goHome(tx: Tx, hero: HeroWithItems, out: Outcome) {
+  if (hero.carriedGold > 0) await trackBounties(tx, hero, { type: 'bank', gold: hero.carriedGold }, out);
   const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
   await tx.hero.update({
     where: { id: hero.id },
@@ -604,6 +614,7 @@ async function goHome(tx: Tx, hero: HeroWithItems) {
 export async function leaveByWaypoint(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const lab = labyrinthFor(season);
+  const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
     const { floor, room: at } = whereIs(hero, lab);
@@ -612,15 +623,17 @@ export async function leaveByWaypoint(player: Player): Promise<LabyrinthResult> 
     if (!atEntrance && !(room.type === 'waypoint' && hero.waypoints.includes(floor.number))) {
       throw ApiError.conflict('not_at_waypoint', 'You can only leave from a Waypoint or the entrance');
     }
-    await goHome(tx, hero);
+    await goHome(tx, hero, outcome);
     return hero.id;
   });
-  return respond(heroId, season, { ...emptyOutcome(), notices: [t('You are back in the City.', 'Вы вернулись в город.')] });
+  outcome.notices.unshift(t('You are back in the City.', 'Вы вернулись в город.'));
+  return respond(heroId, season, outcome);
 }
 
 /** Read a Town Portal scroll: home from anywhere. */
 export async function readPortal(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
+  const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
     if (hero.location !== 'LABYRINTH') throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
@@ -628,10 +641,11 @@ export async function readPortal(player: Player): Promise<LabyrinthResult> {
     if (!scroll) throw ApiError.conflict('no_scroll', 'You have no Town Portal scroll');
     if (scroll.quantity > 1) await tx.item.update({ where: { id: scroll.id }, data: { quantity: scroll.quantity - 1 } });
     else await tx.item.delete({ where: { id: scroll.id } });
-    await goHome(tx, hero);
+    await goHome(tx, hero, outcome);
     return hero.id;
   });
-  return respond(heroId, season, { ...emptyOutcome(), notices: [t('The portal closes behind you. You are in the City.', 'Портал закрылся за спиной. Вы в городе.')] });
+  outcome.notices.unshift(t('The portal closes behind you. You are in the City.', 'Портал закрылся за спиной. Вы в городе.'));
+  return respond(heroId, season, outcome);
 }
 
 /** Take what a Grave in this Room holds, as far as the Bag allows; its gold always fits. */
