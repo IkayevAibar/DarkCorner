@@ -18,7 +18,7 @@ npm run setup
 npm run dev
 ```
 
-Open <http://localhost:5180>. The dev login lets you sign in as anyone. Tick "admin" for the first account, then use a second browser profile to be a friend waiting for approval.
+Open <http://localhost:5180>. The dev login lets you sign in as anyone. Tick "admin" for the first account, then use a second browser profile to be a friend waiting for approval. The Labyrinth opens once an admin starts the Season: account sheet → Admin → Season → Start the Season. The Grant tab gives testers gold and Items.
 
 | Command | What it does |
 |---|---|
