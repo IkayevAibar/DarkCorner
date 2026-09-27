@@ -35,7 +35,7 @@ A weapon or armor type that a Class can use.
 _Avoid_: class lock, restriction
 
 **Stance**:
-How a Hero reacts when attacked while its Player is away: try to escape, or stand and fight. The Player sets it in advance.
+How a Hero fights: Bold, Steady or Wary. It trades safety for strength, and sets when the Hero makes Escape rolls, including when it is attacked while its Player is away. The Player sets it in advance.
 
 **Retire**:
 To end your Hero at the Temple and create a new one. Allowed once per Season.
@@ -146,8 +146,24 @@ Two Heroes in the same Room outside a Camp. Either of them may attack.
 _Avoid_: duel, gank
 
 **Escape roll**:
-The d20 Check an attacked Hero makes to slip away before the fight starts.
+The d20 Check a Hero makes to get out of a fight: in a fight against monsters when its Stance says so, or when another Hero attacks it.
 _Avoid_: flee check
+
+**Threat**:
+How dangerous the monsters behind a Door are for this Hero right now: Trivial, Easy, Risky, Dangerous or Deadly.
+_Avoid_: difficulty, danger level
+
+**Sneak**:
+To slip past a Room's monsters with a DEX Check instead of fighting them. Failing it means an ambush.
+_Avoid_: stealth, skip
+
+**Retreat**:
+To back away from a Room's monsters, before any fight, to the last safe Room.
+_Avoid_: flee, run (those happen during a fight, by Escape roll)
+
+**Bomb**:
+A throwable Item from the Shops: a Fire bomb opens a fight by hurting every monster, and a Smoke bomb makes a Sneak sure.
+_Avoid_: grenade, explosive
 
 ### Items and loot
 

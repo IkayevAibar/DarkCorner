@@ -13,7 +13,7 @@ export type LocalizedText = z.infer<typeof localizedTextSchema>;
  * An Item as the web app renders it: a tile, a card, a line in the Feed.
  * Fields that identifying reveals are null while `identified` is false.
  */
-export const ITEM_KINDS = ['gear', 'potion', 'scroll', 'key', 'chest', 'material'] as const;
+export const ITEM_KINDS = ['gear', 'potion', 'scroll', 'bomb', 'key', 'chest', 'material'] as const;
 export const itemKindSchema = z.enum(ITEM_KINDS);
 export type ItemKind = z.infer<typeof itemKindSchema>;
 

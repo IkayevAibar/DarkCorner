@@ -31,18 +31,21 @@ export const combatantSchema = z.object({
 });
 export type Combatant = z.infer<typeof combatantSchema>;
 
-export const fightOutcomeSchema = z.enum(['victory', 'survived', 'dead']);
+/** Survived: Death saves held. Escaped: an Escape roll got the Hero out. Both end in the last safe Room. */
+export const fightOutcomeSchema = z.enum(['victory', 'survived', 'escaped', 'dead']);
 export type FightOutcomeId = z.infer<typeof fightOutcomeSchema>;
 
 export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('initiative'), order: z.array(z.string()) }),
+  /** That side was caught off guard (a failed Sneak) and loses its first round. */
+  z.object({ type: z.literal('surprise'), side: z.enum(['hero', 'monsters']) }),
   z.object({
     type: z.literal('attack'), actor: z.string(), target: z.string(), natural: z.number().int(), total: z.number().int(),
     hit: z.boolean(), crit: z.boolean(), damage: z.number().int(), targetHp: z.number().int(), kind: z.enum(['weapon', 'spell']),
   }),
   z.object({ type: z.literal('blocked'), actor: z.string() }),
   z.object({
-    type: z.literal('burst'), actor: z.string(),
+    type: z.literal('burst'), actor: z.string(), source: z.enum(['spell', 'bomb']),
     targets: z.array(z.object({ key: z.string(), damage: z.number().int(), hp: z.number().int() })),
   }),
   z.object({
@@ -54,6 +57,8 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('death-save'), natural: z.number().int(), successes: z.number().int(), failures: z.number().int() }),
   z.object({ type: z.literal('rise'), hp: z.number().int() }),
   z.object({ type: z.literal('reroll'), natural: z.number().int() }),
+  /** An Escape roll the Hero's Stance made it try, badly hurt. */
+  z.object({ type: z.literal('escape'), natural: z.number().int(), total: z.number().int(), dc: z.number().int(), success: z.boolean() }),
   z.object({ type: z.literal('end'), outcome: fightOutcomeSchema }),
 ]);
 export type FightEventView = z.infer<typeof fightEventSchema>;
@@ -67,6 +72,43 @@ export const fightReplaySchema = z.object({
   outcome: fightOutcomeSchema,
 });
 export type FightReplay = z.infer<typeof fightReplaySchema>;
+
+// ─── Before a fight: Stance, Threat, Sneaking ─────────────────────────────
+
+export const STANCES = ['bold', 'steady', 'wary'] as const;
+export const stanceSchema = z.enum(STANCES);
+export type Stance = z.infer<typeof stanceSchema>;
+
+export const THREATS = ['trivial', 'easy', 'risky', 'dangerous', 'deadly'] as const;
+export const threatSchema = z.enum(THREATS);
+export type Threat = z.infer<typeof threatSchema>;
+
+/** Monsters the Hero has walked in on and not fought yet: it must Fight, Sneak past or Retreat. */
+export const facingSchema = z.object({
+  kind: z.enum(['fight', 'miniboss', 'boss']),
+  monsters: z.array(combatantSchema),
+  /** The Threat in each Stance, so switching Stance shows its effect at once. */
+  threat: z.object({ bold: threatSchema, steady: threatSchema, wary: threatSchema }),
+  /** The DEX Check to Sneak past; null where there is no sneaking past (Mini-bosses, the Boss). */
+  sneak: z.object({
+    modifier: z.number().int(),
+    dc: z.number().int(),
+    edge: z.enum(['normal', 'advantage', 'disadvantage']),
+  }).nullable(),
+});
+export type Facing = z.infer<typeof facingSchema>;
+
+/** POST /api/labyrinth/face — what the Hero does about the monsters it faces. */
+export const faceActionSchema = z.discriminatedUnion('action', [
+  /** `bomb`: throw a Fire bomb first. */
+  z.object({ action: z.literal('fight'), bomb: z.boolean().default(false) }),
+  /** `smoke`: a Smoke bomb makes it sure. */
+  z.object({ action: z.literal('sneak'), smoke: z.boolean().default(false) }),
+  z.object({ action: z.literal('retreat') }),
+]);
+export type FaceAction = z.infer<typeof faceActionSchema>;
+
+export const stanceRequestSchema = z.object({ stance: stanceSchema });
 
 // ─── What the Hero sees in the Labyrinth ──────────────────────────────────
 
@@ -190,6 +232,8 @@ export const labyrinthViewSchema = z.object({
     heals: z.number().int(),
     potions: z.number().int(),
     portalScrolls: z.number().int(),
+    stance: stanceSchema,
+    bombs: z.object({ fire: z.number().int(), smoke: z.number().int() }),
   }),
   /** The Labyrinth opens when the Season starts; the Boss gate opens later. */
   season: z.object({ status: seasonStatusSchema, bossGateAt: z.string().nullable() }),
@@ -215,6 +259,8 @@ export const labyrinthViewSchema = z.object({
     eventView: eventViewSchema.nullable(),
     /** Vaults: open to the first Hero in, sealed until an announced time, or already emptied. */
     vault: z.object({ state: z.enum(['open', 'sealed', 'claimed']), opensAt: z.string().nullable() }).nullable(),
+    /** Monsters waiting to be fought, snuck past or retreated from; the other Doors are shut until then. */
+    facing: facingSchema.nullable(),
   }).nullable(),
   exits: z.array(exitSchema),
   /** The Hero's own Map of this Floor: Rooms stood in, the Rooms next to them, and the Doors between. */

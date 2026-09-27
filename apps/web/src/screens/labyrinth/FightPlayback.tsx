@@ -203,6 +203,7 @@ function effectOn(key: string, event: FightEventView | null): Effect | null {
       return event.actor === key ? { float: { text: `+${event.amount}`, tone: 'heal' } } : null;
     case 'death-save':
     case 'reroll':
+    case 'escape':
       return key === 'hero' ? { d20: event.natural } : null;
     case 'down':
       return key === 'hero' ? { shake: true } : null;
@@ -215,6 +216,11 @@ function effectOn(key: string, event: FightEventView | null): Effect | null {
 function sound(event: FightEventView): void {
   switch (event.type) {
     case 'initiative': play('draw'); break;
+    case 'surprise': play('crit', { rate: 0.85, volume: 0.7 }); break;
+    case 'escape':
+      play('die');
+      if (event.success) play('step', { delay: 350 });
+      break;
     case 'attack':
       if (!event.hit) play('miss');
       else if (event.crit) {
@@ -224,6 +230,7 @@ function sound(event: FightEventView): void {
       } else play('hit');
       break;
     case 'burst':
+      if (event.source === 'bomb') play('crit', { rate: 0.7 });
       play('hit', { rate: 0.8 });
       play('hit', { delay: 110 });
       break;
@@ -248,6 +255,8 @@ function sound(event: FightEventView): void {
 function pause(event: FightEventView): number {
   switch (event.type) {
     case 'initiative': return 700;
+    case 'surprise': return 900;
+    case 'escape': return 1000;
     case 'attack': return event.crit ? 1050 : 760;
     case 'burst': return 1000;
     case 'down': return 1100;
@@ -283,13 +292,15 @@ function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: 
       if (e.crit) return t('fight.crit', { actor: n(e.actor), target: n(e.target), n: e.damage });
       return t(e.kind === 'spell' ? 'fight.spell' : 'fight.hit', { actor: n(e.actor), target: n(e.target), n: e.damage });
     case 'blocked': return t('fight.blocked', { actor: n(e.actor) });
-    case 'burst': return t('fight.burst', { actor: n(e.actor), n: e.targets.reduce((s, x) => s + x.damage, 0) });
+    case 'burst': return t(e.source === 'bomb' ? 'fight.bomb' : 'fight.burst', { actor: n(e.actor), n: e.targets.reduce((s, x) => s + x.damage, 0) });
     case 'heal': return t(`fight.heal.${e.ability}`, { actor: n(e.actor), n: e.amount });
     case 'defeated': return t('fight.defeated', { name: n(e.key) });
     case 'down': return t('fight.down', { name: n('hero') });
     case 'death-save': return t('fight.deathSave', { d: e.natural, s: e.successes, f: e.failures });
     case 'rise': return t('fight.rise', { name: n('hero'), n: e.hp });
     case 'reroll': return t('fight.reroll', { name: n('hero'), d: e.natural });
+    case 'surprise': return t(`fight.surprise.${e.side}`);
+    case 'escape': return t(e.success ? 'fight.escape.yes' : 'fight.escape.no', { name: n('hero'), d: e.natural, t: e.total, dc: e.dc });
     case 'end': return null;
   }
 }

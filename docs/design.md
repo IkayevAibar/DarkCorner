@@ -7,7 +7,7 @@ Terms follow [CONTEXT.md](../CONTEXT.md). Numbers tagged *(v0)* are starting val
 
 ## The game
 
-5–15 friends each create a D&D-style Hero, wake up in a dark-fantasy City, and go down into one huge shared Labyrinth. The Hero fights on its own. The Player chooses which doors to open, which gambles to take and when to go home. Loot is everything: it comes in tiers, its stats are rolled at random, it can be traded, and you lose it when you die. The first Player to kill the Season's Boss at the bottom becomes Champion. Three days later everything is wiped and a new Season begins.
+5–15 friends each create a D&D-style Hero, wake up in a dark-fantasy City, and go down into one huge shared Labyrinth. The Hero fights on its own. The Player chooses which doors to open, which fights to take and in what Stance, which gambles to take and when to go home. Loot is everything: it comes in tiers, its stats are rolled at random, it can be traded, and you lose it when you die. The first Player to kill the Season's Boss at the bottom becomes Champion. Three days later everything is wiped and a new Season begins.
 
 Games it borrows from: Darkest Dungeon's town, Slay the Spire's choice of path, Dark and Darker's "you lose what you carry", Hypixel SkyBlock's rarity hype, and CS case openings.
 
@@ -52,7 +52,7 @@ Every feature serves at least one of these:
 
 ## Heroes
 
-Each Player has one Hero per Season. Fights are automatic in Season 0. Player control in fights may come later.
+Each Player has one Hero per Season. Fights are automatic in Season 0: the Player decides whether to fight and in which Stance (see Before a fight), then watches. More control in fights may come later.
 
 ### Creating a hero
 
@@ -149,9 +149,45 @@ The rules are a light version of the D&D System Reference Document (SRD 5.2).
   - traps and event Checks
 
   Ordinary attacks just show hit or miss, so fights stay easy to follow.
+- **Before a fight:** see below.
 - **Abilities:** some work once per fight. Others have a few uses per rest, and those come back after a long rest at a Camp or on returning to the City.
 - **Health:** damage carries over from Room to Room. Heroes heal with potions, Shrines, Cleric spells, a long rest at a Camp, or fully in the City.
 - **Monsters:** they come in groups, and deeper Floors have stronger ones.
+
+### Before a fight
+
+Opening the Door of a Room with monsters doesn't start the fight. The Hero stops in the doorway, the Player sees who is there, and chooses. Until then the Room's other Doors stay shut.
+
+- **Threat:** how dangerous the fight is for this Hero right now: Trivial, Easy, Risky, Dangerous or Deadly. The server plays the fight 60 times with the Hero as it stands, with its health, potions, gear and Stance, and never with the real dice. It rates the fight by how often the Hero won and died *(v0)*:
+
+  | Threat | When |
+  |---|---|
+  | Deadly | died in 35% or more |
+  | Dangerous | died in 15% or more, or won less than half |
+  | Risky | died in 5% or more, or won less than 80% |
+  | Easy | died at all, or won less than 97% |
+  | Trivial | anything better |
+
+- **Stance:** the Player sets it at any time. It holds for every fight until changed, and the Threat is shown for all three *(v0)*:
+
+  | Stance | In the fight | Escape rolls |
+  |---|---|---|
+  | Bold | advantage on the Hero's attacks, and on the monsters' attacks against it | never |
+  | Steady | nothing changes | below 20% health |
+  | Wary | +2 AC, −2 to hit | below half health |
+
+- **Fight:** as described above. A **Fire bomb** (Shops, 40 gold) may be thrown first: 2d6 + 2 per Floor number damage to every monster before the first round *(v0)*.
+- **Sneak past:** a DEX Check against 10 + half the Floor number + 2 for each monster after the first *(v0)*. Rogues roll with advantage and add their proficiency bonus. Heavy armor gives disadvantage. Every 5% of escape Bonus stats adds +1. A Lucky charm or Luckstone can reroll it.
+  - On a success the Hero slips past. It stands in the Room unnoticed and can use its other Doors. The monsters are still there next time.
+  - On a failure the monsters notice: the fight starts, and the monsters act first. The Hero loses its turns in the first round.
+  - A **Smoke bomb** (Shops, 30 gold) makes it sure, with no roll.
+  - Mini-bosses and the Boss can't be snuck past.
+- **Retreat:** back to the last safe Room, free: no Stamina and no roll. The monsters stay.
+- **Escape rolls:** in a fight, once its health drops below its Stance's line, the Hero spends its turns on Escape rolls instead of attacking. A healing ability or potion it would use comes first.
+  - The roll is a DEX Check against 8 + 2 for each monster still standing *(v0)*. Rogues roll with advantage and add their proficiency, and escape Bonus stats help as they do for Sneaking.
+  - On a success the Hero gets away to the last safe Room. It keeps the XP for monsters already defeated, but there is no loot.
+- **The last safe Room** is the last Room the Hero stood in without monsters left in it. Retreating, escaping and surviving Death saves all end there.
+- **Graves** in a Room with monsters can only be looted after the Hero fights them or Sneaks past.
 
 ## The City
 
@@ -202,7 +238,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 
 | Room | How many *(v0)* | Notes |
 |---|---|---|
-| Fight | ~50% of a Floor | A group of monsters. Personal: every Hero meets its own. A Room a Hero has cleared stays clear for that Hero for 24 hours. |
+| Fight | ~50% of a Floor | A group of monsters. Personal: every Hero meets its own. Its Door shows them and their Threat first (Before a fight). A Room a Hero has cleared stays clear for that Hero for 24 hours. |
 | Empty | ~15% | Nothing happens, or just a line of description. |
 | Event room | ~15% | See the table below. Personal. |
 | Treasure | ~7% | Loose loot, sometimes a Chest. Personal. |
@@ -255,7 +291,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 - **Death saves:** when a Hero drops to 0 health in a fight against monsters, it rolls d20s on screen until it has 3 successes (10 or higher) or 3 failures.
   - A natural 20: the Hero gets back up with a quarter of its health and keeps fighting.
   - A natural 1: counts as two failures.
-  - 3 successes: the Hero survives with 1 health, loses the fight, and is dragged back to the last Room it cleared.
+  - 3 successes: the Hero survives with 1 health, loses the fight, and is dragged back to the last safe Room.
   - 3 failures: the Hero dies.
 - **No Death saves against Players.**
 - **Grave:** a dead Hero drops **everything it Carried** (worn gear, Bag and the gold it picked up on this Run) into a Grave in that Room. The Grave stays for 48 hours, and anyone who reaches it can loot it, including the owner with a new set of gear. After 48 hours its contents are destroyed.
@@ -371,7 +407,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - multiplied by (1 + item level ÷ 10)
 
   The price is kept low on purpose, so the Market is always the better place to sell, yet loot is never worthless. Stackables have their own small Buyback prices (a potion 6, an Iron key 12, Scrap 2…). Haggler: Shops pay 10% more and sell for 10% less.
-- **Shops** *(v0)*: potions 25 gold, Scrolls of Identify 20, Town Portal 50, Protection 200, Keys 50 / 250 / 1,000. Plus a stock of 4 Common and 2 Uncommon pieces a day, chosen for the Hero's Class and depth, at 4 times their Buyback price; each sells once per Hero per day. Shops, the Forge, the Market and the Temple only work in the City.
+- **Shops** *(v0)*: potions 25 gold, Scrolls of Identify 20, Town Portal 50, Protection 200, Fire bombs 40, Smoke bombs 30, Keys 50 / 250 / 1,000. Plus a stock of 4 Common and 2 Uncommon pieces a day, chosen for the Hero's Class and depth, at 4 times their Buyback price; each sells once per Hero per day. Shops, the Forge, the Market and the Temple only work in the City.
 - **Market:** list an Item (a whole stack) at your price for up to 7 days *(v0)*. Anyone can buy it at any time. The seller receives the price minus a 5% tax, even while away in the Labyrinth. Up to 20 listings per Player; expired ones wait for the seller to take them back.
 - **Blessings** *(v0)*: the Temple sells Blessing of Fortune (+25% magic find, 150 gold), of Greed (+50% gold find, 100 gold) and of Providence (the Bad-luck meter fills twice as fast, 200 gold). A Blessing lasts 3 hours and a new one replaces the old; Shrines give them for free.
 - **Direct trade:** two Players in the City swap Items and gold, and both confirm. No tax.
@@ -398,8 +434,8 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 ### PvP encounters (from Season 1)
 
 - **Attacking:** when two Heroes are in the same Room outside a Camp, either one can attack.
-- **Escaping:** the attacked Hero gets one **Escape roll**, a DEX Check. Rogues and escape Bonus stats help. If it fails, they fight to the end.
-- **Choosing:** a Player who is online chooses on the spot. A waiting Hero follows its Stance.
+- **Escaping:** the attacked Hero gets one **Escape roll**, a DEX Check, as in fights against monsters. Rogues and escape Bonus stats help. If it fails, they fight to the end.
+- **Choosing:** a Player who is online chooses on the spot. A waiting Hero follows its Stance: a Bold one stands and fights, Steady and Wary ones try to escape.
 - **Result:** the winner takes everything the loser Carried. There are no Death saves in PvP.
 
 ### Later Seasons

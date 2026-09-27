@@ -1,9 +1,9 @@
 import type {
   AdminGrant, AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, AdminSeasonView, ApiErrorBody, AuthStatus, BlessingIdView,
   CreateHeroRequest, HallView, RollLogView, TavernView,
-  CreationOptions, DevLoginRequest, EventAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
+  CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
-  SalvageResult, ShopView, SlotId, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
+  SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -61,6 +61,8 @@ export const api = {
   readPortal: () => request<LabyrinthResult>('POST', '/api/labyrinth/portal'),
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
   eventAction: (action: EventAction) => request<LabyrinthResult>('POST', '/api/labyrinth/event', action),
+  face: (action: FaceAction) => request<LabyrinthResult>('POST', '/api/labyrinth/face', action),
+  setStance: (stance: Stance) => request<LabyrinthResult>('POST', '/api/labyrinth/stance', { stance }),
 
   identify: (id: string) => request<IdentifyResult>('POST', `/api/items/${encodeURIComponent(id)}/identify`),
   openChest: (id: string) => request<OpenChestResult>('POST', `/api/items/${encodeURIComponent(id)}/open`),

@@ -5,7 +5,7 @@ export const SLOTS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 
 export type Slot = (typeof SLOTS)[number];
 
 /** What kind of Item a base makes. Only gear rolls Tiers, Quality and Bonus stats. */
-export type ItemKind = 'gear' | 'potion' | 'scroll' | 'key' | 'chest' | 'material';
+export type ItemKind = 'gear' | 'potion' | 'scroll' | 'bomb' | 'key' | 'chest' | 'material';
 
 interface BaseCommon {
   id: string;
@@ -85,6 +85,8 @@ export const BASES: ItemBase[] = [
   stack({ id: 'scroll-identify', kind: 'scroll', name: text('Scroll of Identify', 'Свиток опознания'), icon: 'scroll', maxStack: 20 }),
   stack({ id: 'scroll-portal', kind: 'scroll', name: text('Town Portal scroll', 'Свиток портала в город'), icon: 'scroll', maxStack: 10 }),
   stack({ id: 'scroll-protection', kind: 'scroll', name: text('Protection scroll', 'Свиток защиты'), icon: 'scroll', maxStack: 10 }),
+  stack({ id: 'bomb-fire', kind: 'bomb', name: text('Fire bomb', 'Огненная бомба'), icon: 'bomb-fire', maxStack: 10 }),
+  stack({ id: 'bomb-smoke', kind: 'bomb', name: text('Smoke bomb', 'Дымовая бомба'), icon: 'bomb-smoke', maxStack: 10 }),
   stack({ id: 'key-iron', kind: 'key', name: text('Iron key', 'Железный ключ'), icon: 'key', maxStack: 20 }),
   stack({ id: 'key-silver', kind: 'key', name: text('Silver key', 'Серебряный ключ'), icon: 'key', maxStack: 20 }),
   stack({ id: 'key-gold', kind: 'key', name: text('Gold key', 'Золотой ключ'), icon: 'key', maxStack: 20 }),
@@ -110,7 +112,7 @@ export const isGear = (base: ItemBase): base is GearBase => base.kind === 'gear'
 
 /** Stackables have no Tier; this color hint says what a Chest or Key opens up to. */
 export const STACK_TIER_HINT: Record<string, 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'> = {
-  'key-iron': 'uncommon', 'chest-iron': 'uncommon',
+  'key-iron': 'uncommon', 'chest-iron': 'uncommon', 'bomb-fire': 'uncommon',
   'key-silver': 'rare', 'chest-silver': 'rare',
   'key-gold': 'epic', 'chest-gold': 'epic',
   essence: 'rare', soulstone: 'legendary',

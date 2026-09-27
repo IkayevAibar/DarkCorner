@@ -1,9 +1,9 @@
-import type { HeroFloor, Season } from '@prisma/client';
+import type { Hero, HeroFloor, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
-  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type Floor, LOOT, type MonsterInstance, RELIC_CHANCE, type RaceId,
-  type TalentId, weakeningAt,
-  createRng, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
+  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, type HeroCombat, LOOT, type MonsterInstance,
+  RELIC_CHANCE, type RaceId, type StanceId, type TalentId, weakeningAt,
+  createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { feed } from './feed.js';
@@ -75,12 +75,51 @@ export async function markCleared(tx: Tx, hf: HeroFloor, room: number, now: Date
 
 // ─── Fights ───────────────────────────────────────────────────────────────
 
-function combatant(key: string, m: MonsterInstance): Combatant {
+export function combatant(key: string, m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
   return { key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null };
 }
 
 export type FightKind = 'fight' | 'miniboss' | 'boss';
+
+/** The monsters waiting for one Hero in a Room: personal, and the same group all day. */
+export function monstersFor(season: Season, hero: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: FightKind, now: Date) {
+  const spawnSeed = `${season.seed}:${hero.id}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
+  return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now)) };
+}
+
+/** The Hero as it fights: its row, with its worn gear. */
+export function combatOf(hero: HeroWithItems): HeroCombat {
+  const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => ({
+    base: i.base, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
+    bonusStats: i.bonusStats as { stat: string; value: number }[], uniqueId: i.uniqueId,
+  }));
+  return heroCombat({
+    name: hero.name, class: hero.class as ClassId, race: hero.race as RaceId, level: hero.level,
+    talents: hero.talents as TalentId[], scores: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
+    maxHp: hero.maxHp, hp: hero.hp, worn,
+  });
+}
+
+/** Everything a fight needs from the Hero apart from the dice: also used to rate the Threat. */
+export function fightInput(hero: HeroWithItems, combat: HeroCombat, monsters: MonsterInstance[], opts: {
+  stance?: StanceId;
+  surprise?: 'hero' | 'monsters' | null;
+  /** The Floor a Fire bomb is thrown on; null for none. */
+  bombFloor?: number | null;
+} = {}): FightInput {
+  const potions = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion').reduce((s, i) => s + i.quantity, 0);
+  return {
+    hero: combat,
+    monsters,
+    uses: { spells: hero.spellUses, heals: hero.healUses },
+    potions,
+    runPowers: { deathless: hero.deathless, lucky: hero.lucky },
+    stance: opts.stance ?? (hero.stance as StanceId),
+    surprise: opts.surprise ?? null,
+    bomb: opts.bombFloor ? fireBomb(opts.bombFloor) : null,
+  };
+}
 
 /**
  * Fights what waits in a Room (or the given monsters, e.g. a mimic), then pays out:
@@ -92,32 +131,26 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   bonusDrops?: number;
   /** Whether winning clears the Room (Event rooms track themselves). */
   clears?: boolean;
-} = {}): Promise<'victory' | 'survived' | 'dead'> {
+  /** A failed Sneak: the monsters act first. */
+  surprise?: 'hero' | 'monsters';
+  /** A Fire bomb goes off before the first round (the caller has taken it from the Bag). */
+  bomb?: boolean;
+} = {}): Promise<'victory' | 'survived' | 'escaped' | 'dead'> {
   const now = new Date();
-  // Personal monsters: the same Room shows the same group to one Hero for a day.
-  const spawnSeed = `${season.seed}:${hero.id}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
-  const monsters = opts.monsters ?? spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now));
+  const spawned = opts.monsters ? null : monstersFor(season, hero, floor, roomId, kind, now);
+  const monsters = opts.monsters ?? spawned!.monsters;
+  const spawnSeed = spawned?.spawnSeed ?? null;
 
-  const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => ({
-    base: i.base, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
-    bonusStats: i.bonusStats as { stat: string; value: number }[], uniqueId: i.uniqueId,
-  }));
-  const combat = heroCombat({
-    name: hero.name, class: hero.class as ClassId, race: hero.race as RaceId, level: hero.level,
-    talents: hero.talents as TalentId[], scores: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
-    maxHp: hero.maxHp, hp: hero.hp, worn,
-  });
+  const combat = combatOf(hero);
   const potionStacks = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion');
   const seed = newSeed();
-  const result = simulateFight(createRng(seed), {
-    hero: combat,
-    monsters,
-    uses: { spells: hero.spellUses, heals: hero.healUses },
-    potions: potionStacks.reduce((s, i) => s + i.quantity, 0),
-    runPowers: { deathless: hero.deathless, lucky: hero.lucky },
-  });
+  const input = fightInput(hero, combat, monsters, { surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null });
+  const result = simulateFight(createRng(seed), input);
   await tx.rollLog.create({
-    data: { playerId: hero.playerId, kind: 'fight', seed, detail: { floor: floor.number, room: roomId, kind, outcome: result.outcome, spawnSeed } },
+    data: {
+      playerId: hero.playerId, kind: 'fight', seed,
+      detail: { floor: floor.number, room: roomId, kind, outcome: result.outcome, spawnSeed, stance: input.stance, surprise: input.surprise, bomb: Boolean(opts.bomb) },
+    },
   });
 
   out.fight = fightReplaySchema.parse({
@@ -164,6 +197,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     healUses: result.uses.heals,
     deathless: result.runPowers.deathless,
     lucky: result.runPowers.lucky,
+    facing: false,
     ...levelUp.data,
     ...(result.outcome === 'victory' ? { prevRoom: roomId } : { room: hero.prevRoom ?? floor.landing }),
   };
@@ -171,8 +205,12 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   Object.assign(hero, after);
 
   if (result.outcome === 'survived') {
-    out.notices.push(t('Barely alive, you crawl back to the last Room you cleared.', 'Едва живы, вы отползаете в последнюю зачищенную комнату.'));
+    out.notices.push(t('Barely alive, you crawl back to the last safe Room.', 'Едва живы, вы отползаете в последнюю безопасную комнату.'));
     return 'survived';
+  }
+  if (result.outcome === 'escaped') {
+    out.notices.push(t('You break away and run back to the last safe Room.', 'Вы вырываетесь и бежите в последнюю безопасную комнату.'));
+    return 'escaped';
   }
 
   // The Boss pays out on its own terms (boss.ts).
@@ -221,7 +259,7 @@ export async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumb
     where: { id: hero.id },
     data: {
       location: 'CITY', floor: null, room: null, prevRoom: null, hp: hero.maxHp, carriedGold: 0,
-      spellUses: uses.spells, healUses: uses.heals, deathless: true, lucky: true, campSince: null,
+      spellUses: uses.spells, healUses: uses.heals, deathless: true, lucky: true, campSince: null, facing: false,
     },
   });
   await giveStarterKit(tx, updated, season.id);

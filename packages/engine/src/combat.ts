@@ -1,14 +1,16 @@
 import { type Ability, type AbilityScores, abilityModifier } from './abilities.js';
+import { type CheckInput, check } from './check.js';
 import { type GearBase, baseById, isGear } from './content/bases.js';
 import { CLASS_DEFS, type ClassId } from './content/classes.js';
 import { type ThemeId, themeOf } from './content/floors.js';
 import { RADIANT_BOOST } from './content/loot.js';
 import { type MonsterDef, MONSTERS, monsterById } from './content/monsters.js';
 import { RACE_DEFS, type RaceId } from './content/races.js';
+import { DEFAULT_STANCE, STANCE_DEFS, type StanceId } from './content/stances.js';
 import type { TalentId } from './content/talents.js';
-import { type Edge, rollD20, rollDice, sum } from './dice.js';
+import { rollD20, rollDice, sum } from './dice.js';
 import { qualityFactor } from './items.js';
-import type { Rng } from './rng.js';
+import { type Rng, createRng } from './rng.js';
 import { UPGRADE_STEP, armorClass } from './stats.js';
 
 // ─── Levels ───────────────────────────────────────────────────────────────
@@ -53,6 +55,10 @@ export interface HeroCombat {
   spellPower: number;
   healing: number;
   lifeSteal: number;
+  /** "+N% escape chance" Bonus stats: every 5% is +1 on Sneak and Escape rolls. */
+  escape: number;
+  /** Heavy body armor clanks: Sneaking with disadvantage. */
+  heavyArmor: boolean;
   uniques: string[];
 }
 
@@ -111,6 +117,11 @@ export function heroCombat(input: {
     spellPower: bonus(input.worn, 'spellPower'),
     healing: bonus(input.worn, 'healing'),
     lifeSteal: bonus(input.worn, 'lifeSteal'),
+    escape: bonus(input.worn, 'escape'),
+    heavyArmor: input.worn.some((w) => {
+      const b = baseById(w.base);
+      return isGear(b) && b.slot === 'body' && b.armor === 'heavy';
+    }),
     uniques,
   };
 }
@@ -178,21 +189,25 @@ export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'minibos
 
 // ─── The fight ────────────────────────────────────────────────────────────
 
-export type FightOutcome = 'victory' | 'survived' | 'dead';
+/** Escaped: an Escape roll got the Hero out; like surviving, it ends back in the last safe Room. */
+export type FightOutcome = 'victory' | 'survived' | 'escaped' | 'dead';
 
 export type FightEvent =
   | { type: 'initiative'; order: string[] }
+  /** That side was caught off guard and loses its turns in the first round. */
+  | { type: 'surprise'; side: 'hero' | 'monsters' }
   | { type: 'attack'; actor: string; target: string; natural: number; total: number; hit: boolean; crit: boolean; damage: number; targetHp: number; kind: 'weapon' | 'spell' }
   | { type: 'blocked'; actor: string }
-  | { type: 'burst'; actor: string; targets: { key: string; damage: number; hp: number }[] }
+  | { type: 'burst'; actor: string; source: 'spell' | 'bomb'; targets: { key: string; damage: number; hp: number }[] }
   | { type: 'heal'; actor: string; ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal'; amount: number; hp: number }
   | { type: 'defeated'; key: string }
   | { type: 'down' }
   | { type: 'death-save'; natural: number; successes: number; failures: number }
   | { type: 'rise'; hp: number }
-  /** Lucky charm or Luckstone: a failed death save's d20 (
-atural) is rolled again, keeping the better. */
+  /** Lucky charm or Luckstone: a failed death save's d20 (`natural`) is rolled again, keeping the better. */
   | { type: 'reroll'; natural: number }
+  /** An Escape roll, made by Stance when the Hero is badly hurt. */
+  | { type: 'escape'; natural: number; total: number; dc: number; success: boolean }
   | { type: 'end'; outcome: FightOutcome };
 
 export interface FightInput {
@@ -202,6 +217,12 @@ export interface FightInput {
   potions: number;
   /** Once-per-Run powers still unspent (Deathless Mail, Luckstone, Lucky charm). */
   runPowers: { deathless: boolean; lucky: boolean };
+  /** How the Hero fights; Steady when left out. */
+  stance?: StanceId;
+  /** The side caught off guard: it loses its turns in the first round. */
+  surprise?: 'hero' | 'monsters' | null;
+  /** A Fire bomb thrown before the first round: one roll that every monster takes. */
+  bomb?: { dice: number; sides: number; bonus: number } | null;
 }
 
 export interface FightResult {
@@ -223,7 +244,8 @@ const ROUND_LIMIT = 60;
  * `events`. Everything comes from `rng`, so the same seed replays the same fight.
  */
 export function simulateFight(rng: Rng, input: FightInput): FightResult {
-  const hero = { ...input.hero };
+  const stance = STANCE_DEFS[input.stance ?? DEFAULT_STANCE];
+  const hero = { ...input.hero, ac: input.hero.ac + stance.ac };
   const mons = input.monsters.map((mm) => ({ ...mm }));
   const uses = { ...input.uses };
   const runPowers = { ...input.runPowers };
@@ -250,6 +272,15 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const attackAbility: Ability = caster ? cls.primary : hero.weapon?.base.weapon === 'bow' || hero.class === 'rogue' ? 'dex' : 'str';
   const critFrom = Math.max(18, 20 - Math.floor(hero.critChance / 5));
   const alive = () => mons.filter((mm) => mm.hp > 0);
+  const markDefeated = () => {
+    for (const mm of mons) {
+      if (mm.hp <= 0 && !defeated.includes(mm.key)) {
+        defeated.push(mm.key);
+        events.push({ type: 'defeated', key: mm.key });
+      }
+    }
+  };
+  let escaped = false;
 
   // Initiative. Rogues strike first: they roll it with advantage.
   const init = new Map<string, number>();
@@ -258,6 +289,16 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   for (const mm of mons) init.set(mm.key, rollD20(rng).natural + abilityModifier(mm.dex));
   const order = [...init.entries()].sort((p, q) => q[1] - p[1]).map(([k]) => k);
   events.push({ type: 'initiative', order });
+  if (input.surprise) events.push({ type: 'surprise', side: input.surprise });
+  if (input.bomb) {
+    const damage = sum(rollDice(rng, input.bomb.dice, input.bomb.sides)) + input.bomb.bonus;
+    const targets = mons.map((mm) => {
+      mm.hp = Math.max(0, mm.hp - damage);
+      return { key: mm.key, damage, hp: mm.hp };
+    });
+    events.push({ type: 'burst', actor: 'hero', source: 'bomb', targets });
+    markDefeated();
+  }
 
   const heal = (ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal', amount: number) => {
     const gained = Math.max(0, Math.min(hero.maxHp - hero.hp, Math.round(amount)));
@@ -267,12 +308,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
 
   const scaleDice = (level: number) => 1 + (level >= 5 ? 1 : 0) + (level >= 11 ? 1 : 0) + (level >= 17 ? 1 : 0);
 
-  const heroAttack = (edge: Edge = 'normal') => {
+  const heroAttack = () => {
     const targets = alive();
     if (targets.length === 0) return;
     const target = targets.reduce((a, b) => (b.hp < a.hp ? b : a));
-    const roll = rollD20(rng, { edge, rerollOnes });
-    const total = roll.natural + prof + mod(attackAbility);
+    const roll = rollD20(rng, { edge: stance.attackEdge, rerollOnes });
+    const total = roll.natural + prof + mod(attackAbility) + stance.toHit;
     let crit = roll.natural >= critFrom;
     let hit = crit || (roll.natural !== 1 && total >= target.ac);
     const ember = !hit && caster && lastEmber;
@@ -322,12 +363,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         events.push({ type: 'attack', actor: 'hero', target: other.key, natural: roll.natural, total, hit: true, crit: false, damage: Math.round(damage / 2), targetHp: other.hp, kind: 'weapon' });
       }
     }
-    for (const mm of mons) {
-      if (mm.hp <= 0 && !defeated.includes(mm.key)) {
-        defeated.push(mm.key);
-        events.push({ type: 'defeated', key: mm.key });
-      }
-    }
+    markDefeated();
   };
 
   const heroTurn = () => {
@@ -349,6 +385,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       heal('potion', (sum(rollDice(rng, 2, 4)) + 2) * (hero.talents.includes('field-medic') ? 1.5 : 1) * (1 + hero.healing / 100));
       return;
     }
+    if (stance.escapeBelow > 0 && hero.hp < hero.maxHp * stance.escapeBelow) {
+      const roll = check(rng, escapeCheck(hero, alive().length));
+      events.push({ type: 'escape', natural: roll.roll.natural, total: roll.total, dc: roll.dc, success: roll.success });
+      escaped = roll.success;
+      return;
+    }
     if (hero.class === 'wizard' && uses.spells > 0 && alive().length >= 2) {
       uses.spells--;
       const dice = 2 + Math.floor(hero.level / 3);
@@ -357,13 +399,8 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         mm.hp = Math.max(0, mm.hp - damage);
         return { key: mm.key, damage, hp: mm.hp };
       });
-      events.push({ type: 'burst', actor: 'hero', targets });
-      for (const mm of mons) {
-        if (mm.hp <= 0 && !defeated.includes(mm.key)) {
-          defeated.push(mm.key);
-          events.push({ type: 'defeated', key: mm.key });
-        }
-      }
+      events.push({ type: 'burst', actor: 'hero', source: 'spell', targets });
+      markDefeated();
       return;
     }
     const attacks = hero.class === 'fighter' ? 1 + (hero.level >= 5 ? 1 : 0) + (hero.level >= 11 ? 1 : 0) + (hero.level >= 20 ? 1 : 0) : 1;
@@ -371,7 +408,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   };
 
   const monsterTurn = (mm: MonsterInstance) => {
-    const roll = rollD20(rng);
+    const roll = rollD20(rng, { edge: stance.defendEdge });
     const total = roll.natural + mm.attack;
     const crit = roll.natural === 20 && !hero.uniques.includes('drowned-crown');
     const hit = roll.natural === 20 || (roll.natural !== 1 && total >= hero.ac);
@@ -427,17 +464,20 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     return 'dead';
   };
 
-  let outcome: FightOutcome | null = null;
+  let outcome: FightOutcome | null = alive().length === 0 ? 'victory' : null;
   for (let round = 1; round <= ROUND_LIMIT && outcome === null; round++) {
     dodgeReady = dodges;
     for (const key of order) {
       if (outcome !== null) break;
+      // Whoever was surprised stands still for the first round.
+      if (round === 1 && input.surprise === (key === 'hero' ? 'hero' : 'monsters')) continue;
       if (key === 'hero') heroTurn();
       else {
         const mm = mons.find((x) => x.key === key)!;
         if (mm.hp > 0) monsterTurn(mm);
       }
-      if (alive().length === 0) outcome = 'victory';
+      if (escaped) outcome = 'escaped';
+      else if (alive().length === 0) outcome = 'victory';
       else if (hero.hp <= 0) {
         const save = deathSaves();
         if (save !== 'rise') outcome = save;
@@ -450,4 +490,76 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
 
   const xp = mons.filter((mm) => defeated.includes(mm.key)).reduce((s, mm) => s + mm.xp, 0);
   return { events, outcome, hp: outcome === 'dead' ? 0 : hero.hp, uses, potionsUsed, xp, defeated, runPowers };
+}
+
+// ─── Before and around the fight ──────────────────────────────────────────
+
+/** A Fire bomb (v0): 2d6 + 2 per Floor to every monster, before the first round. */
+export const fireBomb = (floor: number) => ({ dice: 2, sides: 6, bonus: 2 * floor });
+
+const escapeBonus = (hero: HeroCombat) =>
+  abilityModifier(hero.scores.dex) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0) + Math.floor(hero.escape / 5);
+
+/** An Escape roll's difficulty (v0): the more monsters still standing, the harder. */
+export const escapeDc = (monsters: number): number => 8 + 2 * monsters;
+
+/** A DEX Check to get out of a fight. Rogues roll with advantage and add their proficiency. */
+export function escapeCheck(hero: HeroCombat, monsters: number): CheckInput {
+  return {
+    modifier: escapeBonus(hero),
+    dc: escapeDc(monsters),
+    edge: hero.class === 'rogue' ? 'advantage' : 'normal',
+    rerollOnes: RACE_DEFS[hero.race].rerollOnes,
+  };
+}
+
+/** Sneaking past a Room's monsters (v0): harder deeper down and with more of them. */
+export const sneakDc = (floor: number, monsters: number): number => 10 + Math.floor(floor / 2) + 2 * (monsters - 1);
+
+/**
+ * The DEX Check to Sneak past. Rogues roll with advantage and add their
+ * proficiency; heavy armor gives disadvantage; escape Bonus stats help.
+ */
+export function sneakCheck(hero: HeroCombat, floor: number, monsters: number): CheckInput {
+  return {
+    modifier: escapeBonus(hero),
+    dc: sneakDc(floor, monsters),
+    edge: hero.heavyArmor ? 'disadvantage' : hero.class === 'rogue' ? 'advantage' : 'normal',
+    rerollOnes: RACE_DEFS[hero.race].rerollOnes,
+  };
+}
+
+export const THREATS = ['trivial', 'easy', 'risky', 'dangerous', 'deadly'] as const;
+export type ThreatId = (typeof THREATS)[number];
+
+export interface FightOdds {
+  win: number;
+  death: number;
+}
+
+/** How many times the server plays a fight over to rate its Threat. */
+export const THREAT_SAMPLES = 60;
+
+/**
+ * Plays the fight over many times, each on its own seed and never the real
+ * one, to see how it tends to go for this Hero as it stands.
+ */
+export function fightOdds(seed: string, input: FightInput, samples = THREAT_SAMPLES): FightOdds {
+  let win = 0;
+  let death = 0;
+  for (let i = 0; i < samples; i++) {
+    const { outcome } = simulateFight(createRng(`${seed}:${i}`), input);
+    if (outcome === 'victory') win++;
+    else if (outcome === 'dead') death++;
+  }
+  return { win: win / samples, death: death / samples };
+}
+
+/** The Threat a Player sees on a Door's other side (v0 thresholds). */
+export function threatOf({ win, death }: FightOdds): ThreatId {
+  if (death >= 0.35) return 'deadly';
+  if (death >= 0.15 || win < 0.5) return 'dangerous';
+  if (death >= 0.05 || win < 0.8) return 'risky';
+  if (death > 0 || win < 0.97) return 'easy';
+  return 'trivial';
 }

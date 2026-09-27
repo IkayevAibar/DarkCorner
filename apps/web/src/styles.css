@@ -17,7 +17,13 @@
   --color-gold: #e0b86a;
   --color-blood: #7d1818;
   --color-blood-dark: #4f0e0e;
+}
 
+/*
+ * Tier colors are also read as var(--color-tier-<tier>) from code, which Tailwind
+ * can't see, so `static` keeps every one of them in the build.
+ */
+@theme static {
   --color-tier-common: #a8a39a;
   --color-tier-uncommon: #5fbf4f;
   --color-tier-rare: #4b8dff;

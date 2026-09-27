@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, type ClassId, type FightInput, type HeroCombat, XP_FOR_LEVEL, createRng, heroCombat, levelForXp,
-  monsterById, instantiate, restUses, simulateFight, spawnEncounter, startingHealth,
+  CLASS_DEFS, type ClassId, type FightInput, type HeroCombat, type StanceId, XP_FOR_LEVEL, abilityModifier, createRng, fightOdds,
+  fireBomb, heroCombat, levelForXp, monsterById, instantiate, proficiencyBonus, restUses, simulateFight, sneakCheck, sneakDc,
+  spawnEncounter, startingHealth, threatOf,
 } from '../src/index.js';
 
 /** A fresh level-N Hero of a Class in its Starter kit, with typical rolled scores. */
@@ -74,7 +75,7 @@ describe('simulateFight', () => {
     for (let i = 0; i < 3_000; i++) {
       const hero = { ...starter('wizard'), hp: 1 };
       const brute = [instantiate(monsterById('wolf'), 3, 'm0')];
-      const r = simulateFight(createRng(`saves-${i}`), { hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false, lucky: false } });
+      const r = simulateFight(createRng(`saves-${i}`), { hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false, lucky: false }, stance: 'bold' });
       const saves = r.events.filter((e) => e.type === 'down').length;
       if (saves > 0) {
         down++;
@@ -94,7 +95,7 @@ describe('simulateFight', () => {
       for (let i = 0; i < 3_000; i++) {
         const hero = { ...starter('wizard'), talents, hp: 1 };
         const brute = [instantiate(monsterById('wolf'), 3, 'm0')];
-        const r = simulateFight(createRng(`lucky-${i}`), { hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false, lucky } });
+        const r = simulateFight(createRng(`lucky-${i}`), { hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false, lucky }, stance: 'bold' });
         const used = r.events.filter((e) => e.type === 'reroll');
         expect(used.length).toBeLessThanOrEqual(1);
         if (used.length > 0) expect(r.runPowers.lucky).toBe(false);
@@ -116,5 +117,129 @@ describe('simulateFight', () => {
     const r = simulateFight(createRng('xp'), fightInput(starter('fighter'), 1, 'xp'));
     if (r.outcome === 'victory') expect(r.xp).toBeGreaterThan(0);
     expect(r.defeated.length).toBe(r.events.filter((e) => e.type === 'defeated').length);
+  });
+});
+
+describe('Stance, ambushes, bombs and Escape rolls', () => {
+  const pair = (floor = 3) => [instantiate(monsterById('wolf'), floor, 'm0'), instantiate(monsterById('goblin'), floor, 'm1')];
+  const input = (hero: HeroCombat, extra: Partial<FightInput> = {}): FightInput => ({
+    hero, monsters: pair(), uses: restUses(hero.class, hero.level), potions: 0, runPowers: { deathless: false, lucky: false }, ...extra,
+  });
+
+  it('lets a Bold Hero hit more and be hit more, and a Wary one be hit less', () => {
+    const rates = (stance: StanceId) => {
+      let heroHits = 0;
+      let heroSwings = 0;
+      let monsterHits = 0;
+      let monsterSwings = 0;
+      for (let i = 0; i < 400; i++) {
+        const hero = { ...starter('fighter', 3), hp: 999, maxHp: 999 };
+        for (const e of simulateFight(createRng(`stance-${stance}-${i}`), input(hero, { stance })).events) {
+          if (e.type !== 'attack') continue;
+          if (e.actor === 'hero') {
+            heroSwings++;
+            if (e.hit) heroHits++;
+          } else {
+            monsterSwings++;
+            if (e.hit) monsterHits++;
+          }
+        }
+      }
+      return { hero: heroHits / heroSwings, monsters: monsterHits / monsterSwings };
+    };
+    const bold = rates('bold');
+    const steady = rates('steady');
+    const wary = rates('wary');
+    expect(bold.hero).toBeGreaterThan(steady.hero + 0.08);
+    expect(bold.monsters).toBeGreaterThan(steady.monsters + 0.08);
+    expect(wary.monsters).toBeLessThan(steady.monsters - 0.05);
+    expect(wary.hero).toBeLessThan(steady.hero);
+  });
+
+  it('keeps whoever was surprised still for the first round', () => {
+    for (let i = 0; i < 60; i++) {
+      const ambushed = simulateFight(createRng(`ambush-${i}`), input(starter('fighter', 3), { surprise: 'hero' }));
+      expect(ambushed.events[1]).toEqual({ type: 'surprise', side: 'hero' });
+      const first = ambushed.events.find((e) => e.type === 'attack');
+      expect(first?.type === 'attack' && first.actor).not.toBe('hero');
+
+      const caught = simulateFight(createRng(`caught-${i}`), input(starter('fighter', 3), { surprise: 'monsters' }));
+      const opener = caught.events.find((e) => e.type === 'attack');
+      expect(opener?.type === 'attack' && opener.actor).toBe('hero');
+    }
+  });
+
+  it('opens with a Fire bomb that every monster takes alike', () => {
+    const bomb = fireBomb(3);
+    for (let i = 0; i < 30; i++) {
+      const r = simulateFight(createRng(`bomb-${i}`), input(starter('wizard', 3), { bomb }));
+      const burst = r.events[1]!;
+      expect(burst.type).toBe('burst');
+      if (burst.type !== 'burst') continue;
+      expect(burst.source).toBe('bomb');
+      expect(burst.targets).toHaveLength(2);
+      const damage = burst.targets[0]!.damage;
+      expect(burst.targets.every((x) => x.damage === damage)).toBe(true);
+      expect(damage).toBeGreaterThanOrEqual(2 + bomb.bonus);
+      expect(damage).toBeLessThanOrEqual(12 + bomb.bonus);
+    }
+    // A bomb that kills everything wins before anyone swings.
+    const rats = [instantiate(monsterById('giant-rat'), 1, 'm0')];
+    const r = simulateFight(createRng('overkill'), { ...input(starter('wizard', 1)), monsters: rats, bomb: { dice: 1, sides: 6, bonus: 50 } });
+    expect(r.outcome).toBe('victory');
+    expect(r.events.some((e) => e.type === 'attack')).toBe(false);
+  });
+
+  it('makes Escape rolls by Stance when badly hurt, and never when Bold', () => {
+    let tries = 0;
+    let escapes = 0;
+    for (let i = 0; i < 300; i++) {
+      const hero = { ...starter('rogue', 3), hp: 4 };
+      const bold = simulateFight(createRng(`run-${i}`), input(hero, { stance: 'bold' }));
+      expect(bold.events.some((e) => e.type === 'escape')).toBe(false);
+      const wary = simulateFight(createRng(`run-${i}`), input(hero, { stance: 'wary' }));
+      tries += wary.events.filter((e) => e.type === 'escape').length;
+      if (wary.outcome === 'escaped') {
+        escapes++;
+        expect(wary.hp).toBeGreaterThan(0);
+        expect(wary.events.at(-1)).toEqual({ type: 'end', outcome: 'escaped' });
+      }
+    }
+    expect(tries).toBeGreaterThan(100);
+    expect(escapes).toBeGreaterThan(50);
+  });
+});
+
+describe('before the fight', () => {
+  it('sets the Sneak Check: harder deeper and in numbers, heavy armor hinders, Rogues shine', () => {
+    expect(sneakDc(1, 1)).toBe(10);
+    expect(sneakDc(9, 3)).toBe(18);
+    const fighter = starter('fighter', 3);
+    expect(fighter.heavyArmor).toBe(true);
+    expect(sneakCheck(fighter, 3, 2).edge).toBe('disadvantage');
+    const rogue = starter('rogue', 5);
+    const check = sneakCheck(rogue, 3, 2);
+    expect(check).toMatchObject({ edge: 'advantage', dc: sneakDc(3, 2) });
+    expect(check.modifier).toBe(abilityModifier(rogue.scores.dex) + proficiencyBonus(5));
+    expect(sneakCheck({ ...rogue, escape: 10 }, 3, 2).modifier).toBe(check.modifier + 2);
+  });
+
+  it('rates Threat from how the fight tends to go', () => {
+    expect(threatOf({ win: 1, death: 0 })).toBe('trivial');
+    expect(threatOf({ win: 0.95, death: 0 })).toBe('easy');
+    expect(threatOf({ win: 0.9, death: 0.06 })).toBe('risky');
+    expect(threatOf({ win: 0.6, death: 0.2 })).toBe('dangerous');
+    expect(threatOf({ win: 0.3, death: 0.5 })).toBe('deadly');
+  });
+
+  it('plays a fight over the same way for the same seed, from Trivial rats to a Deadly Dragon', () => {
+    const dragon: FightInput = {
+      hero: starter('fighter', 1), monsters: [instantiate(monsterById('ancient-dragon'), 10, 'm0')],
+      uses: restUses('fighter', 1), potions: 0, runPowers: { deathless: false, lucky: false }, stance: 'bold',
+    };
+    expect(fightOdds('same', dragon)).toEqual(fightOdds('same', dragon));
+    expect(threatOf(fightOdds('dragon', dragon))).toBe('deadly');
+    const rat: FightInput = { ...dragon, hero: starter('fighter', 5), monsters: [instantiate(monsterById('giant-rat'), 1, 'm0')], stance: 'steady' };
+    expect(threatOf(fightOdds('rat', rat))).toBe('trivial');
   });
 });

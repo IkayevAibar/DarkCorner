@@ -1,20 +1,23 @@
 import type { Hero, HeroFloor, Player, Season } from '@prisma/client';
-import type { Direction, EventAction, Exit, LabyrinthResult, LabyrinthView } from '@dark/shared';
+import type { Direction, EventAction, Exit, FaceAction, Facing, LabyrinthResult, LabyrinthView, Stance } from '@dark/shared';
 import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
-  STAMINA_REFILL_MS, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
-  generateLabyrinth, proficiencyBonus, restUses,
+  STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
+  fightOdds, generateLabyrinth, proficiencyBonus, restUses, sneakCheck, threatOf,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { bossVictory } from './boss.js';
-import { enterEvent, eventAction, eventView } from './events.js';
+import { enterEvent, eventAction, eventView, withLuck } from './events.js';
 import { feed } from './feed.js';
-import { DAY_MS, type Outcome, emptyOutcome, fight, heroFloor, isCleared, markCleared, t } from './fights.js';
+import {
+  DAY_MS, type FightKind, type Outcome, combatOf, combatant, emptyOutcome, fight, fightInput, heroFloor, isCleared, markCleared,
+  monstersFor, t,
+} from './fights.js';
 import { portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
-import { type HeroWithItems, type Tx, lockHero } from './ledger.js';
+import { type HeroWithItems, type Tx, lockHero, stackTotal, takeStack } from './ledger.js';
 import { dropChest, dropGear, withGoldFind } from './loot.js';
 import { boostedXp, gainXp } from './progression.js';
 import { currentSeason } from './seasons.js';
@@ -71,6 +74,54 @@ function whereIs(hero: HeroWithItems, lab: Labyrinth): { floor: Floor; room: num
   return { floor: floorOf(lab, hero.floor), room: hero.room };
 }
 
+// ─── Monsters in the way ──────────────────────────────────────────────────
+
+/**
+ * The monsters this Hero would have to deal with in a Room right now, if any:
+ * a fight Room it hasn't cleared today, a Mini-boss nobody has beaten in the
+ * last day, or the Boss when its lair isn't quiet for this Hero.
+ */
+async function monstersWaiting(tx: Tx, hero: Hero, season: Season, floor: Floor, roomId: number, now: Date): Promise<FightKind | null> {
+  const type = floor.rooms[roomId]!.type;
+  if (type !== 'fight' && type !== 'miniboss' && type !== 'boss') return null;
+  if (type === 'miniboss') {
+    const claim = await tx.specialClaim.findUnique({ where: { seasonId_floor_room: { seasonId: season.id, floor: floor.number, room: roomId } } });
+    return claim && now.getTime() - claim.claimedAt.getTime() < DAY_MS ? null : 'miniboss';
+  }
+  const hf = await tx.heroFloor.findUnique({ where: { heroId_floor: { heroId: hero.id, floor: floor.number } } });
+  return isCleared(hf, roomId, now) ? null : type;
+}
+
+/**
+ * A Hero that is still marked as facing monsters that are gone (a Mini-boss someone
+ * else beat meanwhile) stops facing them, and the Room becomes its last safe one.
+ */
+async function stillFacing(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, now: Date): Promise<FightKind | null> {
+  if (!hero.facing || hero.room === null) return null;
+  const kind = await monstersWaiting(tx, hero, season, floor, hero.room, now);
+  if (!kind) {
+    await tx.hero.update({ where: { id: hero.id }, data: { facing: false, prevRoom: hero.room } });
+    hero.facing = false;
+    hero.prevRoom = hero.room;
+  }
+  return kind;
+}
+
+/** What the Player sees before choosing: who waits, how dangerous in each Stance, and the Sneak Check. */
+function facingView(hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: FightKind, now: Date): Facing {
+  const { monsters, spawnSeed } = monstersFor(season, hero, floor, roomId, kind, now);
+  const combat = combatOf(hero);
+  const rate = (stance: StanceId) =>
+    threatOf(fightOdds(`${spawnSeed}:threat:${stance}`, fightInput(hero, combat, monsters, { stance })));
+  const sneak = kind === 'fight' ? sneakCheck(combat, floor.number, monsters.length) : null;
+  return {
+    kind,
+    monsters: monsters.map((m) => combatant(m.key, m)),
+    threat: { bold: rate('bold'), steady: rate('steady'), wary: rate('wary') },
+    sneak: sneak ? { modifier: sneak.modifier, dc: sneak.dc, edge: sneak.edge ?? 'normal' } : null,
+  };
+}
+
 // ─── Seeing the Labyrinth ─────────────────────────────────────────────────
 
 function canPass(door: Door, hero: HeroWithItems): boolean {
@@ -113,6 +164,11 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     heals: hero.healUses,
     potions,
     portalScrolls: portals,
+    stance: hero.stance as Stance,
+    bombs: {
+      fire: stackTotal(hero, 'bomb-fire'),
+      smoke: stackTotal(hero, 'bomb-smoke'),
+    },
   };
   const base = {
     hero: heroPart,
@@ -169,6 +225,8 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     return { id, x: r.x, y: r.y, type: shown ? r.type : null, visited: seen.has(id), cleared: isCleared(hf, id, now) };
   });
 
+  const waiting = hero.facing ? await monstersWaiting(tx, hero, season, floor, room.id, now) : null;
+
   const graves = await tx.grave.findMany({
     where: { seasonId: season.id, floor: floor.number, room: room.id, expiresAt: { gt: now } },
     include: { items: { select: { id: true } } },
@@ -187,6 +245,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       restedAt: room.type === 'camp' && hero.campSince ? new Date(hero.campSince.getTime() + REST_MS).toISOString() : null,
       eventView: room.type === 'event' ? await eventView(tx, hero, season, floor, room.id, now) : null,
       vault: room.type === 'vault' ? await vaultView(tx, season, floor.number, room.id, now) : null,
+      facing: waiting ? facingView(hero, season, floor, room.id, waiting, now) : null,
     },
     exits,
     map: { rooms, doors: [...doors.values()] },
@@ -233,7 +292,9 @@ export async function labyrinthState(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const hero = await prisma.$transaction(async (tx) => {
     const h = await loadHero(tx, player, season.id);
-    await restIfDue(tx, h, new Date());
+    const now = new Date();
+    await restIfDue(tx, h, now);
+    if (h.location === 'LABYRINTH' && h.floor !== null) await stillFacing(tx, h, season, floorOf(labyrinthFor(season), h.floor), now);
     return h;
   });
   return respond(hero.id, season, emptyOutcome());
@@ -277,6 +338,9 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     const hero = await loadHero(tx, player, season.id);
     const { floor, room: from } = whereIs(hero, lab);
     await restIfDue(tx, hero, now);
+    if (await stillFacing(tx, hero, season, floor, now)) {
+      throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
+    }
     const exit = doorsOf(floor, from).find((d) => d.to === to);
     if (!exit) throw ApiError.badRequest('no_door', 'No Door leads there');
     if (!canPass(exit.door, hero)) {
@@ -298,39 +362,34 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
 
     const hf = await heroFloor(tx, hero.id, floor.number);
     if (!hf.seen.includes(to)) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: to } } });
+    // Monsters stop the Hero in the doorway: the Player sees them and chooses (face()).
+    // Any other Room becomes the last safe one.
+    const waiting = await monstersWaiting(tx, hero, season, floor, to, now);
     await tx.hero.update({
       where: { id: hero.id },
-      data: { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt, room: to, campSince: target.type === 'camp' ? now : null },
+      data: {
+        stamina: stamina.stamina - 1, staminaAt: stamina.savedAt, room: to, campSince: target.type === 'camp' ? now : null,
+        facing: waiting !== null, ...(waiting ? {} : { prevRoom: to }),
+      },
     });
     hero.room = to;
+    hero.facing = waiting !== null;
 
-    await resolveRoom(tx, hero, season, floor, to, hf, now, outcome);
+    if (!waiting) await resolveRoom(tx, hero, season, floor, to, hf, now, outcome);
     return hero.id;
   });
   return respond(heroId, season, outcome);
 }
 
+/** What a Room without monsters in the way does when the Hero walks in. */
 async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, roomId: number, hf: HeroFloor, now: Date, out: Outcome) {
   const room = floor.rooms[roomId]!;
   switch (room.type) {
-    case 'fight':
-      if (!isCleared(hf, roomId, now)) await fight(tx, hero, season, floor, roomId, 'fight', out);
+    case 'miniboss':
+      out.notices.push(t('The Mini-boss here lies defeated. It will be back tomorrow.', 'Мини-босс здесь повержен. Он вернётся завтра.'));
       break;
-    case 'miniboss': {
-      const claim = await tx.specialClaim.findUnique({ where: { seasonId_floor_room: { seasonId: season.id, floor: floor.number, room: roomId } } });
-      if (claim && now.getTime() - claim.claimedAt.getTime() < DAY_MS) {
-        out.notices.push(t('The Mini-boss here lies defeated. It will be back tomorrow.', 'Мини-босс здесь повержен. Он вернётся завтра.'));
-      } else {
-        await fight(tx, hero, season, floor, roomId, 'miniboss', out);
-      }
-      break;
-    }
     case 'boss':
-      if (isCleared(hf, roomId, now)) {
-        out.notices.push(t('The lair is quiet. The Dragon will be back tomorrow.', 'В логове тихо. Дракон вернётся завтра.'));
-      } else if ((await fight(tx, hero, season, floor, roomId, 'boss', out)) === 'victory') {
-        await bossVictory(tx, hero, season, floor.number, roomId, out);
-      }
+      out.notices.push(t('The lair is quiet. The Dragon will be back tomorrow.', 'В логове тихо. Дракон вернётся завтра.'));
       break;
     case 'waypoint':
       if (!hero.waypoints.includes(floor.number)) {
@@ -363,6 +422,80 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
     default:
       break;
   }
+}
+
+/**
+ * The Hero stands in a doorway facing monsters: fight them (maybe opening with a
+ * Fire bomb), Sneak past (a DEX Check, or sure with a Smoke bomb; failing it is
+ * an ambush), or Retreat to the last safe Room for free.
+ */
+export async function face(player: Player, action: FaceAction): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const lab = labyrinthFor(season);
+  const now = new Date();
+  const outcome = emptyOutcome();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await loadHero(tx, player, season.id);
+    const { floor, room } = whereIs(hero, lab);
+    const kind = await stillFacing(tx, hero, season, floor, now);
+    if (!kind) throw ApiError.conflict('not_facing', 'There is nothing here to face');
+
+    if (action.action === 'retreat') {
+      await tx.hero.update({ where: { id: hero.id }, data: { facing: false, room: hero.prevRoom ?? floor.landing } });
+      outcome.notices.push(t('You back away to the last safe Room.', 'Вы отступаете в последнюю безопасную комнату.'));
+      return hero.id;
+    }
+
+    if (action.action === 'sneak') {
+      if (kind !== 'fight') throw ApiError.conflict('no_sneaking', 'There is no sneaking past this one');
+      let slipped = true;
+      if (action.smoke) {
+        await takeStack(tx, hero, 'bomb-smoke', 1, 'no_bomb');
+        outcome.notices.push(t('Smoke fills the Room, and you slip through it.', 'Комнату заволакивает дым, и вы проскальзываете сквозь него.'));
+      } else {
+        const { monsters } = monstersFor(season, hero, floor, room, kind, now);
+        const input = sneakCheck(combatOf(hero), floor.number, monsters.length);
+        const seed = newSeed();
+        const rng = createRng(seed);
+        const { check: result } = await withLuck(tx, hero, t('Sneak past', 'Прокрасться мимо'), () => ({ check: check(rng, input) }), outcome);
+        await tx.rollLog.create({ data: { playerId: hero.playerId, kind: 'sneak', seed, detail: { floor: floor.number, room, success: result.success } } });
+        slipped = result.success;
+      }
+      if (slipped) {
+        await tx.hero.update({ where: { id: hero.id }, data: { facing: false } });
+        if (!action.smoke) outcome.notices.push(t('You slip past unseen.', 'Вы незаметно прокрадываетесь мимо.'));
+        return hero.id;
+      }
+      outcome.notices.push(t('They spot you! The monsters strike first.', 'Вас заметили! Монстры бьют первыми.'));
+      await fightHere(tx, hero, season, floor, room, kind, outcome, { surprise: 'hero' });
+      return hero.id;
+    }
+
+    if (action.bomb) await takeStack(tx, hero, 'bomb-fire', 1, 'no_bomb');
+    await fightHere(tx, hero, season, floor, room, kind, outcome, { bomb: action.bomb });
+    return hero.id;
+  });
+  return respond(heroId, season, outcome);
+}
+
+/** A fight in the Room the Hero faces; beating the Boss pays out on its own terms. */
+async function fightHere(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: FightKind, out: Outcome, opts: {
+  surprise?: 'hero';
+  bomb?: boolean;
+}) {
+  const result = await fight(tx, hero, season, floor, roomId, kind, out, opts);
+  if (kind === 'boss' && result === 'victory') await bossVictory(tx, hero, season, floor.number, roomId, out);
+}
+
+/** How the Hero fights from now on. */
+export async function setStance(player: Player, stance: StanceId): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await loadHero(tx, player, season.id);
+    await tx.hero.update({ where: { id: hero.id }, data: { stance } });
+    return hero.id;
+  });
+  return respond(heroId, season, emptyOutcome());
 }
 
 /** Whatever the Hero does in the Event room it stands in. */
@@ -503,6 +636,11 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
   const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
+    // Monsters in the Room guard its Graves: fight them, or Sneak past, first.
+    if (hero.location === 'LABYRINTH' && hero.floor !== null
+      && await stillFacing(tx, hero, season, floorOf(labyrinthFor(season), hero.floor), new Date())) {
+      throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
+    }
     // The Grave's row is the lock: two Heroes looting at once take turns.
     await tx.$queryRaw`SELECT id FROM "Grave" WHERE id = ${graveId} FOR UPDATE`;
     const grave = await tx.grave.findUnique({ where: { id: graveId }, include: { items: true } });

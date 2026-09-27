@@ -1,8 +1,10 @@
 import type { FastifyInstance } from 'fastify';
-import { type LabyrinthResult, enterRequestSchema, eventActionSchema, moveRequestSchema } from '@dark/shared';
+import {
+  type LabyrinthResult, enterRequestSchema, eventActionSchema, faceActionSchema, moveRequestSchema, stanceRequestSchema,
+} from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import {
-  actInEvent, ascend, descend, enterLabyrinth, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal,
+  actInEvent, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal, setStance,
 } from '../services/labyrinth.js';
 
 export async function labyrinthRoutes(app: FastifyInstance) {
@@ -20,6 +22,10 @@ export async function labyrinthRoutes(app: FastifyInstance) {
     return moveTo(request.player!, to);
   });
 
+  app.post('/api/labyrinth/face', guard, async (request): Promise<LabyrinthResult> =>
+    face(request.player!, faceActionSchema.parse(request.body)));
+  app.post('/api/labyrinth/stance', guard, async (request): Promise<LabyrinthResult> =>
+    setStance(request.player!, stanceRequestSchema.parse(request.body).stance));
   app.post('/api/labyrinth/descend', guard, async (request): Promise<LabyrinthResult> => descend(request.player!));
   app.post('/api/labyrinth/ascend', guard, async (request): Promise<LabyrinthResult> => ascend(request.player!));
   app.post('/api/labyrinth/leave', guard, async (request): Promise<LabyrinthResult> => leaveByWaypoint(request.player!));

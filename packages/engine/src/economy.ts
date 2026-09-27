@@ -90,6 +90,8 @@ export const SHOP_BASICS: { base: string; price: number }[] = [
   { base: 'scroll-identify', price: 20 },
   { base: 'scroll-portal', price: 50 },
   { base: 'scroll-protection', price: 200 },
+  { base: 'bomb-fire', price: 40 },
+  { base: 'bomb-smoke', price: 30 },
   { base: 'key-iron', price: 50 },
   { base: 'key-silver', price: 250 },
   { base: 'key-gold', price: 1000 },
@@ -97,7 +99,7 @@ export const SHOP_BASICS: { base: string; price: number }[] = [
 
 /** Buyback price for one of a stackable. */
 export const STACK_BUYBACK: Record<string, number> = {
-  potion: 6, 'scroll-identify': 5, 'scroll-portal': 12, 'scroll-protection': 50,
+  potion: 6, 'scroll-identify': 5, 'scroll-portal': 12, 'scroll-protection': 50, 'bomb-fire': 10, 'bomb-smoke': 7,
   'key-iron': 12, 'key-silver': 60, 'key-gold': 250,
   'chest-iron': 15, 'chest-silver': 80, 'chest-gold': 350,
   scrap: 2, essence: 10, soulstone: 60,

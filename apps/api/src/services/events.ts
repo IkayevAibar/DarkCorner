@@ -64,7 +64,7 @@ const hasLuck = (hero: HeroWithItems) =>
  * Runs a roll that hinges on a Check. If it fails and the Hero still has its
  * once-per-Run reroll, it rolls again and keeps the better.
  */
-async function withLuck<R extends { check: CheckResult | null }>(tx: Tx, hero: HeroWithItems, label: LocalizedText, roll: () => R, out: Outcome): Promise<R> {
+export async function withLuck<R extends { check: CheckResult | null }>(tx: Tx, hero: HeroWithItems, label: LocalizedText, roll: () => R, out: Outcome): Promise<R> {
   let result = roll();
   let rerolled: number | null = null;
   if (result.check && !result.check.success && hero.lucky && hasLuck(hero)) {

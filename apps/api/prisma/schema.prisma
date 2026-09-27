@@ -97,8 +97,12 @@ model Hero {
   location    HeroLocation @default(CITY)
   floor       Int?
   room        Int?
-  /// The last Room the Hero cleared, where surviving Death saves drags it back to.
+  /// The last safe Room: no monsters left in it. Retreating, escaping and surviving Death saves end here.
   prevRoom    Int?
+  /// Standing in a Room with monsters not fought yet: it must Fight, Sneak past or Retreat before going on.
+  facing      Boolean      @default(false)
+  /// How the Hero fights: bold, steady or wary.
+  stance      String       @default("steady")
   bestFloor   Int          @default(0)
   /// Floors whose Waypoint the Hero has reached.
   waypoints   Int[]        @default([])

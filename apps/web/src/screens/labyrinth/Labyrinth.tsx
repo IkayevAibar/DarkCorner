@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
-import { TIERS, type CheckView, type Direction, type Exit, type LabyrinthResult, type LabyrinthView } from '@dark/shared';
+import {
+  STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type LabyrinthResult, type LabyrinthView, type Threat,
+} from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
-import { Token } from '../../components/Token';
+import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
 import { play, playTier } from '../../sound';
@@ -213,6 +215,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
     play('step', { delay: 260 });
     void act(call);
   };
+  const facing = room.facing;
   const canLeave = (floor.number === 1 && room.type === 'landing') || (room.type === 'waypoint' && view.waypoints.includes(floor.number));
   const canAscend = floor.number > 1 && room.type === 'landing';
   const label = floor.number === 1 && room.type === 'landing' ? t('room.entrance') : t(`room.${room.type}`);
@@ -227,15 +230,22 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         <h2 className="m-0 flex items-baseline gap-2 px-1 font-head text-xl font-extrabold">
           {label}
           {room.cleared && room.type !== 'empty' && <span className="font-body text-sm font-normal text-muted">{t('room.cleared')}</span>}
+          {facing && <ThreatChip threat={facing.threat[view.hero.stance]} />}
         </h2>
         <div className="relative mx-1 aspect-square overflow-hidden rounded-[2px] border border-brass-dim bg-black shadow-[0_0_0_1px_#000,0_14px_34px_rgb(0_0_0/0.7)]">
           <img src={`/art/rooms/${room.map}.jpg`} alt="" className="absolute inset-0 size-full object-cover brightness-[0.78]" draggable={false} />
-          <div className="absolute inset-0 grid place-items-center">
-            <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={86} />
-          </div>
-          {exits.map((exit) => (
-            <DoorMarker key={exit.to} exit={exit} disabled={busy} onMove={move} />
-          ))}
+          {facing ? (
+            <FacingTokens facing={facing} view={view} />
+          ) : (
+            <>
+              <div className="absolute inset-0 grid place-items-center">
+                <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={86} />
+              </div>
+              {exits.map((exit) => (
+                <DoorMarker key={exit.to} exit={exit} disabled={busy} onMove={move} />
+              ))}
+            </>
+          )}
         </div>
         {room.restedAt && (
           <p className="m-0 px-1 text-sm text-muted">{t('lab.restedAt', { time: formatClock(locale, room.restedAt) })}</p>
@@ -251,6 +261,8 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
 
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
 
+      {facing && <FacingPanel facing={facing} view={view} busy={busy} act={act} />}
+
       {room.eventView && <EventPanel event={room.eventView} view={view} busy={busy} act={act} />}
 
       {view.hero.potions > 0 && view.hero.hp < view.hero.maxHp && (
@@ -259,12 +271,16 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         </button>
       )}
 
-      <section className="grid gap-2">
-        <span className="sub-heading">{t('lab.doors')}</span>
-        {exits.map((exit) => (
-          <ExitButton key={exit.to} exit={exit} disabled={busy} onMove={move} />
-        ))}
-      </section>
+      {facing ? (
+        <p className="m-0 px-1 text-sm text-muted">{t('facing.blocked')}</p>
+      ) : (
+        <section className="grid gap-2">
+          <span className="sub-heading">{t('lab.doors')}</span>
+          {exits.map((exit) => (
+            <ExitButton key={exit.to} exit={exit} disabled={busy} onMove={move} />
+          ))}
+        </section>
+      )}
 
       {(room.type === 'stairs' || canAscend || canLeave || view.hero.portalScrolls > 0) && (
         <section className="grid gap-2">
@@ -305,11 +321,118 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           current={room.id}
           banner={view.hero.banner}
           exits={exits}
-          disabled={busy}
+          disabled={busy || facing !== null}
           onMove={move}
         />
       </section>
     </>
+  );
+}
+
+const THREAT_TONE: Record<Threat, string> = {
+  trivial: 'border-line text-muted',
+  easy: 'border-tier-uncommon text-tier-uncommon',
+  risky: 'border-gold text-gold',
+  dangerous: 'border-tier-legendary text-tier-legendary',
+  deadly: 'border-tier-mythic text-tier-mythic',
+};
+
+function ThreatChip({ threat }: { threat: Threat }) {
+  const { t } = useI18n();
+  return <span className={`chip ml-auto self-center font-head font-extrabold ${THREAT_TONE[threat]}`}>{t(`threat.${threat}`)}</span>;
+}
+
+/** The monsters in the doorway above, the Hero below, as in the fight that may follow. */
+function FacingTokens({ facing, view }: { facing: Facing; view: LabyrinthView }) {
+  const text = useText();
+  const size = facing.monsters.length <= 2 ? 78 : 62;
+  return (
+    <>
+      <div className="absolute inset-x-3 top-[12%] flex flex-wrap justify-center gap-3">
+        {facing.monsters.map((m) => (
+          <div key={m.key} className="grid justify-items-center gap-1" style={{ width: Math.max(size, 72) }}>
+            <Token art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={m.boss && facing.monsters.length === 1 ? 118 : size} />
+            <span className="max-w-full truncate rounded-[2px] bg-black/65 px-1.5 font-head text-xs font-bold text-bone">{text(m.name)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="absolute inset-x-0 bottom-[8%] flex justify-center">
+        <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={78} />
+      </div>
+    </>
+  );
+}
+
+/** Monsters in the doorway: the Threat, the Stance, and Fight, Sneak past or Retreat. */
+function FacingPanel({ facing, view, busy, act }: { facing: Facing; view: LabyrinthView; busy: boolean; act: Act }) {
+  const { t } = useI18n();
+  const stance = view.hero.stance;
+  const threat = facing.threat[stance];
+  const { fire, smoke } = view.hero.bombs;
+  const sneak = facing.sneak;
+  const signed = (n: number) => (n >= 0 ? `+${n}` : `−${-n}`);
+  const choose = (sound: () => void, call: () => Promise<LabyrinthResult>) => {
+    sound();
+    void act(call);
+  };
+  return (
+    <section className="panel grid gap-3 p-3.5">
+      <div className="grid gap-1">
+        <span className="sub-heading">{t('facing.threat')}</span>
+        <p className="m-0 text-[15px]">
+          <strong className={THREAT_TONE[threat].split(' ')[1]}>{t(`threat.${threat}`)}.</strong> {t(`threat.${threat}.hint`)}
+        </p>
+      </div>
+
+      <div className="grid gap-1.5">
+        <span className="sub-heading">{t('stance.title')}</span>
+        <div className="grid grid-cols-3 gap-1.5">
+          {STANCES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={`btn btn-small grid gap-0.5 ${s === stance ? 'btn-primary' : ''}`}
+              disabled={busy}
+              aria-pressed={s === stance}
+              onClick={() => s !== stance && choose(() => play('equip'), () => api.setStance(s))}
+            >
+              <span>{t(`stance.${s}`)}</span>
+              <span className={`text-[11px] font-bold ${THREAT_TONE[facing.threat[s]].split(' ')[1]}`}>{t(`threat.${facing.threat[s]}`)}</span>
+            </button>
+          ))}
+        </div>
+        <p className="m-0 text-sm text-muted">{t(`stance.${stance}.blurb`)}</p>
+      </div>
+
+      <div className="grid gap-2">
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => choose(() => {}, () => api.face({ action: 'fight', bomb: false }))}>
+          {t('facing.fight')}
+        </button>
+        {fire > 0 && (
+          <button type="button" className="btn" disabled={busy} onClick={() => choose(() => play('latch'), () => api.face({ action: 'fight', bomb: true }))}>
+            {t('facing.bomb', { n: fire })}
+          </button>
+        )}
+        {sneak && (
+          <button type="button" className="btn grid gap-0.5" disabled={busy} onClick={() => choose(() => play('step', { volume: 0.5 }), () => api.face({ action: 'sneak', smoke: false }))}>
+            <span>{t('facing.sneak')}</span>
+            <span className="text-xs font-normal text-muted">
+              {t('facing.sneakOdds', { ability: t('ability.dex'), mod: signed(sneak.modifier), dc: sneak.dc })}
+              {sneak.edge !== 'normal' && ` · ${t(`facing.${sneak.edge}`)}`}
+            </span>
+          </button>
+        )}
+        {sneak && smoke > 0 && (
+          <button type="button" className="btn" disabled={busy} onClick={() => choose(() => play('miss', { rate: 0.7 }), () => api.face({ action: 'sneak', smoke: true }))}>
+            {t('facing.smoke', { n: smoke })}
+          </button>
+        )}
+        <button type="button" className="btn grid gap-0.5" disabled={busy} onClick={() => choose(() => play('step'), () => api.face({ action: 'retreat' }))}>
+          <span>{t('facing.retreat')}</span>
+          <span className="text-xs font-normal text-muted">{t('facing.retreatHint')}</span>
+        </button>
+      </div>
+    </section>
   );
 }
 

@@ -47,7 +47,7 @@ async function makeHero(name: string, asAdmin = false) {
 /** A Hero that can't lose to the Dragon, standing next to a Room. */
 const champion = (heroId: string, floor: number, room: number) => prisma.hero.update({
   where: { id: heroId },
-  data: { location: 'LABYRINTH', floor, room, prevRoom: room, level: 20, str: 30, maxHp: 99_999, hp: 99_999, stamina: 20, staminaAt: new Date() },
+  data: { location: 'LABYRINTH', floor, room, prevRoom: room, facing: false, level: 20, str: 30, maxHp: 99_999, hp: 99_999, stamina: 20, staminaAt: new Date() },
 });
 
 beforeAll(async () => {
@@ -100,7 +100,10 @@ describe('the Season', () => {
     const boss = roomOfType('boss');
     const first = await prisma.hero.findFirstOrThrow({ where: { name: 'Admira' } });
     await champion(first.id, boss.floor, boss.from);
-    const won = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/move', { to: boss.room })).json());
+    const facing = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/move', { to: boss.room })).json());
+    expect(facing.view.room?.facing).toMatchObject({ kind: 'boss', sneak: null });
+    expect((await post(admin, '/api/labyrinth/face', { action: 'sneak' })).json().error).toBe('no_sneaking');
+    const won = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/face', { action: 'fight' })).json());
     expect(won.fight?.outcome).toBe('victory');
     expect(won.loot.length).toBeGreaterThanOrEqual(3);
 
@@ -112,10 +115,12 @@ describe('the Season', () => {
     await champion(first.id, boss.floor, boss.from);
     const again = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/move', { to: boss.room })).json());
     expect(again.fight).toBeNull();
+    expect(again.view.room?.facing ?? null).toBeNull();
 
     const { cookie, hero } = await makeHero('Second');
     await champion(hero.id, boss.floor, boss.from);
     await post(cookie, '/api/labyrinth/move', { to: boss.room });
+    await post(cookie, '/api/labyrinth/face', { action: 'fight' });
     const podium = (await get(cookie, '/api/tavern')).json().season.podium;
     expect(podium.map((p: { hero: string; place: number }) => [p.place, p.hero])).toEqual([[1, 'Admira'], [2, 'Second']]);
 
