@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CityPreview } from './sandbox/CityPreview';
 import type { FightReplay } from '@dark/shared';
 import { useI18n } from '../i18n';
 import { FightPlayback } from './labyrinth/FightPlayback';
@@ -19,6 +20,7 @@ export function Sandbox() {
       <h1 className="sub-heading m-0">{t('sandbox.title')}</h1>
       <p className="m-0 text-muted">{t('sandbox.body')}</p>
 
+      <CityPreview />
       <h2 className="sub-heading m-0">Fights</h2>
       <div className="flex flex-wrap gap-2">
         {Object.entries(FIGHTS).map(([name, replay]) => (

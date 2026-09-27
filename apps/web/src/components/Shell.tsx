@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useMatch } from 'react-router';
 import type { Locale } from '@dark/shared';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
@@ -16,13 +16,16 @@ const TABS: { to: string; icon: IconName; label: MessageKey }[] = [
 
 /** Top bar, the current screen, and the tab bar a thumb can reach. */
 export function Shell() {
+  const city = useMatch('/city');
+  const sandbox = useMatch('/sandbox');
+  const wide = !!city || !!sandbox;
   return (
-    <div className="relative mx-auto min-h-dvh max-w-[560px] pb-[calc(var(--nav-h)+24px+env(safe-area-inset-bottom))]">
+    <div className={`relative mx-auto min-h-dvh ${wide ? 'max-w-[920px]' : 'max-w-[560px]'} pb-[calc(var(--nav-h)+24px+env(safe-area-inset-bottom))]`}>
       <TopBar />
       <main className="screen-in px-4 pt-3 pb-4">
         <Outlet />
       </main>
-      <TabBar />
+      <TabBar wide={wide} />
     </div>
   );
 }
@@ -133,10 +136,10 @@ function AccountSheet() {
   );
 }
 
-function TabBar() {
+function TabBar({ wide }: { wide: boolean }) {
   const { t } = useI18n();
   return (
-    <nav className="fixed bottom-0 left-1/2 z-30 grid h-[calc(var(--nav-h)+env(safe-area-inset-bottom))] w-full max-w-[560px] -translate-x-1/2 grid-cols-4 border-t border-brass-dim bg-[#0e0c0a] pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_30px_rgb(0_0_0/0.6)]">
+    <nav className={`fixed bottom-0 left-1/2 z-30 grid h-[calc(var(--nav-h)+env(safe-area-inset-bottom))] w-full ${wide ? 'max-w-[920px]' : 'max-w-[560px]'} -translate-x-1/2 grid-cols-4 border-t border-brass-dim bg-[#0e0c0a] pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_30px_rgb(0_0_0/0.6)]`}>
       {TABS.map((tab) => (
         <NavLink
           key={tab.to}
