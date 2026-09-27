@@ -1,0 +1,122 @@
+import type { ArmorType, OffHandType, WeaponType } from './classes.js';
+import { type Text, text } from './text.js';
+
+export const SLOTS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring1', 'ring2'] as const;
+export type Slot = (typeof SLOTS)[number];
+
+/** What kind of Item a base makes. Only gear rolls Tiers, Quality and Bonus stats. */
+export type ItemKind = 'gear' | 'potion' | 'scroll' | 'key' | 'chest' | 'material';
+
+interface BaseCommon {
+  id: string;
+  name: Text;
+  /** Icon key for the web (game-icons.net silhouettes later). */
+  icon: string;
+}
+
+export interface GearBase extends BaseCommon {
+  kind: 'gear';
+  /** Where it is worn. Rings fit either ring slot. */
+  slot: 'main' | 'off' | 'head' | 'body' | 'hands' | 'feet' | 'amulet' | 'ring';
+  /** Proficiency type for weapons, off-hands and body armor; absent = anyone. */
+  weapon?: WeaponType;
+  offHand?: OffHandType;
+  armor?: ArmorType;
+  /** Weapon damage: [dice, sides]. */
+  damage?: [number, number];
+  /** Armor Class this piece gives (body armor: its base AC). */
+  ac?: number;
+  /** Body armor: how much DEX modifier still counts (Infinity = all of it). */
+  maxDex?: number;
+}
+
+export interface StackBase extends BaseCommon {
+  kind: Exclude<ItemKind, 'gear'>;
+  maxStack: number;
+}
+
+export type ItemBase = GearBase | StackBase;
+
+const gear = (b: Omit<GearBase, 'kind'>): GearBase => ({ kind: 'gear', ...b });
+const stack = (b: StackBase): StackBase => b;
+
+export const BASES: ItemBase[] = [
+  // Weapons
+  gear({ id: 'greatsword', name: text('Greatsword', 'Двуручный меч'), icon: 'sword', slot: 'main', weapon: 'heavy', damage: [2, 6] }),
+  gear({ id: 'greataxe', name: text('Greataxe', 'Секира'), icon: 'axe', slot: 'main', weapon: 'heavy', damage: [1, 12] }),
+  gear({ id: 'maul', name: text('Maul', 'Двуручный молот'), icon: 'mace', slot: 'main', weapon: 'heavy', damage: [2, 6] }),
+  gear({ id: 'longsword', name: text('Longsword', 'Длинный меч'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8] }),
+  gear({ id: 'saber', name: text('Saber', 'Сабля'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8] }),
+  gear({ id: 'rapier', name: text('Rapier', 'Рапира'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8] }),
+  gear({ id: 'dagger', name: text('Dagger', 'Кинжал'), icon: 'dagger', slot: 'main', weapon: 'dagger', damage: [1, 4] }),
+  gear({ id: 'shortbow', name: text('Shortbow', 'Короткий лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 6] }),
+  gear({ id: 'longbow', name: text('Longbow', 'Длинный лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 8] }),
+  gear({ id: 'crossbow', name: text('Crossbow', 'Арбалет'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 10] }),
+  gear({ id: 'mace', name: text('Mace', 'Булава'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 6] }),
+  gear({ id: 'warhammer', name: text('Warhammer', 'Боевой молот'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 8] }),
+  gear({ id: 'staff', name: text('Staff', 'Посох'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 6] }),
+  gear({ id: 'wand', name: text('Wand', 'Жезл'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 4] }),
+
+  // Off-hands
+  gear({ id: 'shield', name: text('Shield', 'Щит'), icon: 'shield', slot: 'off', offHand: 'shield', ac: 2 }),
+  gear({ id: 'orb', name: text('Orb', 'Сфера'), icon: 'orb', slot: 'off', offHand: 'orb' }),
+  gear({ id: 'holy-symbol', name: text('Holy symbol', 'Священный символ'), icon: 'holy-symbol', slot: 'off', offHand: 'holy-symbol' }),
+
+  // Body armor: base AC and how much DEX still counts
+  gear({ id: 'plate', name: text('Plate armor', 'Латы'), icon: 'armor', slot: 'body', armor: 'heavy', ac: 18, maxDex: 0 }),
+  gear({ id: 'chainmail', name: text('Chain mail', 'Кольчуга'), icon: 'armor', slot: 'body', armor: 'heavy', ac: 16, maxDex: 0 }),
+  gear({ id: 'breastplate', name: text('Breastplate', 'Кираса'), icon: 'armor', slot: 'body', armor: 'medium', ac: 14, maxDex: 2 }),
+  gear({ id: 'scale', name: text('Scale mail', 'Чешуйчатый доспех'), icon: 'armor', slot: 'body', armor: 'medium', ac: 14, maxDex: 2 }),
+  gear({ id: 'leather', name: text('Leather armor', 'Кожаный доспех'), icon: 'armor', slot: 'body', armor: 'light', ac: 11, maxDex: Infinity }),
+  gear({ id: 'studded', name: text('Studded leather', 'Проклёпанная кожа'), icon: 'armor', slot: 'body', armor: 'light', ac: 12, maxDex: Infinity }),
+  gear({ id: 'robes', name: text('Robes', 'Мантия'), icon: 'robes', slot: 'body', armor: 'robes', ac: 10, maxDex: Infinity }),
+
+  // Anyone can wear these
+  gear({ id: 'helm', name: text('Helm', 'Шлем'), icon: 'helm', slot: 'head', ac: 1 }),
+  gear({ id: 'hood', name: text('Hood', 'Капюшон'), icon: 'hood', slot: 'head' }),
+  gear({ id: 'gauntlets', name: text('Gauntlets', 'Латные перчатки'), icon: 'gloves', slot: 'hands' }),
+  gear({ id: 'gloves', name: text('Gloves', 'Перчатки'), icon: 'gloves', slot: 'hands' }),
+  gear({ id: 'boots', name: text('Boots', 'Сапоги'), icon: 'boots', slot: 'feet' }),
+  gear({ id: 'amulet', name: text('Amulet', 'Амулет'), icon: 'amulet', slot: 'amulet' }),
+  gear({ id: 'ring', name: text('Ring', 'Кольцо'), icon: 'ring', slot: 'ring' }),
+
+  // Stackables
+  stack({ id: 'potion', kind: 'potion', name: text('Healing potion', 'Зелье лечения'), icon: 'potion', maxStack: 10 }),
+  stack({ id: 'scroll-identify', kind: 'scroll', name: text('Scroll of Identify', 'Свиток опознания'), icon: 'scroll', maxStack: 20 }),
+  stack({ id: 'scroll-portal', kind: 'scroll', name: text('Town Portal scroll', 'Свиток городского портала'), icon: 'scroll', maxStack: 10 }),
+  stack({ id: 'scroll-protection', kind: 'scroll', name: text('Protection scroll', 'Свиток защиты'), icon: 'scroll', maxStack: 10 }),
+  stack({ id: 'key-iron', kind: 'key', name: text('Iron key', 'Железный ключ'), icon: 'key', maxStack: 20 }),
+  stack({ id: 'key-silver', kind: 'key', name: text('Silver key', 'Серебряный ключ'), icon: 'key', maxStack: 20 }),
+  stack({ id: 'key-gold', kind: 'key', name: text('Gold key', 'Золотой ключ'), icon: 'key', maxStack: 20 }),
+  stack({ id: 'chest-iron', kind: 'chest', name: text('Iron chest', 'Железный сундук'), icon: 'chest', maxStack: 10 }),
+  stack({ id: 'chest-silver', kind: 'chest', name: text('Silver chest', 'Серебряный сундук'), icon: 'chest', maxStack: 10 }),
+  stack({ id: 'chest-gold', kind: 'chest', name: text('Gold chest', 'Золотой сундук'), icon: 'chest', maxStack: 10 }),
+  stack({ id: 'scrap', kind: 'material', name: text('Scrap', 'Лом'), icon: 'scrap', maxStack: 999 }),
+  stack({ id: 'essence', kind: 'material', name: text('Essence', 'Эссенция'), icon: 'essence', maxStack: 999 }),
+  stack({ id: 'soulstone', kind: 'material', name: text('Soulstone', 'Камень душ'), icon: 'soulstone', maxStack: 999 }),
+];
+
+const BY_ID = new Map(BASES.map((b) => [b.id, b]));
+
+export function baseById(id: string): ItemBase {
+  const base = BY_ID.get(id);
+  if (!base) throw new Error(`unknown item base "${id}"`);
+  return base;
+}
+
+export const GEAR_BASES = BASES.filter((b): b is GearBase => b.kind === 'gear');
+
+export const isGear = (base: ItemBase): base is GearBase => base.kind === 'gear';
+
+/** Stackables have no Tier; this color hint says what a Chest or Key opens up to. */
+export const STACK_TIER_HINT: Record<string, 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'> = {
+  'key-iron': 'uncommon', 'chest-iron': 'uncommon',
+  'key-silver': 'rare', 'chest-silver': 'rare',
+  'key-gold': 'epic', 'chest-gold': 'epic',
+  essence: 'rare', soulstone: 'legendary',
+};
+
+/** The worn slots a base can go into. */
+export function slotsFor(base: GearBase): Slot[] {
+  return base.slot === 'ring' ? ['ring1', 'ring2'] : [base.slot];
+}
