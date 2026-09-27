@@ -66,4 +66,56 @@ export const RIDDLES: RiddleDef[] = [
     question: text('It goes up and never comes down.', 'Растёт, а назад не убывает.'),
     answer: text('Age', 'Возраст'),
   },
+  {
+    question: text('It belongs to you, yet others use it more than you do.', 'Это принадлежит тебе, но другие пользуются этим чаще, чем ты.'),
+    answer: text('Your name', 'Имя'),
+  },
+  {
+    question: text('You can break it without ever touching it.', 'Его можно нарушить, даже к нему не прикоснувшись.'),
+    answer: text('A promise', 'Обещание'),
+  },
+  {
+    question: text('Feed me and I live; give me a drink and I die.', 'Накорми меня — и я живу, напои — и я умру.'),
+    answer: text('Fire', 'Огонь'),
+  },
+  {
+    question: text('It flies without wings and weeps without eyes.', 'Без крыльев летит, без глаз плачет.'),
+    answer: text('A cloud', 'Туча'),
+  },
+  {
+    question: text('It has no hands and no feet, yet it opens the gates.', 'Без рук, без ног, а ворота открывает.'),
+    answer: text('The wind', 'Ветер'),
+  },
+  {
+    question: text('Not sea and not land: no ship sails it, and no one can walk it.', 'Не море и не земля: корабли не плавают, а ходить нельзя.'),
+    answer: text('A swamp', 'Болото'),
+  },
+  {
+    question: text('The same color in winter and in summer.', 'Зимой и летом — одним цветом.'),
+    answer: text('A fir tree', 'Ёлка'),
+  },
+  {
+    question: text('A hundred coats, and not one button.', 'Сто одёжек — и все без застёжек.'),
+    answer: text('A cabbage', 'Капуста'),
+  },
+  {
+    question: text('An old man in a hundred coats: whoever undresses him sheds tears.', 'Сидит дед, во сто шуб одет; кто его раздевает, тот слёзы проливает.'),
+    answer: text('An onion', 'Лук'),
+  },
+  {
+    question: text('Fire cannot burn it, and water cannot drown it.', 'В огне не горит, в воде не тонет.'),
+    answer: text('Ice', 'Лёд'),
+  },
+  {
+    question: text('It grows head down, and not in summer but in winter.', 'Растёт она вниз головою, не летом растёт, а зимою.'),
+    answer: text('An icicle', 'Сосулька'),
+  },
+  {
+    question: text('Two brothers live across the road from each other and never see each other.', 'Два брата через дорогу живут, а друг друга не видят.'),
+    answer: text('Your eyes', 'Глаза'),
+  },
+  {
+    question: text('The poor have it, the rich need it, and if you eat it you die.', 'У бедных это есть, богатым это нужно, а съешь это — умрёшь.'),
+    answer: text('Nothing', 'Ничего'),
+  },
 ];
