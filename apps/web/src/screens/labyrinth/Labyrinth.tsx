@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
-import type { Direction, Exit, LabyrinthResult, LabyrinthView } from '@dark/shared';
+import type { CheckView, Direction, Exit, LabyrinthResult, LabyrinthView } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
@@ -9,6 +9,7 @@ import { Token } from '../../components/Token';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
 import { formatClock, formatDuration, useAt, useNow } from '../../time';
+import { EventPanel } from './EventPanel';
 import { FightPlayback } from './FightPlayback';
 import { FloorMap } from './FloorMap';
 
@@ -112,7 +113,16 @@ export function Labyrinth() {
 }
 
 const hasNews = (r: LabyrinthResult) =>
-  r.fight !== null || r.loot.length > 0 || r.gold > 0 || r.xp > 0 || r.levelUp !== null || r.died || r.notices.length > 0;
+  r.fight !== null || r.loot.length > 0 || r.gold > 0 || r.xp > 0 || r.levelUp !== null || r.died || r.notices.length > 0
+  || r.checks.length > 0 || r.duel !== null;
+
+/** Drinks one Healing potion from the Bag, then shows the Labyrinth again. */
+async function drinkPotion(): Promise<LabyrinthResult> {
+  const me = await api.myHero();
+  const potion = me.hero?.bag.find((i) => i.base === 'potion');
+  if (potion) await api.drink(potion.id);
+  return api.labyrinth();
+}
 
 function HeroStatus({ view }: { view: LabyrinthView }) {
   const { t } = useI18n();
@@ -219,6 +229,14 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
       </section>
 
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
+
+      {room.eventView && <EventPanel event={room.eventView} view={view} busy={busy} act={act} />}
+
+      {view.hero.potions > 0 && view.hero.hp < view.hero.maxHp && (
+        <button type="button" className="btn" disabled={busy} onClick={() => void act(drinkPotion)}>
+          {t('lab.drink', { n: view.hero.potions })}
+        </button>
+      )}
 
       <section className="grid gap-2">
         <span className="sub-heading">{t('lab.doors')}</span>
@@ -393,9 +411,42 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
           </div>
         </div>
       )}
+      {result.duel && (
+        <p className="m-0 font-head text-[15px] font-bold">
+          {t('report.duel', { a: result.duel.hero, b: result.duel.goblin })}
+        </p>
+      )}
+      {result.checks.map((c, i) => <CheckLine key={i} check={c} />)}
       {result.notices.map((line, i) => (
         <p key={i} className="m-0 text-[15px]">{text(line)}</p>
       ))}
     </section>
+  );
+}
+
+/** One Check as it was rolled: the d20, the bonus, the total against the difficulty. */
+function CheckLine({ check }: { check: CheckView }) {
+  const { t } = useI18n();
+  const text = useText();
+  const mod = check.modifier >= 0 ? `+ ${check.modifier}` : `− ${-check.modifier}`;
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className={`grid size-10 shrink-0 place-items-center rounded-full border-2 font-head text-lg font-extrabold ${
+          check.natural === 20 ? 'border-gold text-gold' : check.natural === 1 ? 'border-tier-mythic text-tier-mythic' : 'border-bone/60'
+        }`}
+      >
+        {check.natural}
+      </span>
+      <span className="grid text-sm">
+        <span className="font-bold">{text(check.label)}</span>
+        <span className="text-muted">
+          d20 {check.natural} {mod} = {check.total} · {t('report.dc', { n: check.dc })} ·{' '}
+          <span className={check.success ? 'text-tier-uncommon' : 'text-tier-mythic'}>{check.success ? t('report.success') : t('report.failure')}</span>
+          {check.dice.length > 1 && ` · ${t('report.dice', { list: check.dice.join(', ') })}`}
+          {check.rerolled !== null && ` · ${t('report.rerolled', { n: check.rerolled })}`}
+        </span>
+      </span>
+    </div>
   );
 }

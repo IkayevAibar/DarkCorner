@@ -197,6 +197,7 @@ function effectOn(key: string, event: FightEventView | null): Effect | null {
     case 'heal':
       return event.actor === key ? { float: { text: `+${event.amount}`, tone: 'heal' } } : null;
     case 'death-save':
+    case 'reroll':
       return key === 'hero' ? { d20: event.natural } : null;
     case 'down':
       return key === 'hero' ? { shake: true } : null;
@@ -213,6 +214,7 @@ function pause(event: FightEventView): number {
     case 'burst': return 1000;
     case 'down': return 1100;
     case 'death-save': return 1100;
+    case 'reroll': return 900;
     case 'rise': return 1000;
     case 'defeated': return 520;
     default: return 700;
@@ -249,6 +251,7 @@ function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: 
     case 'down': return t('fight.down', { name: n('hero') });
     case 'death-save': return t('fight.deathSave', { d: e.natural, s: e.successes, f: e.failures });
     case 'rise': return t('fight.rise', { name: n('hero'), n: e.hp });
+    case 'reroll': return t('fight.reroll', { name: n('hero'), d: e.natural });
     case 'end': return null;
   }
 }

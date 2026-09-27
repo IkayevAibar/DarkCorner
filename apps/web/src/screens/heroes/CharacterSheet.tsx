@@ -200,9 +200,19 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
             {t('item.unequip')}
           </button>
         )}
-        {place !== 'worn' && wearable && (
+        {place !== 'worn' && wearable && item.identified && (
           <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(() => api.equipItem(item.id))}>
             {t('item.equip')}
+          </button>
+        )}
+        {wearable && !item.identified && (
+          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(() => api.identify(item.id))}>
+            {t('loot.identifyFree')}
+          </button>
+        )}
+        {item.kind === 'potion' && (
+          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(() => api.drink(item.id))}>
+            {t('item.drink')}
           </button>
         )}
         {place === 'bag' && (

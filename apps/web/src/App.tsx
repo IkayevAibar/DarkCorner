@@ -4,7 +4,12 @@ import { Admin } from './screens/Admin';
 import { LoadError, Loading, SignIn, Waiting } from './screens/Gate';
 import { Heroes } from './screens/heroes/Heroes';
 import { Labyrinth } from './screens/labyrinth/Labyrinth';
-import { City, Loot } from './screens/Placeholders';
+import { City } from './screens/city/City';
+import { Forge } from './screens/city/Forge';
+import { Market } from './screens/city/Market';
+import { Shop } from './screens/city/Shop';
+import { Temple } from './screens/city/Temple';
+import { Loot } from './screens/loot/Loot';
 import { Sandbox } from './screens/Sandbox';
 import { useSession } from './session';
 
@@ -20,6 +25,10 @@ export function App() {
     <Routes>
       <Route element={<Shell />}>
         <Route path="/city" element={<City />} />
+        <Route path="/city/shop" element={<Shop />} />
+        <Route path="/city/forge" element={<Forge />} />
+        <Route path="/city/market" element={<Market />} />
+        <Route path="/city/temple" element={<Temple />} />
         <Route path="/labyrinth" element={<Labyrinth />} />
         <Route path="/loot" element={<Loot />} />
         <Route path="/heroes" element={<Heroes />} />

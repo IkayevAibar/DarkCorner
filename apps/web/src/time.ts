@@ -24,12 +24,13 @@ export function useAt(iso: string | null | undefined, callback: () => void): voi
   }, [iso]);
 }
 
-/** "12:05" under an hour, "3h 20m" above (localized). */
+/** "12:05" under an hour, "3h 20m" under two days, "6d 23h" above (localized). */
 export function formatDuration(t: I18n['t'], ms: number): string {
   const total = Math.max(0, Math.ceil(ms / 1000));
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
+  if (h >= 48) return t('time.dh', { d: Math.floor(h / 24), h: h % 24 });
   if (h > 0) return t('time.hm', { h, m });
   return `${m}:${String(s).padStart(2, '0')}`;
 }

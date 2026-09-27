@@ -1,7 +1,8 @@
 import type {
-  AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, ApiErrorBody, AuthStatus, CreateHeroRequest, CreationOptions,
-  DevLoginRequest, HeroDraft, HeroResponse, HeroView, LabyrinthResult, LogoutResponse, MeResponse, MoveItemRequest,
-  MyHeroResponse, SlotId, UpdateMeRequest,
+  AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, ApiErrorBody, AuthStatus, BlessingIdView, CreateHeroRequest,
+  CreationOptions, DevLoginRequest, EventAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
+  LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
+  SalvageResult, ShopView, SlotId, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -58,4 +59,25 @@ export const api = {
   leaveLabyrinth: () => request<LabyrinthResult>('POST', '/api/labyrinth/leave'),
   readPortal: () => request<LabyrinthResult>('POST', '/api/labyrinth/portal'),
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
+  eventAction: (action: EventAction) => request<LabyrinthResult>('POST', '/api/labyrinth/event', action),
+
+  identify: (id: string) => request<IdentifyResult>('POST', `/api/items/${encodeURIComponent(id)}/identify`),
+  openChest: (id: string) => request<OpenChestResult>('POST', `/api/items/${encodeURIComponent(id)}/open`),
+  drink: (id: string) => request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/drink`),
+  sell: (id: string, quantity?: number) => request<TradeResult>('POST', `/api/items/${encodeURIComponent(id)}/sell`, { quantity }),
+  forgeQuote: (id: string) => request<ForgeQuote>('GET', `/api/items/${encodeURIComponent(id)}/forge`),
+  upgrade: (id: string, protect: boolean) => request<UpgradeResult>('POST', `/api/items/${encodeURIComponent(id)}/upgrade`, { protect }),
+  reforge: (id: string) => request<ReforgeResult>('POST', `/api/items/${encodeURIComponent(id)}/reforge`),
+  salvage: (id: string) => request<SalvageResult>('POST', `/api/items/${encodeURIComponent(id)}/salvage`),
+
+  shop: () => request<ShopView>('GET', '/api/shop'),
+  shopBuy: (offer: string, quantity = 1) => request<TradeResult>('POST', '/api/shop/buy', { offer, quantity }),
+  forge: () => request<ForgeView>('GET', '/api/forge'),
+  craft: (recipe: string, quantity = 1) => request<HeroResponse>('POST', '/api/forge/craft', { recipe, quantity }),
+  market: () => request<MarketView>('GET', '/api/market'),
+  list: (itemId: string, price: number) => request<MarketView>('POST', '/api/market/list', { itemId, price }),
+  buyListing: (id: string) => request<MarketView>('POST', `/api/market/${encodeURIComponent(id)}/buy`),
+  cancelListing: (id: string) => request<MarketView>('POST', `/api/market/${encodeURIComponent(id)}/cancel`),
+  temple: () => request<TempleView>('GET', '/api/temple'),
+  bless: (blessing: BlessingIdView) => request<TempleView>('POST', '/api/temple/bless', { blessing }),
 };
