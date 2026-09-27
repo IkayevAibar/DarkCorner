@@ -6,6 +6,7 @@ import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
 import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
 import { buzz, play } from '../../sound';
+import { roomArt } from './roomArt';
 
 /**
  * Plays a fight replay back, event by event.
@@ -13,7 +14,12 @@ import { buzz, play } from '../../sound';
  * Stand-in until Codex's PixiJS FightScene lands (docs/tasks/codex-03-fight-scene.md):
  * same props, so swapping it is a one-line change in Labyrinth.tsx.
  */
-export function FightPlayback({ replay, onDone }: { replay: FightReplay; onDone: () => void }) {
+export function FightPlayback({ replay, room, onDone }: {
+  replay: FightReplay;
+  /** The Room the fight is in, so its map turns as it does in the Room view. */
+  room?: { floor: number; room: number };
+  onDone: () => void;
+}) {
   const { t } = useI18n();
   const text = useText();
   const [step, setStep] = useState(0);
@@ -42,7 +48,7 @@ export function FightPlayback({ replay, onDone }: { replay: FightReplay; onDone:
     <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/85 p-3" role="dialog" aria-modal="true" aria-label={t('fight.title')}>
       <div className="grid w-full max-w-[540px] gap-3">
         <div className="relative aspect-square overflow-hidden rounded-[2px] border border-brass-dim shadow-[0_0_0_1px_#000,0_18px_40px_rgb(0_0_0/0.8)]">
-          <img src={`/art/rooms/${replay.map}.jpg`} alt="" className="absolute inset-0 size-full object-cover brightness-[0.62]" draggable={false} />
+          <img {...roomArt(replay.map, room)} alt="" className="absolute inset-0 size-full object-cover brightness-[0.62]" draggable={false} />
           <div className="absolute inset-x-3 top-[9%] flex flex-wrap justify-center gap-x-3 gap-y-5">
             {replay.monsters.map((m) => (
               <Fighter

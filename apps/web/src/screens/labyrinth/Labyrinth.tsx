@@ -16,6 +16,7 @@ import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { EventPanel } from './EventPanel';
 import { EliteBadge, FightPlayback } from './FightPlayback';
 import { FloorMap } from './FloorMap';
+import { roomArt } from './roomArt';
 
 type Act = (call: () => Promise<LabyrinthResult>) => Promise<void>;
 
@@ -111,7 +112,13 @@ export function Labyrinth() {
       ) : (
         <Inside view={view} busy={busy} error={error} act={act} />
       )}
-      {playing?.fight && <FightPlayback replay={playing.fight} onDone={fightOver} />}
+      {playing?.fight && (
+        <FightPlayback
+          replay={playing.fight}
+          room={view?.floor && view.room ? { floor: view.floor.number, room: view.room.id } : undefined}
+          onDone={fightOver}
+        />
+      )}
     </div>
   );
 }
@@ -257,7 +264,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           {facing && <ThreatChip threat={facing.threat[view.hero.stance]} />}
         </h2>
         <div className="relative mx-1 aspect-square overflow-hidden rounded-[2px] border border-brass-dim bg-black shadow-[0_0_0_1px_#000,0_14px_34px_rgb(0_0_0/0.7)]">
-          <img src={`/art/rooms/${room.map}.jpg`} alt="" className="absolute inset-0 size-full object-cover brightness-[0.78]" draggable={false} />
+          <img {...roomArt(room.map, view.floor ? { floor: view.floor.number, room: room.id } : undefined)} alt="" className="absolute inset-0 size-full object-cover brightness-[0.78]" draggable={false} />
           {facing ? (
             <FacingTokens facing={facing} view={view} />
           ) : (

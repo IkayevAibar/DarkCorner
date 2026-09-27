@@ -6,7 +6,7 @@ Week 6 of the [Season 0 plan](plan-season-0.md): a short test Season with 2–3 
 
 - [x] Merge the week branches into `main`, plus any Codex branches that are ready. Done 2026-09-27: `main` carries the whole stack and Codex's PRs #1–#3, and the server deploys `main` within 2 minutes.
 - [x] The server is set up (see [deploy.md](deploy.md)): live at https://dark.ugolok.world since 2026-09-27, with nightly database dumps. The owner is the admin.
-- [ ] `DISCORD_WEBHOOK_URL` is in `/opt/darkcorner/.env`, so Broadcasts reach Discord. The Season tab warns when it is missing.
+- [x] `DISCORD_WEBHOOK_URL` is in `/opt/darkcorner/.env`, so Broadcasts reach Discord (set 2026-09-27). The Season tab warns when it is missing.
 - [x] The hub shows the game's card (live since 2026-09-27). `GET /api/sso/summary` sends it the Hero's level, deepest Floor and best Item.
 - [ ] The testers have signed in once through the hub, and are approved on the Players tab.
 
