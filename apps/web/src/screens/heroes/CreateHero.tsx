@@ -1,6 +1,6 @@
 import { type ReactNode, useState } from 'react';
 import {
-  ABILITY_IDS, type AbilitySetView, type ClassId, type CreationOptions, type HeroDraft, type RaceId, type TalentId,
+  ABILITY_IDS, type AbilityId, type AbilitySetView, type ClassId, type CreationOptions, type HeroDraft, type RaceId, type TalentId,
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { useText } from '../../components/items/ItemChip';
@@ -41,6 +41,9 @@ export function CreateHero({ options, initialDraft, onCreated }: {
   const [error, setError] = useState<string | null>(null);
 
   const picks = options.races.find((r) => r.id === race)?.talentPicks ?? 1;
+  const classOption = options.classes.find((c) => c.id === cls);
+  // What a new Player should look for in a roll: the Class's own ability, and CON for health.
+  const keyAbilities: AbilityId[] = classOption ? [classOption.primary, 'con'] : [];
   const portraits = options.portraits.filter(
     (p) => (p.race === race && p.class === cls) || (p.race === null && p.class === null),
   );
@@ -135,8 +138,13 @@ export function CreateHero({ options, initialDraft, onCreated }: {
       {current === 'abilities' && (
         <div className="grid gap-3">
           <p className="m-0 text-sm text-muted">{t('create.rollHint')}</p>
+          {classOption && (
+            <p className="m-0 text-sm">
+              {t('create.keyAbilities', { cls: text(classOption.name), ability: t(`ability.${classOption.primary}`) })}
+            </p>
+          )}
           {draft?.sets.map((set, i) => (
-            <AbilitySetCard key={i} set={set} selected={i === setIndex} onClick={() => setSetIndex(i)} />
+            <AbilitySetCard key={i} set={set} keys={keyAbilities} selected={i === setIndex} onClick={() => setSetIndex(i)} />
           ))}
           <button type="button" className={`btn ${draft ? '' : 'btn-primary'}`} disabled={busy || (draft !== null && draft.rerollsLeft === 0)} onClick={() => void roll()}>
             {!draft ? t('create.roll') : draft.rerollsLeft > 0 ? t('create.reroll', { n: draft.rerollsLeft }) : t('create.noRerolls')}
@@ -212,7 +220,7 @@ export function CreateHero({ options, initialDraft, onCreated }: {
               </span>
             </div>
           </div>
-          <AbilitySetCard set={draft.sets[setIndex]!} selected />
+          <AbilitySetCard set={draft.sets[setIndex]!} keys={keyAbilities} selected />
           <span className="text-sm">
             {talents.map((id) => text(options.talents.find((x) => x.id === id)!.name)).join(' · ')}
           </span>
@@ -263,7 +271,13 @@ function Choice({ selected, onClick, title, body, aside }: {
   );
 }
 
-function AbilitySetCard({ set, selected, onClick }: { set: AbilitySetView; selected: boolean; onClick?: () => void }) {
+function AbilitySetCard({ set, keys = [], selected, onClick }: {
+  set: AbilitySetView;
+  /** Abilities that matter most for the chosen Class, starred. */
+  keys?: readonly AbilityId[];
+  selected: boolean;
+  onClick?: () => void;
+}) {
   const { t } = useI18n();
   return (
     <button
@@ -275,9 +289,10 @@ function AbilitySetCard({ set, selected, onClick }: { set: AbilitySetView; selec
       <div className="grid grid-cols-6 gap-1">
         {ABILITY_IDS.map((a) => {
           const roll = set.rolls[a];
+          const key = keys.includes(a);
           return (
-            <div key={a} className="grid justify-items-center gap-0.5 rounded-[2px] border border-line/70 py-1">
-              <span className="text-[11px] font-bold tracking-wide text-muted">{t(`ability.${a}`)}</span>
+            <div key={a} className={`grid justify-items-center gap-0.5 rounded-[2px] border py-1 ${key ? 'border-gold/70' : 'border-line/70'}`}>
+              <span className={`text-[11px] font-bold tracking-wide ${key ? 'text-gold' : 'text-muted'}`}>{key && '★'}{t(`ability.${a}`)}</span>
               <span className="font-head text-xl leading-none font-extrabold">{set.scores[a]}</span>
               <span className="text-[11px] text-muted">{modifier(set.scores[a])}</span>
               <span className="flex gap-px">

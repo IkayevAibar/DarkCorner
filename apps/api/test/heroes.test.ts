@@ -33,6 +33,12 @@ describe('creating a Hero', () => {
     expect(me).toMatchObject({ season: 0, hero: null, draft: null, canCreate: true, canRetire: false });
   });
 
+  it('tells the creation screen which ability each Class fights with', async () => {
+    const options = (await get('/api/heroes/options')).json();
+    const primary = Object.fromEntries(options.classes.map((c: { id: string; primary: string }) => [c.id, c.primary]));
+    expect(primary).toEqual({ fighter: 'str', rogue: 'dex', wizard: 'int', cleric: 'wis' });
+  });
+
   it('rolls one set, allows three rerolls, then stops', async () => {
     const first = (await post('/api/heroes/draft')).json().draft;
     expect(first.sets).toHaveLength(1);

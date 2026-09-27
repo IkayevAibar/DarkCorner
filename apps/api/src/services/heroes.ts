@@ -27,7 +27,7 @@ export function creationOptions(): CreationOptions {
     }),
     classes: CLASSES.map((id) => {
       const c = CLASS_DEFS[id];
-      return { id, name: c.name, hitDie: c.hitDie, fights: c.fights, trick: c.trick };
+      return { id, name: c.name, hitDie: c.hitDie, fights: c.fights, trick: c.trick, primary: c.primary };
     }),
     talents: TALENTS.map((id) => ({
       id, name: TALENT_DEFS[id].name, description: TALENT_DEFS[id].description, origin: (ORIGIN_TALENTS as readonly string[]).includes(id),
