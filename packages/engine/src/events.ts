@@ -1,0 +1,145 @@
+import { type CheckResult, check } from './check.js';
+import { rollDice, sum } from './dice.js';
+import { BLESSING_IDS, type BlessingId, type ChestGrade, rollChestGrade, usableBases } from './economy.js';
+import type { ClassId } from './content/classes.js';
+import { type Tier, TIERS, tierRank } from './content/loot.js';
+import { type GearRoll, dropOdds, rollExtraBonusStat, rollGear, rollTier } from './items.js';
+import type { Rng } from './rng.js';
+
+// Event rooms (docs/design.md → Event rooms). All numbers are v0. Each function
+// is a pure roll; the API decides what the Hero may do and stores the result.
+
+export interface CheckOptions {
+  modifier: number;
+  advantage: boolean;
+  rerollOnes: boolean;
+}
+
+const roll = (rng: Rng, dc: number, o: CheckOptions): CheckResult =>
+  check(rng, { modifier: o.modifier, dc, edge: o.advantage ? 'advantage' : 'normal', rerollOnes: o.rerollOnes });
+
+// ─── Three chests ─────────────────────────────────────────────────────────
+
+export type ChestContent = { kind: 'item'; tier: Tier } | { kind: 'gold'; amount: number } | { kind: 'mimic' };
+
+/** Chance that one of the two Item chests is a mimic instead. */
+export const MIMIC_CHANCE = 0.3;
+
+/** Three closed chests: one with gold, two with an Item each, and maybe a mimic among them. */
+export function threeChests(rng: Rng, floor: number): ChestContent[] {
+  const chests: ChestContent[] = [
+    { kind: 'gold', amount: rng.int(10, 30) * (floor + 1) },
+    { kind: 'item', tier: rollTier(rng, dropOdds(Math.min(10, floor + 3))) },
+    { kind: 'item', tier: rollTier(rng, dropOdds(floor)) },
+  ];
+  if (rng.chance(MIMIC_CHANCE)) chests[2] = { kind: 'mimic' };
+  for (let i = chests.length - 1; i > 0; i--) {
+    const j = rng.int(0, i);
+    [chests[i], chests[j]] = [chests[j]!, chests[i]!];
+  }
+  return chests;
+}
+
+// ─── Shrine ───────────────────────────────────────────────────────────────
+
+export const SHRINE_DC = 12;
+/** A curse burns this share of max health (never below 1). */
+export const SHRINE_CURSE_HP = 0.25;
+
+/**
+ * Praying: a WIS Check. Success grants a random Blessing; failing by 5 or more
+ * (or a natural 1) brings a curse, unless the Hero senses it coming (Wizards).
+ */
+export function prayAtShrine(rng: Rng, o: CheckOptions & { sensesCurses: boolean }): {
+  check: CheckResult; outcome: 'blessing' | 'nothing' | 'curse' | 'sensed'; blessing: BlessingId | null;
+} {
+  const result = roll(rng, SHRINE_DC, o);
+  if (result.success) return { check: result, outcome: 'blessing', blessing: rng.pick(BLESSING_IDS) };
+  const cursed = result.fumble || result.total <= SHRINE_DC - 5;
+  if (!cursed) return { check: result, outcome: 'nothing', blessing: null };
+  return { check: result, outcome: o.sensesCurses ? 'sensed' : 'curse', blessing: null };
+}
+
+// ─── Goblin gambler ───────────────────────────────────────────────────────
+
+/** Both roll a d20; the Hero must beat the goblin (ties go to the house). */
+export function goblinDice(rng: Rng, rerollOnes: boolean): { hero: number; goblin: number; win: boolean } {
+  let hero = rng.int(1, 20);
+  if (hero === 1 && rerollOnes) hero = rng.int(1, 20);
+  const goblin = rng.int(1, 20);
+  return { hero, goblin, win: hero > goblin };
+}
+
+/** Betting an Item wins one a Tier higher. Mythics and Relics have nowhere higher to go. */
+export function nextTier(tier: Tier): Tier | null {
+  if (tierRank(tier) >= tierRank('mythic')) return null;
+  return TIERS[tierRank(tier) + 1]!;
+}
+
+// ─── Wandering merchant ───────────────────────────────────────────────────
+
+export const MERCHANT_MARKUP = 6;
+/** The merchant pays this many times the Buyback price. */
+export const MERCHANT_BUYS_AT = 2;
+
+/** Three rare wares, identified, mostly usable by the Hero's Class. */
+export function merchantWares(rng: Rng, opts: { floor: number; classId: ClassId }): GearRoll[] {
+  const usable = usableBases(opts.classId);
+  const odds: [Tier, number][] = [['rare', 60], ['epic', 35], ['legendary', 5]];
+  return [0, 1, 2].map(() => {
+    const tier = rollTier(rng, odds);
+    const baseId = tier === 'legendary' ? undefined : rng.pick(usable).id;
+    return rollGear(rng, { tier, itemLevel: Math.max(1, opts.floor), baseId, identified: true });
+  });
+}
+
+// ─── Trapped corridor ─────────────────────────────────────────────────────
+
+export const trapDc = (floor: number): number => 11 + Math.ceil(floor / 2);
+
+/** A DEX Check to get through unhurt. Rogues disarm it without a roll. */
+export function springTrap(rng: Rng, o: CheckOptions & { floor: number; disarms: boolean }): {
+  check: CheckResult | null; damage: number;
+} {
+  if (o.disarms) return { check: null, damage: 0 };
+  const result = roll(rng, trapDc(o.floor), o);
+  return { check: result, damage: result.success ? 0 : sum(rollDice(rng, 2, 6)) + o.floor };
+}
+
+// ─── Cursed altar ─────────────────────────────────────────────────────────
+
+export const ALTAR_SUCCESS = 0.4;
+/** Only these can go up a Tier at the altar: Epic and above would need a named unique. */
+export const ALTAR_TIERS: Tier[] = ['common', 'uncommon', 'rare'];
+
+/**
+ * The offering: 40% the Item rises one Tier and gains a Bonus stat, 60% it is
+ * destroyed. `stat` is the new Bonus stat, rolled at the new Tier.
+ */
+export function offerAtAltar(rng: Rng, item: Pick<GearRoll, 'tier' | 'itemLevel' | 'bonusStats'>): {
+  success: boolean; tier: Tier; stat: GearRoll['bonusStats'][number] | null;
+} {
+  if (!ALTAR_TIERS.includes(item.tier)) throw new Error(`the altar refuses ${item.tier} Items`);
+  if (!rng.chance(ALTAR_SUCCESS)) return { success: false, tier: item.tier, stat: null };
+  const tier = nextTier(item.tier)!;
+  const stat = rollExtraBonusStat(rng, tier, item.itemLevel, item.bonusStats.map((b) => b.stat));
+  return { success: true, tier, stat };
+}
+
+// ─── Locked cache ─────────────────────────────────────────────────────────
+
+/** Two Items with the odds of three Floors deeper, plus gold. */
+export function cacheContents(rng: Rng, floor: number, magicFind: number): { tiers: Tier[]; gold: number } {
+  const odds = dropOdds(Math.min(10, floor + 3));
+  return { tiers: [rollTier(rng, odds, magicFind), rollTier(rng, odds, magicFind)], gold: rng.int(20, 50) * (floor + 1) };
+}
+
+// ─── Lockpicking ──────────────────────────────────────────────────────────
+
+/** Until the minigame lands, picking the lock is a DEX Check (Rogues with advantage). */
+export const LOCKPICK_DC = 14;
+
+export function pickLock(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; chest: ChestGrade | null } {
+  const result = roll(rng, LOCKPICK_DC, o);
+  return { check: result, chest: result.success ? rollChestGrade(rng, Math.min(10, o.floor + 3)) : null };
+}

@@ -187,6 +187,9 @@ export type FightEvent =
   | { type: 'down' }
   | { type: 'death-save'; natural: number; successes: number; failures: number }
   | { type: 'rise'; hp: number }
+  /** Lucky charm or Luckstone: a failed death save's d20 (
+atural) is rolled again, keeping the better. */
+  | { type: 'reroll'; natural: number }
   | { type: 'end'; outcome: FightOutcome };
 
 export interface FightInput {
@@ -195,7 +198,7 @@ export interface FightInput {
   uses: RestUses;
   potions: number;
   /** Once-per-Run powers still unspent (Deathless Mail, Luckstone, Lucky charm). */
-  runPowers: { deathless: boolean };
+  runPowers: { deathless: boolean; lucky: boolean };
 }
 
 export interface FightResult {
@@ -206,7 +209,7 @@ export interface FightResult {
   potionsUsed: number;
   xp: number;
   defeated: string[];
-  runPowers: { deathless: boolean };
+  runPowers: { deathless: boolean; lucky: boolean };
 }
 
 const DEATH_SAVE_DC = 10;
@@ -229,6 +232,10 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   let sneakReady = hero.class === 'rogue';
   let firstHitCrit = hero.uniques.includes('gravewhisper');
   let aegis = hero.uniques.includes('ashen-aegis');
+  /** The Last Ember: once per fight a missed spell hits for double. */
+  let lastEmber = hero.uniques.includes('last-ember');
+  /** Saint's Knuckle: the first Cure wounds of a fight gives its use back. */
+  let knuckle = hero.uniques.includes('saints-knuckle');
   /** Rogue Uncanny dodge (from level 3, v0): the first hit each round deals half damage. */
   const dodges = hero.class === 'rogue' && hero.level >= 3;
   let dodgeReady = dodges;
@@ -264,7 +271,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     const roll = rollD20(rng, { edge, rerollOnes });
     const total = roll.natural + prof + mod(attackAbility);
     let crit = roll.natural >= critFrom;
-    const hit = crit || (roll.natural !== 1 && total >= target.ac);
+    let hit = crit || (roll.natural !== 1 && total >= target.ac);
+    const ember = !hit && caster && lastEmber;
+    if (ember) {
+      lastEmber = false;
+      hit = true;
+    }
     if (hit && firstHitCrit) {
       crit = true;
       firstHitCrit = false;
@@ -278,6 +290,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         damage *= 1 + hero.spellPower / 100;
         if (hero.class === 'cleric' && targetDef.kin === 'undead') damage *= 2;
         if (hero.uniques.includes('lantern-of-the-deep') && (targetDef.kin === 'undead' || targetDef.kin === 'demon')) damage *= 1.25;
+        if (ember) damage *= 2;
       } else {
         const [n, sides] = hero.weapon?.base.damage ?? [1, 4];
         const once = () => sum(rollDice(rng, crit ? n * 2 : n, sides));
@@ -322,7 +335,8 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       return;
     }
     if (low && uses.heals > 0) {
-      uses.heals--;
+      if (knuckle) knuckle = false;
+      else uses.heals--;
       heal('cure-wounds', (sum(rollDice(rng, 1 + Math.floor(hero.level / 4), 8)) + mod('wis')) * (1 + hero.healing / 100));
       return;
     }
@@ -386,7 +400,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     let successes = 0;
     let failures = 0;
     while (successes < 3 && failures < 3) {
-      const { natural } = rollD20(rng, { rerollOnes });
+      let { natural } = rollD20(rng, { rerollOnes });
+      if (natural < DEATH_SAVE_DC && runPowers.lucky && (hero.talents.includes('lucky-charm') || hero.uniques.includes('luckstone'))) {
+        runPowers.lucky = false;
+        events.push({ type: 'reroll', natural });
+        natural = Math.max(natural, rollD20(rng, { rerollOnes }).natural);
+      }
       if (natural === 20) {
         hero.hp = Math.max(1, Math.floor(hero.maxHp / 4));
         events.push({ type: 'death-save', natural, successes, failures });

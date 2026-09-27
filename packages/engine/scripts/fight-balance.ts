@@ -30,7 +30,7 @@ for (let floor = 1; floor <= 9; floor++) {
         monsters: spawnEncounter(createRng(`spawn-${cls}-${floor}-${i}`), floor, 'fight'),
         uses: restUses(cls, floor),
         potions: 1,
-        runPowers: { deathless: false },
+        runPowers: { deathless: false, lucky: false },
       });
       if (r.outcome === 'victory') {
         wins++;

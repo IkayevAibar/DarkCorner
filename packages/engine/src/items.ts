@@ -32,16 +32,49 @@ function weightedPick<T>(rng: Rng, entries: readonly (readonly [T, number])[]): 
   return entries[entries.length - 1]![0];
 }
 
-/** Rolls the Tier of an Item dropping on `floor`, with the odds from docs/design.md. */
-export function rollDropTier(rng: Rng, floor: number): Tier {
+/** The Tier odds for Items dropping on `floor` (docs/design.md). */
+export function dropOdds(floor: number): [Tier, number][] {
   const band = DROP_ODDS.find((b) => floor >= b.floors[0] && floor <= b.floors[1]) ?? DROP_ODDS[DROP_ODDS.length - 1]!;
-  return weightedPick(rng, band.odds);
+  return band.odds;
+}
+
+/**
+ * Rolls the Tier of an Item dropping on `floor`. Magic find (a percentage) makes
+ * every Rare-or-better weight that much heavier.
+ */
+export function rollDropTier(rng: Rng, floor: number, magicFind = 0): Tier {
+  return rollTier(rng, dropOdds(floor), magicFind);
+}
+
+/** Picks a Tier from weighted odds; `magicFind` % boosts Rare and better. */
+export function rollTier(rng: Rng, odds: readonly (readonly [Tier, number])[], magicFind = 0): Tier {
+  const boost = 1 + Math.max(0, magicFind) / 100;
+  return weightedPick(rng, odds.map(([tier, w]) => [tier, tierRank(tier) >= tierRank('rare') ? w * boost : w] as const));
 }
 
 /** A bonus stat value: grows 10% per item level and 18% per Tier step. */
 function rollStatValue(rng: Rng, range: [number, number], itemLevel: number, tier: Tier): number {
   const raw = rng.int(range[0], range[1]);
   return Math.max(1, Math.round(raw * (1 + (itemLevel - 1) * 0.1) * (1 + tierRank(tier) * 0.18)));
+}
+
+/** A fresh set of Bonus stats for a Tier: new rolls, no kind twice. Used by drops and Reforge. */
+export function rollBonusStats(rng: Rng, tier: Tier, itemLevel: number): GearRoll['bonusStats'] {
+  const pool = [...BONUS_STATS];
+  const out: GearRoll['bonusStats'] = [];
+  for (let i = 0; i < BONUS_COUNT[tier] && pool.length > 0; i++) {
+    const [def] = pool.splice(rng.int(0, pool.length - 1), 1);
+    out.push({ stat: def!.id, value: rollStatValue(rng, def!.range, itemLevel, tier) });
+  }
+  return out;
+}
+
+/** One more Bonus stat, of a kind the Item doesn't have yet (the Cursed altar). */
+export function rollExtraBonusStat(rng: Rng, tier: Tier, itemLevel: number, have: readonly string[]): GearRoll['bonusStats'][number] | null {
+  const pool = BONUS_STATS.filter((d) => !have.includes(d.id));
+  if (pool.length === 0) return null;
+  const def = rng.pick(pool);
+  return { stat: def.id, value: rollStatValue(rng, def.range, itemLevel, tier) };
 }
 
 export interface RollGearOptions {
@@ -73,12 +106,7 @@ export function rollGear(rng: Rng, opts: RollGearOptions): GearRoll {
     base = picked;
   }
 
-  const pool = [...BONUS_STATS];
-  const bonusStats: GearRoll['bonusStats'] = [];
-  for (let i = 0; i < BONUS_COUNT[tier] && pool.length > 0; i++) {
-    const [def] = pool.splice(rng.int(0, pool.length - 1), 1);
-    bonusStats.push({ stat: def!.id, value: rollStatValue(rng, def!.range, itemLevel, tier) });
-  }
+  const bonusStats = rollBonusStats(rng, tier, itemLevel);
 
   return {
     base: base.id,

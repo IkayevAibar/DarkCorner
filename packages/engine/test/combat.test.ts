@@ -18,7 +18,7 @@ const fightInput = (hero: HeroCombat, floor: number, seed: string): FightInput =
   monsters: spawnEncounter(createRng(`${seed}:spawn`), floor, 'fight'),
   uses: restUses(hero.class, hero.level),
   potions: 2,
-  runPowers: { deathless: false },
+  runPowers: { deathless: false, lucky: false },
 });
 
 describe('levels', () => {
@@ -62,7 +62,7 @@ describe('simulateFight', () => {
     for (let i = 0; i < 200; i++) {
       const hero = starter('fighter', 5);
       const dragon = [instantiate(monsterById('ancient-dragon'), 10, 'm0')];
-      const r = simulateFight(createRng(`dragon-${i}`), { hero, monsters: dragon, uses: restUses('fighter', 5), potions: 5, runPowers: { deathless: false } });
+      const r = simulateFight(createRng(`dragon-${i}`), { hero, monsters: dragon, uses: restUses('fighter', 5), potions: 5, runPowers: { deathless: false, lucky: false } });
       if (r.outcome === 'victory') wins++;
     }
     expect(wins).toBe(0);
@@ -74,7 +74,7 @@ describe('simulateFight', () => {
     for (let i = 0; i < 3_000; i++) {
       const hero = { ...starter('wizard'), hp: 1 };
       const brute = [instantiate(monsterById('wolf'), 3, 'm0')];
-      const r = simulateFight(createRng(`saves-${i}`), { hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false } });
+      const r = simulateFight(createRng(`saves-${i}`), { hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false, lucky: false } });
       const saves = r.events.filter((e) => e.type === 'down').length;
       if (saves > 0) {
         down++;
@@ -85,6 +85,31 @@ describe('simulateFight', () => {
     // deaths per fight sits a little above the single-save 40%.
     expect(dead / down).toBeGreaterThan(0.33);
     expect(dead / down).toBeLessThan(0.7);
+  });
+
+  it('rerolls one failed death save per Run with a Lucky charm, and saves more Heroes', () => {
+    const run = (talents: HeroCombat['talents'], lucky: boolean) => {
+      let dead = 0;
+      let rerolls = 0;
+      for (let i = 0; i < 3_000; i++) {
+        const hero = { ...starter('wizard'), talents, hp: 1 };
+        const brute = [instantiate(monsterById('wolf'), 3, 'm0')];
+        const r = simulateFight(createRng(`lucky-${i}`), { hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false, lucky } });
+        const used = r.events.filter((e) => e.type === 'reroll');
+        expect(used.length).toBeLessThanOrEqual(1);
+        if (used.length > 0) expect(r.runPowers.lucky).toBe(false);
+        rerolls += used.length;
+        if (r.outcome === 'dead') dead++;
+      }
+      return { dead, rerolls };
+    };
+    const plain = run(['alert', 'tough'], true);
+    const charmed = run(['lucky-charm', 'tough'], true);
+    const spent = run(['lucky-charm', 'tough'], false);
+    expect(plain.rerolls).toBe(0);
+    expect(spent.rerolls).toBe(0);
+    expect(charmed.rerolls).toBeGreaterThan(0);
+    expect(charmed.dead).toBeLessThan(plain.dead);
   });
 
   it('awards XP only for monsters defeated', () => {

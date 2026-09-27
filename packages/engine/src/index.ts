@@ -15,4 +15,6 @@ export * from './content/bases.js';
 export * from './content/loot.js';
 export * from './content/portraits.js';
 export * from './combat.js';
+export * from './economy.js';
+export * from './events.js';
 export * from './content/monsters.js';
