@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
-import { seasonStatusSchema } from './season.js';
+import { omenViewSchema, seasonStatusSchema } from './season.js';
 
 export const ROOM_TYPES = [
   'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss',
@@ -277,7 +277,7 @@ export const labyrinthViewSchema = z.object({
     bombs: z.object({ fire: z.number().int(), smoke: z.number().int() }),
   }),
   /** The Labyrinth opens when the Season starts; the Boss gate opens later. */
-  season: z.object({ status: seasonStatusSchema, bossGateAt: z.string().nullable() }),
+  season: z.object({ status: seasonStatusSchema, bossGateAt: z.string().nullable(), omen: omenViewSchema.nullable() }),
   /** Floors whose Waypoint this Hero has reached (entering there is allowed). */
   waypoints: z.array(z.number().int()),
   bestFloor: z.number().int(),

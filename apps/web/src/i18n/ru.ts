@@ -377,6 +377,7 @@ export const ru: Record<MessageKey, string> = {
   'err.swap_used': 'Сегодня вы уже меняли задание.',
   'err.bounty_started': 'Заменить можно только нетронутое задание.',
   'err.no_bounty': 'Такого задания нет.',
+  'omen.today': 'Знамение дня',
   'facing.threat': 'Угроза',
   'facing.blocked': 'Монстры загораживают остальные двери.',
   'facing.fight': 'Сражаться',

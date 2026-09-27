@@ -8,6 +8,7 @@ import { toHeroView } from './heroes.js';
 import { toItemView } from './items.js';
 import { type Tx, freePlace, lockHero, ownItem, requireCity, spendGold } from './ledger.js';
 import { currentSeason } from './seasons.js';
+import { omenOf } from './omens.js';
 
 /** A Player may have this many Items on the Market at once (v0). */
 export const MAX_LISTINGS = 20;
@@ -43,7 +44,7 @@ export async function marketView(player: Player): Promise<MarketView> {
   return {
     listings: others.map((l) => toListingView(l, player.id, now)),
     mine: mine.map((l) => toListingView(l, player.id, now)),
-    taxPercent: MARKET_TAX * 100,
+    taxPercent: Math.round((omenOf(season, now)?.marketTax ?? MARKET_TAX) * 100),
     days: MARKET_DAYS,
     hero: toHeroView(hero, now),
   };
@@ -100,7 +101,7 @@ export async function buyListing(player: Player, listingId: string): Promise<Mar
 
     // Proceeds go to the seller's living Hero, or to the last one (a new Hero inherits its gold).
     const seller = await tx.hero.findFirst({ where: { playerId: listing.sellerId, seasonId: season.id }, orderBy: [{ retiredAt: { sort: 'asc', nulls: 'first' } }, { createdAt: 'desc' }] });
-    const payout = marketPayout(listing.price);
+    const payout = marketPayout(listing.price, omenOf(season)?.marketTax ?? MARKET_TAX);
     if (seller) await tx.hero.update({ where: { id: seller.id }, data: { gold: { increment: payout } } });
     await feed(tx, season, buyer, 'market-sale', {
       seller: listing.sellerName, price: listing.price, tier: listing.item.tier, base: listing.item.base, uniqueId: listing.item.uniqueId,

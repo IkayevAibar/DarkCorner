@@ -13,6 +13,7 @@ import { addBadLuck, dropChest, dropGear, dropStack, withGoldFind } from './loot
 import { boostedXp, gainXp } from './progression.js';
 import { grantRelic } from './relics.js';
 import { trackBounties } from './bounties.js';
+import { omenOf } from './omens.js';
 
 // Fights, death and what one Hero has cleared: shared by Moves and Event rooms.
 
@@ -89,7 +90,7 @@ export type FightKind = 'fight' | 'miniboss' | 'boss';
 /** The monsters waiting for one Hero in a Room: personal, and the same group all day. */
 export function monstersFor(season: Season, hero: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: FightKind, now: Date) {
   const spawnSeed = `${season.seed}:${hero.id}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
-  return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now)) };
+  return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now), omenOf(season, now)) };
 }
 
 /** The Hero as it fights: its row, with its worn gear. */
@@ -112,6 +113,8 @@ export function fightInput(hero: HeroWithItems, combat: HeroCombat, monsters: Mo
   surprise?: 'hero' | 'monsters' | null;
   /** The Floor a Fire bomb is thrown on; null for none. */
   bombFloor?: number | null;
+  /** Added to Escape rolls: the day's Omen. */
+  escapeBonus?: number;
 } = {}): FightInput {
   const potions = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion').reduce((s, i) => s + i.quantity, 0);
   return {
@@ -124,6 +127,7 @@ export function fightInput(hero: HeroWithItems, combat: HeroCombat, monsters: Mo
     surprise: opts.surprise ?? null,
     bomb: opts.bombFloor ? fireBomb(opts.bombFloor) : null,
     gold: hero.carriedGold,
+    escapeBonus: opts.escapeBonus ?? 0,
   };
 }
 
@@ -152,7 +156,8 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   const combat = combatOf(hero);
   const potionStacks = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion');
   const seed = newSeed();
-  const input = fightInput(hero, combat, monsters, { surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null });
+  const omen = omenOf(season, now);
+  const input = fightInput(hero, combat, monsters, { surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null, escapeBonus: omen?.sneak ?? 0 });
   const result = simulateFight(createRng(seed), input);
   await tx.rollLog.create({
     data: {
@@ -202,7 +207,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   }
 
   const rng = createRng(`${seed}:after`);
-  const xp = await boostedXp(tx, hero, season, result.xp);
+  const xp = await boostedXp(tx, hero, season, Math.round(result.xp * (omen?.xp ?? 1)));
   const levelUp = gainXp(rng, { ...hero, hp: result.hp }, xp);
   out.xp += xp;
   out.levelUp = levelUp.newLevel ?? out.levelUp;
@@ -246,7 +251,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   const fallen = monsters.filter((m) => result.defeated.includes(m.key));
   const baseGold = fallen.reduce((s, m) => s + createRng(`${seed}:gold:${m.key}`).int(1, 4) * (floor.number + 1) * (m.elite === 'gilded' ? GILDED_GOLD : 1), 0)
     * (kind === 'fight' ? 1 : 10);
-  const gold = withGoldFind(hero, baseGold);
+  const gold = withGoldFind(hero, Math.round(baseGold * (omen?.gold ?? 1)));
   out.gold += gold;
   await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
   hero.carriedGold += gold;

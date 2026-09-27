@@ -4,6 +4,7 @@ import { api, ApiRequestError } from '../../api';
 import { Building, Loading } from '../../components/Building';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
+import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { describeError } from '../../errors';
 import { useLoad } from '../../components/useLoad';
@@ -143,6 +144,7 @@ function SeasonCard({ season }: { season: SeasonView }) {
         <span className="text-sm">{gateOpen ? t('tavern.gateOpen') : t('tavern.gateIn', { time: until(season.bossGateAt) })}</span>
       )}
       {season.weakening > 0 && <span className="text-sm text-[#ff9a8a]">{t('tavern.weakened', { n: Math.round(season.weakening * 100) })}</span>}
+      {season.omen && <OmenNote omen={season.omen} />}
       {season.wipeAt && <span className="text-sm text-gold">{t('tavern.wipeIn', { time: until(season.wipeAt) })}</span>}
       {season.podium.map((p) => (
         <span key={p.place} className="font-head font-bold text-gold">{t(`tavern.place.${p.place as 1 | 2 | 3}`)}: {p.hero} ({p.player})</span>

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { DAY_MS, RELICS, doorsOf, generateLabyrinth } from '@dark/engine';
+import { DAY_MS, RELICS, doorsOf, generateLabyrinth, omenFor } from '@dark/engine';
 import { labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
@@ -72,9 +72,22 @@ describe('the Season', () => {
     expect(view.season.status).toBe('active');
     expect(new Date(view.season.bossGateAt).getTime() - new Date(view.season.startsAt).getTime()).toBe(14 * DAY_MS);
     const kinds = (await prisma.job.findMany()).map((j) => j.kind).sort();
-    expect(kinds).toEqual(['boss-gate', 'broadcast', 'vault-plan', 'weaken', 'weaken', 'weaken', 'weaken']);
+    expect(kinds).toEqual(['boss-gate', 'broadcast', 'omen', 'vault-plan', 'weaken', 'weaken', 'weaken', 'weaken']);
     expect((await prisma.job.findFirstOrThrow({ where: { kind: 'broadcast' } })).doneAt).not.toBeNull();
     expect((await post(admin, '/api/admin/season', { action: 'start' })).json().error).toBe('season_running');
+  });
+
+  it('says the day’s Omen at midnight and waits for the next', async () => {
+    await post(admin, '/api/admin/season', { action: 'start' });
+    const job = await prisma.job.findFirstOrThrow({ where: { kind: 'omen' } });
+    expect(job.runAt.getTime() % DAY_MS).toBe(60_000);
+    await prisma.job.update({ where: { id: job.id }, data: { runAt: new Date(Date.now() - 1000) } });
+    await runDueJobs();
+    const today = omenFor(SEED, Math.floor(Date.now() / DAY_MS));
+    expect(await prisma.feedEvent.count({ where: { kind: 'omen' } })).toBe(today ? 1 : 0);
+    expect(await prisma.job.count({ where: { kind: 'omen', doneAt: null } })).toBe(1);
+    const tavern = (await get(admin, '/api/tavern')).json();
+    expect(tavern.season.omen?.id ?? null).toBe(today);
   });
 
   it('keeps the Labyrinth shut until it starts, and admin tools from other Players', async () => {

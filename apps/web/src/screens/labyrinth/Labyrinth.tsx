@@ -6,6 +6,7 @@ import {
 import { api, ApiRequestError } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
+import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
 import { describeError } from '../../errors';
@@ -225,6 +226,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
       <section className="panel p-3.5">
         <HeroStatus view={view} />
       </section>
+      {view.season.omen && <OmenNote omen={view.season.omen} />}
 
       <section className="grid gap-2">
         <h2 className="m-0 flex items-baseline gap-2 px-1 font-head text-xl font-extrabold">

@@ -291,6 +291,23 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 | Arena | later | Tournaments with nothing to lose: the loser is simply knocked out. |
 | Guild hall | later | Small Guilds. |
 
+### Omens
+
+Each day the whole Labyrinth leans one way, for everyone *(v0)*. The day's Omen comes from the Season's seed and the UTC day. It shows in the Tavern and the Labyrinth, goes in the Feed, and is Broadcast at midnight UTC. About a third of days are plain.
+
+| Omen | Effect |
+|---|---|
+| Blood moon | Monsters have +20% health and hit 10% harder, and drop 1.5 times the gold |
+| Still air | +3 to Sneak Checks and Escape rolls |
+| Scholar's day | +25% XP from fights |
+| Fortune's wind | +25% magic find for everyone |
+| Hunting season | Elites lead twice as many groups |
+| Hot forges | +10 percentage points on every Upgrade, never above 95% |
+| Free market | No Market tax on today's sales |
+| Dim day | Monsters have 10% less health and drop 20% less gold |
+
+The Threat a Door shows already counts the day's Omen.
+
 ### Tavern bounties
 
 Small goals give each session a reason to go down today *(v0)*.
@@ -530,6 +547,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - an Upgrade to +10 succeeds
   - the Boss is defeated (Champion, 2nd and 3rd)
   - a Vault is announced
+  - the day's Omen, at midnight UTC
   - the Boss gate opens
   - the Boss weakens
   - a Season starts or ends

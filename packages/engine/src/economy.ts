@@ -172,12 +172,15 @@ export type UpgradeOutcome = 'success' | 'failed' | 'dropped' | 'saved' | 'destr
  * failure either drops a level or destroys the Item; a Protection scroll turns
  * destroying into dropping (and is only used up when it does).
  */
-export function rollUpgrade(rng: Rng, current: number, protect: boolean): {
+/** The chance of reaching `to`, with the day's bonus (Hot forges), never above 95%. */
+export const upgradeChance = (to: number, bonus = 0): number => Math.min(95, UPGRADE_CHANCE[to]! + bonus);
+
+export function rollUpgrade(rng: Rng, current: number, protect: boolean, bonus = 0): {
   outcome: UpgradeOutcome; level: number; roll: number; chance: number; protectionUsed: boolean;
 } {
   const to = current + 1;
   if (to > MAX_UPGRADE) throw new Error('already at the top');
-  const chance = UPGRADE_CHANCE[to]!;
+  const chance = upgradeChance(to, bonus);
   const roll = rng.int(1, 100);
   if (roll <= chance) return { outcome: 'success', level: to, roll, chance, protectionUsed: false };
   if (to <= UPGRADE_SAFE_UNTIL) return { outcome: 'failed', level: current, roll, chance, protectionUsed: false };
@@ -244,7 +247,7 @@ export const MARKET_DAYS = 7;
 export const MARKET_MAX_PRICE = 10_000_000;
 
 /** What the seller receives when a listing sells: the price minus a 5% tax (rounded up). */
-export const marketPayout = (price: number): number => price - Math.ceil(price * MARKET_TAX);
+export const marketPayout = (price: number, tax = MARKET_TAX): number => price - Math.ceil(price * tax);
 
 // ─── Blessings ────────────────────────────────────────────────────────────
 

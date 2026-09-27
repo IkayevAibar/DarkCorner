@@ -3,7 +3,7 @@ import type {
   ForgeCost, ForgeQuote, ForgeView, HeroView, ReforgeResult, SalvageResult, UpgradeResult,
 } from '@dark/shared';
 import {
-  type ForgeCost as EngineCost, MAX_UPGRADE, RECIPES, REFORGE_COST, type Tier, UPGRADE_CHANCE, UPGRADE_SAFE_UNTIL, baseById,
+  type ForgeCost as EngineCost, MAX_UPGRADE, RECIPES, REFORGE_COST, type Tier, UPGRADE_SAFE_UNTIL, baseById, upgradeChance,
   bonusLines, canReforge, createRng, isGear, itemName, rollBonusStats, rollSalvage, rollUpgrade, salvageRange, upgradeCost,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -17,6 +17,7 @@ import {
   type HeroWithItems, type Tx, destroyItem, giveStack, lockHero, ownItem, requireCity, spendGold, stackTotal, takeStack,
 } from './ledger.js';
 import { currentSeason } from './seasons.js';
+import { omenOf } from './omens.js';
 
 const PROTECTION = 'scroll-protection';
 
@@ -66,7 +67,7 @@ export async function forgeQuote(player: Player, itemId: string): Promise<ForgeQ
     item: view,
     upgrade: item.upgrade < MAX_UPGRADE
       ? {
-        to, chance: UPGRADE_CHANCE[to]!, cost: costView(hero, upgradeCost(tier, to)),
+        to, chance: upgradeChance(to, omenOf(await currentSeason())?.upgrade ?? 0), cost: costView(hero, upgradeCost(tier, to)),
         risky: to > UPGRADE_SAFE_UNTIL, protectionScrolls: stackTotal(hero, PROTECTION),
       }
       : null,
@@ -90,7 +91,7 @@ export async function upgradeItem(player: Player, itemId: string, protect: boole
     await pay(tx, hero, upgradeCost(item.tier as Tier, to));
 
     const seed = newSeed();
-    const result = rollUpgrade(createRng(seed), item.upgrade, useScroll);
+    const result = rollUpgrade(createRng(seed), item.upgrade, useScroll, omenOf(season)?.upgrade ?? 0);
     await tx.rollLog.create({
       data: { playerId: player.id, kind: 'forge', seed, detail: { itemId: item.id, from: item.upgrade, protect: useScroll, ...result } },
     });

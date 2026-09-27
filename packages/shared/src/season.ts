@@ -15,6 +15,14 @@ export const podiumEntrySchema = z.object({
 });
 
 /** Where the Season stands: the gate, the Boss's weakening, the podium, the Relics left. */
+export const OMEN_IDS = [
+  'blood-moon', 'still-air', 'scholars-day', 'fortunes-wind', 'hunting-season', 'hot-forges', 'free-market', 'dim-day',
+] as const;
+
+/** The day's Omen: how the Labyrinth leans today, for everyone. */
+export const omenViewSchema = z.object({ id: z.enum(OMEN_IDS), name: localizedTextSchema, description: localizedTextSchema });
+export type OmenView = z.infer<typeof omenViewSchema>;
+
 export const seasonViewSchema = z.object({
   number: z.number().int(),
   status: seasonStatusSchema,
@@ -26,6 +34,8 @@ export const seasonViewSchema = z.object({
   weakening: z.number(),
   podium: z.array(podiumEntrySchema),
   relicsLeft: z.number().int(),
+  /** Today's Omen; null on a plain day or outside a running Season. */
+  omen: omenViewSchema.nullable(),
 });
 export type SeasonView = z.infer<typeof seasonViewSchema>;
 

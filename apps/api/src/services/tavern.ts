@@ -1,6 +1,6 @@
 import type { FeedEvent, Player } from '@prisma/client';
 import type { FeedEntry, HallView, LocalizedText, TavernView, Tier } from '@dark/shared';
-import { baseById, uniqueById } from '@dark/engine';
+import { baseById, uniqueById, OMEN_DEFS, type OmenId } from '@dark/engine';
 import { prisma } from '../db.js';
 import { seasonView } from './seasonLife.js';
 import { currentSeason } from './seasons.js';
@@ -59,6 +59,10 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
     case 'bounty': {
       const title = d.title as LocalizedText | undefined;
       return { tier: null, text: { en: `${hero} finished a weekly bounty: ${title?.en ?? ''}`, ru: `${hero} выполняет недельное задание: ${title?.ru ?? ''}` } };
+    }
+    case 'omen': {
+      const omen = OMEN_DEFS[d.omen as OmenId];
+      return { tier: null, text: omen ? { en: `Today's Omen: ${omen.name.en}`, ru: `Знамение дня: ${omen.name.ru}` } : { en: 'A new day', ru: 'Новый день' } };
     }
     case 'gate-open':
       return { tier: null, text: { en: 'The Boss gate is open', ru: 'Врата босса открыты' } };

@@ -67,7 +67,7 @@ A Player checks in 2–3 times a day and spends about 20 Moves each time. Those 
 - Three small bounties a day per Hero and one bigger weekly one. Examples: "Clear 6 fight Rooms on Floor 3 or deeper", "Sneak past 3 groups", "Win a Risky fight", "Open a Treasure room".
 - Rewards are gold, Keys and Chests, which feed the loot loop.
 
-### 5. Omens: every day plays a little differently
+### 5. Omens: every day plays a little differently (done)
 
 - One Omen a day for the whole server, announced in the Tavern and with the Season's Broadcasts. Examples:
   - Blood moon: monsters +20% health, +50% gold

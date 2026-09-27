@@ -14,6 +14,7 @@ import { labyrinthFor } from './labyrinth.js';
 import type { Tx } from './ledger.js';
 import { lockSeason, relicsFound } from './relics.js';
 import { onJob, schedule } from './scheduler.js';
+import { nextOmenAt, omenView } from './omens.js';
 import { currentSeason } from './seasons.js';
 
 // The Season's life (docs/design.md → Seasons): an admin starts it, jobs open the
@@ -42,6 +43,7 @@ export async function seasonView(season: Season, now = new Date()): Promise<Seas
     weakening: weakeningAt(season.startsAt, now),
     podium: kills.map((k) => ({ place: k.place, hero: k.heroName, player: nameOf(k.playerId), at: k.createdAt.toISOString() })),
     relicsLeft: copies - Object.values(found).reduce((s, n) => s + n, 0),
+    omen: omenView(season, now),
   };
 }
 
@@ -57,6 +59,7 @@ export async function startSeason(now = new Date()): Promise<Season> {
     await schedule(tx, 'boss-gate', gate, { seasonId: season.id });
     for (const [i, at] of weakeningDates(now).entries()) await schedule(tx, 'weaken', at, { seasonId: season.id, step: i + 1 });
     await schedule(tx, 'vault-plan', nextLocalHour(now, VAULT_PLAN_HOUR, env.SERVER_TIMEZONE), { seasonId: season.id });
+    await schedule(tx, 'omen', nextOmenAt(now), { seasonId: season.id });
     await broadcast(tx, {
       en: `🕯️ Season ${season.number} of Dark Corner begins! The Labyrinth is open. The Boss gate opens in 14 days.`,
       ru: `🕯️ Начинается сезон ${season.number} «Тёмного уголка»! Лабиринт открыт. Врата босса откроются через 14 дней.`,

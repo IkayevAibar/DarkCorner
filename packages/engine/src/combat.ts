@@ -7,6 +7,7 @@ import { RADIANT_BOOST } from './content/loot.js';
 import {
   ELITE_CHANCE, ELITE_HP, ELITES, type EliteId, GILDED_HP, type MonsterDef, type MonsterPower, type MonsterPowerId, MONSTERS, monsterById,
 } from './content/monsters.js';
+import type { OmenDef } from './content/omens.js';
 import { type PathId, PATH_MASTERY, onPath } from './content/paths.js';
 import { RACE_DEFS, type RaceId } from './content/races.js';
 import { DEFAULT_STANCE, STANCE_DEFS, type StanceId } from './content/stances.js';
@@ -208,12 +209,25 @@ export function instantiate(def: MonsterDef, floor: number, key: string, weakeni
   };
 }
 
+/** The day's Omen on a monster: more or less health, harder or softer blows. */
+function underOmen(mm: MonsterInstance, omen: OmenDef | null): MonsterInstance {
+  if (!omen || (!omen.monsterHp && !omen.monsterDamage)) return mm;
+  const hp = Math.max(1, Math.round(mm.maxHp * (omen.monsterHp ?? 1)));
+  return { ...mm, hp, maxHp: hp, damageFactor: mm.damageFactor * (omen.monsterDamage ?? 1) };
+}
+
 /**
  * Who waits in a Room. A fight Room holds 1–2 monsters on Floor 1 and up to 3
  * deeper down, at most one of them a brute; from Floor 2 its strongest may be an
- * elite. A Mini-boss or the Boss comes with its escort.
+ * elite. A Mini-boss or the Boss comes with its escort. The day's Omen may make
+ * them tougher or weaker, and elites more common.
  */
-export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss' | 'boss', weakening = 0): MonsterInstance[] {
+export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss' | 'boss', weakening = 0, omen: OmenDef | null = null): MonsterInstance[] {
+  const out = spawnGroup(rng, floor, kind, weakening, omen);
+  return out.map((mm) => underOmen(mm, omen));
+}
+
+function spawnGroup(rng: Rng, floor: number, kind: 'fight' | 'miniboss' | 'boss', weakening: number, omen: OmenDef | null): MonsterInstance[] {
   const theme = themeOf(floor);
   if (kind !== 'fight') {
     const def = MONSTERS.find((d) => d.theme === theme && d.role === kind);
@@ -235,7 +249,7 @@ export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'minibos
     if (def.role === 'brute') brutes++;
     out.push(instantiate(def, floor, `m${i}`));
   }
-  if (floor >= 2 && rng.chance(ELITE_CHANCE[theme])) {
+  if (floor >= 2 && rng.chance(Math.min(1, ELITE_CHANCE[theme] * (omen?.elites ?? 1)))) {
     const strongest = out.reduce((a, b) => (b.maxHp > a.maxHp ? b : a));
     out[out.indexOf(strongest)] = instantiate(monsterById(strongest.id), floor, strongest.key, 0, rng.pick([...ELITES]));
   }
@@ -302,6 +316,8 @@ export interface FightInput {
   bomb?: { dice: number; sides: number; bonus: number } | null;
   /** Gold the Hero carries, for thieves to steal. */
   gold?: number;
+  /** Added to Escape rolls (the day's Omen). */
+  escapeBonus?: number;
 }
 
 export interface FightResult {
@@ -599,7 +615,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       if (!path('thief') || potionsUsed > 1) return;
     }
     if (stance.escapeBelow > 0 && hero.hp < hero.maxHp * stance.escapeBelow) {
-      const roll = check(rng, escapeCheck(hero, alive().length));
+      const roll = check(rng, escapeCheck(hero, alive().length, input.escapeBonus ?? 0));
       events.push({ type: 'escape', natural: roll.roll.natural, total: roll.total, dc: roll.dc, success: roll.success });
       escaped = roll.success;
       return;
@@ -833,9 +849,9 @@ const escapeBonus = (hero: HeroCombat) =>
 export const escapeDc = (monsters: number): number => 8 + 2 * monsters;
 
 /** A DEX Check to get out of a fight. Rogues roll with advantage and add their proficiency. */
-export function escapeCheck(hero: HeroCombat, monsters: number): CheckInput {
+export function escapeCheck(hero: HeroCombat, monsters: number, bonus = 0): CheckInput {
   return {
-    modifier: escapeBonus(hero),
+    modifier: escapeBonus(hero) + bonus,
     dc: escapeDc(monsters),
     edge: hero.class === 'rogue' ? 'advantage' : 'normal',
     rerollOnes: RACE_DEFS[hero.race].rerollOnes,
@@ -849,9 +865,9 @@ export const sneakDc = (floor: number, monsters: number): number => 10 + Math.fl
  * The DEX Check to Sneak past. Rogues roll with advantage and add their
  * proficiency; heavy armor gives disadvantage; escape Bonus stats help.
  */
-export function sneakCheck(hero: HeroCombat, floor: number, monsters: number): CheckInput {
+export function sneakCheck(hero: HeroCombat, floor: number, monsters: number, bonus = 0): CheckInput {
   return {
-    modifier: escapeBonus(hero),
+    modifier: escapeBonus(hero) + bonus,
     dc: sneakDc(floor, monsters),
     edge: hero.heavyArmor && !hero.talents.includes('light-step') ? 'disadvantage' : hero.class === 'rogue' ? 'advantage' : 'normal',
     rerollOnes: RACE_DEFS[hero.race].rerollOnes,

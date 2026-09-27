@@ -10,6 +10,7 @@ import { feed } from './feed.js';
 import { heroLuck } from './heroes.js';
 import { gearData, toItemView } from './items.js';
 import { type HeroWithItems, type Tx, freePlace, giveStack } from './ledger.js';
+import { omenOf } from './omens.js';
 
 /** What an action brought: Items as the web shows them, and lines to read. */
 export interface Haul {
@@ -28,17 +29,18 @@ export async function dropGear(tx: Tx, hero: HeroWithItems, season: Season, opts
   floor: number; count: number; odds?: [Tier, number][]; source: string;
 }, haul: Haul): Promise<void> {
   const luck = heroLuck(hero);
+  const magicFind = luck.magicFind + (omenOf(season)?.magicFind ?? 0);
   for (let i = 0; i < opts.count; i++) {
     const seed = newSeed();
     const rng = createRng(seed);
     const { tier, forced, reset } = rollLootTier(rng, {
-      odds: opts.odds ?? dropOdds(opts.floor), magicFind: luck.magicFind, badLuck: hero.badLuck,
+      odds: opts.odds ?? dropOdds(opts.floor), magicFind, badLuck: hero.badLuck,
     });
     const roll = rollGear(rng, { tier, itemLevel: Math.max(1, opts.floor) });
     await tx.rollLog.create({
       data: {
         playerId: hero.playerId, kind: 'drop', seed,
-        detail: { floor: opts.floor, source: opts.source, tier, base: roll.base, forced, magicFind: luck.magicFind, badLuck: hero.badLuck },
+        detail: { floor: opts.floor, source: opts.source, tier, base: roll.base, forced, magicFind, badLuck: hero.badLuck },
       },
     });
     if (reset && hero.badLuck !== 0) {

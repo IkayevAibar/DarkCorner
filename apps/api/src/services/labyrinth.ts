@@ -10,6 +10,7 @@ import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { bossVictory } from './boss.js';
 import { trackBounties } from './bounties.js';
+import { omenOf, omenView } from './omens.js';
 import { enterEvent, eventAction, eventView, withLuck } from './events.js';
 import { feed } from './feed.js';
 import {
@@ -116,9 +117,10 @@ const canSneak = (hero: Hero, kind: FightKind): boolean =>
 function facingView(hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: FightKind, now: Date): Facing {
   const { monsters, spawnSeed } = monstersFor(season, hero, floor, roomId, kind, now);
   const combat = combatOf(hero);
+  const lean = omenOf(season, now)?.sneak ?? 0;
   const rate = (stance: StanceId) =>
-    threatOf(fightOdds(`${spawnSeed}:threat:${stance}`, fightInput(hero, combat, monsters, { stance })));
-  const sneak = canSneak(hero, kind) ? sneakCheck(combat, floor.number, monsters.length) : null;
+    threatOf(fightOdds(`${spawnSeed}:threat:${stance}`, fightInput(hero, combat, monsters, { stance, escapeBonus: lean })));
+  const sneak = canSneak(hero, kind) ? sneakCheck(combat, floor.number, monsters.length, lean) : null;
   return {
     kind,
     monsters: monsters.map((m) => combatant(m.key, m)),
@@ -177,7 +179,10 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
   };
   const base = {
     hero: heroPart,
-    season: { status: season.status.toLowerCase() as LabyrinthView['season']['status'], bossGateAt: season.bossGateAt?.toISOString() ?? null },
+    season: {
+      status: season.status.toLowerCase() as LabyrinthView['season']['status'], bossGateAt: season.bossGateAt?.toISOString() ?? null,
+      omen: omenView(season, now),
+    },
     waypoints: hero.waypoints,
     bestFloor: hero.bestFloor,
   };
@@ -412,7 +417,7 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
         const count = LOOT.treasureItems.find(([, w]) => (r -= w) < 0)?.[0] ?? 1;
         await dropGear(tx, hero, season, { floor: floor.number, count, source: 'treasure' }, out);
         if (rng.chance(LOOT.treasureChest)) await dropChest(tx, hero, season, floor.number, out);
-        const gold = withGoldFind(hero, rng.int(5, 15) * (floor.number + 1));
+        const gold = withGoldFind(hero, Math.round(rng.int(5, 15) * (floor.number + 1) * (omenOf(season, now)?.gold ?? 1)));
         await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
         hero.carriedGold += gold;
         out.gold += gold;
@@ -461,7 +466,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
         outcome.notices.push(t('Smoke fills the Room, and you slip through it.', 'Комнату заволакивает дым, и вы проскальзываете сквозь него.'));
       } else {
         const { monsters } = monstersFor(season, hero, floor, room, kind, now);
-        const input = sneakCheck(combatOf(hero), floor.number, monsters.length);
+        const input = sneakCheck(combatOf(hero), floor.number, monsters.length, omenOf(season, now)?.sneak ?? 0);
         const seed = newSeed();
         const rng = createRng(seed);
         const { check: result } = await withLuck(tx, hero, t('Sneak past', 'Прокрасться мимо'), () => ({ check: check(rng, input) }), outcome);
@@ -482,7 +487,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
     if (action.bomb) await takeStack(tx, hero, 'bomb-fire', 1, 'no_bomb');
     // The Threat the Player was shown, for bounties that ask for a hard fight.
     const { monsters, spawnSeed } = monstersFor(season, hero, floor, room, kind, now);
-    const threat = threatOf(fightOdds(`${spawnSeed}:threat:${hero.stance}`, fightInput(hero, combatOf(hero), monsters)));
+    const threat = threatOf(fightOdds(`${spawnSeed}:threat:${hero.stance}`, fightInput(hero, combatOf(hero), monsters, { escapeBonus: omenOf(season, now)?.sneak ?? 0 })));
     await fightHere(tx, hero, season, floor, room, kind, outcome, { bomb: action.bomb, threat });
     return hero.id;
   });

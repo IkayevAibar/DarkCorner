@@ -165,6 +165,10 @@ _Avoid_: stealth, skip
 To back away from a Room's monsters, before any fight, to the last safe Room.
 _Avoid_: flee, run (those happen during a fight, by Escape roll)
 
+**Omen**:
+How the whole Labyrinth leans for one day, for everyone: tougher monsters and more gold, easier Sneaking, a hotter Forge…
+_Avoid_: weather, modifier, event
+
 **Bounty**:
 A small goal from the Tavern: three a day and one a week per Hero, paid the moment it is done.
 _Avoid_: quest, mission, task

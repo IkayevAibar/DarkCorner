@@ -376,6 +376,7 @@ export const en = {
   'err.swap_used': 'You have already swapped a bounty today.',
   'err.bounty_started': 'Only an untouched bounty can be swapped.',
   'err.no_bounty': 'No such bounty.',
+  'omen.today': 'Today’s Omen',
   'facing.threat': 'Threat',
   'facing.blocked': 'The monsters block the other Doors.',
   'facing.fight': 'Fight',
