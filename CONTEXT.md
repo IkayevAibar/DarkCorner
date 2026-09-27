@@ -120,6 +120,10 @@ _Avoid_: dive, expedition, trip, raid
 A Room that, once reached, lets a Hero enter or leave the Labyrinth there.
 _Avoid_: checkpoint, teleport
 
+**Town Portal**:
+A scroll that takes a Hero from anywhere in the Labyrinth to the City, and stays open behind it for a day so it can step back through once.
+_Avoid_: recall, teleport, hearthstone
+
 **Camp**:
 A safe Room. A Hero waiting there can't be attacked and takes a long rest.
 _Avoid_: safe room, bonfire
