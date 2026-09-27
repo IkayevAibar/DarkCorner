@@ -79,6 +79,7 @@ export const heroSchema = z.object({
   abilities: abilityScoresSchema,
   maxHp: z.number().int(),
   hp: z.number().int(),
+  armorClass: z.number().int(),
   /** Safe in the City. */
   gold: z.number().int(),
   stamina: z.number().int(),
@@ -102,6 +103,18 @@ export const myHeroResponseSchema = z.object({
   canRetire: z.boolean(),
 });
 export type MyHeroResponse = z.infer<typeof myHeroResponseSchema>;
+
+/** POST /api/items/:id/equip — `slot` picks a ring slot; otherwise the first free fitting slot. */
+export const equipRequestSchema = z.object({ slot: slotIdSchema.optional() });
+export type EquipRequest = z.infer<typeof equipRequestSchema>;
+
+/** POST /api/items/:id/move — between the Bag and Storage. */
+export const moveItemRequestSchema = z.object({ to: z.enum(['bag', 'storage']) });
+export type MoveItemRequest = z.infer<typeof moveItemRequestSchema>;
+
+/** Every inventory action answers with the whole Hero, so the screen redraws from one source. */
+export const heroResponseSchema = z.object({ hero: heroSchema });
+export type HeroResponse = z.infer<typeof heroResponseSchema>;
 
 /** POST /api/heroes */
 export const createHeroRequestSchema = z.object({

@@ -4,6 +4,7 @@ export * from './abilities.js';
 export * from './check.js';
 export * from './items.js';
 export * from './heroes.js';
+export * from './stats.js';
 export * from './content/text.js';
 export * from './content/races.js';
 export * from './content/classes.js';

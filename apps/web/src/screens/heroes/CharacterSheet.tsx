@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { ABILITY_IDS, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
-import { api } from '../../api';
+import { api, ApiRequestError } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
 import { useI18n } from '../../i18n';
+import { en, type MessageKey } from '../../i18n/en';
+
+type Place = 'worn' | 'bag' | 'storage';
 
 const modifier = (score: number) => {
   const m = Math.floor((score - 10) / 2);
@@ -34,7 +37,16 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
   const text = useText();
   const { openSheet, closeSheet } = useSheet();
   const worn = new Map(hero.worn.map((w) => [w.slot, w.item]));
-  const showItem = (item: ItemView) => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> });
+  const showItem = (item: ItemView, place: Place) =>
+    openSheet({
+      title: text(item.name),
+      body: (
+        <div className="grid gap-4">
+          <ItemDetails item={item} />
+          <ItemActions item={item} place={place} onDone={() => { closeSheet(); onChanged(); }} />
+        </div>
+      ),
+    });
   const race = options.races.find((r) => r.id === hero.race)!;
   const cls = options.classes.find((c) => c.id === hero.class)!;
 
@@ -58,7 +70,10 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
             <h1 className="m-0 truncate font-head text-[26px] leading-tight font-extrabold">{hero.name}</h1>
             <span className="text-sm">{text(race.name)} · {text(cls.name)}</span>
             <span className="text-sm text-muted">{t('hero.level', { n: hero.level })}</span>
-            <span className="chip w-fit text-[#f1c75b]">{t('hero.gold', { n: hero.gold.toLocaleString() })}</span>
+            <span className="flex flex-wrap gap-1.5">
+              <span className="chip w-fit text-[#f1c75b]">{t('hero.gold', { n: hero.gold.toLocaleString() })}</span>
+              <span className="chip w-fit">{t('hero.armorClass', { n: hero.armorClass })}</span>
+            </span>
           </div>
         </div>
         <div className="grid gap-2">
@@ -104,7 +119,7 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
               return (
                 <div key={slot} className="flex flex-col items-center gap-0.5" style={{ gridArea: area }}>
                   {item ? (
-                    <ItemChip item={item} onClick={() => showItem(item)} />
+                    <ItemChip item={item} onClick={() => showItem(item, 'worn')} />
                   ) : (
                     <span className="block size-[62px] rounded-[2px] border border-dashed border-bone/30" />
                   )}
@@ -122,8 +137,12 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
         </div>
       </article>
 
-      <ItemGrid title={t('hero.bag', { n: hero.bag.length, m: hero.bagSlots })} items={hero.bag} onPick={showItem} />
-      <ItemGrid title={t('hero.storage', { n: hero.storage.length, m: hero.storageSlots })} items={hero.storage} onPick={showItem} />
+      <ItemGrid title={t('hero.bag', { n: hero.bag.length, m: hero.bagSlots })} items={hero.bag} onPick={(i) => showItem(i, 'bag')} />
+      <ItemGrid
+        title={t('hero.storage', { n: hero.storage.length, m: hero.storageSlots })}
+        items={hero.storage}
+        onPick={(i) => showItem(i, 'storage')}
+      />
 
       {canRetire ? (
         <button type="button" className="btn border-[#8a1c1c] text-[#ff9a8a]" onClick={confirmRetire}>
@@ -151,6 +170,56 @@ function ItemGrid({ title, items, onPick }: { title: string; items: ItemView[]; 
         </div>
       )}
     </section>
+  );
+}
+
+function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; onDone: () => void }) {
+  const { t } = useI18n();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const act = async (action: () => Promise<unknown>) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await action();
+      onDone();
+    } catch (e) {
+      const code = e instanceof ApiRequestError ? (e.body?.error ?? 'error') : 'error';
+      const key = `err.${code}`;
+      setError(key in en ? t(key as MessageKey) : t('err.generic', { code }));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const wearable = item.kind === 'gear';
+  return (
+    <div className="grid gap-2">
+      <div className="flex flex-wrap gap-2">
+        {place === 'worn' && (
+          <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(() => api.unequipItem(item.id))}>
+            {t('item.unequip')}
+          </button>
+        )}
+        {place !== 'worn' && wearable && (
+          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(() => api.equipItem(item.id))}>
+            {t('item.equip')}
+          </button>
+        )}
+        {place === 'bag' && (
+          <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(() => api.moveItem(item.id, 'storage'))}>
+            {t('item.toStorage')}
+          </button>
+        )}
+        {place === 'storage' && (
+          <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(() => api.moveItem(item.id, 'bag'))}>
+            {t('item.toBag')}
+          </button>
+        )}
+      </div>
+      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+    </div>
   );
 }
 

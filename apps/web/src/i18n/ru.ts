@@ -122,4 +122,15 @@ export const ru: Record<MessageKey, string> = {
   'item.serial': 'Реликвия №{n} из {m}',
   'item.owners': 'Владельцы: {list}',
   'item.quantity': '×{n}',
+  'item.equip': 'Надеть',
+  'item.unequip': 'Снять',
+  'item.toStorage': 'В хранилище',
+  'item.toBag': 'В сумку',
+  'hero.armorClass': 'КД {n}',
+
+  'err.not_proficient': 'Ваш класс не умеет этим пользоваться.',
+  'err.identify_first': 'Сначала опознайте предмет.',
+  'err.bag_full': 'Сумка полна.',
+  'err.storage_full': 'Хранилище полно.',
+  'err.generic': 'Не получилось ({code}).',
 };

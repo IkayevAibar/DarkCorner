@@ -121,6 +121,17 @@ export const en = {
   'item.serial': 'Relic #{n} of {m}',
   'item.owners': 'Owners: {list}',
   'item.quantity': '×{n}',
+  'item.equip': 'Wear',
+  'item.unequip': 'Take off',
+  'item.toStorage': 'To Storage',
+  'item.toBag': 'To Bag',
+  'hero.armorClass': 'AC {n}',
+
+  'err.not_proficient': 'Your Class can’t use this.',
+  'err.identify_first': 'Identify it before wearing it.',
+  'err.bag_full': 'Your Bag is full.',
+  'err.storage_full': 'Your Storage is full.',
+  'err.generic': 'That didn’t work ({code}).',
 };
 
 export type MessageKey = keyof typeof en;

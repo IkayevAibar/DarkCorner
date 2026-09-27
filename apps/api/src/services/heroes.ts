@@ -4,7 +4,7 @@ import type {
 } from '@dark/shared';
 import {
   ABILITY_REROLLS, type AbilitySet, BAG_SLOTS, BANNER_COLORS, CLASS_DEFS, CLASSES, type GearBase, PORTRAITS, RACE_DEFS,
-  RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, baseById,
+  RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
   createRng, currentStamina, portraitById, portraitsFor, rollAbilitySet, rollGear, slotsFor, startingHealth,
   validateHeroChoices,
 } from '@dark/engine';
@@ -61,6 +61,18 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     abilities: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
     maxHp: hero.maxHp,
     hp: hero.hp,
+    armorClass: armorClass(
+      hero.dex,
+      hero.items
+        .filter((i) => i.place === 'WORN')
+        .map((i) => ({
+          base: i.base,
+          quality: i.quality,
+          upgrade: i.upgrade,
+          radiant: i.radiant,
+          bonusStats: i.bonusStats as { stat: string; value: number }[],
+        })),
+    ),
     gold: hero.gold,
     stamina: currentStamina(hero.stamina, hero.staminaAt, now).stamina,
     staminaMax: STAMINA_MAX,

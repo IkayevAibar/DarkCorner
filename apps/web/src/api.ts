@@ -1,6 +1,7 @@
 import type {
   AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, ApiErrorBody, AuthStatus, CreateHeroRequest, CreationOptions,
-  DevLoginRequest, HeroDraft, HeroView, LogoutResponse, MeResponse, MyHeroResponse, UpdateMeRequest,
+  DevLoginRequest, HeroDraft, HeroResponse, HeroView, LogoutResponse, MeResponse, MoveItemRequest, MyHeroResponse,
+  SlotId, UpdateMeRequest,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -43,4 +44,9 @@ export const api = {
   rerollDraft: () => request<{ draft: HeroDraft }>('POST', '/api/heroes/draft/reroll'),
   createHero: (body: CreateHeroRequest) => request<{ hero: HeroView }>('POST', '/api/heroes', body),
   retireHero: () => request<MyHeroResponse>('POST', '/api/heroes/retire'),
+
+  equipItem: (id: string, slot?: SlotId) => request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/equip`, { slot }),
+  unequipItem: (id: string) => request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/unequip`),
+  moveItem: (id: string, to: MoveItemRequest['to']) =>
+    request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/move`, { to }),
 };
