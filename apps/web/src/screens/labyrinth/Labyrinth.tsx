@@ -144,7 +144,13 @@ function HeroStatus({ view }: { view: LabyrinthView }) {
           </span>
         </div>
       </div>
-      <Meter label={t('hero.health')} value={hero.hp} max={hero.maxHp} kind="health" />
+      <div className="grid gap-0.5">
+        <Meter label={t('hero.health')} value={hero.hp} max={hero.maxHp} kind="health" />
+        {/* Waiting heals slowly anywhere in the Labyrinth; a Camp has its own line. */}
+        {view.location === 'labyrinth' && hero.hp < hero.maxHp && view.room?.type !== 'camp' && (
+          <span className="justify-self-end text-xs text-muted">{t('lab.recovering')}</span>
+        )}
+      </div>
       <div className="grid gap-0.5">
         <Meter label={t('hero.stamina')} value={hero.stamina} max={hero.staminaMax} kind="stamina" />
         {hero.staminaNextAt && (
