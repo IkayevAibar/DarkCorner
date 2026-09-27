@@ -184,7 +184,7 @@ export const mapDoorSchema = z.object({ a: z.number().int(), b: z.number().int()
 
 export const EVENT_KINDS = [
   'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
-  'fountain', 'prisoner', 'library', 'bone-pile',
+  'fountain', 'prisoner', 'library', 'bone-pile', 'riddle',
 ] as const;
 export const eventKindSchema = z.enum(EVENT_KINDS);
 export type EventKindId = z.infer<typeof eventKindSchema>;
@@ -220,6 +220,15 @@ export const eventViewSchema = z.discriminatedUnion('kind', [
   /** The chains need an Iron key, or a Rogue's hands. */
   z.object({ kind: z.literal('prisoner'), done: z.boolean(), canOpen: z.boolean(), free: z.boolean() }),
   z.object({ kind: z.literal('library'), done: z.boolean() }),
+  /** The Riddling statue: today's riddle and three answers; once answered, which was chosen and which was right. */
+  z.object({
+    kind: z.literal('riddle'),
+    done: z.boolean(),
+    question: localizedTextSchema,
+    answers: z.array(localizedTextSchema).length(3),
+    chosen: z.number().int().nullable(),
+    right: z.number().int().nullable(),
+  }),
   z.object({ kind: z.literal('bone-pile'), done: z.boolean() }),
 ]);
 export type EventView = z.infer<typeof eventViewSchema>;
@@ -239,6 +248,7 @@ export const eventActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('free') }),
   z.object({ action: z.literal('read') }),
   z.object({ action: z.literal('search') }),
+  z.object({ action: z.literal('answer'), choice: z.number().int().min(0).max(2) }),
 ]);
 export type EventAction = z.infer<typeof eventActionSchema>;
 

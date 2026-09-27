@@ -5,6 +5,7 @@ import {
   MERCHANT_MARKUP, RACE_DEFS, type RaceId, SUFFIXES, type Tier, abilityModifier, baseById, buybackPrice, cacheContents,
   chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
   pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
+  RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle,
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
@@ -25,6 +26,8 @@ import { trackBounties } from './bounties.js';
 interface VisitState {
   picked?: number;
   sold?: string[];
+  /** The Riddling statue: the answer chosen. */
+  answered?: number;
 }
 
 const seedFor = (season: Season, hero: HeroWithItems, floor: number, room: number, day: number) =>
@@ -146,6 +149,16 @@ export async function eventView(tx: Tx, hero: HeroWithItems, season: Season, flo
     case 'locked-cache':
     case 'prisoner':
       return { kind, done, canOpen: hero.class === 'rogue' || stackTotal(hero, 'key-iron') > 0, free: hero.class === 'rogue' };
+    case 'riddle': {
+      const today = statueRiddle(createRng(seed));
+      return {
+        kind, done,
+        question: RIDDLES[today.riddle]!.question,
+        answers: today.answers.map((i) => RIDDLES[i]!.answer),
+        chosen: state.answered ?? null,
+        right: done ? today.right : null,
+      };
+    }
     default:
       return { kind, done };
   }
@@ -417,6 +430,36 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         out.notices.push(t(`The pages bite back: ${lost} damage.`, `Страницы кусаются: ${lost} урона.`));
       } else {
         out.notices.push(t('The script swims before your eyes.', 'Буквы плывут перед глазами.'));
+      }
+      return;
+    }
+
+    case 'riddle': {
+      if (action.action !== 'answer') throw wrong();
+      const today = statueRiddle(createRng(seed));
+      await finish(tx, visit, hero, floor.number, room, now, { answered: action.choice }, out);
+      await logRoll(tx, hero, seed, { event: kind, riddle: today.riddle, choice: action.choice, right: today.right });
+      if (action.choice !== today.right) {
+        const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(fullHealth(hero) * STATUE_GAZE)));
+        await tx.hero.update({ where: { id: hero.id }, data: { hp: hero.hp - lost } });
+        hero.hp -= lost;
+        out.notices.push(t(`Wrong. The statue's eyes burn: ${lost} damage.`, `Неверно. Глаза статуи обжигают: ${lost} урона.`));
+        return;
+      }
+      const xp = await boostedXp(tx, hero, season, STATUE_XP * floor.number);
+      const levelUp = gainXp(createRng(`${seed}:xp`), hero, xp);
+      await tx.hero.update({ where: { id: hero.id }, data: levelUp.data });
+      Object.assign(hero, levelUp.data);
+      out.xp += xp;
+      out.levelUp = levelUp.newLevel ?? out.levelUp;
+      // It also points out a secret Door the Hero hasn't found: the room behind it goes on the Map.
+      const known = await heroFloor(tx, hero.id, floor.number);
+      const hidden = floor.rooms.find((r) => r.type === 'hidden' && !known.seen.includes(r.id));
+      if (hidden) {
+        await tx.heroFloor.update({ where: { id: known.id }, data: { seen: { push: hidden.id } } });
+        out.notices.push(t('Right. The statue turns its eyes to a wall: a secret Door is there, and your Map shows the room behind it.', 'Верно. Статуя переводит взгляд на стену: там потайная дверь, и комната за ней теперь на вашей карте.'));
+      } else {
+        out.notices.push(t('Right. The statue closes its eyes, satisfied.', 'Верно. Статуя довольно закрывает глаза.'));
       }
       return;
     }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ALTAR_SUCCESS, LOCKPICK_DC, SHRINE_DC, cacheContents, createRng, goblinDice, merchantWares, nextTier, offerAtAltar,
-  pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones,
+  pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones, RIDDLES, statueRiddle,
 } from '../src/index.js';
 
 const plain = { modifier: 0, advantage: false, rerollOnes: false };
@@ -167,5 +167,18 @@ describe('the newer Event rooms', () => {
     for (let i = 0; i < 2000; i++) if (searchBones(createRng(`b-${i}`), 3).rise) risen++;
     expect(risen / 2000).toBeGreaterThan(0.3);
     expect(risen / 2000).toBeLessThan(0.4);
+  });
+});
+
+describe('the Riddling statue', () => {
+  it('asks one riddle with three different answers, its own among them, the same for the same seed', () => {
+    for (let i = 0; i < 200; i++) {
+      const r = statueRiddle(createRng(`riddle-${i}`));
+      expect(new Set(r.answers).size).toBe(3);
+      expect(r.answers[r.right]).toBe(r.riddle);
+      expect(statueRiddle(createRng(`riddle-${i}`))).toEqual(r);
+    }
+    expect(RIDDLES.length).toBeGreaterThanOrEqual(10);
+    for (const riddle of RIDDLES) for (const t of [riddle.question, riddle.answer]) expect(t.en && t.ru).toBeTruthy();
   });
 });

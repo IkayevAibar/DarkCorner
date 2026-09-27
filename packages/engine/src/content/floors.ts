@@ -40,7 +40,7 @@ export type RoomType =
 
 export const EVENT_KINDS = [
   'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
-  'fountain', 'prisoner', 'library', 'bone-pile',
+  'fountain', 'prisoner', 'library', 'bone-pile', 'riddle',
 ] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 

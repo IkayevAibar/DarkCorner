@@ -9,7 +9,7 @@ import { type Rng, createRng } from './rng.js';
  * only regenerated (and cached). Bump LABYRINTH_VERSION whenever generation
  * changes, because a running Season must keep the Labyrinth it started with.
  */
-export const LABYRINTH_VERSION = 2;
+export const LABYRINTH_VERSION = 3;
 
 /** About 1 Clue in 5 lies (docs/design.md, v0). */
 export const CLUE_LIE_CHANCE = 0.2;

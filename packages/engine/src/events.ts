@@ -3,6 +3,7 @@ import { rollDice, sum } from './dice.js';
 import { BLESSING_IDS, type BlessingId, type ChestGrade, rollChestGrade, usableBases } from './economy.js';
 import type { ClassId } from './content/classes.js';
 import { type Tier, TIERS, tierRank } from './content/loot.js';
+import { RIDDLES } from './content/riddles.js';
 import { type GearRoll, dropOdds, rollExtraBonusStat, rollGear, rollTier } from './items.js';
 import type { Rng } from './rng.js';
 
@@ -197,3 +198,25 @@ export function searchBones(rng: Rng, floor: number): { rise: boolean; gold: num
   return { rise: rng.chance(BONES_RISE), gold, tier };
 }
 
+
+// ─── Riddling statue ──────────────────────────────────────────────────────
+
+/** A right answer teaches this much XP per Floor number; a wrong one burns this share of full health (v0). */
+export const STATUE_XP = 50;
+export const STATUE_GAZE = 0.15;
+
+/**
+ * Today's riddle for a Hero in a Room: which one, and three answers (its own and two
+ * others') in a shuffled order. `right` is the place of the true answer.
+ */
+export function statueRiddle(rng: Rng): { riddle: number; answers: number[]; right: number } {
+  const riddle = rng.int(0, RIDDLES.length - 1);
+  const others = RIDDLES.map((_, i) => i).filter((i) => i !== riddle);
+  const answers = [riddle];
+  while (answers.length < 3) answers.push(others.splice(rng.int(0, others.length - 1), 1)[0]!);
+  for (let i = answers.length - 1; i > 0; i--) {
+    const j = rng.int(0, i);
+    [answers[i], answers[j]] = [answers[j]!, answers[i]!];
+  }
+  return { riddle, answers, right: answers.indexOf(riddle) };
+}

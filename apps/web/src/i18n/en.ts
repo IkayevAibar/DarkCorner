@@ -388,6 +388,8 @@ export const en = {
   'event.prisoner.pick': 'Pick the chains',
   'event.prisoner.key': 'Unlock the chains with an Iron key',
   'event.prisoner.noKey': 'The chains need an Iron key',
+  'event.riddle': 'A riddling statue',
+  'event.riddle.intro': 'A stone head with open eyes. It speaks a riddle, and waits. Answer well and it shows you something hidden; answer badly and its eyes burn.',
   'event.library': 'An old library',
   'event.library.intro': 'Shelves of rotting books. One tome still holds together. Wizards read it best.',
   'event.library.read': 'Read the tome',

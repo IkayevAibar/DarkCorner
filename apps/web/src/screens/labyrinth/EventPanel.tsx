@@ -178,6 +178,20 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
         <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'read' })}>{t('event.library.read')}</button>
       )}
 
+      {event.kind === 'riddle' && (
+        <div className="grid gap-2">
+          <p className="m-0 font-head text-lg leading-snug">«{text(event.question)}»</p>
+          {event.answers.map((answer, i) => {
+            const tone = event.right === null ? '' : i === event.right ? 'btn-primary' : i === event.chosen ? 'opacity-60 line-through' : 'opacity-60';
+            return (
+              <button key={i} type="button" className={`btn ${tone}`} disabled={busy || event.done} onClick={() => void send({ action: 'answer', choice: i })}>
+                {text(answer)}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {event.kind === 'bone-pile' && !event.done && (
         <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'search' })}>{t('event.bone-pile.search')}</button>
       )}

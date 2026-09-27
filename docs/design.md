@@ -395,11 +395,12 @@ Small goals give each session a reason to go down today *(v0)*.
 | Prisoner | Free them with an Iron key, or a Rogue picks the chains. 80% they give an Item with the odds of two Floors deeper and gold; 20% a doppelganger that strikes first *(v0)*. |
 | Library | Read a tome: an INT Check against 11 + half the Floor number (Wizards add proficiency and roll with advantage). Success teaches 60 XP per Floor number; failing by 5 or more, or a natural 1, costs a tenth of full health *(v0)*. |
 | Bone pile | Search: an old adventurer's purse, 10–40 × (Floor + 1) gold and half the time an Item. 35% of the time the bones rise first and strike first: one Skeleton, two from Floor 4 *(v0)*. |
+| Riddling statue | A stone head asks a folk riddle, with three answers to choose from. Right: 50 XP per Floor number, and it points out the Floor's secret Door if the Hero hasn't found it (the room behind goes on the Map). Wrong: its eyes burn 15% of full health, never below 1 *(v0)*. |
 
 - **Daily and personal:** what an Event room holds comes from the Hero, the Room and the day, so leaving and coming back doesn't reroll it. Each Event room works once a day per Hero (the merchant sells until his wares are gone).
 - **Luck:** a Hero with the Lucky charm or the Luckstone rerolls one failed Check or death save per Run and keeps the better roll.
 
-Later: the shell game (a goblin hides a gem under one of three cups), a riddling statue, and more minigames.
+Later: the shell game (a goblin hides a gem under one of three cups) and more minigames.
 
 ### Hidden rooms
 

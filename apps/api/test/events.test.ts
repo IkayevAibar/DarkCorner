@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { type EventKind, type Floor, createRng, doorsOf, generateLabyrinth, rollGear } from '@dark/engine';
+import { type EventKind, type Floor, RIDDLES, createRng, doorsOf, generateLabyrinth, rollGear } from '@dark/engine';
 import { labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
@@ -15,7 +15,9 @@ function roomWith(kind: EventKind): { floor: Floor; room: number; from: number }
   for (const floor of lab.floors) {
     for (const room of floor.rooms) {
       if (room.type !== 'event' || room.event !== kind) continue;
-      const door = doorsOf(floor, room.id).find((d) => d.door.kind === 'open' && floor.rooms[d.to]!.type === 'empty');
+      const quiet = (type: string) => ['empty', 'camp', 'landing', 'stairs', 'waypoint', 'treasure'].includes(type);
+      const door = doorsOf(floor, room.id).find((d) => d.door.kind === 'open' && floor.rooms[d.to]!.type === 'empty')
+        ?? doorsOf(floor, room.id).find((d) => d.door.kind === 'open' && quiet(floor.rooms[d.to]!.type));
       if (door) return { floor, room: room.id, from: door.to };
     }
   }
@@ -221,6 +223,26 @@ describe('Event rooms', () => {
     const after = await hero();
     if (r.checks[0]!.success) expect(after.xp).toBeGreaterThan(before.xp);
     else expect(after.xp).toBe(before.xp);
+  });
+
+  it('the Riddling statue teaches a right answer and burns a wrong one, once a day', async () => {
+    const { floor, room } = roomWith('riddle');
+    await placeAt(floor.number, room);
+    const asked = (await view()).room!.eventView!;
+    if (asked.kind !== 'riddle') throw new Error('not a statue');
+    expect(asked.answers).toHaveLength(3);
+    expect(asked.right).toBeNull();
+    const before = await hero();
+    // Answer wrong on purpose: the true answer's text is the question's own riddle.
+    const truth = RIDDLES.find((r) => r.question.en === asked.question.en)!.answer.en;
+    const wrongChoice = asked.answers.findIndex((a) => a.en !== truth);
+    const r = await act({ action: 'answer', choice: wrongChoice });
+    expect((await hero()).hp).toBeLessThan(before.hp);
+    const after = r.view.room!.eventView!;
+    if (after.kind !== 'riddle') throw new Error('not a statue');
+    expect(after).toMatchObject({ done: true, chosen: wrongChoice });
+    expect(after.answers[after.right!]!.en).toBe(truth);
+    expect((await post('/api/labyrinth/event', { action: 'answer', choice: 0 })).json().error).toBe('event_done');
   });
 
   it('the Bone pile pays an old adventurer’s purse, sometimes after a fight', async () => {
