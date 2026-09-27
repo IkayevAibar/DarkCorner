@@ -1,0 +1,99 @@
+// Terms follow CONTEXT.md. Heroes and Items arrive in week 2 with their rules.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// A person with a Discord account. Must be approved before creating a Hero.
+model Player {
+  id         String    @id @default(cuid())
+  /// Discord snowflake from the hub's SSO cookie; `dev-…` for local dev logins.
+  discordId  String    @unique
+  username   String
+  globalName String?
+  /// Discord avatar hash, not a URL.
+  avatar     String?
+  /// Null until the Player picks a language; until then the browser's is used.
+  locale     String?
+  isAdmin    Boolean   @default(false)
+  approvedAt DateTime?
+  bannedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  feedEvents FeedEvent[]
+  rolls      RollLog[]
+}
+
+enum SeasonStatus {
+  PLANNED
+  ACTIVE
+  FINALE
+  ENDED
+}
+
+/// One cycle of play: a fresh Labyrinth, a Boss, a Wipe at the end.
+model Season {
+  id         String       @id @default(cuid())
+  number     Int          @unique
+  /// Seeds the Labyrinth generator; kept so the whole Labyrinth can be rebuilt.
+  seed       String
+  status     SeasonStatus @default(PLANNED)
+  startsAt   DateTime?
+  bossGateAt DateTime?
+  finaleAt   DateTime?
+  endedAt    DateTime?
+  createdAt  DateTime     @default(now())
+
+  feedEvents FeedEvent[]
+}
+
+/// Every roll that matters, with the seed that produced it, so it can be replayed.
+model RollLog {
+  id        BigInt   @id @default(autoincrement())
+  playerId  String?
+  /// What was rolled: "abilities", "drop", "forge", "chest", "deathSave", …
+  kind      String
+  seed      String
+  detail    Json
+  createdAt DateTime @default(now())
+
+  player Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  @@index([playerId, createdAt])
+  @@index([kind, createdAt])
+}
+
+/// Work scheduled for later (Boss gate, weakening, Vault openings). Idempotent.
+model Job {
+  id        String    @id @default(cuid())
+  kind      String
+  runAt     DateTime
+  payload   Json      @default("{}")
+  doneAt    DateTime?
+  attempts  Int       @default(0)
+  lastError String?
+  createdAt DateTime  @default(now())
+
+  @@index([doneAt, runAt])
+}
+
+/// A line in the Tavern's Feed. Some also become Broadcasts.
+model FeedEvent {
+  id        BigInt   @id @default(autoincrement())
+  seasonId  String?
+  playerId  String?
+  kind      String
+  data      Json
+  createdAt DateTime @default(now())
+
+  season Season? @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  player Player? @relation(fields: [playerId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+}
