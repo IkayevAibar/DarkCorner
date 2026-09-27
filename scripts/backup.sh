@@ -2,6 +2,7 @@
 # Nightly database dump, run by deploy/darkcorner-backup.timer. Keeps the newest 14.
 # Copy them off the box now and then; a backup on the same disk is only half a backup.
 set -euo pipefail
+umask 077  # the dumps hold every Player's data: owner-only
 cd "$(dirname "$0")/.."
 ROOT=$(pwd)
 DEST=${BACKUP_DIR:-$ROOT/backups/daily}

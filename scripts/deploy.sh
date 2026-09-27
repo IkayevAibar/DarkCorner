@@ -46,7 +46,8 @@ DB_RUNNING=$(docker inspect -f '{{.State.Running}}' dc-postgres 2>/dev/null || e
 if touched apps/api/prisma/migrations && [ "$DB_RUNNING" = "true" ]; then
   mkdir -p "$ROOT/backups"
   DUMP="$ROOT/backups/db-$(date -u '+%Y%m%d-%H%M%S')-premigration.sql.gz"
-  if docker exec dc-postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists' | gzip -9 > "$DUMP" \
+  # umask only here: the checkout and the images built from it must stay readable.
+  if (umask 077; docker exec dc-postgres sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists' | gzip -9 > "$DUMP") \
      && [ "$(stat -c%s "$DUMP")" -ge 1000 ]; then
     log "pre-migration dump: $(basename "$DUMP")"
     ls -1t "$ROOT"/backups/db-*-premigration.sql.gz | tail -n +11 | xargs -r rm -f

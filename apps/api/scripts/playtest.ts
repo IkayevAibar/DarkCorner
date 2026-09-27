@@ -584,7 +584,8 @@ console.log('\nGear found:');
 for (const bot of bots) console.log(`  ${bot.cls.padEnd(7)} ${TIERS.map((t) => `${t} ${bot.stats.items[t] ?? 0}`).join(', ')}`);
 console.log('\nThe Dragon:');
 for (const bot of bots) if (bot.stats.dragon.length) console.log(`  ${bot.cls.padEnd(7)} ${bot.stats.dragon.join('; ')}`);
-const season = await prisma.season.findFirstOrThrow({ orderBy: { createdAt: 'desc' } });
+// The Season that was played: after a Wipe the newest one is the next, still PLANNED.
+const season = await prisma.season.findFirstOrThrow({ where: { status: { not: 'PLANNED' } }, orderBy: { createdAt: 'desc' } });
 const places = await prisma.bossKill.findMany({ where: { seasonId: season.id }, orderBy: { place: 'asc' } });
 console.log(`  Season ${season.status}${wipedOn ? `, wiped on day ${wipedOn}` : ''}; podium: ${places.map((p) => `${p.place}. ${p.heroName}`).join(', ') || 'nobody yet'}`);
 if (kills.length) console.log(`  Dragon kills: ${kills.join('; ')}`);

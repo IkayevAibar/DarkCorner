@@ -2,7 +2,9 @@
 
 Dark Corner runs on the same Ubuntu VPS as the other ugolok.world sites (`root@92.38.49.9`, clock set to Asia/Almaty). It is a checkout of `main` in `/opt/darkcorner`, running the Docker Compose project `darkcorner` with containers prefixed `dc-`.
 
-**First time:** run the setup wizard from the repo root in Git Bash: `bash scripts/setup-server.sh`. It covers:
+The live server was set up on 2026-09-27. It clones over HTTPS, which works because the repo is public; a private repo would need the deploy key.
+
+**A fresh server:** run the setup wizard from the repo root in Git Bash: `bash scripts/setup-server.sh`. It covers:
 - the DNS record
 - the deploy key
 - cloning the repo
@@ -59,7 +61,7 @@ Everything is on the admin page (the account sheet → Admin → **Season**). Th
 - **Migrations:** never edit a committed migration, and keep `migration.sql` free of a byte-order mark. A BOM crash-looped the Minecraft site once.
 - **Memory:** every service has a `mem_limit`. The Minecraft server holds about 5 GB and the OOM killer has struck before.
 - **Leave the other sites alone:** never touch `/opt/hardcore`, `/opt/cardgame` or `/opt/ugolok`, or their containers and volumes, beyond the Caddy steps. Never run `docker system prune -a` or `docker volume prune`.
-- **Harmless log lines:** "cannot reach origin" means GitHub SSH from the box was flaky. It is harmless.
+- **Harmless log lines:** "cannot reach origin" means GitHub didn't answer the box for a moment. The next check two minutes later tries again.
 - **Caddy changes need a manual reload:** Aetherbound's deploy does not reload Caddy. After changing a site file or Caddy's environment, first validate:
   ```
   cd /opt/cardgame && docker compose run --rm --no-deps -T caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
