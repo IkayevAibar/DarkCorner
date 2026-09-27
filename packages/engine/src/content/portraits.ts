@@ -10,15 +10,17 @@ export interface PortraitDef {
   url: string;
 }
 
+const RACES_PAINTED: RaceId[] = ['human', 'elf', 'dwarf', 'halfling'];
+const CLASSES_PAINTED: ClassId[] = ['fighter', 'rogue', 'wizard', 'cleric'];
+
 /**
- * Season 0 aims for two portraits per Race and Class (32). Until they are
- * painted, the four from the look test plus a hooded silhouette stand in.
+ * Season 0's portraits: two painted for every Race and Class (sources under art/,
+ * 256 px WebP copies under apps/web/public), and a hooded silhouette for anyone.
  */
 export const PORTRAITS: PortraitDef[] = [
-  { id: 'human-fighter-1', race: 'human', class: 'fighter', url: '/art/portraits/human-fighter-1.png' },
-  { id: 'elf-wizard-1', race: 'elf', class: 'wizard', url: '/art/portraits/elf-wizard-1.png' },
-  { id: 'halfling-rogue-1', race: 'halfling', class: 'rogue', url: '/art/portraits/halfling-rogue-1.png' },
-  { id: 'dwarf-cleric-1', race: 'dwarf', class: 'cleric', url: '/art/portraits/dwarf-cleric-1.png' },
+  ...RACES_PAINTED.flatMap((race) => CLASSES_PAINTED.flatMap((cls) => [1, 2].map((n) => ({
+    id: `${race}-${cls}-${n}`, race, class: cls, url: `/art/portraits/${race}-${cls}-${n}.webp`,
+  })))),
   { id: 'hooded', race: null, class: null, url: '/art/portraits/hooded.svg' },
 ];
 

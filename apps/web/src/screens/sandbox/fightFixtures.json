@@ -7,7 +7,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 14,
    "maxHp": 14,
    "ac": 18,
@@ -197,7 +197,7 @@
     "en": "Pip",
     "ru": "Pip"
    },
-   "art": "/art/portraits/halfling-rogue-1.png",
+   "art": "/art/portraits/halfling-rogue-1.webp",
    "hp": 21,
    "maxHp": 21,
    "ac": 14,
@@ -440,7 +440,7 @@
     "en": "Ilyra",
     "ru": "Ilyra"
    },
-   "art": "/art/portraits/elf-wizard-1.png",
+   "art": "/art/portraits/elf-wizard-1.webp",
    "hp": 42,
    "maxHp": 42,
    "ac": 15,
@@ -671,7 +671,7 @@
     "en": "Borin",
     "ru": "Borin"
    },
-   "art": "/art/portraits/dwarf-cleric-1.png",
+   "art": "/art/portraits/dwarf-cleric-1.webp",
    "hp": 40,
    "maxHp": 67,
    "ac": 18,
@@ -958,7 +958,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 8,
    "maxHp": 24,
    "ac": 18,
@@ -1085,7 +1085,7 @@
     "en": "Pip",
     "ru": "Pip"
    },
-   "art": "/art/portraits/halfling-rogue-1.png",
+   "art": "/art/portraits/halfling-rogue-1.webp",
    "hp": 15,
    "maxHp": 30,
    "ac": 14,
@@ -1330,7 +1330,7 @@
     "en": "Ilyra",
     "ru": "Ilyra"
    },
-   "art": "/art/portraits/elf-wizard-1.png",
+   "art": "/art/portraits/elf-wizard-1.webp",
    "hp": 18,
    "maxHp": 26,
    "ac": 15,
@@ -1514,7 +1514,7 @@
     "en": "Borin",
     "ru": "Borin"
    },
-   "art": "/art/portraits/dwarf-cleric-1.png",
+   "art": "/art/portraits/dwarf-cleric-1.webp",
    "hp": 58,
    "maxHp": 58,
    "ac": 18,
@@ -1723,7 +1723,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 164,
    "maxHp": 164,
    "ac": 18,
@@ -2128,7 +2128,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 24,
    "maxHp": 24,
    "ac": 18,
@@ -2310,7 +2310,7 @@
     "en": "Pip",
     "ru": "Pip"
    },
-   "art": "/art/portraits/halfling-rogue-1.png",
+   "art": "/art/portraits/halfling-rogue-1.webp",
    "hp": 30,
    "maxHp": 30,
    "ac": 14,
@@ -2402,7 +2402,7 @@
     "en": "Ilyra",
     "ru": "Ilyra"
    },
-   "art": "/art/portraits/elf-wizard-1.png",
+   "art": "/art/portraits/elf-wizard-1.webp",
    "hp": 27,
    "maxHp": 34,
    "ac": 15,
@@ -2600,7 +2600,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 24,
    "maxHp": 24,
    "ac": 18,
@@ -2722,7 +2722,7 @@
     "en": "Borin",
     "ru": "Borin"
    },
-   "art": "/art/portraits/dwarf-cleric-1.png",
+   "art": "/art/portraits/dwarf-cleric-1.webp",
    "hp": 49,
    "maxHp": 49,
    "ac": 18,
@@ -3045,7 +3045,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 84,
    "maxHp": 84,
    "ac": 18,
@@ -3656,7 +3656,7 @@
     "en": "Ilyra",
     "ru": "Ilyra"
    },
-   "art": "/art/portraits/elf-wizard-1.png",
+   "art": "/art/portraits/elf-wizard-1.webp",
    "hp": 50,
    "maxHp": 50,
    "ac": 15,
@@ -3912,7 +3912,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 42,
    "maxHp": 94,
    "ac": 18,
@@ -4148,7 +4148,7 @@
     "en": "Garrick",
     "ru": "Garrick"
    },
-   "art": "/art/portraits/human-fighter-1.png",
+   "art": "/art/portraits/human-fighter-1.webp",
    "hp": 28,
    "maxHp": 94,
    "ac": 18,
@@ -4435,7 +4435,7 @@
     "en": "Pip",
     "ru": "Pip"
    },
-   "art": "/art/portraits/halfling-rogue-1.png",
+   "art": "/art/portraits/halfling-rogue-1.webp",
    "hp": 39,
    "maxHp": 39,
    "ac": 14,
