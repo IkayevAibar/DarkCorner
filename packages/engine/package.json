@@ -8,9 +8,11 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "balance:fights": "tsx scripts/fight-balance.ts"
   },
   "devDependencies": {
+    "tsx": "^4.19.2",
     "vitest": "^3.2.4"
   }
 }
