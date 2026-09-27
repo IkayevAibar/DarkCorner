@@ -6,7 +6,7 @@ Week 6 of the [Season 0 plan](plan-season-0.md): a short test Season with 2–3 
 
 - [ ] Merge the week branches into `main` in order (`claude/week-1` … `claude/week-5`), plus any Codex branches that are ready. The server deploys `main` within 2 minutes.
 - [ ] The server is set up (`bash scripts/setup-server.sh`, see [deploy.md](deploy.md)), and `DISCORD_WEBHOOK_URL` is in `/opt/darkcorner/.env`. The Season tab warns when it is missing.
-- [ ] The hub shows the game's card (a pull request in the hub's own repo; `GET /api/sso/summary` already sends the Hero's level, deepest Floor and best Item).
+- [ ] The hub shows the game's card: the change is written out in [hub-card.md](hub-card.md), for a pull request in the hub's own repo. `GET /api/sso/summary` already sends the Hero's level, deepest Floor and best Item.
 - [ ] The testers have signed in once through the hub, and are approved on the Players tab.
 
 ## Monday: start the test Season
