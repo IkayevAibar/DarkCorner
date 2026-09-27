@@ -1,42 +1,29 @@
-import { NavLink } from 'react-router';
-import { BUILDING_ICONS, type BuildingIcon } from '../../components/buildingIcons';
-import { ICON_VIEWBOX } from '../../components/items/icons';
+import { useEffect } from 'react';
+import { api } from '../../api';
+import { CityMap } from '../../components/city/CityMap';
+import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
-import type { MessageKey } from '../../i18n/en';
 
-const BUILDINGS: { to: string; icon: BuildingIcon; name: MessageKey; blurb: MessageKey }[] = [
-  { to: '/city/tavern', icon: 'tavern', name: 'city.tavern', blurb: 'city.tavern.blurb' },
-  { to: '/city/shop', icon: 'shop', name: 'city.shop', blurb: 'city.shop.blurb' },
-  { to: '/city/forge', icon: 'forge', name: 'city.forge', blurb: 'city.forge.blurb' },
-  { to: '/city/market', icon: 'market', name: 'city.market', blurb: 'city.market.blurb' },
-  { to: '/city/temple', icon: 'temple', name: 'city.temple', blurb: 'city.temple.blurb' },
-  { to: '/labyrinth', icon: 'gate', name: 'city.gate', blurb: 'city.gate.blurb' },
-];
-
-/**
- * The City: the map, and its Buildings as cards until Codex's map with pins lands
- * (docs/plan-season-0.md, week 5).
- */
+/** Existing Tavern data supplies the Season; map rendering stays independently previewable. */
 export function City() {
   const { t } = useI18n();
+  const { data, failed, reload } = useLoad(api.tavern);
+  useEffect(() => {
+    const id = setInterval(() => void reload(), 25_000);
+    return () => clearInterval(id);
+  }, [reload]);
+
   return (
-    <div className="grid gap-3">
-      <div className="mx-1 overflow-hidden rounded-sm border border-[#6e5530] bg-black shadow-[0_0_0_1px_#000,0_14px_34px_rgb(0_0_0/0.7)]">
-        <img src="/art/city-map.jpg" alt={t('tab.city')} className="block h-auto w-full" draggable={false} />
+    <div className="city-surface grid gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="sub-heading m-0">{t('tab.city')}</h1>
+        {data && <span className="chip">{t('tavern.season', { n: data.season.number })} · {t(`season.${data.season.status}`)}</span>}
       </div>
-      <div className="grid grid-cols-2 gap-2.5">
-        {BUILDINGS.map((b) => (
-          <NavLink key={b.to} to={b.to} className="panel grid gap-1 p-3 text-bone no-underline active:translate-y-px">
-            <span className="flex items-center gap-2 font-head text-lg font-extrabold">
-              <svg viewBox={ICON_VIEWBOX} fill="currentColor" className="size-6 text-gold" aria-hidden="true">
-                <path d={BUILDING_ICONS[b.icon]} />
-              </svg>
-              {t(b.name)}
-            </span>
-            <span className="text-sm leading-snug text-muted">{t(b.blurb)}</span>
-          </NavLink>
-        ))}
-      </div>
+      {failed ? <div className="flex flex-wrap items-center gap-2 text-sm text-muted" role="status">
+        <span>{t('city.statusUnavailable')}</span>
+        <button type="button" className="btn btn-small" onClick={() => void reload()}>{t('retry')}</button>
+      </div> : !data && <p className="m-0 text-sm text-muted" role="status">{t('city.statusLoading')}</p>}
+      <CityMap season={data?.season ?? null} />
     </div>
   );
 }
