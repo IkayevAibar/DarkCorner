@@ -6,6 +6,7 @@ dist/
 build/
 *.tsbuildinfo
 coverage/
+.vite/
 
 # env and secrets
 .env
