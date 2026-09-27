@@ -122,6 +122,33 @@ describe('the Labyrinth', () => {
     expect((await act('/api/labyrinth/move', { to: fightNextToLanding })).view.room?.facing).not.toBeNull();
   });
 
+  it('heals a waiting Hero a little every hour, anywhere in the Labyrinth', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    const full = (await hero()).maxHp;
+    await prisma.hero.updateMany({ data: { hp: 1, hpAt: new Date(Date.now() - 10 * 60 * 60 * 1000 - 60_000), campSince: null } });
+    const later = labyrinthResultSchema.parse((await app.inject({ url: '/api/labyrinth', headers: { cookie } })).json());
+    expect(later.view.hero.hp).toBe(Math.min(full, 1 + Math.ceil(full * 0.05 * 10)));
+    // Looking again straight away heals nothing more.
+    const again = labyrinthResultSchema.parse((await app.inject({ url: '/api/labyrinth', headers: { cookie } })).json());
+    expect(again.view.hero.hp).toBe(later.view.hero.hp);
+  });
+
+  it('starts a Camp’s rest when the Hero falls back into one', async () => {
+    const camps = floor1.rooms.filter((r) => r.type === 'camp');
+    const pair = camps.flatMap((c) => doorsOf(floor1, c.id)
+      .filter(({ door, to }) => door.kind === 'open' && floor1.rooms[to]!.type === 'fight')
+      .map(({ to }) => ({ camp: c.id, fight: to })))[0]!;
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.hero.updateMany({ data: { room: pair.camp, prevRoom: pair.camp, campSince: null } });
+    await prisma.heroFloor.updateMany({ data: { seen: { push: pair.camp } } });
+    await act('/api/labyrinth/move', { to: pair.fight });
+    expect((await hero()).campSince).toBeNull();
+    const back = await act('/api/labyrinth/face', { action: 'retreat' });
+    expect(back.view.room).toMatchObject({ id: pair.camp, type: 'camp' });
+    expect(back.view.room?.restedAt).not.toBeNull();
+    expect((await hero()).campSince).not.toBeNull();
+  });
+
   it('sneaks past on a good roll, and is ambushed on a bad one', async () => {
     await act('/api/labyrinth/enter', { floor: 1 });
     // Nimble, light-footed and lucky with 1s: all but sure to get by.

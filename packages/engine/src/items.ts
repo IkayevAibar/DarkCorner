@@ -1,6 +1,6 @@
 import { type GearBase, GEAR_BASES, baseById, isGear } from './content/bases.js';
 import {
-  BONUS_COUNT, BONUS_STATS, type BonusStatId, BUYBACK_BASE, DROP_ODDS, IDENTIFIED_BELOW, RADIANT_BOOST, RADIANT_CHANCE,
+  BONUS_COUNT, BONUS_STATS, type BonusStatDef, type BonusStatId, BUYBACK_BASE, DROP_ODDS, IDENTIFIED_BELOW, RADIANT_BOOST, RADIANT_CHANCE,
   SUFFIXES, type Tier, tierRank, uniqueById, uniquesOfTier,
 } from './content/loot.js';
 import { type Text } from './content/text.js';
@@ -52,9 +52,16 @@ export function rollTier(rng: Rng, odds: readonly (readonly [Tier, number])[], m
   return weightedPick(rng, odds.map(([tier, w]) => [tier, tierRank(tier) >= tierRank('rare') ? w * boost : w] as const));
 }
 
-/** A bonus stat value: grows 10% per item level and 18% per Tier step. */
-function rollStatValue(rng: Rng, range: [number, number], itemLevel: number, tier: Tier): number {
-  const raw = rng.int(range[0], range[1]);
+/** Ability scores and armor live on the d20, where every point counts: they grow with Tier only. */
+export const D20_STATS: readonly BonusStatId[] = ['str', 'dex', 'con', 'int', 'wis', 'cha', 'armor'];
+
+/**
+ * A bonus stat value (v0): d20 numbers gain a point at Epic and another at Relic;
+ * the rest grow 10% per item level and 18% per Tier step.
+ */
+function rollStatValue(rng: Rng, def: BonusStatDef, itemLevel: number, tier: Tier): number {
+  const raw = rng.int(def.range[0], def.range[1]);
+  if (D20_STATS.includes(def.id)) return raw + Math.floor(tierRank(tier) / 3);
   return Math.max(1, Math.round(raw * (1 + (itemLevel - 1) * 0.1) * (1 + tierRank(tier) * 0.18)));
 }
 
@@ -64,7 +71,7 @@ export function rollBonusStats(rng: Rng, tier: Tier, itemLevel: number): GearRol
   const out: GearRoll['bonusStats'] = [];
   for (let i = 0; i < BONUS_COUNT[tier] && pool.length > 0; i++) {
     const [def] = pool.splice(rng.int(0, pool.length - 1), 1);
-    out.push({ stat: def!.id, value: rollStatValue(rng, def!.range, itemLevel, tier) });
+    out.push({ stat: def!.id, value: rollStatValue(rng, def!, itemLevel, tier) });
   }
   return out;
 }
@@ -74,7 +81,7 @@ export function rollExtraBonusStat(rng: Rng, tier: Tier, itemLevel: number, have
   const pool = BONUS_STATS.filter((d) => !have.includes(d.id));
   if (pool.length === 0) return null;
   const def = rng.pick(pool);
-  return { stat: def.id, value: rollStatValue(rng, def.range, itemLevel, tier) };
+  return { stat: def.id, value: rollStatValue(rng, def, itemLevel, tier) };
 }
 
 export interface RollGearOptions {

@@ -71,7 +71,8 @@ export const BASES: ItemBase[] = [
   gear({ id: 'scale', name: text('Scale mail', 'Чешуйчатый доспех'), icon: 'armor', slot: 'body', armor: 'medium', ac: 14, maxDex: 2 }),
   gear({ id: 'leather', name: text('Leather armor', 'Кожаный доспех'), icon: 'armor', slot: 'body', armor: 'light', ac: 11, maxDex: Infinity }),
   gear({ id: 'studded', name: text('Studded leather', 'Проклёпанная кожа'), icon: 'armor', slot: 'body', armor: 'light', ac: 12, maxDex: Infinity }),
-  gear({ id: 'robes', name: text('Robes', 'Мантия'), icon: 'robes', slot: 'body', armor: 'robes', ac: 10, maxDex: Infinity }),
+  // Robes are woven with wards (Mage armor): 13 + DEX, so a caster's body armor grows with Quality and Upgrades too.
+  gear({ id: 'robes', name: text('Robes', 'Мантия'), icon: 'robes', slot: 'body', armor: 'robes', ac: 13, maxDex: Infinity }),
 
   // Anyone can wear these
   gear({ id: 'helm', name: text('Helm', 'Шлем'), icon: 'helm', slot: 'head', ac: 1 }),

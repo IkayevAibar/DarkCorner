@@ -181,9 +181,11 @@ const THEME_START: Record<ThemeId, number> = { warrens: 1, crypts: 4, depths: 7,
  * and +1 to hit and damage. An elite gift toughens it further (content/monsters.ts).
  */
 export function instantiate(def: MonsterDef, floor: number, key: string, weakening = 0, elite: EliteId | null = null): MonsterInstance {
-  const depth = Math.max(0, floor - THEME_START[def.theme]);
+  // Monsters that turn up anywhere grow as if they lived on the Floor; the Dragon is its own measure.
+  const depth = Math.max(0, floor - THEME_START[def.anywhere ? themeOf(floor) : def.theme]);
+  const might = def.role === 'boss' ? { hp: 1, hit: 0, damage: 0 } : floorMight(floor);
   const toughness = elite === 'gilded' ? GILDED_HP : elite ? ELITE_HP : 1;
-  const hp = Math.round(def.hp * (1 + 0.15 * depth) * (1 - weakening) * toughness);
+  const hp = Math.round(def.hp * (1 + 0.15 * depth) * might.hp * (1 - weakening) * toughness);
   const powers = [...(def.powers ?? [])];
   if (elite === 'vampiric' && !powers.some((p) => p.id === 'drain')) powers.push({ id: 'drain' });
   if (elite === 'swift') {
@@ -198,8 +200,8 @@ export function instantiate(def: MonsterDef, floor: number, key: string, weakeni
     hp,
     maxHp: hp,
     ac: def.ac + (elite === 'armored' ? 3 : 0),
-    attack: def.attack + depth,
-    damage: [def.damage[0], def.damage[1], def.damage[2] + depth],
+    attack: def.attack + depth + might.hit,
+    damage: [def.damage[0], def.damage[1], def.damage[2] + depth + might.damage],
     dex: def.dex,
     xp: Math.round(def.xp * (1 + 0.1 * depth) * (elite ? 2 : 1)),
     damageFactor: (1 - weakening) * (elite === 'frenzied' ? 1.5 : 1),
@@ -208,6 +210,16 @@ export function instantiate(def: MonsterDef, floor: number, key: string, weakeni
     powers,
   };
 }
+
+/**
+ * Depth's own weight, on top of the theme (v0): every monster grows tougher the deeper
+ * its Floor, to keep pace with Heroes whose gear keeps getting better.
+ */
+export function floorMight(floor: number): { hp: number; hit: number; damage: number } {
+  const below = Math.max(0, floor - 2);
+  return { hp: 1 + MIGHT.hp * below, hit: Math.round(MIGHT.hit * below), damage: Math.round(MIGHT.damage * below) };
+}
+export const MIGHT = { hp: 0.2, hit: 0.75, damage: 0.55 };
 
 /** The day's Omen on a monster: more or less health, harder or softer blows. */
 function underOmen(mm: MonsterInstance, omen: OmenDef | null): MonsterInstance {
@@ -269,7 +281,8 @@ export type FightEvent =
   /** That side was caught off guard and loses its turns in the first round. */
   | { type: 'surprise'; side: 'hero' | 'monsters' }
   | { type: 'attack'; actor: string; target: string; natural: number; total: number; hit: boolean; crit: boolean; damage: number; targetHp: number; kind: 'weapon' | 'spell' }
-  | { type: 'blocked'; actor: string }
+  /** A blow turned aside: by the Ashen Aegis, or by a Wizard's Shield. */
+  | { type: 'blocked'; actor: string; by: 'aegis' | 'shield' }
   | { type: 'burst'; actor: string; source: 'spell' | 'bomb'; targets: { key: string; damage: number; hp: number }[] }
   | { type: 'heal'; actor: string; ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal'; amount: number; hp: number }
   /**
@@ -318,6 +331,8 @@ export interface FightInput {
   gold?: number;
   /** Added to Escape rolls (the day's Omen). */
   escapeBonus?: number;
+  /** The Player was shown this fight as Trivial: the Hero can be knocked down, never killed. */
+  spare?: boolean;
 }
 
 export interface FightResult {
@@ -377,12 +392,17 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   let struckThisTurn = false;
   let indomitable = path('guardian', PATH_MASTERY);
   const intMod = abilityModifier(hero.scores.int);
-  let ward = path('abjurer') ? 3 * hero.level + intMod : 0;
+  let ward = path('abjurer') ? 4 * hero.level + intMod : 0;
+  const wardMax = ward;
   const fireproof = hero.talents.includes('fireproof');
   const heavyHitter = hero.talents.includes('heavy-hitter') ? 2 : 0;
-  /** Life: potions and Cure wounds heal a quarter more. */
-  const lifeBoost = path('life') ? 1.25 : 1;
+  /** Life: potions and Cure wounds heal half again as much. */
+  const lifeBoost = path('life') ? 1.5 : 1;
+  /** Life, Preserve life: the first Cure wounds of a fight doesn't cost the turn. */
+  let quickCure = path('life', PATH_MASTERY);
   let aegis = hero.uniques.includes('ashen-aegis');
+  /** Wizard, Shield: the first blow of each fight that would land is turned aside. */
+  let shield = hero.class === 'wizard';
   /** The Last Ember: once per fight a missed spell hits for double. */
   let lastEmber = hero.uniques.includes('last-ember');
   /** Saint's Knuckle: the first Cure wounds of a fight gives its use back. */
@@ -594,6 +614,11 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
 
   const heroTurn = () => {
     struckThisTurn = false;
+    // Abjurer: the ward mends by the INT modifier each turn, never past where it started.
+    if (wardMax > 0 && ward < wardMax) {
+      ward = Math.min(wardMax, ward + Math.max(1, intMod));
+      events.push({ type: 'feature', feature: 'ward', left: ward });
+    }
     const low = hero.hp < hero.maxHp * 0.45;
     if (low && secondWind) {
       secondWind = false;
@@ -605,14 +630,15 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       else uses.heals--;
       const cure = (sum(rollDice(rng, 1 + Math.floor(hero.level / 4), 8)) + mod('wis')) * lifeBoost * (1 + hero.healing / 100);
       heal('cure-wounds', cure);
-      return;
+      if (!quickCure) return;
+      quickCure = false;
     }
     if (hero.hp < hero.maxHp * 0.3 && potions > 0 && potionsUsed < POTIONS_PER_FIGHT) {
       potions--;
       potionsUsed++;
       heal('potion', potionHealing(rng, hero.maxHp, hero.talents.includes('field-medic')) * lifeBoost * (1 + hero.healing / 100));
-      // Thief: Fast hands drink the first potion of a fight without losing the turn.
-      if (!path('thief') || potionsUsed > 1) return;
+      // Thief: Fast hands drink potions without losing the turn.
+      if (!path('thief')) return;
     }
     if (stance.escapeBelow > 0 && hero.hp < hero.maxHp * stance.escapeBelow) {
       const roll = check(rng, escapeCheck(hero, alive().length, input.escapeBonus ?? 0));
@@ -647,9 +673,11 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     const total = roll.natural + mm.attack;
     const crit = roll.natural === 20 && !hero.uniques.includes('drowned-crown');
     const hit = roll.natural === 20 || (roll.natural !== 1 && total >= hero.ac);
-    if (hit && aegis) {
-      aegis = false;
-      events.push({ type: 'blocked', actor: mm.key });
+    if (hit && (aegis || shield)) {
+      const by = aegis ? 'aegis' : 'shield';
+      if (aegis) aegis = false;
+      else shield = false;
+      events.push({ type: 'blocked', actor: mm.key, by });
       return;
     }
     let damage = 0;
@@ -801,6 +829,14 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     }
     return 'dead';
   };
+  /** A Trivial fight's promise: the Hero goes down and is left for dead, with 1 health. */
+  const spared = (): 'survived' => {
+    events.push({ type: 'down' });
+    burning.delete('hero');
+    held = 0;
+    hero.hp = 1;
+    return 'survived';
+  };
 
   let outcome: FightOutcome | null = alive().length === 0 ? 'victory' : null;
   for (let round = 1; round <= ROUND_LIMIT && outcome === null; round++) {
@@ -821,7 +857,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       if (escaped) outcome = 'escaped';
       else if (alive().length === 0) outcome = 'victory';
       else if (hero.hp <= 0) {
-        const save = deathSaves();
+        const save = input.spare ? spared() : deathSaves();
         if (save !== 'rise') outcome = save;
       }
     }

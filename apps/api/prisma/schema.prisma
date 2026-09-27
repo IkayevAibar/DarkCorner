@@ -86,6 +86,8 @@ model Hero {
   cha         Int
   maxHp       Int
   hp          Int
+  /// When `hp` last healed with time in the Labyrinth; recovery is counted from here.
+  hpAt        DateTime  @default(now())
   /// Safe in the City.
   gold        Int       @default(0)
   /// Picked up on the current Run; lost on death, banked on reaching the City.

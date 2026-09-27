@@ -182,6 +182,8 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Dropping is for good: the first tap asks, the second throws it away.
+  const [dropping, setDropping] = useState(false);
 
   const act = async (action: () => Promise<unknown>) => {
     setBusy(true);
@@ -234,6 +236,16 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
         {place === 'storage' && (
           <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(() => api.moveItem(item.id, 'bag'))}>
             {t('item.toBag')}
+          </button>
+        )}
+        {place === 'bag' && item.tier !== 'relic' && (
+          <button
+            type="button"
+            className={dropping ? 'btn btn-primary flex-1' : 'btn flex-1'}
+            disabled={busy}
+            onClick={() => (dropping ? void act(() => api.dropItem(item.id)) : setDropping(true))}
+          >
+            {dropping ? t('item.dropConfirm') : t('item.drop')}
           </button>
         )}
       </div>

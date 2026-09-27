@@ -74,7 +74,10 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     weapons: ['dagger', 'staff'],
     offHands: ['orb'],
     armor: ['robes'],
-    fights: text('Big spell damage, but fragile. Limited spells per rest.', 'Мощные заклинания, но мало здоровья. Число заклинаний до отдыха ограничено.'),
+    fights: text(
+      'Big spell damage, but fragile. Limited spells per rest. A Shield turns aside the first blow of every fight.',
+      'Мощные заклинания, но мало здоровья. Число заклинаний до отдыха ограничено. «Щит» отводит первый удар в каждом бою.',
+    ),
     trick: text('Senses traps and curses. Identifies Items for free.', 'Чует ловушки и проклятия. Опознаёт предметы бесплатно.'),
     starterKit: ['staff', 'orb', 'robes'],
   },

@@ -69,6 +69,7 @@ export const api = {
   identify: (id: string) => request<IdentifyResult>('POST', `/api/items/${encodeURIComponent(id)}/identify`),
   openChest: (id: string) => request<OpenChestResult>('POST', `/api/items/${encodeURIComponent(id)}/open`),
   drink: (id: string) => request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/drink`),
+  dropItem: (id: string) => request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/drop`),
   sell: (id: string, quantity?: number) => request<TradeResult>('POST', `/api/items/${encodeURIComponent(id)}/sell`, { quantity }),
   forgeQuote: (id: string) => request<ForgeQuote>('GET', `/api/items/${encodeURIComponent(id)}/forge`),
   upgrade: (id: string, protect: boolean) => request<UpgradeResult>('POST', `/api/items/${encodeURIComponent(id)}/upgrade`, { protect }),

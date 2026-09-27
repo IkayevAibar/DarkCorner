@@ -82,6 +82,20 @@ describe('inventory', () => {
     expect(merged.bag.some((i) => i.base === 'potion')).toBe(false);
   });
 
+  it('drops a whole stack from the Bag for good, but never worn gear or a Relic', async () => {
+    const hero = await newRogue();
+    const potions = hero.bag.find((i) => i.base === 'potion')!;
+    const after: HeroJson = (await post(`/api/items/${potions.id}/drop`)).json().hero;
+    expect(after.bag.some((i) => i.base === 'potion')).toBe(false);
+    expect(await prisma.item.count({ where: { id: potions.id } })).toBe(0);
+
+    const worn = hero.worn[0]!.item;
+    expect((await post(`/api/items/${worn.id}/drop`)).json().error).toBe('not_in_bag');
+    const bow = hero.bag.find((i) => i.base === 'shortbow')!;
+    await prisma.item.update({ where: { id: bow.id }, data: { tier: 'relic' } });
+    expect((await post(`/api/items/${bow.id}/drop`)).json().error).toBe('relic_kept');
+  });
+
   it('will not touch another Player’s Items', async () => {
     const hero = await newRogue();
     cookie = await devLogin(app, 'Thief', true);

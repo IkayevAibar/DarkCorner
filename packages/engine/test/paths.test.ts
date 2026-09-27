@@ -85,14 +85,30 @@ describe('Paths', () => {
     expect(perHit('assassin')).toBeGreaterThan(perHit(null) * 1.3);
   });
 
-  it('raises an Abjurer’s ward that soaks blows before health', () => {
+  it('turns aside the first blow of every fight with a Wizard’s Shield, and only the first', () => {
+    for (let i = 0; i < 20; i++) {
+      const r = fight(`shield-${i}`, { ...hero('wizard', 2), hp: 999, maxHp: 999 });
+      const blocks = of(r.events, 'blocked');
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0]!.by).toBe('shield');
+      // Nothing landed on the Wizard before the Shield went up.
+      const first = r.events.findIndex((e) => e.type === 'blocked');
+      expect(r.events.slice(0, first).some((e) => e.type === 'attack' && e.target === 'hero' && e.hit)).toBe(false);
+    }
+    const fighter = fight('shield-f', { ...hero('fighter', 2), hp: 999, maxHp: 999 });
+    expect(of(fighter.events, 'blocked')).toHaveLength(0);
+  });
+
+  it('raises an Abjurer’s ward that soaks blows before health and mends each turn', () => {
     const r = fight('ward', { ...hero('wizard', 5, { path: 'abjurer' }), hp: 999, maxHp: 999 });
     const wards = of(r.events, 'feature').filter((e) => e.feature === 'ward');
-    // 3 × level + INT modifier (16 INT: +3).
-    expect(wards[0]).toMatchObject({ left: 3 * 5 + 3 });
-    const soaks = wards.slice(1);
-    expect(soaks.length).toBeGreaterThan(0);
-    expect(soaks.reduce((s, e) => s + (e.amount ?? 0), 0)).toBeLessThanOrEqual(18);
+    // 4 × level + INT modifier (16 INT: +3).
+    const full = 4 * 5 + 3;
+    expect(wards[0]).toMatchObject({ left: full });
+    expect(wards.some((e) => (e.amount ?? 0) > 0)).toBe(true);
+    const mends = wards.slice(1).filter((e) => e.amount === undefined);
+    expect(mends.length).toBeGreaterThan(0);
+    for (const e of mends) expect(e.left).toBeLessThanOrEqual(full);
   });
 
   it('gives War Clerics two attacks a turn from level 9', () => {
@@ -106,15 +122,40 @@ describe('Paths', () => {
     expect(swings(8)).toBeLessThan(1.2);
   });
 
-  it('lets a Thief drink the first potion and still attack that turn', () => {
+  it('lets a Thief drink every potion and still attack that turn', () => {
+    let potions = 0;
     let both = 0;
     for (let i = 0; i < 100; i++) {
       const h = { ...hero('rogue', 5, { path: 'thief' }), hp: 5 };
       const events = fight(`thief-${i}`, h, [{ ...instantiate(monsterById('zombie'), 5, 'm0'), hp: 200, maxHp: 200 }], { potions: 3 }).events;
-      const potion = events.findIndex((e) => e.type === 'heal' && e.ability === 'potion');
-      if (potion >= 0 && events[potion + 1]?.type === 'attack' && (events[potion + 1] as { actor: string }).actor === 'hero') both++;
+      events.forEach((e, at) => {
+        if (e.type !== 'heal' || e.ability !== 'potion') return;
+        potions++;
+        const next = events[at + 1];
+        if (next?.type === 'attack' && next.actor === 'hero') both++;
+      });
     }
-    expect(both).toBeGreaterThan(50);
+    expect(potions).toBeGreaterThan(150);
+    expect(both / potions).toBeGreaterThan(0.8);
+  });
+
+  it('lets a Life Cleric of level 9 cast the first Cure wounds of a fight and still act', () => {
+    const acted = (level: number) => {
+      let cures = 0;
+      let then = 0;
+      for (let i = 0; i < 100; i++) {
+        const h = { ...hero('cleric', level, { path: 'life' }), hp: 5 };
+        const events = fight(`life-${level}-${i}`, h, [{ ...instantiate(monsterById('zombie'), 5, 'm0'), hp: 200, maxHp: 200 }]).events;
+        const cure = events.findIndex((e) => e.type === 'heal' && e.ability === 'cure-wounds');
+        if (cure < 0) continue;
+        cures++;
+        const next = events[cure + 1];
+        if (next?.type === 'attack' && next.actor === 'hero') then++;
+      }
+      return then / Math.max(1, cures);
+    };
+    expect(acted(9)).toBeGreaterThan(0.8);
+    expect(acted(8)).toBeLessThan(0.2);
   });
 });
 

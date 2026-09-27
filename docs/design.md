@@ -98,7 +98,7 @@ Season 0 starts with the classic party of four. Each later Season adds two Class
 |---|---|---|---|
 | Fighter | d10 | Most health, heavy armor, extra attacks. Second wind heals once per fight. | Smashes cracked walls to open shortcuts other Classes can't use. |
 | Rogue | d8 | Critical hits, strikes first. A full Sneak attack (half its level in d6) on the first hit of a fight, and a smaller one (a sixth of its level) on its first hit of each later round. | Picks locks, disarms traps, spots lying Clues, has the best odds on Sneaking and Escape rolls. |
-| Wizard | d6 | Big spell damage but fragile. Limited spells per rest. | Senses traps and curses. Identifies Items for free. |
+| Wizard | d6 | Big spell damage but fragile. Limited spells per rest. **Shield:** the first blow of every fight that would hit is turned aside *(v0)*. | Senses traps and curses. Identifies Items for free. |
 | Cleric | d8 | Heals itself. Its spells are deadly to undead. | Rolls with advantage at Shrines. |
 
 Planned order (it can change): Season 1 Barbarian and Ranger, Season 2 Paladin and Warlock, Season 3 Bard and Sorcerer, then Druid and Monk.
@@ -123,6 +123,8 @@ Weapons and armor come in types. Each Class can use some of the types, and the t
 | Light armor | ✓ | ✓ | | ✓ |
 | Robes | | | ✓ | ✓ |
 
+Robes are woven with wards: Armor Class 13 + the full DEX modifier *(v0)*, like the SRD's Mage armor, so a caster's body armor grows with Quality and Upgrades too.
+
 ### Levels, health and power
 
 - **Levels:** a Hero goes from level 1 to 20 each Season. XP comes from fights, events and reaching a new Floor for the first time (50 × the Floor's number *(v0)*). An active Player should be about level 10 when the Boss gate opens and level 18–20 by the end of the Season *(v0)*.
@@ -142,11 +144,11 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
   |---|---|---|---|
   | Fighter | Champion | Critical hits on a roll one lower | Below half health, regain 2 + CON modifier at the start of each turn |
   | Fighter | Guardian | Once per round, strike back at a monster that misses | Once per fight, a blow that would drop the Hero leaves it at 1 health |
-  | Rogue | Thief | The first potion of a fight doesn't cost the turn; +20% gold find | +5 to Sneak and Escape rolls; can Sneak past Mini-bosses |
+  | Rogue | Thief | Potions don't cost the turn; +20% gold find | +5 to Sneak and Escape rolls; can Sneak past Mini-bosses |
   | Rogue | Assassin | Full Sneak attack every round | The first hit of every fight is a critical hit |
   | Wizard | Evoker | Spells add the INT modifier twice | One more burst per rest; a burst hits even a lone enemy, twice as hard |
-  | Wizard | Abjurer | Each fight starts behind a ward of 3 × level + INT modifier that takes damage first | Advantage on every saving throw |
-  | Cleric | Life | Cure wounds and potions heal 25% more | One more Cure wounds per rest |
+  | Wizard | Abjurer | Each fight starts behind a ward of 4 × level + INT modifier that takes damage first and mends by the INT modifier each turn | Advantage on every saving throw |
+  | Cleric | Life | Cure wounds and potions heal 50% more | One more Cure wounds per rest; the first in each fight doesn't cost the turn |
   | Cleric | War | The first hit each turn deals +1d8 | Two attacks each turn |
 
   Each Class has one Path built for the Boss and one for the long road: Thief, Abjurer and Life trade damage for gold, safety and healing.
@@ -185,7 +187,7 @@ The rules are a light version of the D&D System Reference Document (SRD 5.2).
   Ordinary attacks just show hit or miss, so fights stay easy to follow.
 - **Before a fight:** see below.
 - **Abilities:** some work once per fight. Others have a few uses per rest, and those come back after a long rest at a Camp or on returning to the City.
-- **Health:** damage carries over from Room to Room. Heroes heal with potions, Shrines, Cleric spells, a long rest at a Camp, or fully in the City.
+- **Health:** damage carries over from Room to Room. Heroes heal with potions, Shrines, Cleric spells, a long rest at a Camp, or fully in the City. Waiting anywhere in the Labyrinth also heals, slowly: a twentieth of full health an hour *(v0)*, so a Hero left near death overnight can still walk out.
 - **Healing potions** *(v0)*: 2d4 + 2 plus a tenth of the Hero's full health, so they still matter deep down. In a fight a Hero drinks one below 30% health, at most 3 per fight.
 - **Monsters:** they come in groups, and deeper Floors have stronger ones. Each kind has a power of its own (see Monsters below).
 - **Saving throws:** some powers call for a save: a d20 plus the ability modifier, plus proficiency in the Class's two saves (Fighter STR and CON, Rogue DEX and INT, Wizard INT and WIS, Cleric WIS and CHA). The DC is set by the power, +1 for every two Floors deeper into its theme.
@@ -210,9 +212,14 @@ Every monster has a signature power, so a fight plays differently depending on w
 | 7–9 | Hellhound | **Fire breath:** 3d6, DEX save (DC 13) for half. Ready at the start, and again on a 5–6 on a d6 each turn |
 | 7–9 | Demon brute | **Several attacks:** two a turn |
 | 10 | Kobold | **Pack hunter** |
-| 10 | Drake | **Fire breath:** 5d6, DC 14 |
+| 10 | Drake | **Fire breath:** 7d6, DC 15 |
 | any | Mimic | Bites before the Hero can move: the Hero is surprised. |
 
+- **Deeper is harder** *(v0)*: gear keeps getting better, so the monsters do too.
+  - Each Floor into a theme adds 15% health and +1 to hit and to damage.
+  - On top of that, every Floor below Floor 2 adds 20% health, +0.75 to hit and +0.55 damage (rounded), so a Floor 9 monster has 2.4 times its Floor-1 health and +5 to hit and +4 damage from depth alone. Floors 1 and 2 stay gentle for new Heroes.
+  - The Mimic and the Doppelganger, which turn up anywhere, grow like the Floor's own monsters. The Dragon is measured on its own (700 health, AC 20).
+  - The aim, checked with `npm run balance:par -w @dark/engine`: on the Floor a typical Hero has just reached, a fight costs about a quarter of its health, most Rooms read Trivial or Easy at full health with a few Dangerous ones, and the Floor's Mini-boss is a real fight. The Dragon at full strength needs about level 18–20 and late-Season gear.
 - **Mini-bosses** come with an escort:
   - the Goblin chieftain with a Goblin archer
   - the Bone knight, which is **Undying**, with a Skeleton
@@ -251,6 +258,8 @@ Opening the Door of a Room with monsters doesn't start the fight. The Hero stops
   | Risky | died in 5% or more, or won less than 80% |
   | Easy | died at all, or won less than 97% |
   | Trivial | anything better |
+
+  **Trivial is a promise:** a Hero that chose to fight a Trivial fight can be knocked down by bad luck but never dies there. It is left for dead with 1 health and crawls back to the last safe Room, keeping its XP. Being caught Sneaking, or any fight the Player didn't choose from the doorway, carries no promise.
 
 - **Stance:** the Player sets it at any time. It holds for every fight until changed, and the Threat is shown for all three *(v0)*:
 
@@ -447,7 +456,7 @@ Later: the shell game (a goblin hides a gem under one of three cups), a riddling
 - **Bonus stats:**
   - Common has 0, Uncommon 1, Rare 2, Epic 3, Legendary 4, Mythic 5.
   - They come from a pool of about 15 kinds: ability scores, max health, armor, damage %, critical chance, spell power, healing, escape chance, gold find, magic find, resistances and life steal.
-  - Each is rolled within a range that grows with item level.
+  - Each is rolled within a range that grows with item level and Tier *(v0)*. Ability scores and armor are the exception: they live on the d20, where every point counts, so they grow with Tier only, one point more at Epic and another at Relic.
 - **Unique power:** Legendary and Mythic Items also carry a named unique power.
 - **Radiant:** 1 in 200 Items of any Tier *(v0)*. It glows and gets +10% to all its numbers.
 - **Upgrade level:** from +0 to +10. Each level adds +4% base damage or armor *(v0)*.
@@ -534,7 +543,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - Blessings
   - losses to the gambler
   - the Wipe
-- **How Items leave the game:** Graves that expire, Items destroyed at the Forge or the Cursed altar, and Salvage.
+- **How Items leave the game:** Graves that expire, Items destroyed at the Forge or the Cursed altar, Salvage, and Items dropped from the Bag to make room (anywhere; never Relics).
 - **Buyback price:** Shops buy any Item *(v0)*:
   - base price: Common 5, Uncommon 15, Rare 60, Epic 250, Legendary 1,200, Mythic 6,000 gold
   - multiplied by (1 + item level ÷ 10)

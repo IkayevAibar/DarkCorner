@@ -4,7 +4,7 @@ import { BAG_SLOTS, type ClassId, type GearBase, STORAGE_SLOTS, baseById, canUse
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { toHeroView } from './heroes.js';
-import { lockHero, ownItem } from './ledger.js';
+import { destroyItem, lockHero, ownItem } from './ledger.js';
 import { currentSeason } from './seasons.js';
 
 const CAPACITY: Record<'BAG' | 'STORAGE', number> = { BAG: BAG_SLOTS, STORAGE: STORAGE_SLOTS };
@@ -52,6 +52,20 @@ export async function unequipItem(player: Player, itemId: string): Promise<HeroV
     if (item.place !== 'WORN') throw ApiError.conflict('not_worn', 'Not worn');
     if (hero.items.filter((i) => i.place === 'BAG').length >= BAG_SLOTS) throw ApiError.conflict('bag_full', 'Your Bag is full');
     await tx.item.update({ where: { id: item.id }, data: { place: 'BAG', slot: null } });
+    return hero.id;
+  });
+  return heroView(heroId);
+}
+
+/** Throws an Item (a whole stack) out of the Bag for good, to make room for better loot. Relics are too rare to throw away. */
+export async function dropItem(player: Player, itemId: string): Promise<HeroView> {
+  const season = await currentSeason();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    const item = ownItem(hero, itemId);
+    if (item.place !== 'BAG') throw ApiError.conflict('not_in_bag', 'Only Items in the Bag can be dropped');
+    if (item.tier === 'relic') throw ApiError.conflict('relic_kept', 'A Relic is too rare to throw away');
+    await destroyItem(tx, hero, item);
     return hero.id;
   });
   return heroView(heroId);

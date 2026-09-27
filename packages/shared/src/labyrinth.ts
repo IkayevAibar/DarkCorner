@@ -63,7 +63,8 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     type: z.literal('attack'), actor: z.string(), target: z.string(), natural: z.number().int(), total: z.number().int(),
     hit: z.boolean(), crit: z.boolean(), damage: z.number().int(), targetHp: z.number().int(), kind: z.enum(['weapon', 'spell']),
   }),
-  z.object({ type: z.literal('blocked'), actor: z.string() }),
+  /** A blow turned aside: by the Ashen Aegis, or by a Wizard's Shield. */
+  z.object({ type: z.literal('blocked'), actor: z.string(), by: z.enum(['aegis', 'shield']).default('aegis') }),
   z.object({
     type: z.literal('burst'), actor: z.string(), source: z.enum(['spell', 'bomb']),
     targets: z.array(z.object({ key: z.string(), damage: z.number().int(), hp: z.number().int() })),

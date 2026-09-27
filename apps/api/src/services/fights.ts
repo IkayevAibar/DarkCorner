@@ -75,6 +75,12 @@ export async function markCleared(tx: Tx, hf: HeroFloor, room: number, now: Date
   await tx.heroFloor.update({ where: { id: hf.id }, data: { cleared } });
 }
 
+/** Back to the last safe Room after a Retreat, an escape or a lost fight; landing in a Camp starts its rest. */
+export function fallBack(hero: Pick<Hero, 'prevRoom'>, floor: Floor, now: Date): { room: number; campSince: Date | null } {
+  const room = hero.prevRoom ?? floor.landing;
+  return { room, campSince: floor.rooms[room]!.type === 'camp' ? now : null };
+}
+
 // ─── Fights ───────────────────────────────────────────────────────────────
 
 export function combatant(key: string, m: MonsterInstance): Combatant {
@@ -115,6 +121,8 @@ export function fightInput(hero: HeroWithItems, combat: HeroCombat, monsters: Mo
   bombFloor?: number | null;
   /** Added to Escape rolls: the day's Omen. */
   escapeBonus?: number;
+  /** The Player was shown the fight as Trivial. */
+  spare?: boolean;
 } = {}): FightInput {
   const potions = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion').reduce((s, i) => s + i.quantity, 0);
   return {
@@ -128,6 +136,7 @@ export function fightInput(hero: HeroWithItems, combat: HeroCombat, monsters: Mo
     bomb: opts.bombFloor ? fireBomb(opts.bombFloor) : null,
     gold: hero.carriedGold,
     escapeBonus: opts.escapeBonus ?? 0,
+    spare: opts.spare ?? false,
   };
 }
 
@@ -145,7 +154,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   surprise?: 'hero' | 'monsters';
   /** A Fire bomb goes off before the first round (the caller has taken it from the Bag). */
   bomb?: boolean;
-  /** The Threat the Player saw before choosing to fight, for bounties. */
+  /** The Threat the Player saw before choosing to fight: for bounties, and a Trivial fight never kills. */
   threat?: ThreatId | null;
 } = {}): Promise<'victory' | 'survived' | 'escaped' | 'dead'> {
   const now = new Date();
@@ -157,7 +166,9 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   const potionStacks = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion');
   const seed = newSeed();
   const omen = omenOf(season, now);
-  const input = fightInput(hero, combat, monsters, { surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null, escapeBonus: omen?.sneak ?? 0 });
+  const input = fightInput(hero, combat, monsters, {
+    surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null, escapeBonus: omen?.sneak ?? 0, spare: opts.threat === 'trivial',
+  });
   const result = simulateFight(createRng(seed), input);
   await tx.rollLog.create({
     data: {
@@ -219,7 +230,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     lucky: result.runPowers.lucky,
     facing: false,
     ...levelUp.data,
-    ...(result.outcome === 'victory' ? { prevRoom: roomId } : { room: hero.prevRoom ?? floor.landing }),
+    ...(result.outcome === 'victory' ? { prevRoom: roomId } : fallBack(hero, floor, now)),
   };
   await tx.hero.update({ where: { id: hero.id }, data: after });
   Object.assign(hero, after);

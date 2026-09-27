@@ -5,7 +5,7 @@ import {
 } from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import { forgeQuote, reforgeItem, salvageItem, upgradeItem } from '../services/forge.js';
-import { equipItem, moveItem, unequipItem } from '../services/inventory.js';
+import { dropItem, equipItem, moveItem, unequipItem } from '../services/inventory.js';
 import { drinkPotion, identifyItem, openChest } from '../services/itemUse.js';
 import { sellToShop } from '../services/shop.js';
 
@@ -26,6 +26,10 @@ export async function itemRoutes(app: FastifyInstance) {
     const { to } = moveItemRequestSchema.parse(request.body);
     return { hero: await moveItem(request.player!, request.params.id, to) };
   });
+
+  app.post<ById>('/api/items/:id/drop', guard, async (request): Promise<HeroResponse> => ({
+    hero: await dropItem(request.player!, request.params.id),
+  }));
 
   app.post<ById>('/api/items/:id/identify', guard, async (request): Promise<IdentifyResult> => identifyItem(request.player!, request.params.id));
   app.post<ById>('/api/items/:id/open', guard, async (request): Promise<OpenChestResult> => openChest(request.player!, request.params.id));

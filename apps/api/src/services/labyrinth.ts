@@ -3,7 +3,7 @@ import type { Direction, EventAction, Exit, FaceAction, Facing, LabyrinthResult,
 import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
-  PATH_MASTERY, type ThreatId, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, restUses, sneakCheck, threatOf,
+  PATH_MASTERY, type ThreatId, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck, threatOf,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -14,7 +14,7 @@ import { omenOf, omenView } from './omens.js';
 import { enterEvent, eventAction, eventView, withLuck } from './events.js';
 import { feed } from './feed.js';
 import {
-  DAY_MS, type FightKind, type Outcome, combatOf, combatant, emptyOutcome, fight, fightInput, heroFloor, isCleared, markCleared,
+  DAY_MS, type FightKind, type Outcome, combatOf, combatant, emptyOutcome, fallBack, fight, fightInput, heroFloor, isCleared, markCleared,
   monstersFor, t,
 } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
@@ -25,7 +25,8 @@ import { boostedXp, gainXp } from './progression.js';
 import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
 
-const REST_MS = 4 * 60 * 60 * 1000;
+const HOUR_MS = 60 * 60 * 1000;
+const REST_MS = 4 * HOUR_MS;
 /** Clues: a WIS Check against this sees through a lie (v0). */
 const CLUE_DC = 13;
 /** Secret Doors: a WIS Check against this spots one, a new try each day (v0). */
@@ -312,13 +313,26 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
   };
 }
 
-/** A Hero sitting in a Camp for four hours gets up fully rested (and the clock starts again). */
+/**
+ * Waiting heals. Four hours in a Camp is a long rest: full health and every use back
+ * (and the clock starts again). Anywhere else in the Labyrinth health comes back
+ * slowly, hour by hour, so a Hero left at death's door can still walk out.
+ */
 async function restIfDue(tx: Tx, hero: HeroWithItems, now: Date): Promise<void> {
-  if (!hero.campSince || now.getTime() - hero.campSince.getTime() < REST_MS) return;
-  const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
-  const rested = { hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals, campSince: now };
-  await tx.hero.update({ where: { id: hero.id }, data: rested });
-  Object.assign(hero, rested);
+  if (hero.campSince && now.getTime() - hero.campSince.getTime() >= REST_MS) {
+    const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
+    const rested = { hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals, campSince: now, hpAt: now };
+    await tx.hero.update({ where: { id: hero.id }, data: rested });
+    Object.assign(hero, rested);
+    return;
+  }
+  if (hero.location !== 'LABYRINTH') return;
+  const recovered = recoveredHealth(hero.hp, fullHealth(hero), hero.hpAt, now);
+  // A full Hero's clock only needs moving now and then, so no hour is kept in store.
+  if (recovered.hp === hero.hp && recovered.savedAt.getTime() - hero.hpAt.getTime() < HOUR_MS) return;
+  const data = { hp: recovered.hp, hpAt: recovered.savedAt };
+  await tx.hero.update({ where: { id: hero.id }, data });
+  Object.assign(hero, data);
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────
@@ -507,7 +521,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
     if (!kind) throw ApiError.conflict('not_facing', 'There is nothing here to face');
 
     if (action.action === 'retreat') {
-      await tx.hero.update({ where: { id: hero.id }, data: { facing: false, room: hero.prevRoom ?? floor.landing } });
+      await tx.hero.update({ where: { id: hero.id }, data: { facing: false, ...fallBack(hero, floor, now) } });
       outcome.notices.push(t('You back away to the last safe Room.', 'Вы отступаете в последнюю безопасную комнату.'));
       return hero.id;
     }

@@ -59,6 +59,8 @@ export interface MonsterDef {
   powers?: MonsterPower[];
   /** Mini-bosses: who fights at their side. */
   escort?: string[];
+  /** Shows up on any Floor (a trap, not a Room's own monsters): it grows as if it lived there. */
+  anywhere?: boolean;
 }
 
 const m = (d: MonsterDef) => d;
@@ -102,19 +104,19 @@ export const MONSTERS: MonsterDef[] = [
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'frighten', dc: 14, rounds: 2 }], escort: ['imp'] }),
 
   // Floor 10: the Dragon's lair
-  m({ id: 'kobold', name: text('Kobold', 'Кобольд'), theme: 'lair', kin: 'dragonkin', art: null, role: 'minion', hp: 16, ac: 13, attack: 6, damage: [1, 6, 3], dex: 15, xp: 60, weight: 3,
+  m({ id: 'kobold', name: text('Kobold', 'Кобольд'), theme: 'lair', kin: 'dragonkin', art: null, role: 'minion', hp: 24, ac: 14, attack: 7, damage: [1, 8, 3], dex: 15, xp: 60, weight: 3,
     powers: [{ id: 'pack' }] }),
-  m({ id: 'drake', name: text('Drake', 'Дрейк'), theme: 'lair', kin: 'dragonkin', art: null, role: 'brute', hp: 70, ac: 16, attack: 8, damage: [2, 8, 4], dex: 12, xp: 250, weight: 2,
-    powers: [{ id: 'breath', dice: [5, 6], dc: 14 }] }),
-  m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.png', role: 'boss', hp: 620, ac: 20, attack: 13, damage: [2, 10, 6], dex: 10, xp: 5000, weight: 0,
+  m({ id: 'drake', name: text('Drake', 'Дрейк'), theme: 'lair', kin: 'dragonkin', art: null, role: 'brute', hp: 90, ac: 17, attack: 9, damage: [2, 8, 4], dex: 12, xp: 250, weight: 2,
+    powers: [{ id: 'breath', dice: [7, 6], dc: 15 }] }),
+  m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.png', role: 'boss', hp: 700, ac: 20, attack: 13, damage: [2, 10, 6], dex: 10, xp: 5000, weight: 0,
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'breath', dice: [12, 6], dc: 17 }, { id: 'frighten', dc: 15, rounds: 2 }, { id: 'enrage' }] }),
 
-  // Anywhere: the prisoner who isn't one (Prisoner). Scales from Floor 1 like the warrens.
+  // Anywhere: the prisoner who isn't one (Prisoner).
   m({ id: 'doppelganger', name: text('Doppelganger', 'Двойник'), theme: 'warrens', kin: 'humanoid', art: null, role: 'brute', hp: 20, ac: 13, attack: 5, damage: [1, 8, 2], dex: 16, xp: 45, weight: 0,
-    powers: [{ id: 'quick' }] }),
+    powers: [{ id: 'quick' }], anywhere: true }),
 
-  // Anywhere: the chest that bites (Three chests). Scales from Floor 1 like the warrens.
-  m({ id: 'mimic', name: text('Mimic', 'Мимик'), theme: 'warrens', kin: 'beast', art: null, role: 'brute', hp: 16, ac: 12, attack: 4, damage: [1, 8, 2], dex: 12, xp: 40, weight: 0 }),
+  // Anywhere: the chest that bites (Three chests).
+  m({ id: 'mimic', name: text('Mimic', 'Мимик'), theme: 'warrens', kin: 'beast', art: null, role: 'brute', hp: 16, ac: 12, attack: 4, damage: [1, 8, 2], dex: 12, xp: 40, weight: 0, anywhere: true }),
 ];
 
 const BY_ID = new Map(MONSTERS.map((d) => [d.id, d]));

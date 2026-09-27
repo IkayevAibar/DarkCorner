@@ -371,7 +371,7 @@ function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: 
       if (!e.hit) return t('fight.miss', { actor: n(e.actor), target: n(e.target), d: e.natural });
       if (e.crit) return t('fight.crit', { actor: n(e.actor), target: n(e.target), n: e.damage });
       return t(e.kind === 'spell' ? 'fight.spell' : 'fight.hit', { actor: n(e.actor), target: n(e.target), n: e.damage });
-    case 'blocked': return t('fight.blocked', { actor: n(e.actor) });
+    case 'blocked': return t(e.by === 'shield' ? 'fight.shield' : 'fight.blocked', { actor: n(e.actor) });
     case 'burst': return t(e.source === 'bomb' ? 'fight.bomb' : 'fight.burst', { actor: n(e.actor), n: e.targets.reduce((s, x) => s + x.damage, 0) });
     case 'heal': return t(`fight.heal.${e.ability}`, { actor: n(e.actor), n: e.amount });
     case 'defeated': return t('fight.defeated', { name: n(e.key) });

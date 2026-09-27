@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CLASS_DEFS, type ClassId, ELITE_CHANCE, ELITES, type FightEvent, type FightInput, type HeroCombat, type MonsterInstance, createRng,
-  heroCombat, instantiate, monsterById, restUses, simulateFight, spawnEncounter, startingHealth,
+  floorMight, heroCombat, instantiate, monsterById, restUses, simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
 /** A Hero of a Class and level, in its Starter kit or with the main weapon swapped. */
@@ -178,13 +178,39 @@ describe('elite packs and escorts', () => {
   it('gives each elite gift its edge, and double XP', () => {
     const plain = mon('ghoul', 5);
     const gifted = Object.fromEntries(ELITES.map((e) => [e, instantiate(monsterById('ghoul'), 5, 'm0', 0, e)]));
-    expect(gifted.gilded!.maxHp).toBe(Math.round(plain.maxHp * 1.5));
+    expect(Math.abs(gifted.gilded!.maxHp - plain.maxHp * 1.5)).toBeLessThanOrEqual(1);
     expect(gifted.frenzied!.damageFactor).toBe(1.5);
     expect(gifted.armored!.ac).toBe(plain.ac + 3);
     expect(gifted.vampiric!.powers.map((p) => p.id)).toContain('drain');
     expect(gifted.swift!.powers.map((p) => p.id)).toEqual(expect.arrayContaining(['quick', 'multiattack']));
     // Double XP, give or take the rounding of the Floor scaling.
     for (const e of ELITES) expect(Math.abs(gifted[e]!.xp - plain.xp * 2)).toBeLessThanOrEqual(1);
+  });
+
+  it('leaves Floors 1 and 2 as they are and makes every Floor below tougher', () => {
+    expect(floorMight(1)).toEqual({ hp: 1, hit: 0, damage: 0 });
+    expect(floorMight(2)).toEqual({ hp: 1, hit: 0, damage: 0 });
+    for (let floor = 3; floor <= 10; floor++) {
+      const above = floorMight(floor - 1);
+      const here = floorMight(floor);
+      expect(here.hp).toBeGreaterThan(above.hp);
+      expect(here.hit).toBeGreaterThanOrEqual(above.hit);
+      expect(here.damage).toBeGreaterThanOrEqual(above.damage);
+    }
+    // A Floor 6 ghoul: two Floors into the crypts, and four below Floor 2.
+    const ghoul = mon('ghoul', 6);
+    const def = monsterById('ghoul');
+    expect(ghoul.maxHp).toBe(Math.round(def.hp * 1.3 * floorMight(6).hp));
+    expect(ghoul.attack).toBe(def.attack + 2 + floorMight(6).hit);
+  });
+
+  it('keeps the Dragon to its own measure, and grows the monsters that turn up anywhere as if they lived there', () => {
+    const dragon = monsterById('ancient-dragon');
+    expect(mon('ancient-dragon', 10)).toMatchObject({ maxHp: dragon.hp, attack: dragon.attack });
+    // A mimic on Floor 9 (the depths' third Floor) is as deep into its theme as the Floor's own monsters.
+    const mimic = monsterById('mimic');
+    expect(mon('mimic', 9).attack).toBe(mimic.attack + 2 + floorMight(9).hit);
+    expect(mon('mimic', 1).attack).toBe(mimic.attack);
   });
 
   it('brings Mini-bosses with their escorts', () => {

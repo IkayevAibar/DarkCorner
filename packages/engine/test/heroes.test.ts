@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, CLASSES, STAMINA_MAX, STAMINA_REFILL_MS, baseById, currentStamina, isGear, startingHealth, validateHeroChoices,
+  CLASS_DEFS, CLASSES, RECOVERY_PER_HOUR, STAMINA_MAX, STAMINA_REFILL_MS, baseById, currentStamina, isGear, recoveredHealth, startingHealth,
+  validateHeroChoices,
 } from '../src/index.js';
 
 describe('startingHealth', () => {
@@ -36,6 +37,25 @@ describe('validateHeroChoices', () => {
     expect(validateHeroChoices({ ...ok, talents: [...ok.talents], name: 'Гаррик' })).toEqual([]);
     expect(validateHeroChoices({ ...ok, talents: [...ok.talents], name: 'X' })).toContain('name_length');
     expect(validateHeroChoices({ ...ok, talents: [...ok.talents], name: '<script>' })).toContain('name_characters');
+  });
+});
+
+describe('recoveredHealth', () => {
+  const hour = 60 * 60 * 1000;
+  const t0 = new Date('2026-09-01T00:00:00Z');
+
+  it('heals a twentieth of full health for every whole hour, and keeps the part hour', () => {
+    const later = new Date(t0.getTime() + 3.5 * hour);
+    const r = recoveredHealth(10, 100, t0, later);
+    expect(r.hp).toBe(10 + Math.ceil(100 * RECOVERY_PER_HOUR * 3));
+    expect(r.savedAt).toEqual(new Date(t0.getTime() + 3 * hour));
+    expect(recoveredHealth(10, 100, t0, new Date(t0.getTime() + 59 * 60 * 1000))).toEqual({ hp: 10, savedAt: t0 });
+  });
+
+  it('stops at full health and keeps nothing in store', () => {
+    const later = new Date(t0.getTime() + 30 * hour);
+    expect(recoveredHealth(1, 100, t0, later)).toEqual({ hp: 100, savedAt: later });
+    expect(recoveredHealth(100, 100, t0, later)).toEqual({ hp: 100, savedAt: later });
   });
 });
 

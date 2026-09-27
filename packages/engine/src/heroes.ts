@@ -62,6 +62,19 @@ export function currentStamina(saved: number, savedAt: Date, now: Date): { stami
   return { stamina, savedAt: next };
 }
 
+/** Out in the Labyrinth a Hero heals slowly while it waits: a twentieth of full health an hour (v0). */
+export const RECOVERY_PER_HOUR = 0.05;
+const HOUR_MS = 60 * 60 * 1000;
+
+/** Health after waiting since `savedAt`, counted in whole hours like Stamina; a full Hero keeps nothing in store. */
+export function recoveredHealth(hp: number, full: number, savedAt: Date, now: Date): { hp: number; savedAt: Date } {
+  if (hp >= full) return { hp, savedAt: now };
+  const hours = Math.floor((now.getTime() - savedAt.getTime()) / HOUR_MS);
+  if (hours <= 0) return { hp, savedAt };
+  const healed = Math.min(full, hp + Math.ceil(full * RECOVERY_PER_HOUR * hours));
+  return { hp: healed, savedAt: healed >= full ? now : new Date(savedAt.getTime() + hours * HOUR_MS) };
+}
+
 // ─── Growing ──────────────────────────────────────────────────────────────
 
 /**

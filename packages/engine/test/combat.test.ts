@@ -88,6 +88,25 @@ describe('simulateFight', () => {
     expect(dead / down).toBeLessThan(0.7);
   });
 
+  it('never kills a Hero in a fight the Player was shown as Trivial: it is left for dead with 1 health', () => {
+    let down = 0;
+    for (let i = 0; i < 1_000; i++) {
+      const hero = { ...starter('wizard'), hp: 1 };
+      const brute = [instantiate(monsterById('wolf'), 3, 'm0')];
+      const r = simulateFight(createRng(`spared-${i}`), {
+        hero, monsters: brute, uses: { spells: 0, heals: 0 }, potions: 0, runPowers: { deathless: false, lucky: false }, stance: 'bold', spare: true,
+      });
+      expect(r.outcome).not.toBe('dead');
+      if (r.events.some((e) => e.type === 'down')) {
+        down++;
+        expect(r.outcome).toBe('survived');
+        expect(r.hp).toBe(1);
+        expect(r.events.some((e) => e.type === 'death-save')).toBe(false);
+      }
+    }
+    expect(down).toBeGreaterThan(300);
+  });
+
   it('rerolls one failed death save per Run with a Lucky charm, and saves more Heroes', () => {
     const run = (talents: HeroCombat['talents'], lucky: boolean) => {
       let dead = 0;

@@ -66,8 +66,8 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
     blurb: text('Quick hands and a nose for gold.', 'Быстрые руки и нюх на золото.'),
     features: [
       feature(3, text('Fast hands', 'Ловкие руки'), text(
-        'The first potion of each fight doesn’t cost the turn. +20% gold find.',
-        'Первое зелье в бою не отнимает ход. +20% к золоту.',
+        'Potions don’t cost the turn. +20% gold find.',
+        'Зелья не отнимают ход. +20% к золоту.',
       )),
       feature(9, text('Ghost', 'Призрак'), text(
         '+5 to Sneak and Escape rolls, and you can Sneak past Mini-bosses.',
@@ -114,8 +114,8 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
     blurb: text('A mage who doesn’t break.', 'Маг, которого не сломить.'),
     features: [
       feature(3, text('Arcane ward', 'Магический щит'), text(
-        'Every fight starts behind a ward of 3 × level + INT modifier that takes damage first.',
-        'Каждый бой начинается за щитом в 3 × уровень + модификатор ИНТ, который принимает урон первым.',
+        'Every fight starts behind a ward of 4 × level + INT modifier that takes damage first and mends by the INT modifier each turn.',
+        'Каждый бой начинается за щитом в 4 × уровень + модификатор ИНТ: он принимает урон первым и каждый ход восстанавливается на модификатор ИНТ.',
       )),
       feature(9, text('Spell resistance', 'Сопротивление магии'), text(
         'Advantage on every saving throw.',
@@ -130,12 +130,12 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
     blurb: text('Keeps going long after others fall.', 'Держится, когда другие уже пали.'),
     features: [
       feature(3, text('Disciple of life', 'Ученик жизни'), text(
-        'Cure wounds and potions heal 25% more.',
-        '«Лечение ран» и зелья лечат на 25% больше.',
+        'Cure wounds and potions heal 50% more.',
+        '«Лечение ран» и зелья лечат на 50% больше.',
       )),
       feature(9, text('Preserve life', 'Сохранение жизни'), text(
-        'One more Cure wounds per rest.',
-        'Ещё одно «Лечение ран» до отдыха.',
+        'One more Cure wounds per rest, and the first one in each fight doesn’t cost the turn.',
+        'Ещё одно «Лечение ран» до отдыха, и первое в каждом бою не отнимает ход.',
       )),
     ],
   },
