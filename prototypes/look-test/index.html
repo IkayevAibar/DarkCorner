@@ -1,0 +1,54 @@
+<!doctype html>
+<!-- PROTOTYPE: Dark Corner look test. Throwaway page; see README.md next to it. -->
+<html lang="en" data-variant="B">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Dark Corner Look Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700;800&family=Alegreya:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-title" data-i18n="brand"></span>
+        <span class="brand-sub" data-i18n="brandSub"></span>
+      </div>
+      <div class="top-actions">
+        <button id="btn-lang" class="chip" type="button"></button>
+        <button id="btn-sound" class="icon-btn" type="button" aria-label="Sound"></button>
+      </div>
+    </header>
+
+    <main>
+      <section id="screen-city" class="screen"></section>
+      <section id="screen-fight" class="screen"></section>
+      <section id="screen-loot" class="screen"></section>
+      <section id="screen-heroes" class="screen"></section>
+    </main>
+
+    <nav class="tabbar">
+      <button type="button" data-tab="city"></button>
+      <button type="button" data-tab="fight"></button>
+      <button type="button" data-tab="loot"></button>
+      <button type="button" data-tab="heroes"></button>
+    </nav>
+  </div>
+
+  <div id="sheet" class="sheet" hidden>
+    <div class="sheet-backdrop"></div>
+    <div class="sheet-panel" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <div id="proto-switcher" aria-label="Prototype look switcher">
+    <button id="proto-prev" type="button" aria-label="Previous look">◀</button>
+    <span class="label"></span>
+    <button id="proto-next" type="button" aria-label="Next look">▶</button>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

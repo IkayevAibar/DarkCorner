@@ -1,0 +1,7 @@
+{
+  "name": "dark-corner",
+  "private": true,
+  "scripts": {
+    "look-test": "node prototypes/look-test/serve.mjs"
+  }
+}
