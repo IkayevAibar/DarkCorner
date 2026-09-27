@@ -1,15 +1,16 @@
 # Dark Corner: Architecture
 
-Status: planned. Nothing is built yet. For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
+Status: week 1 of the [Season 0 plan](plan-season-0.md) is built (sign-in, admin approval, dice engine, web shell). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
 
 ## Stack
 
 The stack mostly matches the owner's Minecraft project (`D:\MS_DS_Project`), so knowledge and snippets carry over.
 
-- **Everywhere:** TypeScript, in an npm workspaces monorepo.
-- **API:** Fastify 5, zod, Prisma 6, Postgres 17.
-- **Web:** React 19, Vite 6, Tailwind 4 and react-router 7. PixiJS 8 draws the animated scenes and Howler.js plays sound. The web app is an installable PWA.
-- **Tests:** vitest.
+- **Everywhere:** TypeScript (strict, `noUncheckedIndexedAccess`), in an npm workspaces monorepo.
+- **API:** Fastify 5, zod, Prisma 6, Postgres 17. Dev runs with `tsx watch`; production is one ESM bundle from `tsup`.
+- **Web:** React 19, Vite 6, Tailwind 4 and react-router 7. PixiJS 8 will draw the animated scenes and Howler.js will play sound. The web app will be an installable PWA.
+- **Tests:** vitest. API tests run against a separate `dark_corner_test` database.
+- **Workspace packages** (`@dark/shared`, `@dark/engine`) ship TypeScript source; Vite, tsx and tsup compile them where they are used, so there is no package build step.
 
 ## Layout
 
@@ -37,7 +38,8 @@ packages/
 - **The cookie:** the hub signs players in with Discord and sets the `ugolok_sso` cookie on `.ugolok.world`. We check that cookie with a copy of the hub's `sso.ts` (`D:\ugolok.world-site\apps\api\src\sso.ts`, identical in every ugolok repo) and the same `SSO_SECRET`. For how a game uses it, follow `D:\MS_DS_Project\apps\api\src\lib\session.ts` (`requireUser`, `resolveSsoUserId`).
 - **First visit:** creates the Player record (Discord ID, name, avatar). An admin approves the Player before they can create a Hero.
 - **Hub dashboard:** `GET /api/sso/summary` returns `{registered, profile}` for the hub's dashboard card. CORS allows the hub's account origin, with credentials.
-- **Local development:** uses a dev-only login, turned off in production, because the real cookie only exists on `.ugolok.world`.
+- **Local development:** with `SSO_SECRET` blank, `POST /auth/dev-login` signs you in as any name (optionally as an admin) with our own signed `dc_session` cookie. The route does not exist in production or when SSO is on. The real hub cookie only exists on `.ugolok.world`.
+- **The copied file:** `apps/api/src/lib/sso.ts` is byte-for-byte the hub's `sso.ts`; keep it that way.
 - **Hub changes (in its own repo):** a card in `apps/account/src/{api,config}.ts` and on the landing page.
 
 ## Scheduled jobs
@@ -59,6 +61,14 @@ There are no websockets in Season 0. The web checks the Feed and "who's online" 
 - **Backups:** nightly Postgres backups, copying MC's backup timer.
 - **CI:** GitHub Actions runs type checks, tests and the build.
 
+## Local development
+
+| Service | Port |
+|---|---|
+| Web (Vite; proxies `/api` and `/auth` to the API) | 5180 |
+| API | 4100 |
+| Postgres (Docker Compose project `dark-corner-dev`) | 5433 |
+
 ## Environment variables
 
-`DATABASE_URL`, `SSO_SECRET`, `ACCOUNT_ORIGIN`, `PUBLIC_WEB_URL`, `ADMIN_DISCORD_IDS`, `DISCORD_WEBHOOK_URL`.
+Listed with comments in `apps/api/.env.example`: `DATABASE_URL`, `SESSION_SECRET`, `API_PORT`, `API_HOST`, `PUBLIC_WEB_URL`, `SSO_SECRET`, `ACCOUNT_ORIGIN`, `ADMIN_DISCORD_IDS`, `DISCORD_WEBHOOK_URL`, `SERVER_TIMEZONE`.
