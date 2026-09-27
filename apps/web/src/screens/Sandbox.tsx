@@ -1,4 +1,11 @@
+import { useState } from 'react';
+import type { FightReplay } from '@dark/shared';
 import { useI18n } from '../i18n';
+import { FightPlayback } from './labyrinth/FightPlayback';
+import fightFixtures from './sandbox/fightFixtures.json';
+
+/** Real replays from the engine: regenerate with `npm run fixtures:fights -w @dark/api`. */
+const FIGHTS = fightFixtures as unknown as Record<string, FightReplay>;
 
 /**
  * Codex builds visual components here against @dark/shared types with fake
@@ -6,10 +13,21 @@ import { useI18n } from '../i18n';
  */
 export function Sandbox() {
   const { t } = useI18n();
+  const [fight, setFight] = useState<FightReplay | null>(null);
   return (
     <section className="grid gap-3">
       <h1 className="sub-heading m-0">{t('sandbox.title')}</h1>
       <p className="m-0 text-muted">{t('sandbox.body')}</p>
+
+      <h2 className="sub-heading m-0">Fights</h2>
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(FIGHTS).map(([name, replay]) => (
+          <button key={name} type="button" className="btn btn-small" onClick={() => setFight(replay)}>
+            {name}
+          </button>
+        ))}
+      </div>
+      {fight && <FightPlayback replay={fight} onDone={() => setFight(null)} />}
     </section>
   );
 }

@@ -174,3 +174,34 @@
 .screen-in {
   animation: screen-in 0.25s ease;
 }
+
+/* Fight playback and results (stand-ins until the PixiJS scenes land). */
+@keyframes token-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.anim-shake {
+  display: inline-block;
+  animation: token-shake 0.36s ease;
+}
+@keyframes float-up {
+  from { opacity: 0; transform: translate(-50%, 4px) scale(0.8); }
+  15% { opacity: 1; transform: translate(-50%, -4px) scale(1.12); }
+  to { opacity: 0; transform: translate(-50%, -38px) scale(1); }
+}
+.anim-float {
+  animation: float-up 1s ease-out forwards;
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.85); }
+}
+.anim-pop {
+  animation: pop-in 0.25s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-shake, .anim-pop, .screen-in { animation: none; }
+  .anim-float { animation-duration: 0.01s; }
+}

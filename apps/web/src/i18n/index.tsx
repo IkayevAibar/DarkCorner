@@ -12,7 +12,7 @@ function initialLocale(): Locale {
   return navigator.language.toLowerCase().startsWith('ru') ? 'ru' : 'en';
 }
 
-interface I18n {
+export interface I18n {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   t: (key: MessageKey, vars?: Record<string, string | number>) => string;

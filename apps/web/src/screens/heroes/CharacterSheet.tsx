@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { ABILITY_IDS, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
-import { api, ApiRequestError } from '../../api';
+import { api } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
+import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
-import { en, type MessageKey } from '../../i18n/en';
 
 type Place = 'worn' | 'bag' | 'storage';
 
@@ -185,9 +185,7 @@ function ItemActions({ item, place, onDone }: { item: ItemView; place: Place; on
       await action();
       onDone();
     } catch (e) {
-      const code = e instanceof ApiRequestError ? (e.body?.error ?? 'error') : 'error';
-      const key = `err.${code}`;
-      setError(key in en ? t(key as MessageKey) : t('err.generic', { code }));
+      setError(describeError(t, e));
     } finally {
       setBusy(false);
     }

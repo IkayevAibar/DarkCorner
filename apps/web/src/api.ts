@@ -1,7 +1,7 @@
 import type {
   AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, ApiErrorBody, AuthStatus, CreateHeroRequest, CreationOptions,
-  DevLoginRequest, HeroDraft, HeroResponse, HeroView, LogoutResponse, MeResponse, MoveItemRequest, MyHeroResponse,
-  SlotId, UpdateMeRequest,
+  DevLoginRequest, HeroDraft, HeroResponse, HeroView, LabyrinthResult, LogoutResponse, MeResponse, MoveItemRequest,
+  MyHeroResponse, SlotId, UpdateMeRequest,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -49,4 +49,13 @@ export const api = {
   unequipItem: (id: string) => request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/unequip`),
   moveItem: (id: string, to: MoveItemRequest['to']) =>
     request<HeroResponse>('POST', `/api/items/${encodeURIComponent(id)}/move`, { to }),
+
+  labyrinth: () => request<LabyrinthResult>('GET', '/api/labyrinth'),
+  enterLabyrinth: (floor: number) => request<LabyrinthResult>('POST', '/api/labyrinth/enter', { floor }),
+  moveTo: (to: number) => request<LabyrinthResult>('POST', '/api/labyrinth/move', { to }),
+  descend: () => request<LabyrinthResult>('POST', '/api/labyrinth/descend'),
+  ascend: () => request<LabyrinthResult>('POST', '/api/labyrinth/ascend'),
+  leaveLabyrinth: () => request<LabyrinthResult>('POST', '/api/labyrinth/leave'),
+  readPortal: () => request<LabyrinthResult>('POST', '/api/labyrinth/portal'),
+  lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
 };

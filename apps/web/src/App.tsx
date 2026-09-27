@@ -3,7 +3,8 @@ import { Shell } from './components/Shell';
 import { Admin } from './screens/Admin';
 import { LoadError, Loading, SignIn, Waiting } from './screens/Gate';
 import { Heroes } from './screens/heroes/Heroes';
-import { City, Labyrinth, Loot } from './screens/Placeholders';
+import { Labyrinth } from './screens/labyrinth/Labyrinth';
+import { City, Loot } from './screens/Placeholders';
 import { Sandbox } from './screens/Sandbox';
 import { useSession } from './session';
 

@@ -22,5 +22,4 @@ export function City() {
   );
 }
 
-export const Labyrinth = () => <Soon text="labyrinth.soon" />;
 export const Loot = () => <Soon text="loot.soon" />;
