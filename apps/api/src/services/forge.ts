@@ -4,11 +4,12 @@ import type {
 } from '@dark/shared';
 import {
   type ForgeCost as EngineCost, MAX_UPGRADE, RECIPES, REFORGE_COST, type Tier, UPGRADE_CHANCE, UPGRADE_SAFE_UNTIL, baseById,
-  bonusLines, canReforge, createRng, isGear, rollBonusStats, rollSalvage, rollUpgrade, salvageRange, upgradeCost,
+  bonusLines, canReforge, createRng, isGear, itemName, rollBonusStats, rollSalvage, rollUpgrade, salvageRange, upgradeCost,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
+import { broadcast } from './broadcast.js';
 import { feed } from './feed.js';
 import { toHeroView } from './heroes.js';
 import { toItemView } from './items.js';
@@ -104,6 +105,8 @@ export async function upgradeItem(player: Player, itemId: string, protect: boole
     }
     if (result.outcome === 'success' && result.level === MAX_UPGRADE) {
       await feed(tx, season, hero, 'upgrade10', { item: item.id, base: item.base, tier: item.tier });
+      const name = itemName(item);
+      await broadcast(tx, { en: `⚒️ ${hero.name} forged ${name.en} to +10!`, ru: `⚒️ ${hero.name}: «${name.ru}» выкован до +10!` });
     }
     return { heroId: hero.id, result, updated };
   });

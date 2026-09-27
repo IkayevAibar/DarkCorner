@@ -35,7 +35,9 @@ Every feature serves at least one of these:
 - **Boss gate:** opens on day 14 *(v0)*. Until then nobody can reach the Boss.
 - **Champion and Finale:** the first Player to defeat the Boss becomes Champion. From the Season that adds Duos onward, a Duo can win together and both become Champions. The victory starts the **Finale**: 72 hours in which others can still beat the Boss for 2nd and 3rd place, and make last trades and gambles. Every attempt at the Boss is a separate fight against a Boss at full health.
 - **Weakening:** from day 29 (week 5) *(v0)*, the Boss loses 10% of its health and damage every week, up to −40%. This stops a Season from dragging on.
-- **Wipe:** Heroes, Items, gold and Maps are erased. **Glory** survives:
+- **The podium** *(v0)*: each Player can take one place. Beating the Boss also pays its hoard (3 Items from Floor 10, a Gold Chest, 800–1,500 gold), and then its lair stays quiet for that Hero for a day.
+- **Before the start:** Players can create Heroes and use the City while a Season is planned; the Labyrinth opens when an admin starts the Season.
+- **Wipe:** Heroes, Items, gold and Maps are erased (in practice they stay in the database under the old Season, where nothing reads them). **Glory** survives:
   - the Hall of Fame: Champions, 2nd and 3rd place, Relic finders, best drops and records
   - titles
   - cosmetics such as portrait frames and banners
@@ -231,8 +233,9 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 ### Special rooms and announced vaults
 
 - **Shared:** Vaults, Mini-bosses and rare events are shared by everyone. The first Hero to claim one takes the prize, and it's gone for everyone else. A Mini-boss comes back 24 hours after it is defeated.
-- **Announced Vaults:** some Vaults are announced in advance through a Broadcast, e.g. "A sealed vault on Floor 6 opens tonight at 21:00". About 3 happen per week *(v0)*, only on Floors that at least two Heroes have reached. The first Hero to enter after the opening time claims it. These races are where Players mostly meet.
-- **Relics:** found in Vaults, and rarely from Mini-bosses on Floors 7–10, until every copy is out.
+- **A Vault's prize** *(v0)*: 3 Items with the odds of three Floors deeper, a Silver Chest (a Gold one on Floors 7–10), and 100–200 gold × (Floor + 1).
+- **Announced Vaults:** some Vaults are announced in advance through a Broadcast, e.g. "A sealed vault on Floor 6 opens tonight at 21:00". About 3 happen per week *(v0)*, only on Floors that at least two Heroes have reached. The first Hero to enter after the opening time claims it. These races are where Players mostly meet. *(v0: every day at 12:00 game time there is a 3-in-7 chance of one, opening at 21:00. An announcement seals an already-emptied Vault and refills it.)*
+- **Relics:** found in Vaults, and rarely from Mini-bosses on Floors 7–10, until every copy is out. *(v0: 60% from an announced Vault, 10% from any other Vault on Floors 7–10, 2% from a Mini-boss there.)* A Relic is identified the moment it is found, and it goes into the Bag even when the Bag is full.
 
 ### Getting in and out
 

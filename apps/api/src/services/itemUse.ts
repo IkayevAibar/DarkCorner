@@ -2,10 +2,12 @@ import type { Player } from '@prisma/client';
 import type { HeroView, IdentifyResult, OpenChestResult } from '@dark/shared';
 import {
   CHEST_ODDS, baseById, chestBase, chestGradeOf, createRng, isGear, keyBase, rollChestTier, rollDice, rollGear, sum, tierRank,
+  uniqueById,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
+import { broadcast } from './broadcast.js';
 import { feed } from './feed.js';
 import { toHeroView } from './heroes.js';
 import { gearData, toItemView } from './items.js';
@@ -28,6 +30,13 @@ export async function identifyItem(player: Player, itemId: string): Promise<Iden
     const updated = await tx.item.update({ where: { id: item.id }, data: { identified: true } });
     if (tierRank(item.tier as never) >= tierRank('legendary')) {
       await feed(tx, season, hero, 'identify', { tier: item.tier, uniqueId: item.uniqueId, radiant: item.radiant, serial: item.serial });
+      if (item.radiant && item.uniqueId) {
+        const name = uniqueById(item.uniqueId).name;
+        await broadcast(tx, {
+          en: `🌈 ${hero.name} identified a Radiant ${name.en}!`,
+          ru: `🌈 Сияющий предмет у героя ${hero.name}: ${name.ru}!`,
+        });
+      }
     }
     return { heroId: hero.id, updated, free };
   });
@@ -55,6 +64,9 @@ export async function openChest(player: Player, itemId: string): Promise<OpenChe
       // A Legendary from a Chest ends a streak of bad luck just as a drop does.
       await tx.hero.update({ where: { id: hero.id }, data: { badLuck: 0 } });
       await feed(tx, season, hero, 'chest', { grade, tier, base: roll.base });
+      if (tier === 'mythic') {
+        await broadcast(tx, { en: `🔴 ${hero.name} opened a Chest and found a Mythic Item!`, ru: `🔴 Мифическая находка в сундуке у героя ${hero.name}!` });
+      }
     }
     return { heroId: hero.id, grade, prize };
   });

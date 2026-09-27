@@ -5,6 +5,7 @@ import {
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
+import { broadcast } from './broadcast.js';
 import { feed } from './feed.js';
 import { heroLuck } from './heroes.js';
 import { gearData, toItemView } from './items.js';
@@ -53,6 +54,12 @@ export async function dropGear(tx: Tx, hero: HeroWithItems, season: Season, opts
     hero.items.push(item);
     haul.loot.push(toItemView(item));
     if (tierRank(tier) >= tierRank('legendary')) await feed(tx, season, hero, 'drop', { tier, base: roll.base, forced, floor: opts.floor });
+    if (tier === 'mythic') {
+      await broadcast(tx, {
+        en: `🔴 ${hero.name} found a Mythic Item on Floor ${opts.floor}!`,
+        ru: `🔴 Мифическая находка у героя ${hero.name} на этаже ${opts.floor}!`,
+      });
+    }
   }
 }
 

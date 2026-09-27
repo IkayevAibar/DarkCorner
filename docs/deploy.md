@@ -38,6 +38,21 @@ Caddy reaches the web container through `host.docker.internal`, which is the Doc
 
 Copy backups off the box now and then: a backup on the same disk is only half a backup.
 
+## Running a Season
+
+Everything is on the admin page (the account sheet → Admin → **Season**). The scheduler runs inside `dc-api`, so there is nothing else to start.
+
+| Task | How |
+|---|---|
+| Start a Season | **Start the Season**. Heroes made before the start keep playing; the Labyrinth opens now and the Boss gate in 14 days. |
+| Broadcasts | Set `DISCORD_WEBHOOK_URL` in `.env` (then `docker compose up -d`). The Season tab warns when it is missing. |
+| Test the Dragon early | **Open the Boss gate now**. |
+| Test a Vault race | **Announce a Vault** with the minutes until it opens. |
+| Give a tester gold or Items | the **Grant** tab (Relics can't be granted). |
+| Check a disputed roll | the **Rolls** tab: every drop, fight, Chest, Forge and event roll with its seed. |
+| End a Season early | **End the Season (Wipe)**. Normally the Wipe comes on its own 72 hours after the first Boss kill. |
+| Stuck jobs | the Season tab lists jobs with their last error; they retry up to five times. |
+
 ## Rules that save an evening
 
 - **New env variables:** add a variable to the server's `.env` *before* pushing code that reads it, or the API crash-loops.

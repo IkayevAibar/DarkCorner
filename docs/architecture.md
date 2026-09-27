@@ -1,6 +1,6 @@
 # Dark Corner: Architecture
 
-Status: weeks 1–4 of the [Season 0 plan](plan-season-0.md) are built: sign-in and admin approval, Heroes and Items, the Labyrinth and fights, loot and the economy (Shops, Forge, Market, Temple, Event rooms), and the production deployment ([deploy.md](deploy.md)). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
+Status: weeks 1–5 of the [Season 0 plan](plan-season-0.md) are built: sign-in and admin approval, Heroes and Items, the Labyrinth and fights, loot and the economy (Shops, Forge, Market, Temple, Event rooms), the Season's life (Boss gate, the Dragon, Vaults, Relics, the Wipe, the Hall of Fame), the Feed and Broadcasts, admin tools, and the production deployment ([deploy.md](deploy.md)). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
 
 ## Stack
 
@@ -47,19 +47,19 @@ packages/
 - **Hub dashboard:** `GET /api/sso/summary` returns `{registered, profile}` for the hub's dashboard card. CORS allows the hub's account origin, with credentials.
 - **Local development:** with `SSO_SECRET` blank, `POST /auth/dev-login` signs you in as any name (optionally as an admin) with our own signed `dc_session` cookie. The route does not exist in production or when SSO is on. The real hub cookie only exists on `.ugolok.world`.
 - **The copied file:** `apps/api/src/lib/sso.ts` is byte-for-byte the hub's `sso.ts`; keep it that way.
-- **Hub changes (in its own repo):** a card in `apps/account/src/{api,config}.ts` and on the landing page.
+- **Hub changes (in its own repo):** a card in `apps/account/src/{api,config}.ts` and on the landing page. `GET /api/sso/summary` gives the card `profile.hero`: the Hero's name, level, deepest Floor and best identified Item (name in both languages, Tier).
 
 ## Scheduled jobs
 
-The API polls a jobs table for the Season timeline (Boss gate opening, weekly weakening, end of the Finale, the Wipe) and for Vault announcements. Jobs are idempotent, so restarting the API is always safe.
+The API polls the `Job` table every 30 seconds (`apps/api/src/services/scheduler.ts`) for the Season timeline (the Boss gate opening, the weekly weakening, the Wipe at the end of the Finale), the daily Vault announcement roll, and Broadcasts. A job is claimed with `FOR UPDATE SKIP LOCKED`, retried with a growing delay up to five times, and must be idempotent, so restarting the API is always safe. Handlers register with `onJob()`; `services/jobs.ts` imports every module that has them. Admin actions run due jobs at once, and tests call `runDueJobs()` themselves.
 
 ## Discord
 
-A one-way webhook posts Broadcasts to the friends' channel (`DISCORD_WEBHOOK_URL`). There is no bot in Season 0.
+A one-way webhook posts Broadcasts to the friends' channel (`DISCORD_WEBHOOK_URL`), in Russian and English. `broadcast()` queues a job inside the transaction of the thing it announces, so a Broadcast only goes out if that really happened, and a Discord outage never fails a Player's action. Without a webhook, Broadcasts are skipped. There is no bot in Season 0.
 
 ## Live data
 
-There are no websockets in Season 0. The web checks the Feed and "who's online" every 15–30 seconds.
+There are no websockets in Season 0. The web checks the Feed and "who's online" (`GET /api/tavern`) every 15–30 seconds. Players are online if they made a request in the last 10 minutes (`Player.lastSeenAt`, written at most once a minute).
 
 ## Deployment
 
