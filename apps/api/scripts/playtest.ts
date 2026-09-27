@@ -13,7 +13,7 @@
  * equip, sell, restock and grow.
  */
 import { execSync } from 'node:child_process';
-import type { ClassId, ForgeQuote, LabyrinthResult, LabyrinthView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
+import type { ClassId, ForgeQuote, LabyrinthResult, LabyrinthView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
 import { TEST_DATABASE_URL } from '../test/test-db.js';
 
 // ─── A fake clock, installed before the app loads ─────────────────────────
@@ -42,7 +42,7 @@ execSync('npx prisma migrate deploy', { stdio: 'ignore', env: { ...process.env }
 const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
 const { resetDatabase, devLogin } = await import('../test/helpers.js');
-const { CLASS_DEFS, TIERS, baseById, canUse, isGear } = await import('@dark/engine');
+const { CLASS_DEFS, RIDDLES, TIERS, baseById, canUse, isGear } = await import('@dark/engine');
 
 const DAYS = Number(process.argv[2] ?? 14);
 const SESSIONS_PER_DAY = 3;
@@ -57,6 +57,7 @@ interface Stats {
   events: number; bounties: number; hidden: number; graves: number; moves: number; xp: number; items: Record<string, number>;
   minibosses: number; minibossWins: number; chests: number; dropped: number;
   salvaged: number; forge: Record<string, number>; goldForged: number;
+  market: { listed: number; bought: number; spent: number; expired: number };
   threats: Record<Threat, number>; errors: string[]; deathLog: string[];
 }
 interface Bot {
@@ -79,7 +80,7 @@ interface Bot {
 
 const newStats = (): Stats => ({
   fights: 0, won: 0, escaped: 0, survived: 0, deaths: 0, sneaks: 0, caught: 0, retreats: 0, events: 0, bounties: 0, hidden: 0, graves: 0,
-  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
+  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
 });
 
 async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: object): Promise<{ ok: boolean; status: number; body: T & { error?: string } }> {
@@ -175,6 +176,8 @@ async function city(bot: Bot) {
   }
   await equipBest(bot);
   hero = await me(bot);
+  await market(bot);
+  hero = await me(bot);
   // Commons (and what can't be read) sell; the rest is Salvaged into Materials for the Forge.
   for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.tier !== 'relic')) {
     if (item.tier === 'common' || !item.identified) await call(bot, 'POST', `/api/items/${item.id}/sell`, {});
@@ -200,6 +203,36 @@ async function city(bot: Bot) {
   if (count('scroll-portal') < 2 && hero.gold >= 200) await call(bot, 'POST', '/api/shop/buy', { offer: 'scroll-portal', quantity: 2 - count('scroll-portal') });
   if (bot.grave && count('bomb-smoke') < 1 && hero.gold >= 30) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-smoke', quantity: 1 });
   if (count('bomb-fire') < 1 && hero.gold >= 400) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-fire', quantity: 1 });
+}
+
+/**
+ * The Market between the bots: list Rare-or-better gear this Class can't use at four
+ * times its Shop price, buy what beats the worn piece, and take back what expired.
+ */
+async function market(bot: Bot) {
+  let view = (await call<MarketView>(bot, 'GET', '/api/market')).body;
+  for (const listing of view.mine.filter((l) => l.expired)) {
+    if ((await call(bot, 'POST', `/api/market/${listing.id}/cancel`)).ok) bot.stats.market.expired++;
+  }
+  const hero = await me(bot);
+  for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.identified && rank(i.tier) >= 2 && i.tier !== 'relic')) {
+    if (canUse(bot.cls, baseById(item.base) as never)) continue;
+    if ((await call(bot, 'POST', '/api/market/list', { itemId: item.id, price: Math.max(50, item.worth * 4) })).ok) bot.stats.market.listed++;
+  }
+  view = (await call<MarketView>(bot, 'GET', '/api/market')).body;
+  for (const listing of view.listings) {
+    const base = baseById(listing.item.base);
+    if (!isGear(base) || !canUse(bot.cls, base)) continue;
+    const slot = base.slot === 'ring' ? 'ring1' : base.slot;
+    const worn = (await me(bot)).worn.find((w) => w.slot === slot)?.item;
+    if (worn && rank(listing.item.tier) <= rank(worn.tier)) continue;
+    if ((await me(bot)).gold < listing.price + 500) continue;
+    if ((await call(bot, 'POST', `/api/market/${listing.id}/buy`)).ok) {
+      bot.stats.market.bought++;
+      bot.stats.market.spent += listing.price;
+    }
+  }
+  await equipBest(bot);
 }
 
 /** Upgrades worn gear, weapon and armor first, up to +7: never below 40%, and past +5 only under a Protection scroll. */
@@ -283,6 +316,12 @@ async function eventAction(bot: Bot, view: LabyrinthView): Promise<boolean> {
       case 'fountain': return view.hero.hp < view.hero.maxHp ? { action: 'drink' } : null;
       case 'library': return { action: 'read' };
       case 'bone-pile': return view.hero.hp > view.hero.maxHp * 0.6 ? { action: 'search' } : null;
+      case 'riddle': {
+        // A thinking player knows most of these; the rest is a guess.
+        const truth = RIDDLES.find((r) => r.question.en === e.question.en)!.answer.en;
+        const knows = Math.random() < 0.7;
+        return { action: 'answer', choice: knows ? e.answers.findIndex((a) => a.en === truth) : Math.floor(Math.random() * 3) };
+      }
       default: return null;
     }
   })();
@@ -489,6 +528,12 @@ for (const bot of bots) {
   const worn = await prisma.item.findMany({ where: { hero: { name: bot.name, retiredAt: null }, place: 'WORN' } });
   const ups = worn.map((i) => `+${i.upgrade}`).join(' ');
   console.log(`  ${bot.cls.padEnd(7)} salvaged ${bot.stats.salvaged}, upgrades ${JSON.stringify(bot.stats.forge)}, gold spent on successes ${bot.stats.goldForged}; worn ${ups}`);
+}
+console.log('\nThe Market:');
+for (const bot of bots) {
+  const m = bot.stats.market;
+  const open = await prisma.listing.count({ where: { seller: { username: bot.name } } });
+  console.log(`  ${bot.cls.padEnd(7)} listed ${m.listed}, still up ${open}, took back ${m.expired}, bought ${m.bought} for ${m.spent} gold`);
 }
 console.log('\nGear found:');
 for (const bot of bots) console.log(`  ${bot.cls.padEnd(7)} ${TIERS.map((t) => `${t} ${bot.stats.items[t] ?? 0}`).join(', ')}`);
