@@ -30,7 +30,7 @@ Open <http://localhost:5180>. The dev login lets you sign in as anyone. Tick "ad
 
 ## Credits
 
-- Icons by Lorc, Delapouite and Willdabeast from [game-icons.net](https://game-icons.net), CC BY 3.0.
+- Icons by Lorc, Delapouite, Willdabeast and DarkZaitzev from [game-icons.net](https://game-icons.net), CC BY 3.0.
 - Sound effects from Kenney's [RPG Audio](https://kenney.nl/assets/rpg-audio) and [Casino Audio](https://kenney.nl/assets/casino-audio), CC0. Thank you, Kenney.
 - This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at <https://www.dndbeyond.com/srd>. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at <https://creativecommons.org/licenses/by/4.0/legalcode>.
 

@@ -4,7 +4,7 @@ The owner approved both downloads on 2026-09-27, and they are in the game. Credi
 
 ## Icons: game-icons.net
 
-- **License:** Creative Commons BY 3.0. The game must credit the authors, e.g. on the account sheet and in the README: *Icons by Lorc, Delapouite and Willdabeast from game-icons.net, CC BY 3.0.*
+- **License:** Creative Commons BY 3.0. The game must credit the authors, e.g. on the account sheet and in the README: *Icons by Lorc, Delapouite, Willdabeast and DarkZaitzev from game-icons.net, CC BY 3.0.*
 - **Where they are:** `apps/web/src/components/items/icons.ts` (Items) and `apps/web/src/components/buildingIcons.ts` (Buildings), built from the SVGs at `https://raw.githubusercontent.com/game-icons/icons/master/<file>`. Only the path data is kept, on the icons' own 512×512 viewBox, with numbers rounded to one decimal: 25 KB for the Items (about 11 KB gzipped) and 7 KB for the Buildings. To add one, download its SVG and copy the `d` of its second `<path>` (the first is the black background).
 
 | Game icon key | File |
@@ -33,6 +33,8 @@ The owner approved both downloads on 2026-09-27, and they are in the game. Credi
 | `scrap` | `lorc/metal-bar.svg` |
 | `essence` | `lorc/magic-swirl.svg` |
 | `soulstone` | `delapouite/soul-vessel.svg` |
+| `bomb-fire` | `lorc/fire-bomb.svg` |
+| `bomb-smoke` | `darkzaitzev/smoke-bomb.svg` |
 
 City buildings, for the cards now and Codex's map pins later:
 

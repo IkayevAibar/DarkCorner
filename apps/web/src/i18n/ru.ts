@@ -55,7 +55,7 @@ export const ru: Record<MessageKey, string> = {
   'account.on': 'Вкл.',
   'account.off': 'Выкл.',
   'account.credits': 'Авторы',
-  'credits.icons': 'Иконки: Lorc, Delapouite и Willdabeast с game-icons.net, CC BY 3.0.',
+  'credits.icons': 'Иконки: Lorc, Delapouite, Willdabeast и DarkZaitzev с game-icons.net, CC BY 3.0.',
   'credits.sounds': 'Звуки: Kenney (kenney.nl), CC0. Спасибо!',
   'credits.srdTitle': 'Правила D&D',
 

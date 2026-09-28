@@ -54,7 +54,7 @@ export const en = {
   'account.on': 'On',
   'account.off': 'Off',
   'account.credits': 'Credits',
-  'credits.icons': 'Icons by Lorc, Delapouite and Willdabeast from game-icons.net, CC BY 3.0.',
+  'credits.icons': 'Icons by Lorc, Delapouite, Willdabeast and DarkZaitzev from game-icons.net, CC BY 3.0.',
   'credits.sounds': 'Sound effects by Kenney (kenney.nl), CC0. Thank you!',
   'credits.srdTitle': 'D&D rules',
 

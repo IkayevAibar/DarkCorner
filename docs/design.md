@@ -692,5 +692,5 @@ A board leaves out anyone with nothing to show on it yet. The Rankings end with 
 The credits are on the account sheet (Account → Credits) and in the README.
 
 - **D&D rules, Class names and Race names:** from the System Reference Document 5.2 by Wizards of the Coast, licensed CC BY 4.0. The credits include the SRD attribution statement word for word.
-- **Icons:** from game-icons.net by Lorc, Delapouite and Willdabeast, licensed CC BY 3.0.
+- **Icons:** from game-icons.net by Lorc, Delapouite, Willdabeast and DarkZaitzev, licensed CC BY 3.0.
 - **Sound effects:** Kenney's RPG Audio and Casino Audio packs, CC0 (credited anyway).
