@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, CLASSES, MONSTERS, PORTRAITS, RACES, RECOVERY_PER_HOUR, STAMINA_MAX, STAMINA_REFILL_MS, UNIQUES, baseById, currentStamina, isGear, portraitsFor,
+  CLASS_DEFS, CLASSES, MONSTERS, PORTRAITS, RACES, THEMES, RECOVERY_PER_HOUR, STAMINA_MAX, STAMINA_REFILL_MS, UNIQUES, baseById, currentStamina, isGear, portraitsFor,
   recoveredHealth, startingHealth, validateHeroChoices,
 } from '../src/index.js';
 
@@ -16,10 +16,11 @@ describe('art', () => {
     }
   });
 
-  it('points every portrait, unique Item and monster at a file the web serves', () => {
+  it('points every portrait, unique Item, monster and Room map at a file the web serves', () => {
     for (const p of PORTRAITS) expect(served(p.url), p.url).toBe(true);
     for (const u of UNIQUES) expect(u.art !== null && served(u.art), u.id).toBe(true);
     for (const m of MONSTERS) expect(m.art !== null && served(m.art), m.id).toBe(true);
+    for (const theme of Object.values(THEMES)) for (const map of theme.maps) expect(served(`/art/rooms/${map}.webp`), map).toBe(true);
   });
 });
 

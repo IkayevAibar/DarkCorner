@@ -7,7 +7,7 @@ import type { CSSProperties } from 'react';
  * Maps are square, which is what lets them turn.
  */
 export function roomArt(map: string, at?: { floor: number; room: number }): { src: string; style: CSSProperties | undefined } {
-  const src = `/art/rooms/${map}.jpg`;
+  const src = `/art/rooms/${map}.webp`;
   if (!at) return { src, style: undefined };
   const turn = Math.abs(Math.imul(at.floor * 131 + at.room, 0x9e3779b1) >> 16) % 8;
   return { src, style: { transform: `rotate(${(turn % 4) * 90}deg)${turn >= 4 ? ' scaleX(-1)' : ''}` } };

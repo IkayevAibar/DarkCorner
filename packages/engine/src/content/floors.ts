@@ -12,10 +12,10 @@ export interface ThemeDef {
 }
 
 export const THEMES: Record<ThemeId, ThemeDef> = {
-  warrens: { id: 'warrens', name: text('Goblin warrens', 'Гоблинские норы'), maps: ['goblins-1'] },
-  crypts: { id: 'crypts', name: text('Undead crypts', 'Склепы нежити'), maps: ['crypt-1'] },
-  depths: { id: 'depths', name: text('Demon-touched depths', 'Осквернённые демонами глубины'), maps: ['demons-1'] },
-  lair: { id: 'lair', name: text('The Dragon’s lair', 'Логово дракона'), maps: ['demons-1'] },
+  warrens: { id: 'warrens', name: text('Goblin warrens', 'Гоблинские норы'), maps: ['goblins-1', 'goblins-2', 'goblins-3', 'goblins-4', 'goblins-5', 'goblins-6', 'goblins-7', 'goblins-8'] },
+  crypts: { id: 'crypts', name: text('Undead crypts', 'Склепы нежити'), maps: ['crypt-1', 'crypt-2', 'crypt-3', 'crypt-4', 'crypt-5', 'crypt-6', 'crypt-7', 'crypt-8'] },
+  depths: { id: 'depths', name: text('Demon-touched depths', 'Осквернённые демонами глубины'), maps: ['demons-1', 'demons-2', 'demons-3', 'demons-4', 'demons-5', 'demons-6', 'demons-7', 'demons-8'] },
+  lair: { id: 'lair', name: text('The Dragon’s lair', 'Логово дракона'), maps: ['lair-1', 'lair-2', 'lair-3', 'lair-4', 'lair-5', 'lair-6'] },
 };
 
 /** Season 0 Floor themes (docs/design.md → The Labyrinth). */
