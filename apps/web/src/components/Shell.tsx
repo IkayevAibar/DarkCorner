@@ -4,7 +4,7 @@ import { Guide, useFirstVisitGuide } from './Guide';
 import { InstallCard } from './InstallCard';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
-import { markNewsRead, newsUnread } from '../news';
+import { markNewsRead, newsUnread } from '../newsState';
 import { useSession } from '../session';
 import { setSoundOn, useSoundOn } from '../sound';
 import { Icon, type IconName } from './Icon';

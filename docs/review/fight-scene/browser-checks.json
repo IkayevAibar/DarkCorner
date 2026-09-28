@@ -1,0 +1,257 @@
+{
+  "results": [
+    {
+      "name": "goblins-victory-crit",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "rogue-pack",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "wizard-burst",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "cleric-heals",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "survived-death-saves",
+      "locale": "en",
+      "outcome": "Barely alive"
+    },
+    {
+      "name": "rise-on-20",
+      "locale": "en",
+      "outcome": "Barely alive"
+    },
+    {
+      "name": "dead",
+      "locale": "en",
+      "outcome": "You died"
+    },
+    {
+      "name": "miniboss-bone-knight",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "dragon",
+      "locale": "en",
+      "outcome": "You died"
+    },
+    {
+      "name": "ambush-after-sneak",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "fire-bomb",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "wary-escape",
+      "locale": "en",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "cutpurse-runs",
+      "locale": "en",
+      "outcome": "You died"
+    },
+    {
+      "name": "ghoul-paralyzes",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "hellhound-breath-burn",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "abjurer-ward",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "champion-survivor",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "guardian-indomitable",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "gilded-elite",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "sapper-blast",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "spider-poison",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "bat-swarm-bomb",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "banshee-wail",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "visual-lucky-reroll",
+      "locale": "en",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "visual-elite-powers-fallback",
+      "locale": "en",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "goblins-victory-crit",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "rogue-pack",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "wizard-burst",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "cleric-heals",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "survived-death-saves",
+      "locale": "ru",
+      "outcome": "Едва живы"
+    },
+    {
+      "name": "rise-on-20",
+      "locale": "ru",
+      "outcome": "Едва живы"
+    },
+    {
+      "name": "dead",
+      "locale": "ru",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "miniboss-bone-knight",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "dragon",
+      "locale": "ru",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "ambush-after-sneak",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "fire-bomb",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "wary-escape",
+      "locale": "ru",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "cutpurse-runs",
+      "locale": "ru",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "ghoul-paralyzes",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "hellhound-breath-burn",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "abjurer-ward",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "champion-survivor",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "guardian-indomitable",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "gilded-elite",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "sapper-blast",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "spider-poison",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "bat-swarm-bomb",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "banshee-wail",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "visual-lucky-reroll",
+      "locale": "ru",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "visual-elite-powers-fallback",
+      "locale": "ru",
+      "outcome": "Вы сбежали"
+    }
+  ],
+  "errors": [],
+  "lifecycle": "passed",
+  "fallback": "passed"
+}

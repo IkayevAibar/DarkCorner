@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useText } from '../components/items/ItemChip';
 import { useI18n } from '../i18n';
-import { NEWS, markNewsRead } from '../news';
+import { NEWS } from '../news';
+import { markNewsRead } from '../newsState';
 
 /** What's new: the game's patch notes, newest first. */
 export function News() {

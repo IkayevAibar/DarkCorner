@@ -1,8 +1,10 @@
 import type { LocalizedText } from '@dark/shared';
+import { LATEST_NEWS_ID } from './newsState';
 
 /**
  * What's new: the game's patch notes, newest first. Each release adds an entry at
  * the top with a new id; the top bar marks it until the Player has seen it.
+ * Update LATEST_NEWS_ID in newsState.ts and give the previous entry its literal id.
  */
 export interface NewsEntry {
   id: string;
@@ -15,6 +17,15 @@ export interface NewsEntry {
 const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
+  {
+    id: LATEST_NEWS_ID,
+    date: '2026-09-29',
+    title: t('Fights come alive', 'Бои оживают'),
+    items: [
+      t('Fights play out on the Room map: moving tokens, spell bolts, fire, healing and the Dragon’s breath.', 'Бои разворачиваются на карте комнаты: движение жетонов, заклинания, огонь, лечение и дыхание дракона.'),
+      t('A large d20 marks death saves. Skip at any time, or use reduced motion for a calmer replay.', 'Спасброски от смерти показаны на большом d20. Бой можно пропустить в любой момент; настройка уменьшения движения делает повтор спокойнее.'),
+    ],
+  },
   {
     id: '2026-09-28-warrens',
     date: '2026-09-28',
@@ -117,22 +128,3 @@ export const NEWS: NewsEntry[] = [
     ],
   },
 ];
-
-const SEEN_KEY = 'dc.news.seen';
-
-/** Whether the newest entry is still unread on this device. */
-export function newsUnread(): boolean {
-  try {
-    return localStorage.getItem(SEEN_KEY) !== NEWS[0]!.id;
-  } catch {
-    return false;
-  }
-}
-
-export function markNewsRead(): void {
-  try {
-    localStorage.setItem(SEEN_KEY, NEWS[0]!.id);
-  } catch {
-    // Private windows can refuse storage; the dot just stays.
-  }
-}
