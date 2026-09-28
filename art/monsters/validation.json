@@ -366,5 +366,85 @@
     "sampledMaxAlpha": 255.0,
     "bytes": 3045246,
     "sha256": "c8324e4835e25a64b1e732e4a0a190dcf3dc1b184efe8fd48b616d88ddc420ac"
+  },
+  {
+    "file": "mummy.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2579140,
+    "sha256": "234479ebad7a0300c351578a5731fae163c6b1f9f2cea3945656f589ba6b096d"
+  },
+  {
+    "file": "rot-grubs.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2349223,
+    "sha256": "541c92c32783866954e3948645b693158c84a433e7f75c74d3c4aa64d1677be9"
+  },
+  {
+    "file": "flame-skull.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2261737,
+    "sha256": "3ee27d51ec7da9d8043a681e6c38ae47d3e73b41f87b57c973f32cb165136f12"
+  },
+  {
+    "file": "night-hag.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2599079,
+    "sha256": "18a3628f627399a15666f0cb5be3a88c76dcf6253ce9271a691dc4ed421c3925"
+  },
+  {
+    "file": "chain-devil.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "bytes": 2641969,
+    "sha256": "759a9ab33b72e0462ff9f66725cf699c5e573a91e2db48c72b3001f4cfdb7f2e"
   }
 ]

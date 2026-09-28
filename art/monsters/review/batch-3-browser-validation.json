@@ -1,0 +1,113 @@
+{
+  "decodedImages": 33,
+  "crops": [
+    {
+      "label": "Mummy · Мумия",
+      "width": 48,
+      "height": 48,
+      "border": "2px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Mummy · Мумия",
+      "width": 64,
+      "height": 64,
+      "border": "3px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Mummy · Мумия",
+      "width": 96,
+      "height": 96,
+      "border": "4px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Rot Grubs · Трупные личинки",
+      "width": 48,
+      "height": 48,
+      "border": "2px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Rot Grubs · Трупные личинки",
+      "width": 64,
+      "height": 64,
+      "border": "3px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Rot Grubs · Трупные личинки",
+      "width": 96,
+      "height": 96,
+      "border": "4px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Flame Skull · Пылающий череп",
+      "width": 48,
+      "height": 48,
+      "border": "2px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Flame Skull · Пылающий череп",
+      "width": 64,
+      "height": 64,
+      "border": "3px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Flame Skull · Пылающий череп",
+      "width": 96,
+      "height": 96,
+      "border": "4px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Night Hag · Ночная карга",
+      "width": 48,
+      "height": 48,
+      "border": "2px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Night Hag · Ночная карга",
+      "width": 64,
+      "height": 64,
+      "border": "3px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Night Hag · Ночная карга",
+      "width": 96,
+      "height": 96,
+      "border": "4px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Chain Devil · Цепной дьявол",
+      "width": 48,
+      "height": 48,
+      "border": "2px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Chain Devil · Цепной дьявол",
+      "width": 64,
+      "height": 64,
+      "border": "3px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "label": "Chain Devil · Цепной дьявол",
+      "width": 96,
+      "height": 96,
+      "border": "4px",
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    }
+  ],
+  "phoneWidth": 375,
+  "horizontalOverflow": false,
+  "pageErrors": []
+}

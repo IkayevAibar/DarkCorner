@@ -1,13 +1,37 @@
 # Season 0 monster token sources
 
-23 monster illustrations generated with the **built-in image_gen tool**: 17 for [Codex task 10](../../docs/tasks/codex-10-monster-tokens.md) and six for [Codex task 12](../../docs/tasks/codex-12-new-monster-tokens.md), using [the monster prompt brief](../../docs/art/monster-token-prompts.md).
+28 monster illustrations generated with the **built-in image_gen tool**: 17 for [Codex task 10](../../docs/tasks/codex-10-monster-tokens.md), six for [Codex task 12](../../docs/tasks/codex-12-new-monster-tokens.md), and five for [Codex task 13](../../docs/tasks/codex-13-deep-monster-tokens.md), using [the monster prompt brief](../../docs/art/monster-token-prompts.md).
 
-All source PNGs are square **1254 × 1254** with alpha transparency, preserved as generated. The selected sources total approximately **57.0 MiB**. Neither batch has discarded variants.
+All source PNGs are square **1254 × 1254** with alpha transparency, preserved as generated. The selected sources total approximately **68.9 MiB**. Batches 1 and 2 have no discarded variants; Batch 3 includes two targeted image_gen revisions described below.
 
 - [Exact submitted prompts](generation-prompts.json), including the shared style and circular-crop requirements.
 - [File validation](validation.json): dimensions, pixel format, corner and sampled alpha, bytes, SHA-256.
 - [Browser crop review](token-review.html): open locally at 100% zoom for 48, 64 and 96 px tokens, alongside the four existing references.
 - [Crop review screenshot](review/token-crops.png): the same sheet rendered in Chrome at device scale 1.
+
+## Batch 3: five monsters for the crypts and the depths
+
+Five sources for [Codex task 13](../../docs/tasks/codex-13-deep-monster-tokens.md), using [Batch 3 of the prompt brief](../../docs/art/monster-token-prompts.md#batch-3-five-monsters-for-the-crypts-and-the-depths) and the original shared style block. Exact generation and revision prompts are in `generation-prompts.json`; dimensions, sampled alpha, bytes and SHA-256 are in `validation.json`.
+
+| Monster | Floors | Source |
+|---|---|---|
+| Mummy | 4–6 | [<img src="mummy.png" width="128" alt="Mummy">](mummy.png) |
+| Rot Grubs | 4–6 | [<img src="rot-grubs.png" width="128" alt="Rot Grubs">](rot-grubs.png) |
+| Flame Skull | 7–9 | [<img src="flame-skull.png" width="128" alt="Flame Skull">](flame-skull.png) |
+| Night Hag | 7–9 | [<img src="night-hag.png" width="128" alt="Night Hag">](night-hag.png) |
+| Chain Devil | 7–9 | [<img src="chain-devil.png" width="128" alt="Chain Devil">](chain-devil.png) |
+
+[Interactive crop review](token-review-batch-3.html) · [Phone-width capture](review/token-crops-batch-3-phone.png) · [Browser validation](review/batch-3-browser-validation.json)
+
+![Five new tokens beside six existing references, at 48, 64 and 96 px](review/token-crops-batch-3.png)
+
+The browser review matches `Token.tsx`: centered circular crop, full bleed, 1.08× zoom, and the iron ring `#4a4038`. At 48 px, the Mummy's diagonal wrappings and green eye, the Rot Grubs' pale segmented mound, the Flame Skull's orange fire silhouette, the Night Hag's dark hair and yellow eyes, and the Chain Devil's bright face between two hooked links remain distinct. Fine grub mouths, scars and jewelry become texture. Outer flame and horn tips crop at the ring, while the faces and identifying features remain inside it.
+
+Two first passes were replaced through image_gen: the Flame Skull initially had an unwanted torso and cloak; its revision isolates a floating skull. The Chain Devil's first pass was too dark at 48 px; its revision enlarges and brightens the face and brings the hooks closer. Only the selected final sources are checked in. They are unchanged copies of the generated PNGs, including their alpha, totaling approximately **11.9 MiB**. No further required second pass was identified. The Flame Skull is deliberately the warmest token; check its fire beside Tier colors when Claude makes the compressed delivery copies.
+
+All five PNGs decode at 1254 × 1254. Browser validation decoded all 33 displayed images, checked 15 new-token crop frames, and found no page errors or horizontal overflow at 375 px. Application tests were not run because this task changes source art and its review files only.
+
+Claude: make the 256 px WebP delivery copies for `mummy`, `rot-grubs`, `flame-skull`, `night-hag` and `chain-devil`, then set their `art` in `packages/engine/src/content/monsters.ts`. This task changes only `art/monsters/`.
 
 ## Batch 2: six new monsters
 
