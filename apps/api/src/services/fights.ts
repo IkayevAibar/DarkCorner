@@ -34,6 +34,11 @@ export interface Outcome {
   notices: LocalizedText[];
   checks: CheckOutcome[];
   duel: { hero: number; goblin: number; win: boolean } | null;
+  /** For the Run's tally: Rooms walked into for the first time, and the Floor a descent reached (0 if none). */
+  explored: number;
+  depth: number;
+  /** Set when the action ended the Run: the gold it ended with, banked or left in a Grave. */
+  runEnd: { gold: number } | null;
 }
 
 /** A Check rolled on screen (traps, Shrines, locks). */
@@ -50,7 +55,7 @@ export interface CheckOutcome {
 }
 
 export const emptyOutcome = (): Outcome => ({
-  fight: null, loot: [], gold: 0, xp: 0, levelUp: null, died: false, notices: [], checks: [], duel: null,
+  fight: null, loot: [], gold: 0, xp: 0, levelUp: null, died: false, notices: [], checks: [], duel: null, explored: 0, depth: 0, runEnd: null,
 });
 
 // ─── What one Hero knows of a Floor ───────────────────────────────────────
@@ -307,6 +312,7 @@ export async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumb
   });
   await giveStarterKit(tx, updated, season.id);
   out.died = true;
+  out.runEnd = { gold: hero.carriedGold };
   await feed(tx, season, hero, 'death', { floor: floorNumber, grave: grave.id });
   out.notices.push(t(
     'You died. Everything you carried lies in a Grave for 48 hours. You wake at the Temple with a Starter kit.',

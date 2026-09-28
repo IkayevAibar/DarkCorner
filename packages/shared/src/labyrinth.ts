@@ -401,6 +401,23 @@ export const labyrinthViewSchema = z.object({
 });
 export type LabyrinthView = z.infer<typeof labyrinthViewSchema>;
 
+/** What a whole Run brought, shown once it ends: back in the City, or dead. */
+export const runSummarySchema = z.object({
+  minutes: z.number().int(),
+  /** Rooms walked into for the first time. */
+  rooms: z.number().int(),
+  fights: z.number().int(),
+  won: z.number().int(),
+  /** Gold brought home; after a death, the gold left in the Grave. */
+  gold: z.number().int(),
+  items: z.number().int(),
+  xp: z.number().int(),
+  levels: z.object({ from: z.number().int(), to: z.number().int() }),
+  deepest: z.number().int(),
+  died: z.boolean(),
+});
+export type RunSummary = z.infer<typeof runSummarySchema>;
+
 /** What a Move (or any Labyrinth action) brought. */
 export const labyrinthResultSchema = z.object({
   view: labyrinthViewSchema,
@@ -417,6 +434,8 @@ export const labyrinthResultSchema = z.object({
   checks: z.array(checkViewSchema),
   /** The Goblin gambler's dice: both d20s. */
   duel: z.object({ hero: z.number().int(), goblin: z.number().int(), win: z.boolean() }).nullable(),
+  /** Set when this action ended the Run. */
+  run: runSummarySchema.nullable(),
 });
 export type LabyrinthResult = z.infer<typeof labyrinthResultSchema>;
 

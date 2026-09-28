@@ -277,6 +277,8 @@ describe('the Labyrinth', () => {
     expect(above.view.room).toMatchObject({ id: stairs.id, type: 'stairs' });
     // Down to a new landing costs one; back up to stairs already known is free.
     expect(above.view.hero.stamina).toBe(19);
+    // The Run remembers how deep it went, and every new Room on the way.
+    expect((await hero()).run).toMatchObject({ deepest: 2, rooms: path(floor1, floor1.landing, stairs.id).length + 1 });
   });
 
   it('dies, leaves a Grave, wakes at the Temple, and can loot the Grave back', async () => {
@@ -288,6 +290,7 @@ describe('the Labyrinth', () => {
     // Fights won along the way drop Items into the Bag, so count what is carried each time.
     let carried = 0;
     let died = false;
+    let last: Awaited<ReturnType<typeof walkIn>> | null = null;
     for (let attempt = 0; attempt < 60 && !died; attempt++) {
       const h = await hero();
       if (h.room !== floor1.landing) {
@@ -298,9 +301,12 @@ describe('the Labyrinth', () => {
       await prisma.heroFloor.updateMany({ data: { cleared: {} } });
       await refill();
       carried = await prisma.item.count({ where: { place: { in: ['WORN', 'BAG'] } } });
-      died = (await walkIn(fightNextToLanding)).died;
+      last = await walkIn(fightNextToLanding);
+      died = last.died;
     }
     expect(died).toBe(true);
+    expect(last!.run).toMatchObject({ died: true, deepest: 1 });
+    expect(last!.run!.fights).toBeGreaterThan(last!.run!.won);
 
     const h = await hero();
     expect(h).toMatchObject({ location: 'CITY', hp: h.maxHp, carriedGold: 0 });
@@ -408,6 +414,36 @@ describe('the Labyrinth', () => {
   });
 });
 
+
+describe('the Run summary', () => {
+  it('sums up a Run on the way home: new Rooms, fights won, gold, Items, XP and the deepest Floor', async () => {
+    await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999, str: 30, dex: 30 } });
+    const entered = await act('/api/labyrinth/enter', { floor: 1 });
+    expect(entered.run).toBeNull();
+    await refill();
+    const won = await walkIn(fightNextToLanding);
+    expect(won.fight?.outcome).toBe('victory');
+    expect(won.run).toBeNull();
+    await refill();
+    await act('/api/labyrinth/move', { to: floor1.landing });
+    const carried = (await hero()).carriedGold;
+    const home = await act('/api/labyrinth/leave');
+    expect(home.run).toMatchObject({ rooms: 1, fights: 1, won: 1, gold: carried, items: won.loot.length, xp: won.xp, deepest: 1, died: false });
+    expect(home.run!.levels.from).toBe(1);
+    expect((await hero()).run).toBeNull();
+  });
+
+  it('ends a Run at a Town Portal, and starts a new one back through it', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    const h = await hero();
+    await prisma.item.create({ data: { heroId: h.id, seasonId: h.seasonId, base: 'scroll-portal', place: 'BAG', quantity: 1, tier: 'common' } });
+    await prisma.hero.updateMany({ data: { carriedGold: 25 } });
+    const home = await act('/api/labyrinth/portal');
+    expect(home.run).toMatchObject({ rooms: 0, fights: 0, gold: 25, died: false });
+    await act('/api/labyrinth/enter', { portal: true });
+    expect((await hero()).run).toMatchObject({ rooms: 0, fights: 0, deepest: 1 });
+  });
+});
 
 describe('walking back and resting', () => {
   it('walks back through known Rooms for free, unless something new waits there today', async () => {

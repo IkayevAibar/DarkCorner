@@ -18,7 +18,7 @@ export const NEWS: NewsEntry[] = [
   {
     id: '2026-09-29-depths',
     date: '2026-09-29',
-    title: t('New faces deeper down', 'Новые лица на глубине'),
+    title: t('New faces deeper down, and a summary for every Run', 'Новые лица на глубине и итог каждой вылазки'),
     items: [
       t(
         'Two new monsters in the crypts (Floors 4–6): a mummy that won’t stay down and whose stare freezes the nerve, and rot grubs that blades barely scratch, with a poisonous bite.',
@@ -35,6 +35,10 @@ export const NEWS: NewsEntry[] = [
       t(
         'A new event in the depths: a devil’s bargain. Trade health for gold, or for an Item whose Tier it shows up front, or try to banish it (Clerics do it best).',
         'Новое событие в глубинах: сделка с дьяволом. Обменяйте здоровье на золото или на предмет, ранг которого он показывает заранее, или попробуйте изгнать его (лучше всех это удаётся жрецам).',
+      ),
+      t(
+        'Every Run now ends with a summary: new Rooms, fights won, gold brought home, Items found, XP and the deepest Floor.',
+        'Каждая вылазка теперь заканчивается итогом: новые комнаты, выигранные бои, принесённое золото, найденные предметы, опыт и самый глубокий этаж.',
       ),
     ],
   },

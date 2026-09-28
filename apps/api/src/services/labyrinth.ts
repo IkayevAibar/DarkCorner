@@ -23,6 +23,7 @@ import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, lockHero, stackTotal, takeStack } from './ledger.js';
 import { dropChest, dropGear, withGoldFind } from './loot.js';
 import { boostedXp, gainXp } from './progression.js';
+import { newRun, tallyRun } from './runs.js';
 import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
 
@@ -372,6 +373,7 @@ async function vaultView(tx: Tx, season: Season, floor: number, room: number, no
 
 async function respond(heroId: string, season: Season, outcome: Outcome): Promise<LabyrinthResult> {
   const now = new Date();
+  const run = await tallyRun(heroId, outcome, now);
   const hero = await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } });
   return {
     view: await buildView(prisma, hero, season, now),
@@ -384,6 +386,7 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
     notices: outcome.notices,
     checks: outcome.checks,
     duel: outcome.duel,
+    run,
   };
 }
 
@@ -444,7 +447,7 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
         data: {
           location: 'LABYRINTH', floor: floor.number, room, prevRoom: waiting ? floor.landing : room, facing: waiting !== null,
           deathless: true, lucky: true, campSince: floor.rooms[room]!.type === 'camp' ? now : null, hpAt: now,
-          portalFloor: null, portalRoom: null, portalUntil: null, ...restsOnEntry(hero, now),
+          portalFloor: null, portalRoom: null, portalUntil: null, ...restsOnEntry(hero, now), run: newRun(hero.level, floor.number, now),
         },
       });
       return hero.id;
@@ -460,7 +463,7 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
       where: { id: hero.id },
       data: {
         location: 'LABYRINTH', floor: floorNumber, room, prevRoom: room, deathless: true, lucky: true, campSince: null,
-        bestFloor: Math.max(hero.bestFloor, floorNumber), ...restsOnEntry(hero, now),
+        bestFloor: Math.max(hero.bestFloor, floorNumber), ...restsOnEntry(hero, now), run: newRun(hero.level, floorNumber, now),
       },
     });
     return hero.id;
@@ -509,7 +512,10 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
       else await tx.item.delete({ where: { id: key.id } });
     }
 
-    if (!known) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: to } } });
+    if (!known) {
+      await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: to } } });
+      outcome.explored++;
+    }
     // Monsters stop the Hero in the doorway: the Player sees them and chooses (face()).
     // Any other Room becomes the last safe one.
     const waiting = await monstersWaiting(tx, hero, season, floor, to, now);
@@ -711,7 +717,11 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
     const known = hf.seen.includes(next.landing);
     const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
     if (!known && stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
-    if (!known) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: next.landing } } });
+    if (!known) {
+      await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: next.landing } } });
+      outcome.explored++;
+    }
+    outcome.depth = next.number;
     // A Floor never reached before is worth XP.
     const firstXp = next.number > hero.bestFloor ? await boostedXp(tx, hero, season, NEW_FLOOR_XP * next.number) : 0;
     const levelUp = firstXp > 0 ? gainXp(hero, firstXp) : null;
@@ -770,6 +780,7 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
 
 /** Back to the City: gold becomes safe, health and abilities come back. */
 async function goHome(tx: Tx, hero: HeroWithItems, out: Outcome) {
+  out.runEnd = { gold: hero.carriedGold };
   if (hero.carriedGold > 0) await trackBounties(tx, hero, { type: 'bank', gold: hero.carriedGold }, out);
   const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
   await tx.hero.update({

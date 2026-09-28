@@ -452,6 +452,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 - **Leaving:** walk back out through the entrance on Floor 1, walk to any Waypoint you've reached, or read a **Town Portal** scroll anywhere outside a fight (50 gold *(v0)*).
 - **Town Portals stay open:** the portal a Hero reads stays open behind it for 24 hours *(v0)*. Stepping back through it from the Labyrinth gate, once, returns the Hero to the Room it read the scroll in (read in a doorway, to the last safe Room). If monsters have come back to that Room meanwhile, the Hero steps out in their doorway. So a trip to the City to sell and heal doesn't cost the way back down.
 - **In the City:** returning fully heals the Hero and restores all its abilities. Gold picked up in the Labyrinth becomes safe from that moment.
+- **The Run's summary:** when a Run ends (home through the entrance, a Waypoint or a Town Portal, or a death), the report sums it up: how long it took, Rooms walked into for the first time, fights won out of fights fought, the gold brought home (after a death, the gold left in the Grave), Items found, XP, levels gained and the deepest Floor reached. Stepping back through a portal starts a new Run.
 
 ### Waiting heroes and camps
 

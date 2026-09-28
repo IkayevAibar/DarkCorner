@@ -2,7 +2,7 @@ import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } 
 import { NavLink } from 'react-router';
 import {
   STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
-  type LabyrinthView, type Threat,
+  type LabyrinthView, type RunSummary, type Threat,
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { CenterModal } from '../../components/CenterModal';
@@ -125,7 +125,7 @@ export function Labyrinth() {
 
 const hasNews = (r: LabyrinthResult) =>
   r.fight !== null || r.loot.length > 0 || r.gold > 0 || r.xp > 0 || r.levelUp !== null || r.died || r.notices.length > 0
-  || r.checks.length > 0 || r.duel !== null;
+  || r.checks.length > 0 || r.duel !== null || r.run !== null;
 
 /** Drinks one Healing potion from the Bag, then shows the Labyrinth again. */
 async function drinkPotion(): Promise<LabyrinthResult> {
@@ -970,9 +970,42 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
         {result.notices.map((line, i) => (
           <p key={i} className="m-0 text-[15px]">{text(line)}</p>
         ))}
+        {result.run && <RunCard run={result.run} />}
         <button type="button" className="btn btn-primary mt-1" onClick={onClose}>{t('report.dismiss')}</button>
       </div>
     </CenterModal>
+  );
+}
+
+/** What the whole Run brought, once it ends: back in the City, or dead. */
+function RunCard({ run }: { run: RunSummary }) {
+  const { t } = useI18n();
+  const time = run.minutes < 60
+    ? t('run.minutes', { m: run.minutes })
+    : t('run.hours', { h: Math.floor(run.minutes / 60), m: run.minutes % 60 });
+  const tiles: [string, string, string?][] = [
+    [String(run.rooms), t('run.rooms')],
+    [`${run.won}/${run.fights}`, t('run.fights')],
+    [run.gold.toLocaleString(), run.died ? t('run.goldGrave') : t('run.gold'), run.died ? undefined : 'text-[#f1c75b]'],
+    [String(run.items), t('run.items')],
+    [run.xp.toLocaleString(), t('run.xp')],
+    [String(run.deepest), t('run.deepest')],
+  ];
+  return (
+    <div className="grid gap-1.5">
+      <span className="sub-heading">{t('run.title')} · {time}</span>
+      <div className="grid grid-cols-3 gap-1.5">
+        {tiles.map(([value, label, tone]) => (
+          <div key={label} className="grid content-start justify-items-center gap-0.5 rounded-sm border border-bone/15 bg-black/20 px-1 py-1.5 text-center">
+            <span className={`font-head text-lg font-bold leading-none ${tone ?? ''}`}>{value}</span>
+            <span className="text-[11px] leading-tight text-muted">{label}</span>
+          </div>
+        ))}
+      </div>
+      {run.levels.to > run.levels.from && (
+        <span className="text-center font-head text-[15px] font-bold text-gold">{t('run.levels', { from: run.levels.from, to: run.levels.to })}</span>
+      )}
+    </div>
   );
 }
 
