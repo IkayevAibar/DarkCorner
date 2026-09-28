@@ -52,6 +52,33 @@ describe('without SSO (local development)', () => {
     expect((await said()).slice(1)).toEqual(['⚔️ The gate opens for Pip. Welcome to the Labyrinth!']);
   });
 
+  it('lets everyone in while the gate is open, and opening it lets in whoever waits', async () => {
+    const admin = await devLogin(app, 'Owner', true);
+    const gate = (open: boolean, cookie = admin) => app.inject({ method: 'POST', url: '/api/admin/gate', headers: { cookie }, payload: { open } });
+    const pip = await devLogin(app, 'Pip');
+    await devLogin(app, 'Mara');
+    await devLogin(app, 'Troll');
+    const troll = await prisma.player.findFirstOrThrow({ where: { username: 'Troll' } });
+    await app.inject({ method: 'POST', url: `/api/admin/players/${troll.id}`, headers: { cookie: admin }, payload: { decision: 'ban' } });
+    expect((await gate(true, pip)).statusCode).toBe(403);
+
+    const opened = (await gate(true)).json();
+    expect(opened.gateOpen).toBe(true);
+    expect(Object.fromEntries(opened.players.map((p: { name: string; status: string }) => [p.name, p.status])))
+      .toMatchObject({ Pip: 'approved', Mara: 'approved', Troll: 'banned' });
+    expect((await said()).at(-1)).toBe('⚔️ The gate is open! Welcome to the Labyrinth, Pip and Mara.');
+
+    // Someone new walks straight in while it's open, and is welcomed.
+    const newt = await devLogin(app, 'Newt');
+    expect((await app.inject({ url: '/api/me', headers: { cookie: newt } })).json().player.status).toBe('approved');
+    expect((await said()).at(-1)).toBe('⚔️ The gate opens for Newt. Welcome to the Labyrinth!');
+
+    // Shut again, the next one waits.
+    expect((await gate(false)).json().gateOpen).toBe(false);
+    await devLogin(app, 'Late');
+    expect((await said()).at(-1)).toContain('Late is waiting at the Labyrinth gate');
+  });
+
   it('lets an admin approve a Player, who then counts as approved', async () => {
     const admin = await devLogin(app, 'Owner', true);
     const friend = await devLogin(app, 'Pip');

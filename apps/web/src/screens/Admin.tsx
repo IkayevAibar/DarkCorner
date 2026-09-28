@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AdminPlayer, RollLogView, Tier } from '@dark/shared';
+import type { AdminPlayer, AdminPlayersResponse, RollLogView, Tier } from '@dark/shared';
 import { TIERS } from '@dark/shared';
 import { api } from '../api';
 import { useAction } from '../components/useAction';
@@ -41,12 +41,23 @@ export function Admin() {
 function Players() {
   const { t } = useI18n();
   const { session, reload: reloadSession } = useSession();
-  const [players, setPlayers] = useState<AdminPlayer[] | null>(null);
+  const [view, setView] = useState<AdminPlayersResponse | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const players = view?.players ?? null;
 
   const load = useCallback(async () => {
-    setPlayers((await api.adminPlayers()).players);
+    setView(await api.adminPlayers());
   }, []);
+
+  const toggleGate = async () => {
+    if (!view) return;
+    setBusy('gate');
+    try {
+      setView(await api.setGate(!view.gateOpen));
+    } finally {
+      setBusy(null);
+    }
+  };
 
   useEffect(() => {
     void load();
@@ -65,8 +76,19 @@ function Players() {
 
   const me = session.state === 'signedIn' ? session.player.id : null;
 
+  const waiting = players?.filter((p) => p.status === 'pending').length ?? 0;
   return (
     <>
+      {view && (
+        <div className="panel grid gap-2 p-3">
+          <span className="sub-heading">{t('admin.gate.title')}</span>
+          <p className="m-0 text-sm">{t(view.gateOpen ? 'admin.gate.open' : 'admin.gate.shut')}</p>
+          <button type="button" className={`btn ${view.gateOpen ? '' : 'btn-primary'}`} disabled={busy === 'gate'} onClick={() => void toggleGate()}>
+            {t(view.gateOpen ? 'admin.gate.doShut' : 'admin.gate.doOpen')}
+          </button>
+          {!view.gateOpen && waiting > 0 && <p className="m-0 text-xs text-muted">{t('admin.gate.letsIn', { n: waiting })}</p>}
+        </div>
+      )}
       {players?.length === 0 && <p className="text-muted">{t('admin.empty')}</p>}
       <ul className="m-0 grid list-none gap-2 p-0">
         {players?.map((p) => (

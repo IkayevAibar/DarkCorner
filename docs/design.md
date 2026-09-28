@@ -22,7 +22,7 @@ Every feature serves at least one of these:
 
 ## Players, access and platform
 
-- **Who can play:** 5–15 friends and people they know. Only Players an admin has approved can create a Hero. (The hub lets any Discord account sign in, so approval is the real gate.)
+- **Who can play:** 5–15 friends and people they know. Only Players an admin has approved can create a Hero. (The hub lets any Discord account sign in, so approval is the real gate.) An admin can open the gate instead: then everyone who signs in is let in at once, and opening it lets in everyone waiting. Banned Players stay out either way.
 - **Sign-in:** through the ugolok.world hub's shared Discord login. The game shows up as a card on the hub dashboard (Hero level, deepest Floor, best Item) and on the hub landing page.
 - **Languages:** Russian and English from the first version. The hub passes the language along with `?lang=`.
 - **Devices:** designed for a phone held upright first, and comfortable on desktop too. It can be installed as a PWA.

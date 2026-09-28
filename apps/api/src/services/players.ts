@@ -3,6 +3,7 @@ import type { AdminPlayer, Locale, PlayerStatus, PlayerView } from '@dark/shared
 import { prisma } from '../db.js';
 import { env } from '../env.js';
 import { broadcast } from './broadcast.js';
+import { gateOpen } from './settings.js';
 
 export interface DiscordIdentity {
   discordId: string;
@@ -31,6 +32,17 @@ export const letIn = (p: Player) => ({
   ru: `⚔️ Врата открываются для игрока ${nameOf(p)}. Добро пожаловать в лабиринт!`,
 });
 
+/** For the friends' channel when an admin opens the gate on everyone who was waiting. */
+export const letInAll = (players: Player[]) => {
+  if (players.length === 1) return letIn(players[0]!);
+  const names = players.map(nameOf);
+  const list = (and: string) => `${names.slice(0, -1).join(', ')} ${and} ${names.at(-1)}`;
+  return {
+    en: `⚔️ The gate is open! Welcome to the Labyrinth, ${list('and')}.`,
+    ru: `⚔️ Ворота открыты! Добро пожаловать в лабиринт: ${list('и')}.`,
+  };
+};
+
 /**
  * Creates the Player on first sight and refreshes their Discord details after.
  * Admins from ADMIN_DISCORD_IDS are approved on the spot; everyone else waits
@@ -43,6 +55,8 @@ export async function upsertPlayer(identity: DiscordIdentity, opts: { admin?: bo
   const now = new Date();
   return prisma.$transaction(async (tx) => {
     const known = await tx.player.findUnique({ where: { discordId: identity.discordId }, select: { id: true } });
+    // An open gate lets someone new straight in; otherwise they wait for an admin.
+    const open = !known && !admin && await gateOpen(tx);
     let player = await tx.player.upsert({
       where: { discordId: identity.discordId },
       create: {
@@ -51,7 +65,7 @@ export async function upsertPlayer(identity: DiscordIdentity, opts: { admin?: bo
         globalName: identity.globalName,
         avatar: identity.avatar,
         isAdmin: admin,
-        approvedAt: admin ? now : null,
+        approvedAt: admin || open ? now : null,
       },
       update: {
         username: identity.username,
@@ -63,9 +77,10 @@ export async function upsertPlayer(identity: DiscordIdentity, opts: { admin?: bo
     if (player.isAdmin && !player.approvedAt) {
       player = await tx.player.update({ where: { id: player.id }, data: { approvedAt: now } });
     }
-    // New players who sign in and find the gate shut rarely come back on their own:
-    // tell the channel at once, so an admin lets them in while they are still here.
-    if (!known && !player.approvedAt) await broadcast(tx, atTheGate(player));
+    // Someone new: welcome them if the gate let them in. If it's shut, tell the channel
+    // at once, so an admin lets them in while they are still here; people who find it
+    // shut rarely come back on their own.
+    if (!known && !admin) await broadcast(tx, player.approvedAt ? letIn(player) : atTheGate(player));
     return player;
   });
 }

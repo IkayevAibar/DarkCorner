@@ -471,6 +471,12 @@ export const ru: Record<MessageKey, string> = {
   'time.dh': '{d} д {h} ч',
 
   'admin.title': 'Админка',
+  'admin.gate.title': 'Ворота',
+  'admin.gate.open': 'Открыты: каждый, кто входит, сразу попадает в игру. Забаненные остаются снаружи.',
+  'admin.gate.shut': 'Закрыты: новые игроки ждут, пока вы их впустите, а в Discord приходит весть, что они ждут.',
+  'admin.gate.doOpen': 'Открыть ворота',
+  'admin.gate.doShut': 'Закрыть ворота',
+  'admin.gate.letsIn': 'Открыв их, вы впустите и тех, кто ждёт сейчас: {n}.',
   'admin.tab.players': 'Игроки',
   'admin.tab.season': 'Сезон',
   'admin.tab.grant': 'Выдать',

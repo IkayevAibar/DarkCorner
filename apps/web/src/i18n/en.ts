@@ -470,6 +470,12 @@ export const en = {
   'time.dh': '{d}d {h}h',
 
   'admin.title': 'Admin',
+  'admin.gate.title': 'The gate',
+  'admin.gate.open': 'Open: everyone who signs in is let in at once. Banned Players stay out.',
+  'admin.gate.shut': 'Shut: new Players wait until you let them in, and Discord hears they are waiting.',
+  'admin.gate.doOpen': 'Open the gate',
+  'admin.gate.doShut': 'Shut the gate',
+  'admin.gate.letsIn': 'Opening it also lets in the {n} waiting now.',
   'admin.tab.players': 'Players',
   'admin.tab.season': 'Season',
   'admin.tab.grant': 'Grant',

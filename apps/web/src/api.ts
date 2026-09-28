@@ -37,6 +37,7 @@ export const api = {
   me: () => request<MeResponse>('GET', '/api/me'),
   updateMe: (body: UpdateMeRequest) => request<MeResponse>('PATCH', '/api/me', body),
   adminPlayers: () => request<AdminPlayersResponse>('GET', '/api/admin/players'),
+  setGate: (open: boolean) => request<AdminPlayersResponse>('POST', '/api/admin/gate', { open }),
   decidePlayer: (id: string, decision: AdminPlayerDecision['decision']) =>
     request<{ player: AdminPlayer }>('POST', `/api/admin/players/${encodeURIComponent(id)}`, { decision }),
 

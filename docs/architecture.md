@@ -43,7 +43,7 @@ packages/
 ## Sign-in via the ugolok.world hub
 
 - **The cookie:** the hub signs players in with Discord and sets the `ugolok_sso` cookie on `.ugolok.world`. We check that cookie with a copy of the hub's `sso.ts` (`D:\ugolok.world-site\apps\api\src\sso.ts`, identical in every ugolok repo) and the same `SSO_SECRET`. For how a game uses it, follow `D:\MS_DS_Project\apps\api\src\lib\session.ts` (`requireUser`, `resolveSsoUserId`).
-- **First visit:** creates the Player record (Discord ID, name, avatar). An admin approves the Player before they can create a Hero.
+- **First visit:** creates the Player record (Discord ID, name, avatar). An admin approves the Player before they can create a Hero, unless the gate is open (the `Setting` table, key `gate`).
 - **Hub dashboard:** `GET /api/sso/summary` returns `{registered, profile}` for the hub's dashboard card. CORS allows the hub's account origin, with credentials.
 - **Local development:** with `SSO_SECRET` blank, `POST /auth/dev-login` signs you in as any name (optionally as an admin) with our own signed `dc_session` cookie. The route does not exist in production or when SSO is on. The real hub cookie only exists on `.ugolok.world`.
 - **The copied file:** `apps/api/src/lib/sso.ts` is byte-for-byte the hub's `sso.ts`; keep it that way.

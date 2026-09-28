@@ -9,6 +9,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Server-wide switches an admin flips on the admin page, e.g. whether the gate
+/// lets everyone in (key "gate", value { open: boolean }).
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
 /// A person with a Discord account. Must be approved before creating a Hero.
 model Player {
   id         String    @id @default(cuid())

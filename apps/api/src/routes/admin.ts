@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import {
-  type AdminPlayersResponse, type AdminSeasonView, type RollLogView, adminGrantSchema, adminPlayerDecisionSchema,
+  type AdminPlayersResponse, type AdminSeasonView, type RollLogView, adminGateSchema, adminGrantSchema, adminPlayerDecisionSchema,
   adminSeasonActionSchema,
 } from '@dark/shared';
 import { prisma } from '../db.js';
@@ -8,7 +8,8 @@ import { ApiError } from '../lib/errors.js';
 import { requireAdmin } from '../lib/session.js';
 import { adminSeasonView, grant, rollLog } from '../services/admin.js';
 import { broadcast } from '../services/broadcast.js';
-import { letIn, toAdminPlayer } from '../services/players.js';
+import { letIn, letInAll, toAdminPlayer } from '../services/players.js';
+import { gateOpen, setGate } from '../services/settings.js';
 import { announceVault, discardSeason, endSeason, openGateNow, startSeason } from '../services/seasonLife.js';
 import { runDueJobs } from '../services/scheduler.js';
 import { currentSeason } from '../services/seasons.js';
@@ -16,9 +17,25 @@ import { currentSeason } from '../services/seasons.js';
 export async function adminRoutes(app: FastifyInstance) {
   const guard = { preHandler: requireAdmin };
 
-  app.get('/api/admin/players', guard, async (): Promise<AdminPlayersResponse> => {
+  const playersView = async (): Promise<AdminPlayersResponse> => {
     const players = await prisma.player.findMany({ orderBy: [{ approvedAt: { sort: 'asc', nulls: 'first' } }, { createdAt: 'desc' }] });
-    return { players: players.map(toAdminPlayer) };
+    return { players: players.map(toAdminPlayer), gateOpen: await gateOpen(prisma) };
+  };
+
+  app.get('/api/admin/players', guard, playersView);
+
+  app.post('/api/admin/gate', guard, async (request): Promise<AdminPlayersResponse> => {
+    const { open } = adminGateSchema.parse(request.body);
+    await prisma.$transaction(async (tx) => {
+      await setGate(tx, open);
+      if (!open) return;
+      // Opening the gate lets in everyone already waiting; banned Players stay out.
+      const waiting = await tx.player.findMany({ where: { approvedAt: null, bannedAt: null }, orderBy: { createdAt: 'asc' } });
+      if (waiting.length === 0) return;
+      await tx.player.updateMany({ where: { id: { in: waiting.map((p) => p.id) } }, data: { approvedAt: new Date() } });
+      await broadcast(tx, letInAll(waiting));
+    });
+    return playersView();
   });
 
   app.post<{ Params: { id: string } }>('/api/admin/players/:id', guard, async (request) => {
