@@ -1,0 +1,845 @@
+{
+  "browser": "Headless Chrome / Playwright",
+  "mapCssPixels": 375,
+  "deviceScaleFactor": 1,
+  "phoneViewport": {
+    "width": 375,
+    "height": 812,
+    "horizontalOverflow": false
+  },
+  "pageErrors": [],
+  "captures": [
+    {
+      "theme": "goblins",
+      "mode": "room",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-7.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-8.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "../../apps/web/public/art/rooms/goblins-1.jpg",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "goblins",
+      "mode": "fight",
+      "brightness": 0.62,
+      "tokens": true,
+      "maps": [
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-7.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-8.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "../../apps/web/public/art/rooms/goblins-1.jpg",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "goblins",
+      "mode": "rotations",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg)"
+        },
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg)"
+        },
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg)"
+        },
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg) scaleX(-1)"
+        },
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg) scaleX(-1)"
+        },
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg) scaleX(-1)"
+        },
+        {
+          "file": "goblins-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg) scaleX(-1)"
+        }
+      ]
+    },
+    {
+      "theme": "crypt",
+      "mode": "room",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-7.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-8.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "../../apps/web/public/art/rooms/crypt-1.jpg",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "crypt",
+      "mode": "fight",
+      "brightness": 0.62,
+      "tokens": true,
+      "maps": [
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-7.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-8.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "../../apps/web/public/art/rooms/crypt-1.jpg",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "crypt",
+      "mode": "rotations",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg)"
+        },
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg)"
+        },
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg)"
+        },
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg) scaleX(-1)"
+        },
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg) scaleX(-1)"
+        },
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg) scaleX(-1)"
+        },
+        {
+          "file": "crypt-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg) scaleX(-1)"
+        }
+      ]
+    },
+    {
+      "theme": "demons",
+      "mode": "room",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-7.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-8.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "../../apps/web/public/art/rooms/demons-1.jpg",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "demons",
+      "mode": "fight",
+      "brightness": 0.62,
+      "tokens": true,
+      "maps": [
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-7.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-8.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "../../apps/web/public/art/rooms/demons-1.jpg",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1024,
+          "naturalHeight": 1024,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "demons",
+      "mode": "rotations",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg)"
+        },
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg)"
+        },
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg)"
+        },
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg) scaleX(-1)"
+        },
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg) scaleX(-1)"
+        },
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg) scaleX(-1)"
+        },
+        {
+          "file": "demons-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg) scaleX(-1)"
+        }
+      ]
+    },
+    {
+      "theme": "lair",
+      "mode": "room",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "lair",
+      "mode": "fight",
+      "brightness": 0.62,
+      "tokens": true,
+      "maps": [
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-2.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-3.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-4.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-5.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-6.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        }
+      ]
+    },
+    {
+      "theme": "lair",
+      "mode": "rotations",
+      "brightness": 0.78,
+      "tokens": false,
+      "maps": [
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg)"
+        },
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg)"
+        },
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg)"
+        },
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg)"
+        },
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(0deg) scaleX(-1)"
+        },
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(90deg) scaleX(-1)"
+        },
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(180deg) scaleX(-1)"
+        },
+        {
+          "file": "lair-1.png",
+          "width": 375,
+          "height": 375,
+          "naturalWidth": 1254,
+          "naturalHeight": 1254,
+          "transform": "rotate(270deg) scaleX(-1)"
+        }
+      ]
+    }
+  ]
+}

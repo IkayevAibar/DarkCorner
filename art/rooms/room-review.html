@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Room map source review</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#171614;color:#e7deca;font:14px system-ui}header{padding:18px 20px}h1{font:26px Georgia;margin:0 0 8px}p{max-width:900px;color:#bfb7a7}label{display:inline-block;margin:8px 15px 0 0}select{background:#292722;color:inherit;border:1px solid #70654e;padding:6px}main{padding:0 20px 20px;display:grid;grid-template-columns:repeat(auto-fit,375px);gap:20px;justify-content:start}figure{margin:0;width:375px}figcaption{padding:8px 0;min-height:36px}.room{width:375px;height:375px;position:relative;overflow:hidden;background:#090909}.map{width:100%;height:100%;object-fit:cover;display:block}.tokens{position:absolute;inset:0;pointer-events:none}.monster{position:absolute;top:22%;width:64px;height:64px;object-fit:contain}.monster:nth-child(1){left:19%}.monster:nth-child(2){right:19%}.hero{position:absolute;bottom:15%;left:calc(50% - 28px);width:56px;height:56px;border-radius:50%;border:2px solid #b2a27c;object-fit:cover}.reference{color:#bca279}body.capture header p,body.capture header label{display:none}@media(max-width:414px){header{padding:12px}main{padding:0;gap:14px}figcaption{padding-left:12px}}
+</style>
+<header><h1>Room map source review</h1><p>27 generated sources and the three approved references. Maps render at 375 CSS px. Brightness and transforms match the game; token placement is a composition aid, not a live gameplay screenshot.</p>
+<label>Theme <select id="theme"><option value="all">All</option><option>goblins</option><option>crypt</option><option>demons</option><option>lair</option></select></label>
+<label>Brightness <select id="brightness"><option value="0.78">Room view · 78%</option><option value="0.62">Fight · 62%</option><option value="1">Source · 100%</option></select></label>
+<label>Orientation <select id="turn"><option value="0">0°</option><option value="1">90°</option><option value="2">180°</option><option value="3">270°</option><option value="4">0° · mirrored</option><option value="5">90° · mirrored</option><option value="6">180° · mirrored</option><option value="7">270° · mirrored</option></select></label>
+<label>Tokens <select id="tokens"><option value="0">Hidden</option><option value="1">Visible</option></select></label></header>
+<main></main>
+<script>
+const assets=[{"file":"goblins-2.png","theme":"goblins"},{"file":"goblins-3.png","theme":"goblins"},{"file":"goblins-4.png","theme":"goblins"},{"file":"goblins-5.png","theme":"goblins"},{"file":"goblins-6.png","theme":"goblins"},{"file":"goblins-7.png","theme":"goblins"},{"file":"goblins-8.png","theme":"goblins"},{"file":"crypt-2.png","theme":"crypt"},{"file":"crypt-3.png","theme":"crypt"},{"file":"crypt-4.png","theme":"crypt"},{"file":"crypt-5.png","theme":"crypt"},{"file":"crypt-6.png","theme":"crypt"},{"file":"crypt-7.png","theme":"crypt"},{"file":"crypt-8.png","theme":"crypt"},{"file":"demons-2.png","theme":"demons"},{"file":"demons-3.png","theme":"demons"},{"file":"demons-4.png","theme":"demons"},{"file":"demons-5.png","theme":"demons"},{"file":"demons-6.png","theme":"demons"},{"file":"demons-7.png","theme":"demons"},{"file":"demons-8.png","theme":"demons"},{"file":"lair-1.png","theme":"lair"},{"file":"lair-2.png","theme":"lair"},{"file":"lair-3.png","theme":"lair"},{"file":"lair-4.png","theme":"lair"},{"file":"lair-5.png","theme":"lair"},{"file":"lair-6.png","theme":"lair"}];
+const controls=Object.fromEntries(['theme','brightness','turn','tokens'].map(id=>[id,document.getElementById(id)]));
+const art='../../apps/web/public/art/';
+const monsters={goblins:'goblin',crypt:'skeleton',demons:'imp',lair:'drake'};
+function render(){
+const q=new URLSearchParams(location.search), theme=controls.theme.value;
+const rotationSheet=q.get('rotations')==='1';
+let entries=assets.filter(a=>theme==='all'||a.theme===theme);
+if(rotationSheet) entries=Array.from({length:8},(_,turn)=>({...entries[0],turn}));
+else if(q.get('references')!=='0') entries=[...entries,...['goblins','crypt','demons'].filter(t=>theme==='all'||theme===t).map(t=>({file:art+'rooms/'+t+'-1.jpg',theme:t,reference:true}))];
+document.querySelector('h1').textContent=(rotationSheet?'Eight orientations':theme+' Rooms')+' · 375 px · '+Math.round(Number(controls.brightness.value)*100)+'%';
+document.querySelector('main').replaceChildren(...entries.map(a=>{
+const fig=document.createElement('figure'),caption=document.createElement('figcaption'), room=document.createElement('div'), map=document.createElement('img');
+room.className='room';map.className='map';map.src=a.file;map.alt=a.file;
+const turn=a.turn??Number(controls.turn.value);map.style.transform='rotate('+((turn%4)*90)+'deg)'+(turn>=4?' scaleX(-1)':'');map.style.filter='brightness('+controls.brightness.value+')';
+caption.textContent=(a.reference?'Approved reference: ':'')+a.file.split('/').pop()+(rotationSheet?' · '+turn%4*90+'°'+(turn>=4?' mirrored':''):'');if(a.reference)caption.className='reference';
+room.append(map);if(controls.tokens.value==='1'){const tokens=document.createElement('div');tokens.className='tokens';for(let i=0;i<2;i++){const m=document.createElement('img');m.className='monster';m.src=art+'tokens/'+monsters[a.theme]+'.webp';m.alt='Monster token';tokens.append(m);}const hero=document.createElement('img');hero.className='hero';hero.src=art+'portraits/human-fighter-1.webp';hero.alt='Hero portrait';tokens.append(hero);room.append(tokens);}fig.append(caption,room);return fig;
+}));
+}
+const query=new URLSearchParams(location.search);for(const [key,control] of Object.entries(controls)){if(query.has(key))control.value=query.get(key);control.addEventListener('change',render);}if(query.get('capture')==='1')document.body.classList.add('capture');render();
+</script></html>
