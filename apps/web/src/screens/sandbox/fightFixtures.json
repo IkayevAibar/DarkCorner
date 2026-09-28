@@ -38,7 +38,7 @@
      "en": "Goblin sapper",
      "ru": "Гоблин-подрывник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-sapper.webp",
     "hp": 5,
     "maxHp": 5,
     "ac": 11,
@@ -948,7 +948,7 @@
      "en": "Goblin shaman",
      "ru": "Гоблин-шаман"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-shaman.webp",
     "hp": 12,
     "maxHp": 12,
     "ac": 11,
@@ -2102,7 +2102,7 @@
      "en": "Goblin sapper",
      "ru": "Гоблин-подрывник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-sapper.webp",
     "hp": 6,
     "maxHp": 6,
     "ac": 11,
@@ -2404,7 +2404,7 @@
      "en": "Grave robber",
      "ru": "Расхититель могил"
     },
-    "art": null,
+    "art": "/art/tokens/grave-robber.webp",
     "hp": 29,
     "maxHp": 29,
     "ac": 13,
@@ -4543,7 +4543,7 @@
      "en": "Goblin sapper",
      "ru": "Гоблин-подрывник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-sapper.webp",
     "hp": 8,
     "maxHp": 8,
     "ac": 11,
@@ -4720,7 +4720,7 @@
      "en": "Goblin sapper",
      "ru": "Гоблин-подрывник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-sapper.webp",
     "hp": 6,
     "maxHp": 6,
     "ac": 11,
@@ -4737,7 +4737,7 @@
      "en": "Goblin sapper",
      "ru": "Гоблин-подрывник"
     },
-    "art": null,
+    "art": "/art/tokens/goblin-sapper.webp",
     "hp": 6,
     "maxHp": 6,
     "ac": 11,
@@ -4865,7 +4865,7 @@
      "en": "Giant spider",
      "ru": "Гигантский паук"
     },
-    "art": null,
+    "art": "/art/tokens/giant-spider.webp",
     "hp": 14,
     "maxHp": 14,
     "ac": 12,
@@ -5074,7 +5074,7 @@
      "en": "Giant spider",
      "ru": "Гигантский паук"
     },
-    "art": null,
+    "art": "/art/tokens/giant-spider.webp",
     "hp": 19,
     "maxHp": 19,
     "ac": 12,
@@ -5091,7 +5091,7 @@
      "en": "Bat swarm",
      "ru": "Стая летучих мышей"
     },
-    "art": null,
+    "art": "/art/tokens/bat-swarm.webp",
     "hp": 14,
     "maxHp": 14,
     "ac": 12,
@@ -5223,7 +5223,7 @@
      "en": "Banshee",
      "ru": "Банши"
     },
-    "art": null,
+    "art": "/art/tokens/banshee.webp",
     "hp": 34,
     "maxHp": 34,
     "ac": 12,
