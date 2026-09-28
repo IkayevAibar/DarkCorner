@@ -1,15 +1,39 @@
 # Season 0 monster token sources
 
-17 monster illustrations generated with the **built-in image_gen tool** for [Codex task 10](../../docs/tasks/codex-10-monster-tokens.md), using [the monster prompt brief](../../docs/art/monster-token-prompts.md).
+23 monster illustrations generated with the **built-in image_gen tool**: 17 for [Codex task 10](../../docs/tasks/codex-10-monster-tokens.md) and six for [Codex task 12](../../docs/tasks/codex-12-new-monster-tokens.md), using [the monster prompt brief](../../docs/art/monster-token-prompts.md).
 
-All source PNGs are square **1254 × 1254** with alpha transparency, preserved as generated. The selected sources total approximately **41.5 MiB**. There are no discarded variants in this batch.
+All source PNGs are square **1254 × 1254** with alpha transparency, preserved as generated. The selected sources total approximately **57.0 MiB**. Neither batch has discarded variants.
 
 - [Exact submitted prompts](generation-prompts.json), including the shared style and circular-crop requirements.
 - [File validation](validation.json): dimensions, pixel format, corner and sampled alpha, bytes, SHA-256.
 - [Browser crop review](token-review.html): open locally at 100% zoom for 48, 64 and 96 px tokens, alongside the four existing references.
 - [Crop review screenshot](review/token-crops.png): the same sheet rendered in Chrome at device scale 1.
 
-## Crop review
+## Batch 2: six new monsters
+
+Six sources for [Codex task 12](../../docs/tasks/codex-12-new-monster-tokens.md), generated with the built-in image_gen tool using [Batch 2 of the prompt brief](../../docs/art/monster-token-prompts.md#batch-2-six-new-monsters). The exact expanded prompts are appended to `generation-prompts.json`; dimensions, alpha samples, byte sizes and hashes are appended to `validation.json`. The sources retain their generated pixels and alpha, with no discarded variants or edits in this batch.
+
+| Monster | Floors | Source |
+|---|---|---|
+| Goblin Sapper | 1–3 | [<img src="goblin-sapper.png" width="128" alt="Goblin Sapper">](goblin-sapper.png) |
+| Goblin Shaman | 1–3 | [<img src="goblin-shaman.png" width="128" alt="Goblin Shaman">](goblin-shaman.png) |
+| Bat Swarm | 1–3 | [<img src="bat-swarm.png" width="128" alt="Bat Swarm">](bat-swarm.png) |
+| Giant Spider | 1–3 | [<img src="giant-spider.png" width="128" alt="Giant Spider">](giant-spider.png) |
+| Grave Robber | 4–6 | [<img src="grave-robber.png" width="128" alt="Grave Robber">](grave-robber.png) |
+| Banshee | 4–6 | [<img src="banshee.png" width="128" alt="Banshee">](banshee.png) |
+
+[Interactive crop review](token-review-batch-2.html) · [Phone-width capture](review/token-crops-batch-2-phone.png) · [Browser validation](review/batch-2-browser-validation.json)
+
+![Six new tokens beside six existing references, at 48, 64 and 96 px](review/token-crops-batch-2.png)
+
+The crop review follows `Token.tsx`: centered circular crop, 1.08× image zoom, and the iron ring `#4a4038`. All six are recognizable at 48 px. The sapper's fuse, shaman's white face stripes and green hand glow, swarm's repeated wing outlines, spider's eyes and fangs, robber's gold locket and banshee's open screaming mouth survive the crop. At 48 px, individual bats and the locket engraving become texture; 64 and 96 px retain more detail. The banshee is deliberately paler than the other tokens.
+
+All six sources decode at 1254 × 1254 with alpha transparency and total approximately 15.5 MiB. Browser validation decoded all 36 displayed images, checked the 18 new-token crop frames, and found no page errors or horizontal overflow at 375 px. No required second pass was identified; review the final compressed delivery copies in actual encounters.
+
+Claude: make 256 px WebP delivery copies for `goblin-sapper`, `goblin-shaman`, `bat-swarm`, `giant-spider`, `grave-robber` and `banshee`, then set their `art` in `packages/engine/src/content/monsters.ts`. This source-art task changes only `art/monsters/`.
+
+
+## Batch 1 crop review
 
 The review uses the current `Token.tsx` framing: a centered circular crop, full-bleed image, 1.08× zoom, and the existing iron/gold ring colors. All 17 heads or faces remain centered and recognizable at 48 px. The Chieftain's tooth crown, Bone Knight's plate and helm, and Tyrant's horn crown distinguish the three Mini-bosses at larger sizes.
 
@@ -19,7 +43,7 @@ The Doppelganger interprets the shifting face as a central face with two partial
 
 ![All token crops at 48, 64 and 96 pixels](review/token-crops.png)
 
-## Source gallery
+## Batch 1 source gallery
 
 Click an image for the unchanged source PNG.
 
@@ -43,7 +67,7 @@ Click an image for the unchanged source PNG.
 | Doppelganger | any (the false prisoner) | [<img src="doppelganger.png" width="128" alt="Doppelganger">](doppelganger.png) |
 | Mimic | any (the chest that bites) | [<img src="mimic.png" width="128" alt="Mimic">](mimic.png) |
 
-## Validation and handoff
+## Batch 1 validation and handoff
 
 All 17 expected filenames match the brief and the monsters with missing art in the base branch. PNG decoding, square dimensions, and sampled transparent/visible pixel checks passed. Some nearly transparent edge pixels have alpha 1/255; the original alpha is retained.
 

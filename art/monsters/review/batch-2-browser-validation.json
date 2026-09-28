@@ -1,0 +1,109 @@
+{
+  "browser": "Headless Chrome / Playwright",
+  "deviceScaleFactor": 1,
+  "imageCount": 36,
+  "cropSizes": [
+    48,
+    64,
+    96
+  ],
+  "zoom": 1.08,
+  "phoneViewport": {
+    "width": 375,
+    "height": 812,
+    "horizontalOverflow": false
+  },
+  "pageErrors": [],
+  "newTokenCrops": [
+    {
+      "size": 48,
+      "height": 48,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 64,
+      "height": 64,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 96,
+      "height": 96,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 48,
+      "height": 48,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 64,
+      "height": 64,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 96,
+      "height": 96,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 48,
+      "height": 48,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 64,
+      "height": 64,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 96,
+      "height": 96,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 48,
+      "height": 48,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 64,
+      "height": 64,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 96,
+      "height": 96,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 48,
+      "height": 48,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 64,
+      "height": 64,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 96,
+      "height": 96,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 48,
+      "height": 48,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 64,
+      "height": 64,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    },
+    {
+      "size": 96,
+      "height": 96,
+      "transform": "matrix(1.08, 0, 0, 1.08, 0, 0)"
+    }
+  ]
+}

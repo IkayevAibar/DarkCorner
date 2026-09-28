@@ -270,5 +270,101 @@
     "sampledMaxAlpha": 255,
     "bytes": 2853126,
     "sha256": "6f5603fa076ebf9d7ded66afb20fed68ef5dc1595c7f4ed9a9c473aa8a84df8f"
+  },
+  {
+    "file": "goblin-sapper.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0.0,
+    "sampledMaxAlpha": 255.0,
+    "bytes": 2533769,
+    "sha256": "6cf06f2360ea774204cfaf36cd7d1263c93a45e21ff63bf37c187e35bbf65347"
+  },
+  {
+    "file": "goblin-shaman.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0.0,
+    "sampledMaxAlpha": 254.0,
+    "bytes": 2912061,
+    "sha256": "881463ff956602f56c16f9cafbd328a9a4a6e33eaf7add9f7791c33b6bbb7f7d"
+  },
+  {
+    "file": "bat-swarm.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0.0,
+    "sampledMaxAlpha": 255.0,
+    "bytes": 2464323,
+    "sha256": "e7f33b1eecc2a3c9f548dacb964d735bc488e30c370fc7dfdd2fc53a106ec7ae"
+  },
+  {
+    "file": "giant-spider.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0.0,
+    "sampledMaxAlpha": 255.0,
+    "bytes": 2847211,
+    "sha256": "bb4c4f80c18bac48b7a9e65642ed0d1dc830f00b9653688fd6892cd5a89ba4f6"
+  },
+  {
+    "file": "grave-robber.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0.0,
+    "sampledMaxAlpha": 254.0,
+    "bytes": 2478042,
+    "sha256": "2f45e74539e3fbc2b6f8e5e9f24794c3ebeaa5a017863b2e41b4309aa82f39d4"
+  },
+  {
+    "file": "banshee.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0.0,
+    "sampledMaxAlpha": 255.0,
+    "bytes": 3045246,
+    "sha256": "c8324e4835e25a64b1e732e4a0a190dcf3dc1b184efe8fd48b616d88ddc420ac"
   }
 ]
