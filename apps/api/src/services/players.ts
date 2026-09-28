@@ -2,6 +2,7 @@ import type { Player } from '@prisma/client';
 import type { AdminPlayer, Locale, PlayerStatus, PlayerView } from '@dark/shared';
 import { prisma } from '../db.js';
 import { env } from '../env.js';
+import { broadcast } from './broadcast.js';
 
 export interface DiscordIdentity {
   discordId: string;
@@ -16,36 +17,57 @@ const isConfiguredAdmin = (discordId: string) => env.ADMIN_DISCORD_IDS.includes(
 export const owedAdminRights = (player: Pick<Player, 'discordId' | 'isAdmin' | 'approvedAt'>) =>
   isConfiguredAdmin(player.discordId) && !(player.isAdmin && player.approvedAt);
 
+const nameOf = (p: Pick<Player, 'globalName' | 'username'>) => p.globalName ?? p.username;
+
+/** For the friends' channel: someone new waits at the gate until an admin lets them in. */
+const atTheGate = (p: Player) => ({
+  en: `🚪 ${nameOf(p)} is waiting at the Labyrinth gate. An admin can let them in: Account → Admin: Players.`,
+  ru: `🚪 ${nameOf(p)} ждёт у врат лабиринта. Админ может впустить игрока: Аккаунт → Админ: игроки.`,
+});
+
+/** For the friends' channel when an admin lets a Player in, so they know to come back. */
+export const letIn = (p: Player) => ({
+  en: `⚔️ The gate opens for ${nameOf(p)}. Welcome to the Labyrinth!`,
+  ru: `⚔️ Врата открываются для игрока ${nameOf(p)}. Добро пожаловать в лабиринт!`,
+});
+
 /**
  * Creates the Player on first sight and refreshes their Discord details after.
  * Admins from ADMIN_DISCORD_IDS are approved on the spot; everyone else waits
- * for an admin. Admin rights are only ever added here, never removed, so a
- * dev-login admin survives an API restart.
+ * for an admin, and the friends' channel hears they are at the gate. Admin
+ * rights are only ever added here, never removed, so a dev-login admin
+ * survives an API restart.
  */
 export async function upsertPlayer(identity: DiscordIdentity, opts: { admin?: boolean } = {}): Promise<Player> {
   const admin = opts.admin === true || isConfiguredAdmin(identity.discordId);
   const now = new Date();
-  const player = await prisma.player.upsert({
-    where: { discordId: identity.discordId },
-    create: {
-      discordId: identity.discordId,
-      username: identity.username,
-      globalName: identity.globalName,
-      avatar: identity.avatar,
-      isAdmin: admin,
-      approvedAt: admin ? now : null,
-    },
-    update: {
-      username: identity.username,
-      globalName: identity.globalName,
-      avatar: identity.avatar,
-      ...(admin ? { isAdmin: true } : {}),
-    },
+  return prisma.$transaction(async (tx) => {
+    const known = await tx.player.findUnique({ where: { discordId: identity.discordId }, select: { id: true } });
+    let player = await tx.player.upsert({
+      where: { discordId: identity.discordId },
+      create: {
+        discordId: identity.discordId,
+        username: identity.username,
+        globalName: identity.globalName,
+        avatar: identity.avatar,
+        isAdmin: admin,
+        approvedAt: admin ? now : null,
+      },
+      update: {
+        username: identity.username,
+        globalName: identity.globalName,
+        avatar: identity.avatar,
+        ...(admin ? { isAdmin: true } : {}),
+      },
+    });
+    if (player.isAdmin && !player.approvedAt) {
+      player = await tx.player.update({ where: { id: player.id }, data: { approvedAt: now } });
+    }
+    // New players who sign in and find the gate shut rarely come back on their own:
+    // tell the channel at once, so an admin lets them in while they are still here.
+    if (!known && !player.approvedAt) await broadcast(tx, atTheGate(player));
+    return player;
   });
-  if (player.isAdmin && !player.approvedAt) {
-    return prisma.player.update({ where: { id: player.id }, data: { approvedAt: now } });
-  }
-  return player;
 }
 
 export function playerStatus(player: Pick<Player, 'approvedAt' | 'bannedAt'>): PlayerStatus {

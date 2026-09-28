@@ -32,6 +32,26 @@ describe('without SSO (local development)', () => {
     expect(me.json().player).toMatchObject({ name: 'Garrick', status: 'pending', isAdmin: false, locale: null });
   });
 
+  /** What went to the friends' Discord channel, in English. */
+  const said = async () => (await prisma.job.findMany({ where: { kind: 'broadcast' }, orderBy: { id: 'asc' } }))
+    .map((j) => (j.payload as { text: { en: string } }).text.en);
+
+  it('tells the channel when someone waits at the gate, and when they are let in', async () => {
+    const admin = await devLogin(app, 'Owner', true);
+    await devLogin(app, 'Pip');
+    await devLogin(app, 'Pip');
+    // The admin walks straight in; Pip waits, and is announced once however often Pip signs in.
+    expect(await said()).toEqual(['🚪 Pip is waiting at the Labyrinth gate. An admin can let them in: Account → Admin: Players.']);
+
+    const pip = await prisma.player.findFirstOrThrow({ where: { username: 'Pip' } });
+    const approve = () => app.inject({
+      method: 'POST', url: `/api/admin/players/${pip.id}`, headers: { cookie: admin }, payload: { decision: 'approve' },
+    });
+    await approve();
+    await approve();
+    expect((await said()).slice(1)).toEqual(['⚔️ The gate opens for Pip. Welcome to the Labyrinth!']);
+  });
+
   it('lets an admin approve a Player, who then counts as approved', async () => {
     const admin = await devLogin(app, 'Owner', true);
     const friend = await devLogin(app, 'Pip');

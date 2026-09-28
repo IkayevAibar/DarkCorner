@@ -7,7 +7,8 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { requireAdmin } from '../lib/session.js';
 import { adminSeasonView, grant, rollLog } from '../services/admin.js';
-import { toAdminPlayer } from '../services/players.js';
+import { broadcast } from '../services/broadcast.js';
+import { letIn, toAdminPlayer } from '../services/players.js';
 import { announceVault, discardSeason, endSeason, openGateNow, startSeason } from '../services/seasonLife.js';
 import { runDueJobs } from '../services/scheduler.js';
 import { currentSeason } from '../services/seasons.js';
@@ -33,7 +34,12 @@ export async function adminRoutes(app: FastifyInstance) {
       ban: { bannedAt: now },
       reset: { approvedAt: null, bannedAt: null },
     }[decision];
-    const player = await prisma.player.update({ where: { id: target.id }, data });
+    const player = await prisma.$transaction(async (tx) => {
+      const updated = await tx.player.update({ where: { id: target.id }, data });
+      // Nothing else tells a Player they are in: say it where the friends are, so they come back.
+      if (decision === 'approve' && !target.approvedAt) await broadcast(tx, letIn(updated));
+      return updated;
+    });
     return { player: toAdminPlayer(player) };
   });
 

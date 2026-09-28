@@ -583,6 +583,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - the Boss gate opens
   - the Boss weakens
   - a Season starts or ends
+  - someone new signs in and waits at the gate, and when an admin lets them in (nothing else tells either of them)
 
   Ordinary Legendaries are not Broadcast, to avoid spam.
 
