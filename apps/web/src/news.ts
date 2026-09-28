@@ -45,8 +45,8 @@ export const NEWS: NewsEntry[] = [
         'По знакомым комнатам можно ходить без выносливости, если сегодня там не появилось ничего нового. Бесплатные двери помечены.',
       ),
       t(
-        'Lodging at the Tavern: a bed for the night fills Stamina and brings the short rests back, for gold. Each night costs more than the last.',
-        'Ночлег в таверне: кровать на ночь заполняет выносливость и возвращает короткие отдыхи за золото. Каждая ночь дороже предыдущей.',
+        'Lodging at the Tavern: once a day, a bed for the night fills Stamina and brings the short rests back, for gold. Each night costs more than the last.',
+        'Ночлег в таверне: раз в сутки кровать на ночь заполняет выносливость и возвращает короткие отдыхи за золото. Каждая ночь дороже предыдущей.',
       ),
       t(
         'Rankings in the Tavern: nine boards (deepest, level, richest, victories, finest Item, Graves, Vaults, deaths and the Dragon), each with its podium.',

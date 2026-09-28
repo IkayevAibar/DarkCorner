@@ -132,6 +132,8 @@ export const lodgingViewSchema = z.object({
   shortRests: z.object({ left: z.number().int(), of: z.number().int() }),
   /** A bed is only for a Hero in the City. */
   inCity: z.boolean(),
+  /** One night a day: when the next can be taken (midnight UTC), or null when it can now. */
+  availableAt: z.string().nullable(),
 });
 export type LodgingView = z.infer<typeof lodgingViewSchema>;
 

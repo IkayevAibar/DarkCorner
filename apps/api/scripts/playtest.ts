@@ -235,7 +235,7 @@ async function city(bot: Bot) {
   // Tired and rich: a bed at the Tavern, while it costs a third of the gold or less.
   if (RESTS) {
     const bed = (await call<LodgingView>(bot, 'GET', '/api/tavern/lodging')).body;
-    if (bed.stamina <= 5 && bed.gold >= bed.price * 3 && (await call(bot, 'POST', '/api/tavern/lodging')).ok) bot.stats.nights++;
+    if (bed.availableAt === null && bed.stamina <= 5 && bed.gold >= bed.price * 3 && (await call(bot, 'POST', '/api/tavern/lodging')).ok) bot.stats.nights++;
   }
 }
 

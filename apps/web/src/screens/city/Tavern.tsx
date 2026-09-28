@@ -10,7 +10,7 @@ import { describeError } from '../../errors';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';
-import { formatDuration, useNow } from '../../time';
+import { formatClock, formatDuration, useNow } from '../../time';
 import { Rankings } from './Rankings';
 
 /**
@@ -69,7 +69,7 @@ export function Tavern() {
 
 /** Lodging: a bed upstairs for City gold, for full Stamina and the short rests back; each night costs more. */
 function Lodging() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [data, setData] = useState<LodgingView | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [slept, setSlept] = useState(false);
@@ -78,6 +78,7 @@ function Lodging() {
   }, []);
   if (!data) return null;
   const rested = data.stamina >= data.staminaMax && data.shortRests.left >= data.shortRests.of;
+  const tomorrow = data.availableAt !== null;
   const short = data.gold < data.price;
   const sleep = async () => {
     setError(null);
@@ -96,11 +97,15 @@ function Lodging() {
         <span className="text-xs text-muted">{t('lodging.state', { s: data.stamina, max: data.staminaMax, l: data.shortRests.left, of: data.shortRests.of })}</span>
       </div>
       <p className="m-0 text-sm text-muted">{t('lodging.about')}</p>
-      <button type="button" className="btn btn-primary" disabled={!data.inCity || rested || short} onClick={() => void sleep()}>
+      <button type="button" className="btn btn-primary" disabled={!data.inCity || tomorrow || rested || short} onClick={() => void sleep()}>
         {t('lodging.take', { n: data.price.toLocaleString() })}
       </button>
       <span className="text-xs text-muted">
-        {!data.inCity ? t('lodging.inside') : rested ? t('lodging.rested') : short ? t('lodging.gold', { n: data.gold.toLocaleString() }) : t('lodging.rising')}
+        {!data.inCity ? t('lodging.inside')
+          : tomorrow ? t('lodging.tomorrow', { time: formatClock(locale, data.availableAt!) })
+          : rested ? t('lodging.rested')
+          : short ? t('lodging.gold', { n: data.gold.toLocaleString() })
+          : t('lodging.rising')}
       </span>
       {slept && <p className="m-0 text-sm text-tier-uncommon">{t('lodging.done')}</p>}
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}

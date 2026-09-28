@@ -468,20 +468,31 @@ describe('walking back and resting', () => {
     expect((await act('/api/labyrinth/enter', { floor: 1 })).view.hero.shortRests).toEqual({ left: 2, of: 2, backAt: null });
   });
 
-  it('sells a night at the Tavern for City gold, dearer each time', async () => {
+  it('sells one night a day at the Tavern for City gold, dearer each time', async () => {
     const lodging = (r: { json(): unknown }) => lodgingViewSchema.parse(r.json());
+    const DAY = 86_400_000;
     await prisma.hero.updateMany({ data: { gold: 1000, stamina: 2, staminaAt: new Date(), shortRests: 0 } });
-    expect(lodging(await get('/api/tavern/lodging'))).toMatchObject({ price: 50, nights: 0, stamina: 2, inCity: true });
-    expect(lodging(await post('/api/tavern/lodging'))).toMatchObject({ price: 80, nights: 1, gold: 950, stamina: 20, shortRests: { left: 2 } });
-    // Fully rested: nothing to pay for.
+    expect(lodging(await get('/api/tavern/lodging'))).toMatchObject({ price: 50, nights: 0, stamina: 2, inCity: true, availableAt: null });
+    const first = lodging(await post('/api/tavern/lodging'));
+    expect(first).toMatchObject({ price: 80, nights: 1, gold: 950, stamina: 20, shortRests: { left: 2 } });
+    // One night a day: the next from midnight UTC.
+    expect(first.availableAt).toBe(new Date((Math.floor(Date.now() / DAY) + 1) * DAY).toISOString());
+    await prisma.hero.updateMany({ data: { stamina: 0, staminaAt: new Date() } });
+    expect((await post('/api/tavern/lodging')).json().error).toBe('lodged_today');
+
+    // The next day: fully rested is nothing to pay for; tired, the night costs more.
+    await prisma.hero.updateMany({ data: { lodgedAt: new Date(Date.now() - DAY), stamina: 20, staminaAt: new Date() } });
     expect((await post('/api/tavern/lodging')).json().error).toBe('rested');
     await prisma.hero.updateMany({ data: { stamina: 0, staminaAt: new Date() } });
     expect(lodging(await post('/api/tavern/lodging'))).toMatchObject({ price: 110, nights: 2, gold: 870 });
+
     // Only in the City, and only with the gold.
+    await prisma.hero.updateMany({ data: { lodgedAt: null } });
     await act('/api/labyrinth/enter', { floor: 1 });
     expect((await post('/api/tavern/lodging')).json().error).toBe('not_in_city');
     await act('/api/labyrinth/leave');
     await prisma.hero.updateMany({ data: { gold: 10, stamina: 0, staminaAt: new Date() } });
     expect((await post('/api/tavern/lodging')).json().error).toBe('not_enough_gold');
   });
+
 });

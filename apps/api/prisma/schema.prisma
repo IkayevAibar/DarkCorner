@@ -139,6 +139,8 @@ model Hero {
   shortRestsAt DateTime?
   /// Nights taken at the Tavern this Season: each costs more than the last.
   tavernNights Int       @default(0)
+  /// When the Hero last took Lodging: one night a day, the day counted in UTC.
+  lodgedAt     DateTime?
 
   // Luck
   /// The Bad-luck meter: at 120 the next Item that drops is Legendary or better.

@@ -322,7 +322,7 @@ A post the game sends to the friends' Discord channel about a big moment.
 _Avoid_: announcement, notification
 
 **Lodging** (ночлег):
-A bed for the night at the Tavern, bought with City gold: full Stamina and the short rests back. Each night costs more than the one before.
+A bed for the night at the Tavern, bought with City gold: full Stamina and the short rests back. One night a day, and each costs more than the one before.
 _Avoid_: inn, sleep, rest (alone)
 
 **Rankings** (рейтинг):

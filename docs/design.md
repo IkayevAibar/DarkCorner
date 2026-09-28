@@ -291,7 +291,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 
 | Building | When | What it does |
 |---|---|---|
-| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, the Rankings, and your bounties. Lodging: a bed for the night, for City gold, fills Stamina and brings back the short rests. The first night costs 50 gold, and each night after costs half again as much as the one before, all Season *(v0)*. Later you can also find a Duo partner and play tavern games here. |
+| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, the Rankings, and your bounties. Lodging: a bed for the night, for City gold, fills Stamina and brings back the short rests, one night a day (the day turns at midnight UTC). The first night costs 50 gold, and each night after costs half again as much as the one before, all Season *(v0)*. Later you can also find a Duo partner and play tavern games here. |
 | Shops | Season 0 | Sell Common and Uncommon gear, potions, scrolls (Identify, Town Portal, Protection) and Keys. Buy any Item at its Buyback price. |
 | Forge | Season 0 | Upgrade, Reforge, Salvage, and craft Keys and scrolls from Materials. |
 | Market | Season 0 | Players list Items at their own price, and anyone can buy at any time. |
