@@ -276,6 +276,12 @@ export type FightEvent =
   | { type: 'tick'; target: string; damage: number; hp: number; status?: 'poisoned' }
   /** Paralyzed: the turn is lost. */
   | { type: 'held'; target: string }
+  /**
+   * A lasting effect wears off while the fight goes on: burning and poison after their
+   * last tick, paralysis after the lost turn, fear at the end of its last round.
+   * (Going down or falling ends them too, without this event.)
+   */
+  | { type: 'expire'; target: string; status: StatusId }
   /** A monster runs off, a thief with what it stole. */
   | { type: 'fled'; key: string }
   | { type: 'defeated'; key: string }
@@ -788,6 +794,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         markDefeated();
         if (mm.hp <= 0) return false;
       }
+      if (fire.turns === 0) events.push({ type: 'expire', target: key, status: 'burning' });
     }
     if (key === 'hero' && poisoned.turns > 0) {
       poisoned.turns--;
@@ -795,10 +802,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       const after = hurtHero(damage);
       events.push({ type: 'tick', target: 'hero', damage, hp: hero.hp, status: 'poisoned' }, ...after);
       if (hero.hp <= 0) return false;
+      if (poisoned.turns === 0) events.push({ type: 'expire', target: 'hero', status: 'poisoned' });
     }
     if (key === 'hero' && held > 0) {
       held--;
       events.push({ type: 'held', target: 'hero' });
+      if (held === 0) events.push({ type: 'expire', target: 'hero', status: 'paralyzed' });
       return false;
     }
     // Champion, Survivor: a little health back each turn while below half.
@@ -880,7 +889,10 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         if (outcome === null && alive().length === 0) outcome = 'victory';
       }
     }
-    if (frightened > 0) frightened--;
+    if (frightened > 0) {
+      frightened--;
+      if (frightened === 0 && outcome === null) events.push({ type: 'expire', target: 'hero', status: 'frightened' });
+    }
   }
   // A fight that runs out of rounds ends with the Hero pulling back, alive.
   outcome ??= 'survived';

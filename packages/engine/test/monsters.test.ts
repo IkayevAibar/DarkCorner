@@ -126,6 +126,41 @@ describe('monster powers', () => {
     expect(mends).toBeGreaterThan(0);
   });
 
+  it('says when each lasting effect wears off, while the fight goes on', () => {
+    const seen = { frightened: 0, burning: 0, poisoned: 0, paralyzed: 0 };
+    const sturdy = (cls: ClassId, level: number) => ({ ...hero(cls, level), hp: 999, maxHp: 999 });
+    const cases: [string, () => ReturnType<typeof fight>][] = [];
+    for (let i = 0; i < 150; i++) {
+      cases.push([`mummy-${i}`, () => fight(`mummy-${i}`, sturdy('wizard', 5), [mon('mummy', 5)])]);
+      cases.push([`imp-${i}`, () => fight(`imp-x-${i}`, sturdy('fighter', 7), [mon('imp', 7)])]);
+      cases.push([`spider-${i}`, () => fight(`spider-x-${i}`, sturdy('fighter', 1), [mon('giant-spider', 1)])]);
+      cases.push([`ghoul-${i}`, () => fight(`ghoul-x-${i}`, sturdy('wizard', 5), [mon('ghoul', 5)])]);
+    }
+    for (const [, run] of cases) {
+      const events = run().events;
+      events.forEach((e, at) => {
+        if (e.type === 'held') expect(events[at + 1]).toEqual({ type: 'expire', target: 'hero', status: 'paralyzed' });
+        if (e.type !== 'expire') return;
+        seen[e.status]++;
+        // Something set it first, and the fight is still on.
+        expect(events.slice(0, at).some((x) => x.type === 'status' && x.status === e.status && x.target === e.target)).toBe(true);
+        expect(events[at + 1]?.type).not.toBe('end');
+        // Burning and poison end right after their last tick.
+        if (e.status === 'burning' || e.status === 'poisoned') {
+          expect(events[at - 1]).toMatchObject({ type: 'tick', target: e.target });
+          expect(events.slice(at + 1).some((x) => x.type === 'tick' && x.target === e.target && (x.status ?? 'burning') === e.status
+            && !events.slice(at + 1, events.indexOf(x)).some((y) => y.type === 'status' && y.status === e.status))).toBe(false);
+        }
+      });
+      // Never more expiries than effects set.
+      for (const status of ['frightened', 'burning', 'poisoned', 'paralyzed'] as const) {
+        const set = events.filter((x) => x.type === 'status' && x.status === status).length;
+        expect(events.filter((x) => x.type === 'expire' && x.status === status).length).toBeLessThanOrEqual(set);
+      }
+    }
+    for (const count of Object.values(seen)) expect(count).toBeGreaterThan(0);
+  });
+
   it('sets the Hero burning on an imp’s hit, and the fire bites each turn', () => {
     let ticks = 0;
     for (let i = 0; i < 100; i++) {

@@ -401,6 +401,7 @@ function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: 
     case 'status': return t(`fight.status.${e.status}`, { name: n(e.target) });
     case 'tick': return t(e.status === 'poisoned' ? 'fight.tickPoison' : 'fight.tick', { name: n(e.target), n: e.damage });
     case 'held': return t('fight.held', { name: n(e.target) });
+    case 'expire': return t(`fight.expire.${e.status}`, { name: n(e.target) });
     case 'feature':
       if (e.feature === 'survivor') return t('fight.feature.survivor', { name: n('hero'), n: e.amount ?? 0 });
       if (e.feature === 'indomitable') return t('fight.feature.indomitable', { name: n('hero') });
