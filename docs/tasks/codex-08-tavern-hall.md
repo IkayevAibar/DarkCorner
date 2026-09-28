@@ -15,17 +15,19 @@ The Tavern is where Players see each other ([design.md → Feed and broadcasts](
 - `online`: Players seen in the last 10 minutes, their Hero and where it is.
 - `entries`: the Feed, newest first. Each line comes ready in both languages (`text`) with a `tier` when it is about an Item (color it with `--color-tier-*`). `kind` says what happened: `drop`, `chest`, `identify`, `relic`, `upgrade10`, `market-sale`, `death`, `depth`, `vault`, `vault-announced`, `boss-attempt`, `boss-kill`, `gate-open`, `weaken`.
 - `HallView.entries`: per Season, `champion`, `second`, `third`, `relic`, `deepest`, `highest-level`, with the Player and Hero names and a `detail` line.
+- `GET /api/tavern/rankings` → `RankingsView`: one board per `RANKINGS` kind (see [design.md → Rankings](../design.md#rankings)). Each has its top ten `rows` and `me`, the Player's own row when it is lower. A row has `rank` (ties share it), the Player, the Hero with `portraitUrl` and `banner`, the `value`, the `item` on the finest board, and `me`.
 
 Refresh the Tavern every 20–30 seconds while it is on screen (no websockets in Season 0).
 
 ## Look
 
 - The Tavern: warm light in the ink style, the Season card like a notice nailed to a post (countdown to the gate or the Wipe), faces of who's here as small tokens, and the Feed as a scrolling board. Relic and Mythic lines stand out; deaths are grim.
+- The Rankings: a podium per board, the winner tallest in the middle. Claude's stand-in shows the layout.
 - The Hall of Fame: one carved panel per Season, the Champion's name largest, Relic finders with the Relic's name in its gold.
 
 ## Where
 
-- Claude's stand-in: `apps/web/src/screens/city/Tavern.tsx` (Tavern and Hall of Fame tabs). Replace it in place or split the Hall of Fame into its own route (`/city/hall`) and link it from the Tavern.
+- Claude's stand-in: `apps/web/src/screens/city/Tavern.tsx` (Feed, Rankings and Hall of Fame tabs), with the Rankings in `Rankings.tsx`. Replace it in place or split the Hall of Fame into its own route (`/city/hall`) and link it from the Tavern.
 - Fixtures on `/sandbox`: a quiet Tavern, a busy one mid-Season, one in the Finale, and a Hall of Fame with two Seasons.
 - Text via `t()`, in both `en.ts` and `ru.ts`; reuse the `tavern.*`, `season.*` and `hall.*` keys.
 

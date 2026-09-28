@@ -10,15 +10,16 @@ import { describeError } from '../../errors';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { formatDuration, useNow } from '../../time';
+import { Rankings } from './Rankings';
 
 /**
- * The Tavern: the Season, the Feed, who's online, and the Hall of Fame.
+ * The Tavern: the Season, the Feed, who's online, the Rankings, and the Hall of Fame.
  * Stand-in until Codex's Tavern lands (docs/tasks/codex-08-tavern-hall.md).
  */
 export function Tavern() {
   const { t } = useI18n();
   const text = useText();
-  const [tab, setTab] = useState<'feed' | 'hall'>('feed');
+  const [tab, setTab] = useState<'feed' | 'rankings' | 'hall'>('feed');
   const tavern = useLoad(api.tavern);
   const hall = useLoad(api.hall);
   useRefresh(tavern.reload, 25_000);
@@ -30,8 +31,9 @@ export function Tavern() {
       <SeasonCard season={season} />
       <Bounties />
 
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5">
         <button type="button" className={`btn btn-small ${tab === 'feed' ? 'btn-primary' : ''}`} onClick={() => setTab('feed')}>{t('tavern.feed')}</button>
+        <button type="button" className={`btn btn-small ${tab === 'rankings' ? 'btn-primary' : ''}`} onClick={() => setTab('rankings')}>{t('tavern.rankings')}</button>
         <button type="button" className={`btn btn-small ${tab === 'hall' ? 'btn-primary' : ''}`} onClick={() => setTab('hall')}>{t('tavern.hall')}</button>
       </div>
 
@@ -57,6 +59,7 @@ export function Tavern() {
         </>
       )}
 
+      {tab === 'rankings' && <Rankings />}
       {tab === 'hall' && <Hall entries={hall.data?.entries ?? null} />}
     </Building>
   );

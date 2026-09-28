@@ -588,6 +588,24 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 
   Ordinary Legendaries are not Broadcast, to avoid spam.
 
+### Rankings
+
+The Tavern's Rankings show the current Season's records, one board each, with a podium for the first three, the rest of the top ten under it, and the Player's own place when it is lower. Equal values share a place.
+
+| Board | What it counts |
+| --- | --- |
+| Deepest | The deepest Floor a Hero has reached. A Player's best Hero counts, retired or not. |
+| Level | A Hero's level. XP orders a tie within its place. |
+| Richest | Gold in the City plus gold carried, for the Hero played now. |
+| Victories | Fights won this Season, by all of a Player's Heroes. |
+| Finest Item | The best identified Item a Hero has, worn, in the Bag or in Storage: Tier first, then Upgrade, then item level. |
+| Graves | Other Heroes' Graves looted. |
+| Vaults | Vaults emptied. |
+| Deaths | Deaths. Glory of a kind. |
+| The Dragon | The Boss podium: the Champion, then second and third from the Finale. |
+
+A board leaves out anyone with nothing to show on it yet. The Rankings end with the Wipe; the Hall of Fame keeps the records that last.
+
 ### PvP encounters (from Season 1)
 
 - **Attacking:** when two Heroes are in the same Room outside a Camp, either one can attack.

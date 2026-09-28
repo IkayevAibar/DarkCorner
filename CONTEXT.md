@@ -317,6 +317,10 @@ _Avoid_: chat, log, news
 A post the game sends to the friends' Discord channel about a big moment.
 _Avoid_: announcement, notification
 
+**Rankings** (рейтинг):
+The Tavern's boards of the current Season's records, one per record (deepest Floor, level, gold, fights won, finest Item, Graves looted, Vaults emptied, deaths, the Dragon), each with a podium. Unlike the Hall of Fame, they end with the Wipe.
+_Avoid_: tops, leaderboard, scores
+
 **Duo**:
 Two Heroes doing the same Run together.
 _Avoid_: party, group

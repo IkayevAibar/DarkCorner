@@ -1,6 +1,6 @@
 import type {
   AdminGrant, AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, AdminSeasonView, ApiErrorBody, AuthStatus, BlessingIdView, BountiesView,
-  CreateHeroRequest, GrowRequest, HallView, LevelUpRequest, LevelUpResponse, PathIdView, RollLogView, TavernView,
+  CreateHeroRequest, GrowRequest, HallView, RankingsView, LevelUpRequest, LevelUpResponse, PathIdView, RollLogView, TavernView,
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
@@ -93,6 +93,7 @@ export const api = {
   bounties: () => request<BountiesView>('GET', '/api/tavern/bounties'),
   swapBounty: (id: string) => request<BountiesView>('POST', `/api/tavern/bounties/${encodeURIComponent(id)}/swap`),
   hall: () => request<HallView>('GET', '/api/hall'),
+  rankings: () => request<RankingsView>('GET', '/api/tavern/rankings'),
   adminSeason: () => request<AdminSeasonView>('GET', '/api/admin/season'),
   adminSeasonAction: (action: 'start' | 'end' | 'gate' | 'vault' | 'discard', minutes?: number) =>
     request<AdminSeasonView>('POST', '/api/admin/season', { action, minutes }),

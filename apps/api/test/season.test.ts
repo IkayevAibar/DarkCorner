@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DAY_MS, RELICS, doorsOf, generateLabyrinth, omenFor } from '@dark/engine';
-import { labyrinthResultSchema } from '@dark/shared';
+import { labyrinthResultSchema, rankingsViewSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
 import { emptyOutcome } from '../src/services/fights.js';
@@ -338,5 +338,46 @@ describe('late joiners and admin tools', () => {
     // Each weakening queued a Broadcast, due on the next pass; then nothing is left.
     expect(await runDueJobs()).toBe(4);
     expect(await runDueJobs()).toBe(0);
+  });
+});
+
+describe('the Tavern’s Rankings', () => {
+  it('ranks the Season’s records, ties sharing a place, and leaves out what nobody has done', async () => {
+    await post(admin, '/api/admin/season', { action: 'start' });
+    const { cookie: bea, hero: b } = await makeHero('Bea');
+    const { hero: c } = await makeHero('Cid');
+    const a = await prisma.hero.findFirstOrThrow({ where: { name: 'Admira' } });
+    await prisma.hero.update({ where: { id: a.id }, data: { bestFloor: 3, level: 4, xp: 2700, gold: 500, carriedGold: 0 } });
+    await prisma.hero.update({ where: { id: b.id }, data: { bestFloor: 5, level: 4, xp: 2800, gold: 120, carriedGold: 30 } });
+    await prisma.hero.update({ where: { id: c.id }, data: { bestFloor: 5, level: 2, xp: 400, gold: 0, carriedGold: 0 } });
+    const season = await prisma.season.findFirstOrThrow();
+    await prisma.feedEvent.createMany({
+      data: [
+        { seasonId: season.id, playerId: c.playerId, kind: 'death', data: {} },
+        { seasonId: season.id, playerId: c.playerId, kind: 'death', data: {} },
+        { seasonId: season.id, playerId: b.playerId, kind: 'grave-looted', data: {} },
+      ],
+    });
+    await prisma.rollLog.createMany({
+      data: [
+        { playerId: a.playerId, kind: 'fight', seed: 'a', detail: { outcome: 'victory' } },
+        { playerId: a.playerId, kind: 'fight', seed: 'b', detail: { outcome: 'fled' } },
+      ],
+    });
+    await prisma.item.create({ data: { seasonId: season.id, heroId: b.id, place: 'BAG', base: 'longsword', tier: 'legendary' } });
+
+    const view = rankingsViewSchema.parse((await get(bea, '/api/tavern/rankings')).json());
+    const board = (kind: string) => view.boards.find((x) => x.kind === kind)!;
+    // Bea and Cid share the deepest Floor; Bea's XP puts it first in the row.
+    expect(board('deepest').rows.map((r) => [r.rank, r.hero, r.value])).toEqual([[1, 'Bea', 5], [1, 'Cid', 5], [3, 'Admira', 3]]);
+    expect(board('level').rows.map((r) => [r.rank, r.hero, r.me])).toEqual([[1, 'Bea', true], [1, 'Admira', false], [3, 'Cid', false]]);
+    // Gold in the City and gold carried both count; nothing at all is no record.
+    expect(board('richest').rows.map((r) => [r.hero, r.value])).toEqual([['Admira', 500], ['Bea', 150]]);
+    expect(board('victories').rows.map((r) => [r.hero, r.value])).toEqual([['Admira', 1]]);
+    expect(board('finest').rows[0]).toMatchObject({ hero: 'Bea', item: { tier: 'legendary', name: { en: 'Longsword' } } });
+    expect(board('graves').rows.map((r) => r.hero)).toEqual(['Bea']);
+    expect(board('deaths').rows.map((r) => [r.hero, r.value])).toEqual([['Cid', 2]]);
+    expect(board('vaults').rows).toEqual([]);
+    expect(board('dragon').rows).toEqual([]);
   });
 });

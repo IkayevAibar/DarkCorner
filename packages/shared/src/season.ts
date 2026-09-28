@@ -117,6 +117,38 @@ export type HallEntry = z.infer<typeof hallEntrySchema>;
 export const hallViewSchema = z.object({ entries: z.array(hallEntrySchema) });
 export type HallView = z.infer<typeof hallViewSchema>;
 
+/** The Tavern's Rankings: one board per record, each with its own podium (docs/design.md → Rankings). */
+export const RANKINGS = ['deepest', 'level', 'richest', 'victories', 'finest', 'graves', 'vaults', 'deaths', 'dragon'] as const;
+export type RankingKind = (typeof RANKINGS)[number];
+
+export const rankingRowSchema = z.object({
+  /** Tied values share a rank. */
+  rank: z.number().int(),
+  player: z.string(),
+  hero: z.string(),
+  portraitUrl: z.string().nullable(),
+  banner: z.string().nullable(),
+  /** What the board counts: a Floor, a level, gold, a count, or a place on the Dragon's podium. */
+  value: z.number().int(),
+  /** The finest board's Item, named in both languages. */
+  item: z.object({ name: localizedTextSchema, tier: tierSchema }).nullable(),
+  me: z.boolean(),
+});
+export type RankingRow = z.infer<typeof rankingRowSchema>;
+
+export const rankingSchema = z.object({
+  kind: z.enum(RANKINGS),
+  /** The top ten. */
+  rows: z.array(rankingRowSchema),
+  /** The Player's own row when it is below the top ten. */
+  me: rankingRowSchema.nullable(),
+});
+export type Ranking = z.infer<typeof rankingSchema>;
+
+/** GET /api/tavern/rankings */
+export const rankingsViewSchema = z.object({ boards: z.array(rankingSchema) });
+export type RankingsView = z.infer<typeof rankingsViewSchema>;
+
 // ─── Admin ────────────────────────────────────────────────────────────────
 
 export const adminJobSchema = z.object({
