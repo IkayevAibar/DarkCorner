@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ABILITY_IDS, type ClassId, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
 import { api } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { LevelUp } from './LevelUp';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
@@ -72,13 +73,28 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
           <div className="grid min-w-0 flex-1 gap-1">
             <h1 className="m-0 truncate font-head text-[26px] leading-tight font-extrabold">{hero.name}</h1>
             <span className="text-sm">{text(race.name)} · {text(cls.name)}</span>
-            <span className="text-sm text-muted">{t('hero.level', { n: hero.level })}</span>
+            <span className="text-sm text-muted">
+              {t('hero.level', { n: hero.level })}
+              {hero.xpNext !== null && ` · ${t('hero.xp', { xp: hero.xp, next: hero.xpNext })}`}
+            </span>
             <span className="flex flex-wrap gap-1.5">
               <span className="chip w-fit text-[#f1c75b]">{t('hero.gold', { n: hero.gold.toLocaleString() })}</span>
               <span className="chip w-fit">{t('hero.armorClass', { n: hero.armorClass })}</span>
             </span>
           </div>
         </div>
+        {hero.levelUp && (
+          <button
+            type="button"
+            className="btn btn-primary shadow-[0_0_18px_rgb(224_184_106/0.45)]"
+            onClick={() => openSheet({
+              title: t('levelUp.sheet'),
+              body: <LevelUp hero={hero} onChanged={onChanged} onClose={closeSheet} />,
+            })}
+          >
+            ✦ {t('levelUp.button', { n: hero.levelUp.level })}
+          </button>
+        )}
         <div className="grid gap-2">
           <Meter label={t('hero.health')} value={hero.hp} max={hero.maxHp} kind="health" />
           <Meter label={t('hero.stamina')} value={hero.stamina} max={hero.staminaMax} kind="stamina" />

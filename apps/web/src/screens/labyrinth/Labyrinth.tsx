@@ -169,6 +169,9 @@ function HeroStatus({ view }: { view: LabyrinthView }) {
       <div className="flex flex-wrap gap-1.5">
         <span className="chip">{t('hero.level', { n: hero.level })}</span>
         <span className="chip">{hero.xpNext === null ? t('lab.xpMax', { n: hero.xp }) : t('lab.xp', { n: hero.xp, m: hero.xpNext })}</span>
+        {hero.xpNext !== null && hero.xp >= hero.xpNext && (
+          <NavLink to="/heroes" className="chip border-gold text-gold no-underline">{t('lab.levelUp')}</NavLink>
+        )}
         {hero.carriedGold > 0 && <span className="chip text-[#f1c75b]">{t('lab.carried', { n: hero.carriedGold })}</span>}
         <span className="chip">{t('lab.potions', { n: hero.potions })}</span>
         {hero.spells > 0 && <span className="chip">{t('lab.spells', { n: hero.spells })}</span>}
@@ -588,7 +591,6 @@ function Graves({ view, busy, act }: { view: LabyrinthView; busy: boolean; act: 
 }
 
 /** Levels where a Hero has something to choose: its Path, then growth. */
-const GROWS_AT = [3, 4, 8, 12, 16, 19];
 
 /** What the last action brought: the fight's outcome, XP, gold, loot and anything to know. */
 function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => void }) {
@@ -624,9 +626,8 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
       </div>
       {(result.xp > 0 || result.gold > 0 || result.levelUp !== null) && (
         <div className="flex flex-wrap gap-1.5">
-          {result.levelUp !== null && <span className="chip border-gold text-gold">{t('report.levelUp', { n: result.levelUp })}</span>}
-          {result.levelUp !== null && GROWS_AT.includes(result.levelUp) && (
-            <NavLink to="/heroes" className="chip border-gold text-gold no-underline">{t('report.grow')}</NavLink>
+          {result.levelUp !== null && (
+            <NavLink to="/heroes" className="chip border-gold text-gold no-underline">{t('report.levelUp', { n: result.levelUp })}</NavLink>
           )}
           {result.xp > 0 && <span className="chip">{t('report.xp', { n: result.xp })}</span>}
           {result.gold > 0 && <span className="chip text-[#f1c75b]">{t('report.gold', { n: result.gold })}</span>}

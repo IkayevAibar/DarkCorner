@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { talentOffer } from '@dark/engine';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
+import { gainXp } from '../src/services/progression.js';
 import { devLogin, resetDatabase } from './helpers.js';
 
 let app: FastifyInstance;
@@ -189,6 +190,53 @@ describe('growing a Hero', () => {
     const after = response.json().hero;
     expect(after.maxHp).toBe(hero.maxHp + 8);
     expect(after.talents).toEqual(['alert', 'tough']);
+  });
+
+  it('says when XP makes a level ready, once, and never levels on its own', () => {
+    expect(gainXp({ xp: 90, level: 1 }, 20)).toEqual({ data: { xp: 110 }, newLevel: 2 });
+    expect(gainXp({ xp: 110, level: 1 }, 20)).toEqual({ data: { xp: 130 }, newLevel: null });
+    expect(gainXp({ xp: 250, level: 1 }, 100)).toEqual({ data: { xp: 350 }, newLevel: 3 });
+  });
+
+  it('levels up by hand: the Heroes tab shows what the level gives, and the Player takes it', async () => {
+    const hero = await makeGarrick();
+    expect((await post('/api/heroes/level-up')).json().error).toBe('not_ready');
+
+    await prisma.hero.updateMany({ data: { xp: 100 } });
+    let me = (await get('/api/heroes/me')).json().hero;
+    expect(me).toMatchObject({ level: 1, xpNext: 100, levelUp: { level: 2, choice: null, paths: null, talents: null } });
+    expect(me.levelUp.gains[0].en).toMatch(/^Health: \+\d+ to \+\d+$/);
+
+    const up = (await post('/api/heroes/level-up')).json();
+    expect(up.hero).toMatchObject({ level: 2, levelUp: null, xpNext: 300 });
+    expect(up.health.die).toBe(10);
+    expect(up.hero.maxHp).toBe(hero.maxHp + up.health.gain);
+    expect(await prisma.rollLog.count({ where: { kind: 'level-up' } })).toBe(1);
+
+    // Level 3 asks for a Path and won't be taken without one; a wrong one changes nothing.
+    await prisma.hero.updateMany({ data: { xp: 300 } });
+    me = (await get('/api/heroes/me')).json().hero;
+    expect(me.levelUp).toMatchObject({ level: 3, choice: 'path' });
+    expect(me.levelUp.paths.map((p: { id: string }) => p.id)).toEqual(['champion', 'guardian']);
+    expect((await post('/api/heroes/level-up')).json().error).toBe('choose_path');
+    expect((await post('/api/heroes/level-up', { path: 'assassin' })).json().error).toBe('wrong_class');
+    expect((await get('/api/heroes/me')).json().hero.level).toBe(2);
+    const three = (await post('/api/heroes/level-up', { path: 'champion' })).json().hero;
+    expect(three).toMatchObject({ level: 3, path: { id: 'champion' }, pathChoices: null, levelUp: null });
+  });
+
+  it('asks for abilities or a Talent with the level that grants them', async () => {
+    const hero = await makeGarrick();
+    await prisma.hero.updateMany({ data: { level: 3, path: 'champion', xp: 700 } });
+    const me = (await get('/api/heroes/me')).json().hero;
+    expect(me.levelUp).toMatchObject({ level: 4, choice: 'growth' });
+    expect(me.levelUp.talents).toHaveLength(3);
+    expect((await post('/api/heroes/level-up')).json().error).toBe('choose_growth');
+
+    const lowest = Object.entries(hero.abilities as Record<string, number>).sort((a, b) => a[1] - b[1])[0]![0];
+    const four = (await post('/api/heroes/level-up', { grow: { kind: 'ability', ability: lowest } })).json().hero;
+    expect(four).toMatchObject({ level: 4, pendingGrowth: [], levelUp: null });
+    expect(four.abilities[lowest]).toBe(hero.abilities[lowest] + 2);
   });
 
   it('fills health to what the gear allows', async () => {

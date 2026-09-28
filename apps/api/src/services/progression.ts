@@ -1,7 +1,7 @@
 import type { Hero, Prisma, Season } from '@prisma/client';
 import {
-  type Ability, CLASS_DEFS, type ClassId, MAX_LEVEL, type PathId, RACE_DEFS, type RaceId, type Rng, abilityModifier, lateJoinerBoost,
-  levelForXp, medianLevel, restUses, rollDie,
+  type ClassId, MAX_LEVEL, type PathId, type RaceId, type Rng, type TalentId, lateJoinerBoost, levelForXp, medianLevel, restUses,
+  rollLevelHealth,
 } from '@dark/engine';
 
 /**
@@ -17,44 +17,47 @@ export async function boostedXp(tx: Prisma.TransactionClient, hero: Hero, season
   return Math.round(gained * (1 + boost));
 }
 
-export interface LevelUp {
-  data: Partial<Pick<Hero, 'xp' | 'level' | 'maxHp' | 'hp' | 'spellUses' | 'healUses' | Ability>>;
+export interface XpGain {
+  data: Pick<Hero, 'xp'>;
+  /** The level this XP made ready for the first time, or null. */
   newLevel: number | null;
 }
 
 /**
- * Adds XP and applies every level gained: health rolls on the hit die (never
- * below its average), and rest uses grow with the level. The Player chooses
- * what else grows (a Path at 3, abilities or a Talent at 4, 8, 12, 16 and 19).
+ * Adds XP. Levels wait for the Player, who takes each one on the level-up
+ * screen and sees what it gives (docs/design.md → Levels): the report only says
+ * that a new one is ready.
  */
-export function gainXp(rng: Rng, hero: Hero, gained: number): LevelUp {
+export function gainXp(hero: Pick<Hero, 'xp' | 'level'>, gained: number): XpGain {
   const xp = hero.xp + gained;
-  const target = Math.min(MAX_LEVEL, levelForXp(xp));
-  if (target <= hero.level) return { data: { xp }, newLevel: null };
+  const ready = Math.min(MAX_LEVEL, levelForXp(xp));
+  const before = Math.max(hero.level, Math.min(MAX_LEVEL, levelForXp(hero.xp)));
+  return { data: { xp }, newLevel: ready > before ? ready : null };
+}
 
-  const cls = CLASS_DEFS[hero.class as ClassId];
-  const race = RACE_DEFS[hero.race as RaceId];
-  const tough = hero.talents.includes('tough') ? 2 : 0;
-  let maxHp = hero.maxHp;
-  let hp = hero.hp;
-  for (let level = hero.level + 1; level <= target; level++) {
-    const average = cls.hitDie / 2 + 1;
-    const gain = Math.max(1, Math.max(average, rollDie(rng, cls.hitDie)) + abilityModifier(hero.con) + race.hpPerLevel + tough);
-    maxHp += gain;
-    hp += gain;
-  }
+/** Whether the Hero has the XP for its next level. */
+export const levelReady = (hero: Pick<Hero, 'xp' | 'level'>): boolean => hero.level < MAX_LEVEL && levelForXp(hero.xp) > hero.level;
+
+/**
+ * One level up: health rolls on the Hit Die (never below its average), and rest
+ * uses grow with the level. The level's choice (a Path, or abilities or a
+ * Talent) is applied by the caller in the same transaction.
+ */
+export function raiseLevel(rng: Rng, hero: Hero): { data: Prisma.HeroUpdateInput; health: { roll: number; gain: number } } {
+  const cls = hero.class as ClassId;
   const path = hero.path as PathId | null;
-  const before = restUses(hero.class as ClassId, hero.level, path);
-  const after = restUses(hero.class as ClassId, target, path);
+  const level = hero.level + 1;
+  const health = rollLevelHealth(rng, { class: cls, race: hero.race as RaceId, con: hero.con, talents: hero.talents as TalentId[] });
+  const before = restUses(cls, hero.level, path);
+  const after = restUses(cls, level, path);
   return {
     data: {
-      xp,
-      level: target,
-      maxHp,
-      hp,
-      spellUses: hero.spellUses + (after.spells - before.spells),
-      healUses: hero.healUses + (after.heals - before.heals),
+      level,
+      maxHp: { increment: health.gain },
+      hp: { increment: health.gain },
+      spellUses: { increment: after.spells - before.spells },
+      healUses: { increment: after.heals - before.heals },
     },
-    newLevel: target,
+    health,
   };
 }

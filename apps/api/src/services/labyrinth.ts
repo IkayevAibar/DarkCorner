@@ -649,7 +649,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
     }
     // A Floor never reached before is worth XP.
     const firstXp = next.number > hero.bestFloor ? await boostedXp(tx, hero, season, NEW_FLOOR_XP * next.number) : 0;
-    const levelUp = firstXp > 0 ? gainXp(createRng(newSeed()), hero, firstXp) : null;
+    const levelUp = firstXp > 0 ? gainXp(hero, firstXp) : null;
     if (levelUp) {
       outcome.xp = firstXp;
       outcome.levelUp = levelUp.newLevel;

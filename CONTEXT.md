@@ -26,6 +26,10 @@ _Avoid_: job, profession, role
 The six D&D scores (STR, DEX, CON, INT, WIS, CHA), rolled when a Hero is created.
 _Avoid_: attributes, stats
 
+**Level up**:
+Taking the next level by hand, once the Hero has the XP for it, on a page that shows what the level gives and asks for its choice.
+_Avoid_: ding, auto-level
+
 **Talent**:
 A small passive perk. Every Hero picks an origin Talent when it is created, and may learn more as it grows.
 _Avoid_: feat, perk, skill

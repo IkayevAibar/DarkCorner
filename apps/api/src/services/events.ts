@@ -418,7 +418,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       await logRoll(tx, hero, rollSeed, { event: kind, xp: tome.xp, curse: tome.curse });
       if (tome.xp > 0) {
         const xp = await boostedXp(tx, hero, season, tome.xp);
-        const levelUp = gainXp(rng, hero, xp);
+        const levelUp = gainXp(hero, xp);
         await tx.hero.update({ where: { id: hero.id }, data: levelUp.data });
         Object.assign(hero, levelUp.data);
         out.xp += xp;
@@ -447,7 +447,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         return;
       }
       const xp = await boostedXp(tx, hero, season, STATUE_XP * floor.number);
-      const levelUp = gainXp(createRng(`${seed}:xp`), hero, xp);
+      const levelUp = gainXp(hero, xp);
       await tx.hero.update({ where: { id: hero.id }, data: levelUp.data });
       Object.assign(hero, levelUp.data);
       out.xp += xp;

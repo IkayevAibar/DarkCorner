@@ -13,7 +13,7 @@
  * equip, sell, restock and grow.
  */
 import { execSync } from 'node:child_process';
-import type { ClassId, ForgeQuote, HeroDraft, LabyrinthResult, LabyrinthView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
+import type { ClassId, ForgeQuote, HeroDraft, HeroView, LabyrinthResult, LabyrinthView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
 import { TEST_DATABASE_URL } from '../test/test-db.js';
 
 // ─── A fake clock, installed before the app loads ─────────────────────────
@@ -137,6 +137,19 @@ async function act(bot: Bot, url: string, payload?: object, before: LabyrinthVie
 
 async function grow(bot: Bot) {
   let hero = await me(bot);
+  // Levels wait for the Player: take every one that's ready, with its choice.
+  for (let guard = 0; guard < 20 && hero.levelUp; guard++) {
+    const offer = hero.levelUp;
+    const primary = CLASS_DEFS[bot.cls].primary;
+    const body = offer.choice === 'path'
+      ? { path: offer.paths![Math.floor(Math.random() * offer.paths!.length)]!.id }
+      : offer.choice === 'growth'
+        ? { grow: hero.abilities[primary] <= 18 && Math.random() < 0.6 ? { kind: 'ability', ability: primary } : { kind: 'talent', talent: offer.talents![0]!.id } }
+        : {};
+    const r = await call<{ hero: HeroView }>(bot, 'POST', '/api/heroes/level-up', body);
+    if (!r.ok) break;
+    hero = r.body.hero;
+  }
   if (hero.pathChoices) {
     const pick = hero.pathChoices[Math.floor(Math.random() * hero.pathChoices.length)]!;
     await call(bot, 'POST', '/api/heroes/path', { path: pick.id });

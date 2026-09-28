@@ -1,6 +1,7 @@
 import type { Hero, Item, Player, Prisma } from '@prisma/client';
 import type {
-  AbilitySetView, CreateHeroRequest, CreationOptions, GrowRequest, HeroDraft, HeroView, MyHeroResponse, PathView, SlotId,
+  AbilitySetView, CreateHeroRequest, CreationOptions, GrowRequest, HeroDraft, HeroView, LevelUpRequest, LevelUpResponse, LevelUpView, MyHeroResponse,
+  PathView, SlotId,
 } from '@dark/shared';
 import {
   ABILITY_REROLLS, type AbilitySet, BAD_LUCK_MAX, BAG_SLOTS, BANNER_COLORS, BLESSINGS, type BlessingId, CLASS_DEFS, CLASSES,
@@ -8,13 +9,14 @@ import {
   RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
   type ClassId, type Growth, type GrowthChoice, ORIGIN_TALENTS, PATH_DEFS, PATH_LEVEL, type PathId, type TalentId, createRng, currentStamina, maxHealth,
   pathsOf, pendingGrowth, portraitById, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth, talentArmor, talentOffer,
-  validateGrowth, validateHeroChoices,
+  validateGrowth, validateHeroChoices, MAX_LEVEL, XP_FOR_LEVEL, type RaceId, levelChoice, levelGains,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { gearData, toItemView } from './items.js';
-import { lockHero, requireCity } from './ledger.js';
+import { type Tx, lockHero, requireCity } from './ledger.js';
+import { levelReady, raiseLevel } from './progression.js';
 import { currentSeason } from './seasons.js';
 
 type HeroWithItems = Hero & { items: Item[] };
@@ -125,13 +127,34 @@ function pathView(id: PathId, level: number): PathView {
 }
 
 /** The Path, and the choices a Hero has waiting as it grows. */
-function growthView(hero: Hero): Pick<HeroView, 'path' | 'pathChoices' | 'pendingGrowth' | 'talentOffer'> {
+function growthView(hero: Hero): Pick<HeroView, 'path' | 'pathChoices' | 'pendingGrowth' | 'talentOffer' | 'xpNext' | 'levelUp'> {
   const pending = pendingGrowth(hero.level, hero.growths as unknown as Growth[]);
   return {
     path: hero.path ? pathView(hero.path as PathId, hero.level) : null,
     pathChoices: !hero.path && hero.level >= PATH_LEVEL ? pathsOf(hero.class as ClassId).map((p) => pathView(p.id, hero.level)) : null,
     pendingGrowth: pending,
     talentOffer: pending.length > 0 ? talentOffer(hero.id, pending[0]!, hero.talents as TalentId[]).map(talentView) : null,
+    xpNext: hero.level < MAX_LEVEL ? XP_FOR_LEVEL[hero.level + 1]! : null,
+    levelUp: levelUpView(hero),
+  };
+}
+
+const leveling = (hero: Hero) => ({
+  class: hero.class as ClassId, race: hero.race as RaceId, path: hero.path as PathId | null, level: hero.level, con: hero.con,
+  talents: hero.talents as TalentId[],
+});
+
+/** The next level while its XP is there: what it gives, and its choice with what is on offer. */
+function levelUpView(hero: Hero): LevelUpView | null {
+  if (!levelReady(hero)) return null;
+  const level = hero.level + 1;
+  const choice = levelChoice(leveling(hero));
+  return {
+    level,
+    gains: levelGains(leveling(hero)),
+    choice,
+    paths: choice === 'path' ? pathsOf(hero.class as ClassId).map((p) => pathView(p.id, level)) : null,
+    talents: choice === 'growth' ? talentOffer(hero.id, level, hero.talents as TalentId[]).map(talentView) : null,
   };
 }
 
@@ -305,17 +328,11 @@ export async function giveStarterKit(tx: Prisma.TransactionClient, hero: Hero, s
 }
 
 /** At level 3 and up, once: the Hero chooses one of its Class's two Paths. */
-export async function choosePath(player: Player, path: PathId): Promise<HeroView> {
-  const season = await currentSeason();
-  const heroId = await prisma.$transaction(async (tx) => {
-    const hero = await lockHero(tx, player, season.id);
-    if (hero.path) throw ApiError.conflict('path_chosen', 'This Hero has already chosen its Path');
-    if (hero.level < PATH_LEVEL) throw ApiError.conflict('too_early', 'A Path is chosen at level 3');
-    if (PATH_DEFS[path].class !== hero.class) throw ApiError.badRequest('wrong_class', 'That Path is for another Class');
-    await tx.hero.update({ where: { id: hero.id }, data: { path } });
-    return hero.id;
-  });
-  return toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }));
+async function applyPath(tx: Tx, hero: Hero, path: PathId): Promise<void> {
+  if (hero.path) throw ApiError.conflict('path_chosen', 'This Hero has already chosen its Path');
+  if (hero.level < PATH_LEVEL) throw ApiError.conflict('too_early', 'A Path is chosen at level 3');
+  if (PATH_DEFS[path].class !== hero.class) throw ApiError.badRequest('wrong_class', 'That Path is for another Class');
+  await tx.hero.update({ where: { id: hero.id }, data: { path } });
 }
 
 /**
@@ -323,31 +340,76 @@ export async function choosePath(player: Player, path: PathId): Promise<HeroView
  * two, or one of the three Talents offered to it. Tough counts for every level
  * already gained.
  */
+async function applyGrowth(tx: Tx, hero: Hero, request: GrowRequest): Promise<void> {
+  const growths = hero.growths as unknown as Growth[];
+  if (!pendingGrowth(hero.level, growths).includes(request.level)) throw ApiError.conflict('no_growth', 'Nothing to choose at that level');
+  const choice = request.choice as GrowthChoice;
+  const scores = { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha };
+  const problems = validateGrowth(choice, scores, talentOffer(hero.id, request.level, hero.talents as TalentId[]));
+  if (problems.length > 0) throw ApiError.badRequest('invalid_growth', 'That is not on offer', problems);
+
+  const data: Prisma.HeroUpdateInput = { growths: [...growths, { level: request.level, ...choice }] as unknown as Prisma.InputJsonValue };
+  if (choice.kind === 'ability') data[choice.ability] = { increment: 2 };
+  if (choice.kind === 'abilities') for (const a of choice.abilities) data[a] = { increment: 1 };
+  if (choice.kind === 'talent') {
+    data.talents = { push: choice.talent };
+    if (choice.talent === 'tough') {
+      data.maxHp = { increment: 2 * hero.level };
+      data.hp = { increment: 2 * hero.level };
+    }
+  }
+  await tx.hero.update({ where: { id: hero.id }, data });
+}
+
+const heroById = async (id: string) => toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id }, include: { items: true } }));
+
+/** A Path a Hero reached level 3 without choosing (a level taken before level-ups asked). */
+export async function choosePath(player: Player, path: PathId): Promise<HeroView> {
+  const season = await currentSeason();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    await applyPath(tx, hero, path);
+    return hero.id;
+  });
+  return heroById(heroId);
+}
+
+/** A growth choice still waiting from a level taken before level-ups asked. */
 export async function growHero(player: Player, request: GrowRequest): Promise<HeroView> {
   const season = await currentSeason();
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await lockHero(tx, player, season.id);
-    const growths = hero.growths as unknown as Growth[];
-    if (!pendingGrowth(hero.level, growths).includes(request.level)) throw ApiError.conflict('no_growth', 'Nothing to choose at that level');
-    const choice = request.choice as GrowthChoice;
-    const scores = { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha };
-    const problems = validateGrowth(choice, scores, talentOffer(hero.id, request.level, hero.talents as TalentId[]));
-    if (problems.length > 0) throw ApiError.badRequest('invalid_growth', 'That is not on offer', problems);
-
-    const data: Prisma.HeroUpdateInput = { growths: [...growths, { level: request.level, ...choice }] as unknown as Prisma.InputJsonValue };
-    if (choice.kind === 'ability') data[choice.ability] = { increment: 2 };
-    if (choice.kind === 'abilities') for (const a of choice.abilities) data[a] = { increment: 1 };
-    if (choice.kind === 'talent') {
-      data.talents = { push: choice.talent };
-      if (choice.talent === 'tough') {
-        data.maxHp = { increment: 2 * hero.level };
-        data.hp = { increment: 2 * hero.level };
-      }
-    }
-    await tx.hero.update({ where: { id: hero.id }, data });
+    await applyGrowth(tx, hero, request);
     return hero.id;
   });
-  return toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }));
+  return heroById(heroId);
+}
+
+/**
+ * The Player takes the next level by hand, once its XP is there, and makes the
+ * level's choice with it (docs/design.md → Levels). Anywhere, even mid-Run.
+ */
+export async function levelUpHero(player: Player, request: LevelUpRequest): Promise<LevelUpResponse> {
+  const season = await currentSeason();
+  const { heroId, health } = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    if (!levelReady(hero)) throw ApiError.conflict('not_ready', 'Not enough XP for the next level');
+    const choice = levelChoice(leveling(hero));
+    if (choice === 'path' && !request.path) throw ApiError.badRequest('choose_path', 'This level asks for a Path');
+    if (choice === 'growth' && !request.grow) throw ApiError.badRequest('choose_growth', 'This level asks for abilities or a Talent');
+
+    const seed = newSeed();
+    const raised = raiseLevel(createRng(seed), hero);
+    const hero2 = await tx.hero.update({ where: { id: hero.id }, data: raised.data });
+    if (choice === 'path') await applyPath(tx, hero2, request.path!);
+    if (choice === 'growth') await applyGrowth(tx, hero2, { level: hero2.level, choice: request.grow! });
+    await tx.rollLog.create({
+      data: { playerId: hero.playerId, kind: 'level-up', seed, detail: { level: hero2.level, roll: raised.health.roll, gain: raised.health.gain } },
+    });
+    return { heroId: hero.id, health: raised.health };
+  });
+  const hero = await heroById(heroId);
+  return { hero, health: { die: CLASS_DEFS[hero.class].hitDie, ...health } };
 }
 
 /** Once per Season: the Hero steps aside, and everything it had goes to Storage. */

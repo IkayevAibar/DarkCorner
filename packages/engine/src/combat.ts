@@ -14,21 +14,10 @@ import { DEFAULT_STANCE, STANCE_DEFS, type StanceId } from './content/stances.js
 import type { TalentId } from './content/talents.js';
 import { type Edge, rollD20, rollDice, sum } from './dice.js';
 import { type Rng, createRng } from './rng.js';
+import {
+  type RestUses, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice, proficiencyBonus, sneakDice, spellDice,
+} from './levels.js';
 import { armorClass, gearFactor } from './stats.js';
-
-// ─── Levels ───────────────────────────────────────────────────────────────
-
-/** XP needed to reach each level (index = level). An active Player nears 10 by the Boss gate (v0). */
-export const XP_FOR_LEVEL = [0, 0, 100, 300, 700, 1300, 2100, 3100, 4400, 6000, 8000, 10500, 13500, 17000, 21000, 25500, 30500, 36000, 42000, 48500, 55500];
-export const MAX_LEVEL = 20;
-
-export function levelForXp(xp: number): number {
-  let level = 1;
-  while (level < MAX_LEVEL && xp >= XP_FOR_LEVEL[level + 1]!) level++;
-  return level;
-}
-
-export const proficiencyBonus = (level: number): number => 2 + Math.floor((level - 1) / 4);
 
 // ─── The Hero as it fights ────────────────────────────────────────────────
 
@@ -65,20 +54,6 @@ export interface HeroCombat {
   /** Heavy body armor clanks: Sneaking with disadvantage. */
   heavyArmor: boolean;
   uniques: string[];
-}
-
-/** Uses that come back on a long rest (a Camp, or the City). */
-export interface RestUses {
-  spells: number;
-  heals: number;
-}
-
-export function restUses(cls: ClassId, level: number, path: PathId | null = null): RestUses {
-  const hero = { path, level };
-  return {
-    spells: cls === 'wizard' ? 1 + Math.floor(level / 4) + (onPath(hero, 'evoker', PATH_MASTERY) ? 1 : 0) : 0,
-    heals: cls === 'cleric' ? 1 + Math.floor(level / 3) + (onPath(hero, 'life', PATH_MASTERY) ? 1 : 0) : 0,
-  };
 }
 
 /** Battle-hardened: +1 AC on top of gear. */
@@ -411,7 +386,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   /** Saint's Knuckle: the first Cure wounds of a fight gives its use back. */
   let knuckle = hero.uniques.includes('saints-knuckle');
   /** Rogue Uncanny dodge (from level 3, v0): the first hit each round deals half damage. */
-  const dodges = hero.class === 'rogue' && hero.level >= 3;
+  const dodges = hero.class === 'rogue' && hero.level >= UNCANNY_DODGE_LEVEL;
   let dodgeReady = dodges;
   const cls = CLASS_DEFS[hero.class];
   const rerollOnes = RACE_DEFS[hero.race].rerollOnes;
@@ -536,7 +511,6 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     events.push({ type: 'heal', actor: 'hero', ability, amount: gained, hp: hero.hp });
   };
 
-  const scaleDice = (level: number) => 1 + (level >= 5 ? 1 : 0) + (level >= 11 ? 1 : 0) + (level >= 17 ? 1 : 0);
 
   const heroAttack = (at?: MonsterInstance) => {
     const targets = alive();
@@ -563,7 +537,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     if (hit) {
       const targetDef = monsterById(target.id);
       if (caster) {
-        const [n, sides] = hero.class === 'wizard' ? [scaleDice(hero.level), 10] : [scaleDice(hero.level), 8];
+        const [n, sides] = spellDice(hero.class, hero.level)!;
         damage = sum(rollDice(rng, crit ? n * 2 : n, sides)) + mod(cls.primary) * (path('evoker') ? 2 : 1);
         damage *= 1 + hero.spellPower / 100;
         if (hero.class === 'cleric' && targetDef.kin === 'undead') damage *= 2;
@@ -580,7 +554,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
           // A master Thief has studied its prey by the fourth round: from then on, a third of the level.
           const full = !openedFight || path('assassin');
           const studied = path('thief', PATH_MASTERY) && currentRound >= THIEF_STUDY_ROUND;
-          const sneak = Math.ceil(hero.level / (full ? 2 : studied ? 3 : 6));
+          const sneak = full ? sneakDice(hero.level) : Math.ceil(hero.level / (studied ? 3 : 6));
           damage += sum(rollDice(rng, crit ? sneak * 2 : sneak, 6));
           sneakReady = false;
           openedFight = true;
@@ -633,7 +607,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     if (low && uses.heals > 0) {
       if (knuckle) knuckle = false;
       else uses.heals--;
-      const cure = (sum(rollDice(rng, 1 + Math.floor(hero.level / 4), 8)) + mod('wis')) * lifeBoost * (1 + hero.healing / 100);
+      const cure = (sum(rollDice(rng, cureDice(hero.level), 8)) + mod('wis')) * lifeBoost * (1 + hero.healing / 100);
       heal('cure-wounds', cure);
       if (!quickCure) return;
       quickCure = false;
@@ -653,7 +627,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     }
     if (hero.class === 'wizard' && uses.spells > 0 && alive().length >= (path('evoker', PATH_MASTERY) ? 1 : 2)) {
       uses.spells--;
-      const dice = 2 + Math.floor(hero.level / 3);
+      const dice = burstDice(hero.level);
       const empowered = path('evoker') ? 2 * intMod : 0;
       const after: FightEvent[] = [];
       const lone = alive().length === 1 ? 2 : 1;
@@ -666,9 +640,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       markDefeated();
       return;
     }
-    const attacks = hero.class === 'fighter'
-      ? 1 + (hero.level >= 5 ? 1 : 0) + (hero.level >= 11 ? 1 : 0) + (hero.level >= 20 ? 1 : 0)
-      : path('war', PATH_MASTERY) ? 2 : 1;
+    const attacks = attacksPerTurn(hero.class, hero.level, hero.path);
     for (let i = 0; i < attacks && alive().length > 0; i++) heroAttack();
   };
 

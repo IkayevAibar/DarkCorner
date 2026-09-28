@@ -93,6 +93,7 @@ export const luckViewSchema = z.object({
 export type LuckView = z.infer<typeof luckViewSchema>;
 
 export const talentViewSchema = z.object({ id: talentIdSchema, name: localizedTextSchema, description: localizedTextSchema });
+export type TalentView = z.infer<typeof talentViewSchema>;
 
 /** A Path and its two features; `unlocked` once the Hero's level reaches the feature's. */
 export const pathViewSchema = z.object({
@@ -102,6 +103,22 @@ export const pathViewSchema = z.object({
   features: z.array(z.object({ level: z.number().int(), name: localizedTextSchema, text: localizedTextSchema, unlocked: z.boolean() })),
 });
 export type PathView = z.infer<typeof pathViewSchema>;
+
+/**
+ * The next level, once the Hero has the XP for it: what it gives, and the choice
+ * it asks for. The Player takes it by hand (docs/design.md → Levels).
+ */
+export const levelUpViewSchema = z.object({
+  level: z.number().int(),
+  /** Ready-made lines, such as "Sneak attack: 1d6 → 2d6". */
+  gains: z.array(localizedTextSchema),
+  choice: z.enum(['path', 'growth']).nullable(),
+  /** choice "path": the Class's two Paths. */
+  paths: z.array(pathViewSchema).nullable(),
+  /** choice "growth": the Talents on offer at this level (or abilities instead). */
+  talents: z.array(talentViewSchema).nullable(),
+});
+export type LevelUpView = z.infer<typeof levelUpViewSchema>;
 
 export const heroSchema = z.object({
   id: z.string(),
@@ -138,6 +155,10 @@ export const heroSchema = z.object({
   pendingGrowth: z.array(z.number().int()),
   /** The Talents offered for the lowest pending growth level, null when none is pending. */
   talentOffer: z.array(talentViewSchema).nullable(),
+  /** XP needed for the next level, null at the top. */
+  xpNext: z.number().int().nullable(),
+  /** The next level, when its XP is there and the Player can take it. */
+  levelUp: levelUpViewSchema.nullable(),
 });
 export type HeroView = z.infer<typeof heroSchema>;
 
@@ -154,6 +175,20 @@ export const growRequestSchema = z.object({
   ]),
 });
 export type GrowRequest = z.infer<typeof growRequestSchema>;
+
+/** POST /api/heroes/level-up: take the next level, with its choice when it asks for one. */
+export const levelUpRequestSchema = z.object({
+  path: pathIdSchema.optional(),
+  grow: growRequestSchema.shape.choice.optional(),
+});
+export type LevelUpRequest = z.infer<typeof levelUpRequestSchema>;
+
+export const levelUpResponseSchema = z.object({
+  hero: heroSchema,
+  /** The health the level gave: the Hit Die, what it rolled, and the gain with CON and the rest. */
+  health: z.object({ die: z.number().int(), roll: z.number().int(), gain: z.number().int() }),
+});
+export type LevelUpResponse = z.infer<typeof levelUpResponseSchema>;
 
 /** GET /api/heroes/me: the Player's state in the current Season. */
 export const myHeroResponseSchema = z.object({

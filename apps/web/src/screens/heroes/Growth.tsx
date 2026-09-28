@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ABILITY_IDS, type AbilityId, type GrowRequest, type HeroView, type PathView } from '@dark/shared';
+import { ABILITY_IDS, type AbilityId, type GrowRequest, type HeroView, type PathIdView, type PathView, type TalentView } from '@dark/shared';
 import { api } from '../../api';
 import { useText } from '../../components/items/ItemChip';
 import { useSheet } from '../../components/Sheet';
@@ -103,31 +103,15 @@ function ConfirmPath({ path, onDone }: { path: PathView; onDone: () => void }) {
   );
 }
 
+type GrowChoice = GrowRequest['choice'];
+
 /** One growth level: +2 to one ability, +1 to two, or one of three Talents, chosen then confirmed. */
 function Grow({ hero, level, onChanged }: { hero: HeroView; level: number; onChanged: () => void }) {
   const { t } = useI18n();
   const text = useText();
   const { busy, error, run } = useAction();
-  const [choice, setChoice] = useState<GrowRequest['choice'] | null>(null);
-  const [pair, setPair] = useState<AbilityId[]>([]);
-  const score = (a: AbilityId) => hero.abilities[a];
-
-  const pickPair = (a: AbilityId) => {
-    const next = pair.includes(a) ? pair.filter((x) => x !== a) : [...pair, a].slice(-2);
-    setPair(next);
-    setChoice(next.length === 2 ? { kind: 'abilities', abilities: [next[0]!, next[1]!] } : null);
-  };
-
-  const summary = !choice
-    ? null
-    : choice.kind === 'ability'
-      ? t('grow.summaryOne', { ability: t(`ability.${choice.ability}`) })
-      : choice.kind === 'abilities'
-        ? t('grow.summaryTwo', { a: t(`ability.${choice.abilities[0]}`), b: t(`ability.${choice.abilities[1]}`) })
-        : text(hero.talentOffer!.find((x) => x.id === choice.talent)!.name);
-
-  const selected = (kind: string, key: string) =>
-    choice?.kind === kind && ((choice.kind === 'ability' && choice.ability === key) || (choice.kind === 'talent' && choice.talent === key));
+  const [choice, setChoice] = useState<GrowChoice | null>(null);
+  const summary = growSummary(t, text, choice, hero.talentOffer ?? []);
 
   return (
     <section className="panel grid gap-3 border-gold p-3.5">
@@ -135,7 +119,58 @@ function Grow({ hero, level, onChanged }: { hero: HeroView; level: number; onCha
         <span className="font-head text-xl font-extrabold text-gold">{t('grow.title', { n: level })}</span>
         <p className="m-0 text-sm text-muted">{t('grow.hint')}</p>
       </div>
+      <GrowPicker abilities={hero.abilities} talents={hero.talentOffer!} value={choice} onChange={setChoice} disabled={busy} />
+      <button type="button" className="btn btn-primary" disabled={busy || !choice} onClick={() => void run(async () => {
+        await api.grow({ level, choice: choice! });
+        play('chips');
+        setChoice(null);
+        onChanged();
+      })}>
+        {summary ? t('grow.applyWith', { choice: summary }) : t('grow.apply')}
+      </button>
+      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+    </section>
+  );
+}
 
+/** "+2 STR", "+1 DEX and CON", or the Talent's name. */
+export function growSummary(
+  t: ReturnType<typeof useI18n>['t'], text: ReturnType<typeof useText>, choice: GrowChoice | null, talents: TalentView[],
+): string | null {
+  if (!choice) return null;
+  if (choice.kind === 'ability') return t('grow.summaryOne', { ability: t(`ability.${choice.ability}`) });
+  if (choice.kind === 'abilities') return t('grow.summaryTwo', { a: t(`ability.${choice.abilities[0]}`), b: t(`ability.${choice.abilities[1]}`) });
+  const talent = talents.find((x) => x.id === choice.talent);
+  return talent ? text(talent.name) : null;
+}
+
+/** The three ways to grow, as one selectable picker: +2 to one ability, +1 to two, or an offered Talent. */
+export function GrowPicker({ abilities, talents, value, onChange, disabled }: {
+  abilities: HeroView['abilities'];
+  talents: TalentView[];
+  value: GrowChoice | null;
+  onChange: (choice: GrowChoice | null) => void;
+  disabled: boolean;
+}) {
+  const { t } = useI18n();
+  const text = useText();
+  const [pair, setPair] = useState<AbilityId[]>([]);
+  const score = (a: AbilityId) => abilities[a];
+  const choice = value;
+  const setChoice = onChange;
+  const busy = disabled;
+
+  const pickPair = (a: AbilityId) => {
+    const next = pair.includes(a) ? pair.filter((x) => x !== a) : [...pair, a].slice(-2);
+    setPair(next);
+    setChoice(next.length === 2 ? { kind: 'abilities', abilities: [next[0]!, next[1]!] } : null);
+  };
+
+  const selected = (kind: string, key: string) =>
+    choice?.kind === kind && ((choice.kind === 'ability' && choice.ability === key) || (choice.kind === 'talent' && choice.talent === key));
+
+  return (
+    <div className="grid gap-3">
       <div className="grid gap-1.5">
         <span className="sub-heading">{t('grow.plusTwo')}</span>
         <div className="grid grid-cols-6 gap-1.5">
@@ -175,7 +210,7 @@ function Grow({ hero, level, onChanged }: { hero: HeroView; level: number; onCha
 
       <div className="grid gap-1.5">
         <span className="sub-heading">{t('grow.talent')}</span>
-        {hero.talentOffer!.map((talent) => (
+        {talents.map((talent) => (
           <button
             key={talent.id}
             type="button"
@@ -188,17 +223,30 @@ function Grow({ hero, level, onChanged }: { hero: HeroView; level: number; onCha
           </button>
         ))}
       </div>
+    </div>
+  );
+}
 
-      <button type="button" className="btn btn-primary" disabled={busy || !choice} onClick={() => void run(async () => {
-        await api.grow({ level, choice: choice! });
-        play('chips');
-        setChoice(null);
-        setPair([]);
-        onChanged();
-      })}>
-        {summary ? t('grow.applyWith', { choice: summary }) : t('grow.apply')}
-      </button>
-      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
-    </section>
+/** The Class's two Paths side by side, one to select. */
+export function PathPicker({ paths, value, onChange }: { paths: PathView[]; value: PathIdView | null; onChange: (path: PathIdView) => void }) {
+  const text = useText();
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      {paths.map((path) => (
+        <button
+          key={path.id}
+          type="button"
+          aria-pressed={value === path.id}
+          onClick={() => onChange(path.id)}
+          className={`grid content-start gap-2 rounded-[2px] border p-3 text-left ${value === path.id ? 'border-gold bg-[#241c12] shadow-[0_0_14px_rgb(224_184_106/0.25)]' : 'border-bone/25 bg-transparent'}`}
+        >
+          <div className="grid gap-0.5">
+            <span className="font-head text-lg font-extrabold">{text(path.name)}</span>
+            <span className="text-sm text-muted italic">{text(path.blurb)}</span>
+          </div>
+          <Features path={path} />
+        </button>
+      ))}
+    </div>
   );
 }

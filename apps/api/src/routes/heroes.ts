@@ -1,10 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import {
-  type CreationOptions, type HeroDraft, type HeroResponse, type MyHeroResponse, choosePathRequestSchema, createHeroRequestSchema, growRequestSchema,
+  type CreationOptions, type HeroDraft, type HeroResponse, type LevelUpResponse, type MyHeroResponse, choosePathRequestSchema, createHeroRequestSchema,
+  growRequestSchema, levelUpRequestSchema,
 } from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import {
-  choosePath, createHero, creationOptions, growHero, myHeroState, rerollDraft, retireHero, startDraft,
+  choosePath, createHero, creationOptions, growHero, levelUpHero, myHeroState, rerollDraft, retireHero, startDraft,
 } from '../services/heroes.js';
 
 export async function heroRoutes(app: FastifyInstance) {
@@ -34,6 +35,9 @@ export async function heroRoutes(app: FastifyInstance) {
   app.post('/api/heroes/grow', guard, async (request): Promise<HeroResponse> => ({
     hero: await growHero(request.player!, growRequestSchema.parse(request.body)),
   }));
+
+  app.post('/api/heroes/level-up', guard, async (request): Promise<LevelUpResponse> =>
+    levelUpHero(request.player!, levelUpRequestSchema.parse(request.body ?? {})));
 
   app.post('/api/heroes/retire', guard, async (request): Promise<MyHeroResponse> => {
     await retireHero(request.player!);

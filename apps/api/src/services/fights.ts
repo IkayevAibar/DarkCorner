@@ -221,7 +221,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
 
   const rng = createRng(`${seed}:after`);
   const xp = await boostedXp(tx, hero, season, Math.round(result.xp * (omen?.xp ?? 1)));
-  const levelUp = gainXp(rng, { ...hero, hp: result.hp }, xp);
+  const levelUp = gainXp(hero, xp);
   out.xp += xp;
   out.levelUp = levelUp.newLevel ?? out.levelUp;
   const after = {
