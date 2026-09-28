@@ -1,0 +1,191 @@
+[
+  {
+    "file": "goblins-2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3132004,
+    "sha256": "509860d4153dd0667caff0b2af76c4392c7d1ee967b051c227ee7caa2f7a814e"
+  },
+  {
+    "file": "goblins-3.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2979976,
+    "sha256": "554bba309210d3c824b9735fa273eca1f7eccbb63177f9fff592f1e6c714c313"
+  },
+  {
+    "file": "goblins-4.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3191803,
+    "sha256": "2645a5f8c8a71d119e8da5600bdf1003db73cc274dee92a6e26132787f8139e2"
+  },
+  {
+    "file": "goblins-5.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3018268,
+    "sha256": "ae3544a39e5fc144496ab656bc63f195ea9656c672cdc85c141f506505fca10e"
+  },
+  {
+    "file": "goblins-6.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3355875,
+    "sha256": "5d47896bbd62ed61ba9f709586a4714280da9dfd41786a8ba0aa1de704dd1a44"
+  },
+  {
+    "file": "goblins-7.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3257299,
+    "sha256": "8ee7302cb7b3e7b98b0602ae2c976c1d144dc9b5f67dc89bc3451ba78279295f"
+  },
+  {
+    "file": "goblins-8.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3215803,
+    "sha256": "8f97c4cef390e22a608860207a98ee4a219f9ba4d3b583c8d75b01ba36b6172d"
+  },
+  {
+    "file": "crypt-2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3233759,
+    "sha256": "f713c9c1ab5dde5933fae575540ab1ef73f83b4d3852714bdd3c2d7f40b28297"
+  },
+  {
+    "file": "crypt-3.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3174344,
+    "sha256": "d85d319b44be25684c08b206b8a13ee5056351d1c6f803d877f4baa06b03e458"
+  },
+  {
+    "file": "crypt-4.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3099237,
+    "sha256": "7dbd9c6a737191a44b80f05e205ed7f2afb586a5bf1de9c8cc0b011543e5c3ab"
+  },
+  {
+    "file": "crypt-5.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3021726,
+    "sha256": "1af82117c0228c7b1836b31b4e4f5b688bdcc3c3c4db5437ab317c8d942dc1e1"
+  },
+  {
+    "file": "crypt-6.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3200249,
+    "sha256": "b639618bb88cbac6e9c1d7b33f2679eda1661e09b0c8ea19826618b20d0432db"
+  },
+  {
+    "file": "crypt-7.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3298215,
+    "sha256": "8d750c047d3bc2a17cdab9ce8565b3f5b358a491c2312e7ae18a0f7937c9d1ac"
+  },
+  {
+    "file": "crypt-8.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3229137,
+    "sha256": "e3d4c9bc9c1357c431cad68c6aa866f27922ee337c2f021241ac995f46dbe70f"
+  },
+  {
+    "file": "demons-2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3012802,
+    "sha256": "b0b5e30149d75a1ce7c7c1a4cf160b826a268f999b4c91c789b6955e5f556a85"
+  },
+  {
+    "file": "demons-3.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3243440,
+    "sha256": "e9298924541c566050ea515fa8752384488ca7baf2399cd3cd0417be42f35be3"
+  },
+  {
+    "file": "demons-4.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2691184,
+    "sha256": "38a87e808c4142abb372a3c9dea0f573d42339092f0cf865eeff8c8330d70721"
+  },
+  {
+    "file": "demons-5.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3276133,
+    "sha256": "8b152b52e3068e632e72a0df97a5805703c1a2927ec1ab40d31e2fe1a58b32c6"
+  },
+  {
+    "file": "demons-6.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3020401,
+    "sha256": "fbbe5110acf22b2960d410a754045acfce8853e5092648a91ed6b9b05eb3a713"
+  },
+  {
+    "file": "demons-7.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3240596,
+    "sha256": "b84c3fc23b2cd57a0504e7df878ff4850bcfd28c0c84d0116050bc3fce0054f4"
+  },
+  {
+    "file": "demons-8.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3377686,
+    "sha256": "c8ca9479cd02a03789aa3f6b343f946f9a6b5767f30934c2a38283a369b3e411"
+  },
+  {
+    "file": "lair-1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3422821,
+    "sha256": "d0762d0e1f0eb6710b3a9518fc9658b91e3aa33261ff3c57821162a0292550da"
+  },
+  {
+    "file": "lair-2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3371267,
+    "sha256": "ed64b23e325a7b813b71c3047ca0e7c5bf1d4f1fd13be6ec2b48659809b54c83"
+  },
+  {
+    "file": "lair-3.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3203638,
+    "sha256": "610ec14c2afb6f6035cfea981ff8706a0f90259410eec99b587d35db93dca2e0"
+  },
+  {
+    "file": "lair-4.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3156031,
+    "sha256": "f8dcc25497de3acea029ca7ce2bfd34e7c770e4fc747ce8c745f1e93aeaf7b30"
+  },
+  {
+    "file": "lair-5.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2963983,
+    "sha256": "1c3421534a8d5c6c2da10dbb3247398a187d79d3f7d04cc3ba1dd053f130b3df"
+  },
+  {
+    "file": "lair-6.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 3340015,
+    "sha256": "91b29b9f13698c2b70cf6b26d07c7a7615be9b6018bd17aa234cce2a9935eaae"
+  }
+]
