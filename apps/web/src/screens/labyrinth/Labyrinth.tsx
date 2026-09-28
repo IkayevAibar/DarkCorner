@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
 import {
   STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
@@ -8,7 +8,6 @@ import { api, ApiRequestError } from '../../api';
 import { CenterModal } from '../../components/CenterModal';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { useLoad } from '../../components/useLoad';
-import { Meter } from '../../components/Meter';
 import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
@@ -136,102 +135,61 @@ async function drinkPotion(): Promise<LabyrinthResult> {
   return api.labyrinth();
 }
 
-function HeroStatus({ view }: { view: LabyrinthView }) {
-  const { t } = useI18n();
-  const text = useText();
-  const now = useNow();
-  const { hero } = view;
-  return (
-    <div className="grid gap-2.5">
-      <div className="flex items-center gap-3">
-        <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={52} />
-        <div className="grid min-w-0 gap-0.5">
-          <span className="truncate font-head text-lg leading-tight font-extrabold">{hero.name}</span>
-          <span className="truncate text-sm text-muted">
-            {view.floor ? `${t('lab.floor', { n: view.floor.number })} · ${text(view.floor.name)}` : t('lab.inCity')}
-          </span>
-        </div>
-      </div>
-      <div className="grid gap-0.5">
-        <Meter label={t('hero.health')} value={hero.hp} max={hero.maxHp} kind="health" />
-        {/* Waiting heals slowly anywhere in the Labyrinth; a Camp has its own line. */}
-        {view.location === 'labyrinth' && hero.hp < hero.maxHp && view.room?.type !== 'camp' && (
-          <span className="justify-self-end text-xs text-muted">{t('lab.recovering')}</span>
-        )}
-      </div>
-      <div className="grid gap-0.5">
-        <Meter label={t('hero.stamina')} value={hero.stamina} max={hero.staminaMax} kind="stamina" />
-        {hero.staminaNextAt && (
-          <span className="justify-self-end text-xs text-muted">
-            {t('lab.staminaNext', { time: formatDuration(t, new Date(hero.staminaNextAt).getTime() - now) })}
-          </span>
-        )}
-      </div>
-      <div className="flex flex-wrap gap-1.5">
-        <span className="chip">{t('hero.level', { n: hero.level })}</span>
-        <span className="chip">{hero.xpNext === null ? t('lab.xpMax', { n: hero.xp }) : t('lab.xp', { n: hero.xp, m: hero.xpNext })}</span>
-        {hero.xpNext !== null && hero.xp >= hero.xpNext && (
-          <NavLink to="/heroes" className="chip border-gold text-gold no-underline">{t('lab.levelUp')}</NavLink>
-        )}
-        {hero.carriedGold > 0 && <span className="chip text-[#f1c75b]">{t('lab.carried', { n: hero.carriedGold })}</span>}
-        <span className="chip">{t('lab.potions', { n: hero.potions })}</span>
-        {hero.spells > 0 && <span className="chip">{t('lab.spells', { n: hero.spells })}</span>}
-        {hero.heals > 0 && <span className="chip">{t('lab.heals', { n: hero.heals })}</span>}
-      </div>
-    </div>
-  );
-}
-
-/** In the City: the way down, at the gate or at any Waypoint already woken. */
+/**
+ * In the City: the Labyrinth's gate as a stage like the Rooms below, with the Hero's
+ * status and belt, and under it the way down: the gate, a Waypoint already woken,
+ * or an open Town Portal.
+ */
 function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act }) {
   const { t, locale } = useI18n();
+  const [popup, setPopup] = useState<Popup | null>(null);
   const floors = [1, ...view.waypoints.filter((n) => n !== 1).sort((a, b) => a - b)];
   const shut = view.season.status === 'planned';
+  const hero = view.hero;
+  const enter = (floor: number, portal = false) => {
+    play('door', { rate: portal ? 1.2 : 0.8 });
+    void act(() => api.enterLabyrinth(floor, portal));
+  };
   return (
-    <section className="panel grid gap-4 p-4">
-      <HeroStatus view={view} />
-      <div className="grid gap-1">
-        <h1 className="m-0 font-head text-2xl font-extrabold">{t('lab.gate.title')}</h1>
-        <p className="m-0 text-muted">{t('lab.gate.body')}</p>
-        {view.bestFloor > 0 && <span className="text-sm text-muted">{t('lab.bestFloor', { n: view.bestFloor })}</span>}
-        {shut && <p className="m-0 font-bold text-[#ff9a8a]">{t('lab.notStarted')}</p>}
+    <>
+      <Stage art={{ src: GATE_ART, style: undefined }} dim="brightness-[0.42]" view={view} onPopup={setPopup}>
+        <div className="absolute inset-x-0 top-[48%] grid -translate-y-1/2 justify-items-center gap-2.5 px-6 text-center">
+          <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={86} />
+          <h1 className="m-0 font-head text-[28px] leading-tight font-extrabold [text-shadow:0_2px_8px_#000]">{t('lab.gate.title')}</h1>
+          <p className="m-0 max-w-[32ch] text-sm text-bone/85 [text-shadow:0_1px_4px_#000]">{t('lab.gate.body')}</p>
+        </div>
+      </Stage>
+
+      <div className="grid gap-1 px-1 text-sm text-muted">
+        {view.bestFloor > 0 && <span>{t('lab.bestFloor', { n: view.bestFloor })}</span>}
+        {shut && <span className="font-bold text-[#ff9a8a]">{t('lab.notStarted')}</span>}
       </div>
-      <div className="grid gap-2">
+      {view.season.omen && <OmenNote omen={view.season.omen} />}
+
+      <section className="grid gap-2">
         {view.portal && (
           <div className="grid gap-1">
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={busy || shut}
-              onClick={() => {
-                play('door', { rate: 1.2 });
-                void act(() => api.enterLabyrinth(view.portal!.floor, true));
-              }}
-            >
+            <button type="button" className="btn btn-primary" disabled={busy || shut} onClick={() => enter(view.portal!.floor, true)}>
               {t('lab.portalBack', { n: view.portal.floor })}
             </button>
             <span className="justify-self-center text-xs text-muted">{t('lab.portalCloses', { time: formatClock(locale, view.portal.closesAt) })}</span>
           </div>
         )}
         {floors.map((n) => (
-          <button
-            key={n}
-            type="button"
-            className={`btn ${n === 1 && !view.portal ? 'btn-primary' : ''}`}
-            disabled={busy || shut}
-            onClick={() => {
-              play('door', { rate: 0.8 });
-              void act(() => api.enterLabyrinth(n));
-            }}
-          >
+          <button key={n} type="button" className={`btn ${n === 1 && !view.portal ? 'btn-primary' : ''}`} disabled={busy || shut} onClick={() => enter(n)}>
             {n === 1 ? t('lab.enter') : t('lab.enterWaypoint', { n })}
           </button>
         ))}
-      </div>
-      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
-    </section>
+      </section>
+      {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
+
+      {popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
+    </>
   );
 }
+
+/** The gate has no map of its own yet: the first Floor's warrens stand in, dimmed. */
+const GATE_ART = '/art/rooms/goblins-1.webp';
 
 const DIRECTION_ORDER: Direction[] = ['n', 'e', 's', 'w'];
 
@@ -288,9 +246,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
 
   return (
     <>
-      <section className="relative -mx-4 -mt-3 aspect-[390/470] max-h-[calc(100dvh_-_var(--nav-h)_-_120px)] min-h-[400px] overflow-hidden bg-black [container-type:size]">
-        {/* Maps are square and turn, so the map is a square as wide as the stage's longer side. */}
-        <img {...roomArt(room.map, { floor: floor.number, room: room.id })} alt="" className="absolute top-1/2 left-1/2 size-[max(100cqw,100cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover brightness-[0.78]" draggable={false} />
+      <Stage art={roomArt(room.map, { floor: floor.number, room: room.id })} view={view} onPopup={setPopup}>
         {facing ? (
           <FacingTokens facing={facing} view={view} onFoe={setFoe} />
         ) : (
@@ -312,9 +268,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
             <ThreatChip threat={facing.threat[hero.stance]} />
           </div>
         )}
-        <HudStrip view={view} onPopup={setPopup} />
-        <Belt hero={hero} onPick={setPopup} />
-      </section>
+      </Stage>
 
       <div className="grid gap-1 px-1 text-sm text-muted">
         <span className="flex flex-wrap gap-1.5">
@@ -414,12 +368,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           />
         </CenterModal>
       )}
-      {popup === 'bag' && <BagCard onClose={() => setPopup(null)} />}
-      {popup && typeof popup === 'object' && 'feature' in popup && <FeatureCard pick={popup.feature} onClose={() => setPopup(null)} />}
-      {popup && typeof popup === 'object' && 'kit' in popup && (
-        <KitCard pick={popup.kit} view={view} busy={busy} onClose={() => setPopup(null)} act={act} />
-      )}
-      {popup && typeof popup === 'object' && 'rest' in popup && <RestCard view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
+      {popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
     </>
   );
 }
@@ -446,7 +395,9 @@ function HudStrip({ view, onPopup }: { view: LabyrinthView; onPopup: (popup: Pop
       <div className="grid min-w-0 flex-1 gap-1">
         <div className="flex items-baseline gap-2">
           <span className="truncate font-head text-[17px] leading-tight font-extrabold">{hero.name}</span>
-          <span className="truncate text-xs text-muted">{t('lab.hud', { level: hero.level, floor: view.floor!.number })}</span>
+          <span className="truncate text-xs text-muted">
+            {view.floor ? t('lab.hud', { level: hero.level, floor: view.floor.number }) : t('lab.hudCity', { level: hero.level })}
+          </span>
         </div>
         <div className="grid grid-cols-2 gap-2">
           {bar(hero.hp, hero.maxHp, '#c23030', t('hero.health'), 'M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9z')}
@@ -456,11 +407,13 @@ function HudStrip({ view, onPopup }: { view: LabyrinthView; onPopup: (popup: Pop
       {ready && (
         <NavLink to="/heroes" aria-label={t('lab.levelUp')} title={t('lab.levelUp')} className={`${round} border-gold font-head text-lg shadow-[0_0_12px_rgb(224_184_106/0.5)]`}>✦</NavLink>
       )}
-      <button type="button" aria-label={t('lab.mapButton')} title={t('lab.mapButton')} className={round} onClick={() => onPopup('map')}>
-        <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" />
-        </svg>
-      </button>
+      {view.floor && (
+        <button type="button" aria-label={t('lab.mapButton')} title={t('lab.mapButton')} className={round} onClick={() => onPopup('map')}>
+          <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" />
+          </svg>
+        </button>
+      )}
       <button type="button" aria-label={t('lab.bagButton')} title={t('lab.bagButton')} className={round} onClick={() => onPopup('bag')}>
         <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 0 1 6 0v2" />
@@ -468,6 +421,36 @@ function HudStrip({ view, onPopup }: { view: LabyrinthView; onPopup: (popup: Pop
       </button>
     </div>
   );
+}
+
+/**
+ * The stage: a map edge to edge under the Hero's status strip and above the belt,
+ * inside the Labyrinth and at its gate alike.
+ */
+function Stage({ art, dim = 'brightness-[0.78]', view, onPopup, children }: {
+  art: { src: string; style: CSSProperties | undefined };
+  dim?: string;
+  view: LabyrinthView;
+  onPopup: (popup: Popup) => void;
+  children: ReactNode;
+}) {
+  return (
+    <section className="relative -mx-4 -mt-3 aspect-[390/470] max-h-[calc(100dvh_-_var(--nav-h)_-_120px)] min-h-[400px] overflow-hidden bg-black [container-type:size]">
+      {/* Maps are square and turn, so the map is a square as wide as the stage's longer side. */}
+      <img {...art} alt="" className={`absolute top-1/2 left-1/2 size-[max(100cqw,100cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover ${dim}`} draggable={false} />
+      {children}
+      <HudStrip view={view} onPopup={onPopup} />
+      <Belt hero={view.hero} onPick={onPopup} />
+    </section>
+  );
+}
+
+/** Whatever the status strip or the belt opened, but the Map: the Bag, a feature, a Bag item, the short rests. */
+function BeltPopup({ popup, view, busy, act, onClose }: { popup: Exclude<Popup, 'map'>; view: LabyrinthView; busy: boolean; act: Act; onClose: () => void }) {
+  if (popup === 'bag') return <BagCard onClose={onClose} />;
+  if ('feature' in popup) return <FeatureCard pick={popup.feature} onClose={onClose} />;
+  if ('kit' in popup) return <KitCard pick={popup.kit} view={view} busy={busy} onClose={onClose} act={act} />;
+  return <RestCard view={view} busy={busy} act={act} onClose={onClose} />;
 }
 
 /** A class feature from the belt: what it does now, its uses, and what it becomes (D2). */
@@ -525,7 +508,7 @@ function KitCard({ pick, view, busy, act, onClose }: { pick: KitItemView; view: 
           {hurt ? t('belt.drink') : t('belt.fullHealth')}
         </button>
       )}
-      {pick.base === 'scroll-portal' && (
+      {pick.base === 'scroll-portal' && view.location === 'labyrinth' && (
         <button type="button" className="btn btn-primary" disabled={busy} onClick={() => { onClose(); play('page'); void act(api.readPortal); }}>
           {t('belt.read')}
         </button>
@@ -804,7 +787,8 @@ function RestCard({ view, busy, act, onClose }: { view: LabyrinthView; busy: boo
   const { t, locale } = useI18n();
   const hero = view.hero;
   const { left, of, backAt } = hero.shortRests;
-  const blocked = view.room?.facing != null;
+  const inCity = view.location === 'city';
+  const blocked = inCity || view.room?.facing != null;
   const full = hero.hp >= hero.maxHp && hero.stamina >= hero.staminaMax;
   const hpAfter = Math.min(hero.maxHp, hero.hp + Math.ceil(hero.maxHp / 2));
   const staminaAfter = Math.min(hero.staminaMax, hero.stamina + Math.ceil(hero.staminaMax / 2));
@@ -839,7 +823,7 @@ function RestCard({ view, busy, act, onClose }: { view: LabyrinthView; busy: boo
           void act(api.shortRest);
         }}
       >
-        {blocked ? t('rest.blocked') : left === 0 ? t('rest.none') : full ? t('rest.full') : t('rest.take')}
+        {inCity ? t('rest.city') : blocked ? t('rest.blocked') : left === 0 ? t('rest.none') : full ? t('rest.full') : t('rest.take')}
       </button>
       <button type="button" className="btn" onClick={onClose}>{t('close')}</button>
     </CenterModal>
