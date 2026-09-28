@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router';
 import { App } from './App';
 import { SheetProvider } from './components/Sheet';
 import { I18nProvider } from './i18n';
+// Listens for the browser's install prompt from the first moment.
+import './install';
 import { SessionProvider } from './session';
 import './styles.css';
 

@@ -16,6 +16,30 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-28-warrens',
+    date: '2026-09-28',
+    title: t('New monsters and events, and the game on your home screen', 'Новые монстры и события, и игра на главном экране'),
+    items: [
+      t(
+        'Four new monsters in the goblin warrens (Floors 1–3): a goblin sapper whose bomb goes off when it falls, a goblin shaman who mends its friends, a bat swarm that blades barely scratch (fire works twice as well), and a giant spider with a poisonous bite.',
+        'Четыре новых монстра в гоблинских норах (этажи 1–3): гоблин-подрывник, чья бомба взрывается, когда он падает; гоблин-шаман, который латает друзей; стая летучих мышей, которую клинки почти не берут (зато огонь бьёт вдвое); и гигантский паук с ядовитым укусом.',
+      ),
+      t(
+        'Two new ones in the crypts (Floors 4–6): a grave robber after your gold, and a banshee whose wail hits before the first blow.',
+        'Двое новых в склепах (этажи 4–6): расхититель могил, охотник за вашим золотом, и банши, чей вопль бьёт ещё до первого удара.',
+      ),
+      t(
+        'Two new events in the warrens: a goblin cookpot (a hot meal, or not quite meat) and a webbed body with a purse still on it (and maybe its owner nearby).',
+        'Два новых события в норах: гоблинский котёл (горячий обед или не совсем мясо) и тело в паутине, с кошелём на поясе (и, может быть, с хозяином паутины неподалёку).',
+      ),
+      t('Fire and Smoke bombs have their own icons.', 'У огненной и дымовой бомб появились свои иконки.'),
+      t(
+        'Put Dark Corner on your phone’s home screen: it opens full-screen, like an app. The City shows how, and so does your profile.',
+        'Добавьте Тёмный уголок на главный экран телефона: он откроется на весь экран, как приложение. Как это сделать, подскажет город и ваш профиль.',
+      ),
+    ],
+  },
+  {
     id: '2026-09-28-lodging-daily',
     date: '2026-09-28',
     title: t('Lodging once a day', 'Ночлег раз в сутки'),

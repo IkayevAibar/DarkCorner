@@ -1,8 +1,27 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router';
 import { api } from '../../api';
 import { CityMap } from '../../components/city/CityMap';
+import { InstallCard } from '../../components/InstallCard';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { isPhone } from '../../install';
+
+const INSTALL_DISMISSED = 'dc.install.dismissed';
+const seen = (key: string) => {
+  try {
+    return localStorage.getItem(key) !== null;
+  } catch {
+    return false;
+  }
+};
+const remember = (key: string) => {
+  try {
+    localStorage.setItem(key, '1');
+  } catch {
+    // Private windows can refuse storage; the card just comes back next time.
+  }
+};
 
 /** Existing Tavern data supplies the Season; map rendering stays independently previewable. */
 export function City() {
@@ -12,6 +31,8 @@ export function City() {
   // A new Player lands here first: point them at the one thing to do before anything else.
   const mine = useLoad(api.myHero);
   const needsHero = mine.data !== null && mine.data.hero === null && mine.data.canCreate;
+  // Phones get the home-screen offer until it's taken or waved away (the account sheet keeps it).
+  const [offerInstall, setOfferInstall] = useState(() => isPhone && !seen(INSTALL_DISMISSED));
 
   return (
     <div className="city-surface grid gap-3">
@@ -23,6 +44,14 @@ export function City() {
         <span>{t('city.statusUnavailable')}</span>
         <button type="button" className="btn btn-small" onClick={() => void reload()}>{t('retry')}</button>
       </div> : !data && <p className="m-0 text-sm text-muted" role="status">{t('city.statusLoading')}</p>}
+      {offerInstall && (
+        <InstallCard
+          onDismiss={() => {
+            remember(INSTALL_DISMISSED);
+            setOfferInstall(false);
+          }}
+        />
+      )}
       {needsHero && (
         <div className="panel grid gap-2 p-3">
           <p className="m-0 text-sm">{t('city.noHero')}</p>

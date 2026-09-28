@@ -25,7 +25,7 @@ Every feature serves at least one of these:
 - **Who can play:** 5–15 friends and people they know. Only Players an admin has approved can create a Hero. (The hub lets any Discord account sign in, so approval is the real gate.) An admin can open the gate instead: then everyone who signs in is let in at once, and opening it lets in everyone waiting. Banned Players stay out either way.
 - **Sign-in:** through the ugolok.world hub's shared Discord login. The game shows up as a card on the hub dashboard (Hero level, deepest Floor, best Item) and on the hub landing page.
 - **Languages:** Russian and English from the first version. The hub passes the language along with `?lang=`.
-- **Devices:** designed for a phone held upright first, and comfortable on desktop too. It can be installed as a PWA.
+- **Devices:** designed for a phone held upright first, and comfortable on desktop too. It installs on the home screen and opens full-screen like an app: phones get an offer in the City (dismissible, and always in the profile), with the browser's own Install button where it has one (Chrome, Edge) and the taps where it hasn't (Safari on iPhone).
 - **Money:** no real money, ever. No purchases, no donations for perks, no cash-out.
 - **Game clock:** Astana time (UTC+5). Players see times in their own time zone.
 

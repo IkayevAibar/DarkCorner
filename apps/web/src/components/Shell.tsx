@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useMatch } from 'react-router';
 import type { Locale } from '@dark/shared';
 import { Guide, useFirstVisitGuide } from './Guide';
+import { InstallCard } from './InstallCard';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
 import { markNewsRead, newsUnread } from '../news';
@@ -132,6 +133,7 @@ function AccountSheet() {
           ))}
         </div>
       </div>
+      <InstallCard />
       {player.isAdmin && (
         <NavLink to="/admin" className="btn text-center no-underline" onClick={closeSheet}>
           {t('account.admin')}
