@@ -631,6 +631,11 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - tarnished-brass borders with corner brackets
   - Alegreya SC small caps for headings, Alegreya for body text (both have Cyrillic)
   - blood-red primary buttons and gold highlights
+- **The Labyrinth screen: layout B**, chosen on 2026-09-28:
+  - The Room fills the screen's width as a stage. Its Doors are arrows on the stage, and the same Doors, with their Clues, are listed under it as "Where next".
+  - A status strip across the top of the stage shows the Hero's portrait, level, Floor, health and Stamina, with round Map and Bag buttons.
+  - The belt runs along the bottom of the stage. The Hero's class features are on the left: diamonds count the uses left until a rest, a dashed frame means always on, and a lock means a later level brings it. On the right are the Potions, Bombs and Town Portal scrolls in the Bag, with how many. Tapping one shows what it does now, in numbers, and what it becomes later. A Potion can be drunk and a scroll read from there.
+  - Anything that needs the Player comes up as a card in the middle of the screen: monsters in the doorway, an event, what just happened, the Map and the Bag. Monsters and a waiting event come up by themselves. The Player can put them aside to look around first, and a button under the stage brings them back.
 - **Look test:** done on 2026-09-27. It is kept on the `prototype/look-test` branch (`npm run look-test` there). The image prompts are in [art/look-test-prompts.md](art/look-test-prompts.md).
 
 ## Scope

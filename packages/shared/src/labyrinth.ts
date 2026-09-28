@@ -275,6 +275,24 @@ export const graveViewSchema = z.object({
   expiresAt: z.string(),
 });
 
+/** One class feature on the belt: what it does now, uses left, and what it becomes (engine features.ts). */
+export const featureViewSchema = z.object({
+  id: z.string(),
+  icon: z.enum(['flame', 'shield', 'bolt', 'heart', 'wind', 'swords', 'sword', 'dodge', 'escape', 'skull', 'path']),
+  name: localizedTextSchema,
+  /** rest: uses that come back after a rest; fight: once each fight; passive: always on; locked: comes at a later level. */
+  kind: z.enum(['rest', 'fight', 'passive', 'locked']),
+  uses: z.object({ left: z.number().int(), of: z.number().int() }).nullable(),
+  now: localizedTextSchema,
+  next: localizedTextSchema.nullable(),
+});
+export type FeatureView = z.infer<typeof featureViewSchema>;
+
+/** A Bag item the belt shows, for use in a Run. */
+export const KIT_BASES = ['potion', 'bomb-fire', 'bomb-smoke', 'scroll-portal'] as const;
+export const kitItemSchema = z.object({ base: z.enum(KIT_BASES), count: z.number().int(), name: localizedTextSchema, about: localizedTextSchema });
+export type KitItemView = z.infer<typeof kitItemSchema>;
+
 export const labyrinthViewSchema = z.object({
   location: z.enum(['city', 'labyrinth']),
   hero: z.object({
@@ -297,6 +315,9 @@ export const labyrinthViewSchema = z.object({
     portalScrolls: z.number().int(),
     stance: stanceSchema,
     bombs: z.object({ fire: z.number().int(), smoke: z.number().int() }),
+    /** The belt: the Hero's class features, then the Bag items it carries for a Run. */
+    features: z.array(featureViewSchema),
+    kit: z.array(kitItemSchema),
   }),
   /** The Labyrinth opens when the Season starts; the Boss gate opens later. */
   season: z.object({ status: seasonStatusSchema, bossGateAt: z.string().nullable(), omen: omenViewSchema.nullable() }),

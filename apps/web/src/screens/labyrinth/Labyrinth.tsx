@@ -1,18 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
 import {
-  STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type LabyrinthResult, type LabyrinthView, type Threat,
+  STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
+  type LabyrinthView, type Threat,
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
+import { CenterModal } from '../../components/CenterModal';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { useLoad } from '../../components/useLoad';
 import { Meter } from '../../components/Meter';
 import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
+import type { MessageKey } from '../../i18n/en';
 import { play, playTier } from '../../sound';
 import { formatClock, formatDuration, useAt, useNow } from '../../time';
+import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
 import { EliteBadge, FightPlayback } from './FightPlayback';
 import { FloorMap } from './FloorMap';
@@ -65,10 +70,7 @@ export function Labyrinth() {
         setPlaying(result);
       } else {
         setView(result.view);
-        if (hasNews(result)) {
-          setReport(result);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        if (hasNews(result)) setReport(result);
       }
     } catch (e) {
       setError(describeError(t, e));
@@ -83,7 +85,6 @@ export function Labyrinth() {
     setView(playing.view);
     setReport(playing);
     setPlaying(null);
-    window.scrollTo({ top: 0 });
   };
 
   if (status === 'loading') return <p className="text-center text-muted">{t('loading')}</p>;
@@ -234,12 +235,41 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
 
 const DIRECTION_ORDER: Direction[] = ['n', 'e', 's', 'w'];
 
+type Popup = 'map' | 'bag' | BeltPick;
+
+/**
+ * Inside the Labyrinth, layout B: the Room edge to edge as a stage, the Hero's
+ * status with the Map and Bag buttons over its top, the belt along its bottom,
+ * and where to go next below it. Anything that needs the Player (monsters in
+ * the doorway, an event, the Map, the belt's details) comes up in the middle.
+ */
 function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act }) {
   const { t, locale } = useI18n();
+  const now = useNow();
   const floor = view.floor!;
   const room = view.room!;
   const exits = [...view.exits].sort((a, b) => DIRECTION_ORDER.indexOf(a.direction) - DIRECTION_ORDER.indexOf(b.direction));
+  const [popup, setPopup] = useState<Popup | null>(null);
+  // Monsters and a waiting event come up by themselves, and "look around first" puts
+  // them aside; a finished event opens again only when asked.
+  const [aside, setAside] = useState(false);
+  const [peek, setPeek] = useState(false);
+  const facing = room.facing;
+  const event = room.eventView;
+  const eventOpen = event !== null && !event.done;
+  useEffect(() => {
+    setAside(false);
+    setPeek(false);
+  }, [floor.number, room.id, facing !== null, eventOpen]);
+  // A new Room: back up to the stage, since the Door was often tapped below it.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [floor.number, room.id]);
+  const facingCard = facing !== null && !aside;
+  const eventCard = !facing && event !== null && (eventOpen ? !aside : peek);
+
   const move = (to: number) => {
+    setPopup(null);
     play(exits.find((e) => e.to === to)?.kind === 'open' ? 'door' : 'creak');
     void act(() => api.moveTo(to));
   };
@@ -248,60 +278,71 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
     play('step', { delay: 260 });
     void act(call);
   };
-  const facing = room.facing;
   const canLeave = (floor.number === 1 && room.type === 'landing') || (room.type === 'waypoint' && view.waypoints.includes(floor.number));
   const canAscend = floor.number > 1 && room.type === 'landing';
   const label = floor.number === 1 && room.type === 'landing' ? t('room.entrance') : t(`room.${room.type}`);
+  const hero = view.hero;
 
   return (
     <>
-      <section className="panel p-3.5">
-        <HeroStatus view={view} />
-      </section>
-      {view.season.omen && <OmenNote omen={view.season.omen} />}
-
-      <section className="grid gap-2">
-        <h2 className="m-0 flex items-baseline gap-2 px-1 font-head text-xl font-extrabold">
-          {label}
-          {room.cleared && room.type !== 'empty' && <span className="font-body text-sm font-normal text-muted">{t('room.cleared')}</span>}
-          {facing && <ThreatChip threat={facing.threat[view.hero.stance]} />}
-        </h2>
-        <div className="relative mx-1 aspect-square overflow-hidden rounded-[2px] border border-brass-dim bg-black shadow-[0_0_0_1px_#000,0_14px_34px_rgb(0_0_0/0.7)]">
-          <img {...roomArt(room.map, view.floor ? { floor: view.floor.number, room: room.id } : undefined)} alt="" className="absolute inset-0 size-full object-cover brightness-[0.78]" draggable={false} />
-          {facing ? (
-            <FacingTokens facing={facing} view={view} />
-          ) : (
-            <>
-              <div className="absolute inset-0 grid place-items-center">
-                <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={86} />
-              </div>
-              {exits.map((exit) => (
-                <DoorMarker key={exit.to} exit={exit} disabled={busy} onMove={move} />
-              ))}
-            </>
-          )}
-        </div>
-        {room.restedAt && (
-          <p className="m-0 px-1 text-sm text-muted">{t('lab.restedAt', { time: formatClock(locale, room.restedAt) })}</p>
+      <section className="relative -mx-4 -mt-3 aspect-[390/470] max-h-[calc(100dvh_-_var(--nav-h)_-_120px)] min-h-[400px] overflow-hidden bg-black [container-type:size]">
+        {/* Maps are square and turn, so the map is a square as wide as the stage's longer side. */}
+        <img {...roomArt(room.map, { floor: floor.number, room: room.id })} alt="" className="absolute top-1/2 left-1/2 size-[max(100cqw,100cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover brightness-[0.78]" draggable={false} />
+        {facing ? (
+          <FacingTokens facing={facing} view={view} />
+        ) : (
+          <>
+            <div className="absolute inset-0 grid place-items-center">
+              <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={86} />
+            </div>
+            {exits.map((exit) => (
+              <DoorMarker key={exit.to} exit={exit} disabled={busy} onMove={move} />
+            ))}
+          </>
         )}
+        <div className="absolute top-[70px] left-3 grid max-w-[40%] rounded-[2px] border border-[#4a3a26] bg-[rgb(22_18_14/0.88)] px-2.5 py-1 leading-tight">
+          <span className="font-head text-[13px] font-bold text-bone">{label}</span>
+          {room.cleared && room.type !== 'empty' && <span className="text-[11px] text-muted">{t('room.cleared')}</span>}
+        </div>
+        {facing && (
+          <div className="absolute top-[70px] right-3">
+            <ThreatChip threat={facing.threat[hero.stance]} />
+          </div>
+        )}
+        <HudStrip view={view} onPopup={setPopup} />
+        <Belt hero={hero} onPick={setPopup} />
+      </section>
+
+      <div className="grid gap-1 px-1 text-sm text-muted">
+        <span className="flex flex-wrap gap-1.5">
+          <span className="chip">{hero.xpNext === null ? t('lab.xpMax', { n: hero.xp }) : t('lab.xp', { n: hero.xp, m: hero.xpNext })}</span>
+          {hero.carriedGold > 0 && <span className="chip text-[#f1c75b]">{t('lab.carried', { n: hero.carriedGold })}</span>}
+        </span>
+        {hero.staminaNextAt && <span>{t('hero.stamina')} {hero.stamina}/{hero.staminaMax} · {t('lab.staminaNext', { time: formatDuration(t, new Date(hero.staminaNextAt).getTime() - now) })}</span>}
+        {hero.hp < hero.maxHp && room.type !== 'camp' && <span>{t('lab.recovering')}</span>}
+        {room.restedAt && <span>{t('lab.restedAt', { time: formatClock(locale, room.restedAt) })}</span>}
         {room.vault && (
-          <p className="m-0 px-1 text-sm text-gold">
+          <span className="text-gold">
             {room.vault.state === 'sealed' && room.vault.opensAt
               ? t('lab.vault.sealed', { time: formatClock(locale, room.vault.opensAt) })
               : t(`lab.vault.${room.vault.state}`)}
-          </p>
+          </span>
         )}
-      </section>
-
+      </div>
+      {view.season.omen && <OmenNote omen={view.season.omen} />}
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
 
-      {facing && <FacingPanel facing={facing} view={view} busy={busy} act={act} />}
-
-      {room.eventView && <EventPanel event={room.eventView} view={view} busy={busy} act={act} />}
-
-      {view.hero.potions > 0 && view.hero.hp < view.hero.maxHp && (
-        <button type="button" className="btn" disabled={busy} onClick={() => void act(drinkPotion)}>
-          {t('lab.drink', { n: view.hero.potions })}
+      {facing && aside && (
+        <button type="button" className="btn btn-primary" onClick={() => setAside(false)}>{t('lab.decide')}</button>
+      )}
+      {!facing && event && !eventCard && (
+        <button
+          type="button"
+          className={`btn grid gap-0.5 ${eventOpen ? 'btn-primary' : ''}`}
+          onClick={() => (eventOpen ? setAside(false) : setPeek(true))}
+        >
+          <span>{t(`event.${event.kind}` as MessageKey)}</span>
+          <span className="text-xs font-normal opacity-80">{eventOpen ? t('lab.eventWaiting') : t('event.done')}</span>
         </button>
       )}
 
@@ -309,14 +350,14 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         <p className="m-0 px-1 text-sm text-muted">{t('facing.blocked')}</p>
       ) : (
         <section className="grid gap-2">
-          <span className="sub-heading">{t('lab.doors')}</span>
+          <span className="sub-heading">{t('lab.whereNext')}</span>
           {exits.map((exit) => (
             <ExitButton key={exit.to} exit={exit} disabled={busy} onMove={move} />
           ))}
         </section>
       )}
 
-      {(room.type === 'stairs' || canAscend || canLeave || view.hero.portalScrolls > 0) && (
+      {(room.type === 'stairs' || canAscend || canLeave) && (
         <section className="grid gap-2">
           {room.type === 'stairs' && (
             <button type="button" className="btn btn-primary" disabled={busy} onClick={() => walk(api.descend)}>
@@ -333,33 +374,189 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
               {t('lab.leave')}
             </button>
           )}
-          {view.hero.portalScrolls > 0 && !canLeave && (
-            <button type="button" className="btn" disabled={busy} onClick={() => {
-                play('page');
-                void act(api.readPortal);
-              }}>
-              {t('lab.portal', { n: view.hero.portalScrolls })}
-            </button>
-          )}
         </section>
       )}
 
       {view.graves.length > 0 && <Graves view={view} busy={busy} act={act} />}
 
-      <section className="panel grid gap-2 p-3">
-        <span className="sub-heading">{t('lab.map', { n: floor.number })}</span>
-        <FloorMap
-          width={floor.width}
-          height={floor.height}
-          map={view.map!}
-          current={room.id}
-          banner={view.hero.banner}
-          exits={exits}
-          disabled={busy || facing !== null}
-          onMove={move}
-        />
-      </section>
+      {facingCard && <FacingCard facing={facing} view={view} busy={busy} act={act} onAside={() => setAside(true)} />}
+      {eventCard && (
+        <CenterModal
+          label={t(`event.${event.kind}` as MessageKey)}
+          head={<span className="sub-heading">{t(`event.${event.kind}` as MessageKey)}</span>}
+          onClose={() => (eventOpen ? setAside(true) : setPeek(false))}
+          closeLabel={eventOpen ? t('lab.lookAround') : t('close')}
+          width={420}
+        >
+          <EventPanel event={event} view={view} busy={busy} act={act} />
+        </CenterModal>
+      )}
+      {popup === 'map' && (
+        <CenterModal
+          label={t('lab.map', { n: floor.number })}
+          head={<span className="sub-heading">{t('lab.map', { n: floor.number })}</span>}
+          onClose={() => setPopup(null)}
+          width={520}
+        >
+          <FloorMap
+            width={floor.width}
+            height={floor.height}
+            map={view.map!}
+            current={room.id}
+            banner={hero.banner}
+            exits={exits}
+            disabled={busy || facing !== null}
+            onMove={move}
+          />
+        </CenterModal>
+      )}
+      {popup === 'bag' && <BagCard onClose={() => setPopup(null)} />}
+      {popup && typeof popup === 'object' && 'feature' in popup && <FeatureCard pick={popup.feature} onClose={() => setPopup(null)} />}
+      {popup && typeof popup === 'object' && 'kit' in popup && (
+        <KitCard pick={popup.kit} view={view} busy={busy} onClose={() => setPopup(null)} act={act} />
+      )}
     </>
+  );
+}
+
+/** The Hero over the top of the Room: portrait, level and Floor, health and Stamina, and the Map and Bag. */
+function HudStrip({ view, onPopup }: { view: LabyrinthView; onPopup: (popup: Popup) => void }) {
+  const { t } = useI18n();
+  const hero = view.hero;
+  const ready = hero.xpNext !== null && hero.xp >= hero.xpNext;
+  // An icon instead of the word keeps both bars on one line in either language.
+  const bar = (value: number, max: number, color: string, label: string, icon: string) => (
+    <div className="grid gap-0.5" title={`${label} ${value}/${max}`} aria-label={`${label} ${value}/${max}`} role="img">
+      <div className="flex items-center gap-1 text-[11px] leading-none text-bone">
+        <svg viewBox="0 0 24 24" className="size-3 shrink-0" fill={color} aria-hidden="true"><path d={icon} /></svg>
+        {value}/{max}
+      </div>
+      <div className="h-[5px] border border-black bg-[#2a211a]"><div className="h-full" style={{ width: `${Math.round((value / max) * 100)}%`, background: color }} /></div>
+    </div>
+  );
+  const round = 'grid size-11 shrink-0 place-items-center rounded-full border border-brass bg-[rgb(21_18_15/0.88)] p-0 text-gold shadow-[0_0_0_1px_#000] no-underline';
+  return (
+    <div className="absolute inset-x-0 top-0 flex items-center gap-2.5 border-b border-brass-dim/70 bg-[rgb(11_10_9/0.8)] px-3 py-2">
+      <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={44} />
+      <div className="grid min-w-0 flex-1 gap-1">
+        <div className="flex items-baseline gap-2">
+          <span className="truncate font-head text-[17px] leading-tight font-extrabold">{hero.name}</span>
+          <span className="truncate text-xs text-muted">{t('lab.hud', { level: hero.level, floor: view.floor!.number })}</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {bar(hero.hp, hero.maxHp, '#c23030', t('hero.health'), 'M12 21s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9z')}
+          {bar(hero.stamina, hero.staminaMax, '#c9a96a', t('hero.stamina'), 'M8 2c2.2 0 3.5 2.4 3.5 5.5S10.2 13 8 13 4.5 10.6 4.5 7.5 5.8 2 8 2zM5.5 15h5v2.5a2.5 2.5 0 0 1-5 0V15zM16 6c2.2 0 3.5 2.4 3.5 5.5S18.2 17 16 17s-3.5-2.4-3.5-5.5S13.8 6 16 6zM13.5 19h5v.5a2.5 2.5 0 0 1-5 0V19z')}
+        </div>
+      </div>
+      {ready && (
+        <NavLink to="/heroes" aria-label={t('lab.levelUp')} title={t('lab.levelUp')} className={`${round} border-gold font-head text-lg shadow-[0_0_12px_rgb(224_184_106/0.5)]`}>✦</NavLink>
+      )}
+      <button type="button" aria-label={t('lab.mapButton')} title={t('lab.mapButton')} className={round} onClick={() => onPopup('map')}>
+        <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14" />
+        </svg>
+      </button>
+      <button type="button" aria-label={t('lab.bagButton')} title={t('lab.bagButton')} className={round} onClick={() => onPopup('bag')}>
+        <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 0 1 6 0v2" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+/** A class feature from the belt: what it does now, its uses, and what it becomes (D2). */
+function FeatureCard({ pick, onClose }: { pick: FeatureView; onClose: () => void }) {
+  const { t } = useI18n();
+  const text = useText();
+  return (
+    <CenterModal
+      label={text(pick.name)}
+      onClose={onClose}
+      head={
+        <div className="flex items-center gap-3">
+          <span className={`grid size-14 shrink-0 place-items-center rounded-[2px] border bg-[#241c12] ${pick.kind === 'locked' ? 'border-line text-brass-dim' : 'border-gold text-gold'}`}>
+            <BeltIcon name={pick.icon} className="size-8" />
+          </span>
+          <div className="grid gap-0.5">
+            <span className="font-head text-[22px] leading-tight font-extrabold">{text(pick.name)}</span>
+            <span className="text-sm text-muted">{pick.uses ? t('belt.kind.rest', { left: pick.uses.left, of: pick.uses.of }) : t(`belt.kind.${pick.kind}`)}</span>
+          </div>
+        </div>
+      }
+    >
+      <p className="m-0 text-[15px] leading-snug">{text(pick.now)}</p>
+      {pick.next && <p className="m-0 text-sm text-muted"><span className="text-bone">{t('belt.later')}</span> {text(pick.next)}</p>}
+      {pick.kind === 'rest' && <p className="m-0 text-sm text-muted">{t('belt.rest')}</p>}
+      <button type="button" className="btn" onClick={onClose}>{t('close')}</button>
+    </CenterModal>
+  );
+}
+
+/** A Bag item on the belt: what it does, how many, and its use when it has one here. */
+function KitCard({ pick, view, busy, act, onClose }: { pick: KitItemView; view: LabyrinthView; busy: boolean; act: Act; onClose: () => void }) {
+  const { t } = useI18n();
+  const text = useText();
+  const hurt = view.hero.hp < view.hero.maxHp;
+  return (
+    <CenterModal
+      label={text(pick.name)}
+      onClose={onClose}
+      head={
+        <div className="flex items-center gap-3">
+          <span className="grid size-14 shrink-0 place-items-center rounded-[2px] border border-gold bg-[#241c12] text-gold">
+            <BeltIcon name={pick.base} className="size-8" />
+          </span>
+          <div className="grid gap-0.5">
+            <span className="font-head text-[22px] leading-tight font-extrabold">{text(pick.name)}</span>
+            <span className="text-sm text-muted">{t('belt.count', { n: pick.count })}</span>
+          </div>
+        </div>
+      }
+    >
+      <p className="m-0 text-[15px] leading-snug">{text(pick.about)}</p>
+      {pick.base === 'potion' && (
+        <button type="button" className="btn btn-primary" disabled={busy || !hurt} onClick={() => { onClose(); void act(drinkPotion); }}>
+          {hurt ? t('belt.drink') : t('belt.fullHealth')}
+        </button>
+      )}
+      {pick.base === 'scroll-portal' && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => { onClose(); play('page'); void act(api.readPortal); }}>
+          {t('belt.read')}
+        </button>
+      )}
+      {(pick.base === 'bomb-fire' || pick.base === 'bomb-smoke') && <p className="m-0 text-sm text-muted">{t('belt.bomb')}</p>}
+      <button type="button" className="btn" onClick={onClose}>{t('close')}</button>
+    </CenterModal>
+  );
+}
+
+/** Everything in the Bag, one tap from anywhere in the Labyrinth. */
+function BagCard({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
+  const text = useText();
+  const { openSheet } = useSheet();
+  const { data } = useLoad(api.myHero);
+  const hero = data?.hero;
+  return (
+    <CenterModal
+      label={t('lab.bagButton')}
+      head={<span className="sub-heading">{hero ? t('hero.bag', { n: hero.bag.length, m: hero.bagSlots }) : t('lab.bagButton')}</span>}
+      onClose={onClose}
+      width={440}
+    >
+      {!hero ? (
+        <p className="m-0 text-muted">{t('loading')}</p>
+      ) : hero.bag.length === 0 ? (
+        <p className="m-0 text-muted">{t('lab.bagEmpty')}</p>
+      ) : (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(62px,1fr))] gap-2">
+          {hero.bag.map((item) => (
+            <ItemChip key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />
+          ))}
+        </div>
+      )}
+    </CenterModal>
   );
 }
 
@@ -373,7 +570,7 @@ const THREAT_TONE: Record<Threat, string> = {
 
 function ThreatChip({ threat }: { threat: Threat }) {
   const { t } = useI18n();
-  return <span className={`chip ml-auto self-center font-head font-extrabold ${THREAT_TONE[threat]}`}>{t(`threat.${threat}`)}</span>;
+  return <span className={`chip bg-[rgb(22_18_14/0.9)] font-head font-extrabold ${THREAT_TONE[threat]}`}>{t(`threat.${threat}`)}</span>;
 }
 
 /** The monsters in the doorway above, the Hero below, as in the fight that may follow. */
@@ -382,7 +579,7 @@ function FacingTokens({ facing, view }: { facing: Facing; view: LabyrinthView })
   const size = facing.monsters.length <= 2 ? 78 : 62;
   return (
     <>
-      <div className="absolute inset-x-3 top-[12%] flex flex-wrap justify-center gap-3">
+      <div className="absolute inset-x-3 top-[116px] flex flex-wrap justify-center gap-3">
         {facing.monsters.map((m) => (
           <div key={m.key} className="grid justify-items-center gap-1" style={{ width: Math.max(size, 72) }}>
             <Token art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={m.boss && facing.monsters.length === 1 ? 118 : size} />
@@ -391,7 +588,7 @@ function FacingTokens({ facing, view }: { facing: Facing; view: LabyrinthView })
           </div>
         ))}
       </div>
-      <div className="absolute inset-x-0 bottom-[8%] flex justify-center">
+      <div className="absolute inset-x-0 bottom-[66px] flex justify-center">
         <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={78} />
       </div>
     </>
@@ -399,8 +596,9 @@ function FacingTokens({ facing, view }: { facing: Facing; view: LabyrinthView })
 }
 
 /** Monsters in the doorway: the Threat, the Stance, and Fight, Sneak past or Retreat. */
-function FacingPanel({ facing, view, busy, act }: { facing: Facing; view: LabyrinthView; busy: boolean; act: Act }) {
+function FacingCard({ facing, view, busy, act, onAside }: { facing: Facing; view: LabyrinthView; busy: boolean; act: Act; onAside: () => void }) {
   const { t } = useI18n();
+  const text = useText();
   const stance = view.hero.stance;
   const threat = facing.threat[stance];
   const { fire, smoke } = view.hero.bombs;
@@ -411,7 +609,23 @@ function FacingPanel({ facing, view, busy, act }: { facing: Facing; view: Labyri
     void act(call);
   };
   return (
-    <section className="panel grid gap-3 p-3.5">
+    <CenterModal
+      label={t('facing.title')}
+      onClose={onAside}
+      closeLabel={t('lab.lookAround')}
+      width={420}
+      head={
+        <div className="flex items-center gap-2.5">
+          <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={44} />
+          <span className="font-head text-sm font-extrabold text-muted">{t('facing.vs')}</span>
+          <div className="flex min-w-0 flex-wrap gap-1">
+            {facing.monsters.map((m) => (
+              <Token key={m.key} art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={44} />
+            ))}
+          </div>
+        </div>
+      }
+    >
       <div className="grid gap-1">
         <span className="sub-heading">{t('facing.threat')}</span>
         <p className="m-0 text-[15px]">
@@ -469,7 +683,7 @@ function FacingPanel({ facing, view, busy, act }: { facing: Facing; view: Labyri
           <span className="text-xs font-normal text-muted">{t('facing.retreatHint')}</span>
         </button>
       </div>
-    </section>
+    </CenterModal>
   );
 }
 
@@ -507,8 +721,8 @@ function Foes({ facing }: { facing: Facing }) {
 }
 
 const MARKER_PLACE: Record<Direction, string> = {
-  n: 'top-1.5 left-1/2 -translate-x-1/2',
-  s: 'bottom-1.5 left-1/2 -translate-x-1/2',
+  n: 'top-[70px] left-1/2 -translate-x-1/2',
+  s: 'bottom-[62px] left-1/2 -translate-x-1/2',
   e: 'right-1.5 top-1/2 -translate-y-1/2',
   w: 'left-1.5 top-1/2 -translate-y-1/2',
 };
@@ -590,8 +804,6 @@ function Graves({ view, busy, act }: { view: LabyrinthView; busy: boolean; act: 
   );
 }
 
-/** Levels where a Hero has something to choose: its Path, then growth. */
-
 /** What the last action brought: the fight's outcome, XP, gold, loot and anything to know. */
 function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => void }) {
   const { t } = useI18n();
@@ -608,51 +820,49 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
     if (result.died && !result.fight) play('grave');
   }, [result]);
 
+  const title = outcome ? t(`fight.${outcome}`) : t('report.title');
   return (
-    <section className="panel anim-pop grid gap-2.5 p-3.5" aria-live="polite">
-      <div className="flex items-start justify-between gap-3">
-        {outcome ? (
-          <span
-            className={`font-head text-2xl font-extrabold ${
-              outcome === 'victory' ? 'text-gold' : outcome === 'dead' ? 'text-tier-mythic' : 'text-bone'
-            }`}
-          >
-            {t(`fight.${outcome}`)}
-          </span>
-        ) : (
-          <span />
-        )}
-        <button type="button" className="chip" onClick={onClose}>{t('close')}</button>
-      </div>
-      {(result.xp > 0 || result.gold > 0 || result.levelUp !== null) && (
-        <div className="flex flex-wrap gap-1.5">
-          {result.levelUp !== null && (
-            <NavLink to="/heroes" className="chip border-gold text-gold no-underline">{t('report.levelUp', { n: result.levelUp })}</NavLink>
-          )}
-          {result.xp > 0 && <span className="chip">{t('report.xp', { n: result.xp })}</span>}
-          {result.gold > 0 && <span className="chip text-[#f1c75b]">{t('report.gold', { n: result.gold })}</span>}
-        </div>
-      )}
-      {result.loot.length > 0 && (
-        <div className="grid gap-1.5">
-          <span className="sub-heading">{t('report.loot')}</span>
-          <div className="flex flex-wrap gap-2">
-            {result.loot.map((item) => (
-              <ItemChip key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />
-            ))}
+    <CenterModal
+      label={title}
+      onClose={onClose}
+      head={
+        <span className={`font-head text-2xl font-extrabold ${outcome === 'victory' ? 'text-gold' : outcome === 'dead' ? 'text-tier-mythic' : 'text-bone'}`}>
+          {title}
+        </span>
+      }
+    >
+      <div className="grid gap-2.5" aria-live="polite">
+        {(result.xp > 0 || result.gold > 0 || result.levelUp !== null) && (
+          <div className="flex flex-wrap gap-1.5">
+            {result.levelUp !== null && (
+              <NavLink to="/heroes" className="chip border-gold text-gold no-underline">{t('report.levelUp', { n: result.levelUp })}</NavLink>
+            )}
+            {result.xp > 0 && <span className="chip">{t('report.xp', { n: result.xp })}</span>}
+            {result.gold > 0 && <span className="chip text-[#f1c75b]">{t('report.gold', { n: result.gold })}</span>}
           </div>
-        </div>
-      )}
-      {result.duel && (
-        <p className="m-0 font-head text-[15px] font-bold">
-          {t('report.duel', { a: result.duel.hero, b: result.duel.goblin })}
-        </p>
-      )}
-      {result.checks.map((c, i) => <CheckLine key={i} check={c} />)}
-      {result.notices.map((line, i) => (
-        <p key={i} className="m-0 text-[15px]">{text(line)}</p>
-      ))}
-    </section>
+        )}
+        {result.loot.length > 0 && (
+          <div className="grid gap-1.5">
+            <span className="sub-heading">{t('report.loot')}</span>
+            <div className="flex flex-wrap gap-2">
+              {result.loot.map((item) => (
+                <ItemChip key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />
+              ))}
+            </div>
+          </div>
+        )}
+        {result.duel && (
+          <p className="m-0 font-head text-[15px] font-bold">
+            {t('report.duel', { a: result.duel.hero, b: result.duel.goblin })}
+          </p>
+        )}
+        {result.checks.map((c, i) => <CheckLine key={i} check={c} />)}
+        {result.notices.map((line, i) => (
+          <p key={i} className="m-0 text-[15px]">{text(line)}</p>
+        ))}
+        <button type="button" className="btn btn-primary mt-1" onClick={onClose}>{t('report.dismiss')}</button>
+      </div>
+    </CenterModal>
   );
 }
 

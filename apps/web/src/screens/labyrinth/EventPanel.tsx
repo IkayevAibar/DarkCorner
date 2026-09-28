@@ -47,9 +47,8 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
   const done = event.done && event.kind !== 'merchant';
 
   return (
-    <section className="panel grid gap-3 p-3.5">
+    <section className="grid gap-3">
       <div className="grid gap-0.5">
-        <span className="sub-heading">{t(`event.${event.kind}` as MessageKey)}</span>
         <p className="m-0">{intro}</p>
         {done && <p className="m-0 text-sm text-muted italic">{t('event.done')}</p>}
       </div>

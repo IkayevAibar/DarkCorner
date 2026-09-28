@@ -1,10 +1,10 @@
 import type { Hero, HeroFloor, Player, Season } from '@prisma/client';
-import type { Direction, EventAction, Exit, FaceAction, Facing, LabyrinthResult, LabyrinthView, Stance } from '@dark/shared';
+import { type Direction, type EventAction, type Exit, type FaceAction, type Facing, KIT_BASES, type LabyrinthResult, type LabyrinthView, type Stance } from '@dark/shared';
 import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
   PATH_MASTERY, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
-  threatOf, tierRank,
+  threatOf, tierRank, baseById, heroFeatures, itemAbout,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -209,6 +209,13 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       fire: stackTotal(hero, 'bomb-fire'),
       smoke: stackTotal(hero, 'bomb-smoke'),
     },
+    features: heroFeatures({
+      class: hero.class as ClassId, level: hero.level, path: hero.path as PathId | null, int: hero.int, wis: hero.wis,
+      spellUses: hero.spellUses, healUses: hero.healUses,
+    }),
+    // What the Bag lends the belt, in the order a Run reaches for it.
+    kit: KIT_BASES.map((base) => ({ base, count: stackTotal(hero, base), name: baseById(base).name, about: itemAbout(base)! }))
+      .filter((k) => k.count > 0),
   };
   const base = {
     hero: heroPart,
