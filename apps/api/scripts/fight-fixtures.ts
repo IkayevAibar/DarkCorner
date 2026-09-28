@@ -106,7 +106,8 @@ const SCENARIOS: Record<string, Scenario> = {
   'hellhound-breath-burn': {
     hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.webp', banner: BANNER_COLORS[0] },
     level: 8, floor: 8, kind: 'fight', health: 1, potions: 2,
-    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'power' && e.power === 'breath') && has(r, (e) => e.type === 'tick'),
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'power' && e.power === 'breath') && has(r, (e) => e.type === 'tick')
+      && has(r, (e) => e.type === 'expire' && e.status === 'burning'),
   },
   'abjurer-ward': {
     hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] },
@@ -136,12 +137,34 @@ const SCENARIOS: Record<string, Scenario> = {
   'spider-poison': {
     hero: { name: 'Borin', race: 'dwarf', class: 'cleric', portrait: '/art/portraits/dwarf-cleric-1.webp', banner: BANNER_COLORS[3] },
     level: 2, floor: 2, kind: 'fight', health: 1, potions: 1,
-    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'status' && e.status === 'poisoned') && has(r, (e) => e.type === 'tick' && e.status === 'poisoned'),
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'status' && e.status === 'poisoned') && has(r, (e) => e.type === 'expire' && e.status === 'poisoned'),
   },
   'bat-swarm-bomb': {
     hero: { name: 'Pip', race: 'halfling', class: 'rogue', portrait: '/art/portraits/halfling-rogue-1.webp', banner: BANNER_COLORS[5] },
     level: 3, floor: 3, kind: 'fight', health: 1, potions: 1, bomb: true,
     want: (r, m) => r.outcome === 'victory' && m.some((x) => x.id === 'bat-swarm') && m.length >= 2,
+  },
+  'mummy-fear-fades': {
+    hero: { name: 'Borin', race: 'dwarf', class: 'cleric', portrait: '/art/portraits/dwarf-cleric-1.webp', banner: BANNER_COLORS[3] },
+    level: 5, floor: 5, kind: 'fight', health: 1, potions: 1,
+    want: (r, m) => r.outcome === 'victory' && m.some((x) => x.id === 'mummy')
+      && has(r, (e) => e.type === 'status' && e.status === 'frightened') && has(r, (e) => e.type === 'expire' && e.status === 'frightened')
+      && r.events.findIndex((e) => e.type === 'expire') < r.events.length - 6,
+  },
+  'shaman-mends': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.webp', banner: BANNER_COLORS[0] },
+    level: 2, floor: 2, kind: 'fight', health: 1, potions: 1,
+    want: (r, m) => r.outcome === 'victory' && m.some((x) => x.id === 'goblin-shaman') && has(r, (e) => e.type === 'power' && e.power === 'mend'),
+  },
+  'hag-drains': {
+    hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] },
+    level: 9, floor: 8, kind: 'fight', health: 1, potions: 2,
+    want: (r, m) => r.outcome === 'victory' && r.events.length <= 55 && m.some((x) => x.id === 'night-hag') && has(r, (e) => e.type === 'power' && e.power === 'drain'),
+  },
+  'devil-rages': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.webp', banner: BANNER_COLORS[0] },
+    level: 9, floor: 8, kind: 'fight', health: 1, potions: 2,
+    want: (r, m) => r.outcome === 'victory' && r.events.length <= 62 && m.some((x) => x.id === 'chain-devil') && has(r, (e) => e.type === 'power' && e.power === 'enrage'),
   },
   'banshee-wail': {
     hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] },

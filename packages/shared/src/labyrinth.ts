@@ -94,6 +94,12 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('tick'), target: z.string(), damage: z.number().int(), hp: z.number().int(), status: z.literal('poisoned').optional() }),
   /** Paralyzed: the turn is lost. */
   z.object({ type: z.literal('held'), target: z.string() }),
+  /**
+   * A lasting effect wears off while the fight goes on: burning and poison after their last
+   * tick, paralysis after the lost turn, fear at the end of its last round. Going down
+   * (`down`) or falling (`defeated`) ends them too, without this event.
+   */
+  z.object({ type: z.literal('expire'), target: z.string(), status: statusSchema }),
   /** A monster runs off, a thief with what it stole. */
   z.object({ type: z.literal('fled'), key: z.string() }),
   z.object({ type: z.literal('defeated'), key: z.string() }),
