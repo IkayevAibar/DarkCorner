@@ -24,6 +24,8 @@ const ACTION_SOUND: Partial<Record<EventAction['action'], Sound>> = {
   free: 'latch',
   read: 'page',
   search: 'loot',
+  eat: 'page',
+  cut: 'latch',
 };
 
 const ALTAR_TIERS = ['common', 'uncommon', 'rare'];
@@ -193,6 +195,14 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
 
       {event.kind === 'bone-pile' && !event.done && (
         <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'search' })}>{t('event.bone-pile.search')}</button>
+      )}
+
+      {event.kind === 'cookpot' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'eat' })}>{t('event.cookpot.eat')}</button>
+      )}
+
+      {event.kind === 'webbed-body' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'cut' })}>{t('event.webbed-body.cut')}</button>
       )}
     </section>
   );

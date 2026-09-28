@@ -199,6 +199,31 @@ export function searchBones(rng: Rng, floor: number): { rise: boolean; gold: num
 }
 
 
+// ─── Goblin cookpot ───────────────────────────────────────────────────────
+
+export const cookpotDc = (floor: number): number => 10 + Math.ceil(floor / 2);
+/** Stamina a good bowl gives back (v0). */
+export const COOKPOT_STAMINA = 3;
+
+/** Tasting the stew: a CON Check. Success fills (a third of full health and some Stamina); failing, it was not meat. */
+export function tasteStew(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; good: boolean } {
+  const result = roll(rng, cookpotDc(o.floor), o);
+  return { check: result, good: result.success };
+}
+
+// ─── Webbed body ──────────────────────────────────────────────────────────
+
+export const webDc = (floor: number): number => 11 + Math.ceil(floor / 2);
+
+/**
+ * Cutting a cocooned body down: a DEX Check. Its purse, and half the time an Item
+ * with the odds of a Floor deeper, either way; failing, the web's owner drops first.
+ */
+export function cutWeb(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; gold: number; tier: Tier | null } {
+  const result = roll(rng, webDc(o.floor), o);
+  return { check: result, gold: rng.int(10, 30) * (o.floor + 1), tier: rng.chance(0.5) ? rollTier(rng, dropOdds(Math.min(10, o.floor + 1))) : null };
+}
+
 // ─── Riddling statue ──────────────────────────────────────────────────────
 
 /** A right answer teaches this much XP per Floor number; a wrong one burns this share of full health (v0). */

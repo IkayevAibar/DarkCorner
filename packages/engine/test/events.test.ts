@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ALTAR_SUCCESS, LOCKPICK_DC, SHRINE_DC, cacheContents, createRng, goblinDice, merchantWares, nextTier, offerAtAltar,
   pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones, RIDDLES, statueRiddle,
+  cookpotDc, cutWeb, tasteStew, webDc,
 } from '../src/index.js';
 
 const plain = { modifier: 0, advantage: false, rerollOnes: false };
@@ -167,6 +168,25 @@ describe('the newer Event rooms', () => {
     for (let i = 0; i < 2000; i++) if (searchBones(createRng(`b-${i}`), 3).rise) risen++;
     expect(risen / 2000).toBeGreaterThan(0.3);
     expect(risen / 2000).toBeLessThan(0.4);
+  });
+
+  it('the Goblin cookpot fills on a CON Check against 10 + half the Floor', () => {
+    expect([1, 2, 3].map(cookpotDc)).toEqual([11, 11, 12]);
+    for (let i = 0; i < 200; i++) {
+      const r = tasteStew(createRng(`s-${i}`), { ...plain, modifier: 2, floor: 2 });
+      expect(r.good).toBe(r.check.success);
+      expect(r.check.dc).toBe(11);
+    }
+  });
+
+  it('the Webbed body pays its purse either way, on a DEX Check against 11 + half the Floor', () => {
+    expect([1, 2, 3].map(webDc)).toEqual([12, 12, 13]);
+    for (let i = 0; i < 200; i++) {
+      const r = cutWeb(createRng(`w-${i}`), { ...plain, floor: 2 });
+      expect(r.gold).toBeGreaterThanOrEqual(30);
+      expect(r.gold).toBeLessThanOrEqual(90);
+      expect(r.check.dc).toBe(12);
+    }
   });
 });
 

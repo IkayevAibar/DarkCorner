@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FLOOR_COUNT, type Floor, doorsOf, generateLabyrinth } from '../src/index.js';
+import { FIRST_EVENT_KINDS, FLOOR_COUNT, type Floor, WARREN_EVENT_KINDS, doorsOf, generateLabyrinth } from '../src/index.js';
 
 /** Rooms reachable from the landing through Doors of the given kinds. */
 function reachable(floor: Floor, kinds: string[]): Set<number> {
@@ -91,6 +91,27 @@ describe('generateLabyrinth', () => {
     expect(share('fight')).toBeLessThan(0.62);
     expect(share('event')).toBeGreaterThan(0.08);
     expect(share('treasure')).toBeGreaterThan(0.04);
+  });
+
+  it('rolls the warrens’ later event kinds onto about a quarter of their Event rooms, and nowhere else', () => {
+    let events = 0;
+    let later = 0;
+    for (let i = 0; i < 20; i++) {
+      for (const floor of generateLabyrinth(`warren-${i}`).floors) {
+        for (const room of floor.rooms) {
+          if (room.type !== 'event') continue;
+          const isLater = (WARREN_EVENT_KINDS as readonly string[]).includes(room.event!);
+          if (floor.theme !== 'warrens') {
+            expect((FIRST_EVENT_KINDS as readonly string[]).includes(room.event!), room.event!).toBe(true);
+            continue;
+          }
+          events++;
+          if (isLater) later++;
+        }
+      }
+    }
+    expect(later / events).toBeGreaterThan(0.15);
+    expect(later / events).toBeLessThan(0.35);
   });
 
   it('gives every Room an event kind only when it is an Event room', () => {

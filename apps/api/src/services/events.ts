@@ -5,7 +5,7 @@ import {
   MERCHANT_MARKUP, RACE_DEFS, type RaceId, SUFFIXES, type Tier, abilityModifier, baseById, buybackPrice, cacheContents,
   chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
   pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
-  RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle,
+  RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
@@ -482,6 +482,58 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       out.gold += gold;
       if (bones.tier) await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[bones.tier, 1]], source: 'bone-pile' }, out);
       out.notices.push(t('Among the bones: an old adventurer’s purse.', 'Среди костей — кошель давнего искателя приключений.'));
+      return;
+    }
+
+    case 'cookpot': {
+      if (action.action !== 'eat') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      // A Dwarf's stomach has seen worse.
+      const stew = await withLuck(tx, hero, t('Constitution against the stew', 'Телосложение против похлёбки'), () => tasteStew(rng, {
+        modifier: mod(hero.con), advantage: hero.race === 'dwarf', rerollOnes: race(hero).rerollOnes, floor: floor.number,
+      }), out);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      await logRoll(tx, hero, rollSeed, { event: kind, good: stew.good });
+      const full = fullHealth(hero);
+      if (stew.good) {
+        const hp = Math.min(full, hero.hp + Math.round(full / 3));
+        const before = currentStamina(hero.stamina, hero.staminaAt, now).stamina;
+        const stamina = addStamina(hero.stamina, hero.staminaAt, COOKPOT_STAMINA, now);
+        await tx.hero.update({ where: { id: hero.id }, data: { hp, stamina: stamina.stamina, staminaAt: stamina.savedAt } });
+        out.notices.push(t(
+          `Greasy, hot and filling: +${hp - hero.hp} health, +${stamina.stamina - before} Stamina.`,
+          `Жирно, горячо и сытно: +${hp - hero.hp} здоровья, +${stamina.stamina - before} выносливости.`,
+        ));
+        Object.assign(hero, { hp, stamina: stamina.stamina, staminaAt: stamina.savedAt });
+      } else {
+        const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(full * 0.1)));
+        await tx.hero.update({ where: { id: hero.id }, data: { hp: hero.hp - lost } });
+        out.notices.push(t(`It was not meat. ${lost} damage.`, `Это было не мясо. ${lost} урона.`));
+      }
+      return;
+    }
+
+    case 'webbed-body': {
+      if (action.action !== 'cut') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      const rogue = hero.class === 'rogue';
+      const cut = await withLuck(tx, hero, t('Dexterity against the web', 'Ловкость против паутины'), () => cutWeb(rng, {
+        modifier: mod(hero.dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+      }), out);
+      await logRoll(tx, hero, rollSeed, { event: kind, success: cut.check.success, gold: cut.gold, tier: cut.tier });
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      if (!cut.check.success) {
+        out.notices.push(t('The web shakes, and its owner drops from the dark!', 'Паутина дрожит, и из темноты падает её хозяин!'));
+        const result = await fight(tx, hero, season, floor, room, 'fight', out, {
+          monsters: [instantiate(monsterById('giant-spider'), floor.number, 'm0')], clears: false, surprise: 'hero',
+        });
+        if (result !== 'victory') return;
+      }
+      const gold = withGoldFind(hero, cut.gold);
+      await earnCarried(tx, hero, gold);
+      out.gold += gold;
+      if (cut.tier) await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[cut.tier, 1]], source: 'webbed-body' }, out);
+      out.notices.push(t('The cocoon splits open: an old adventurer’s purse.', 'Кокон лопается: кошель давнего искателя приключений.'));
       return;
     }
 

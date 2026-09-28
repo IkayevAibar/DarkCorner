@@ -1,5 +1,5 @@
 import {
-  EVENT_KINDS, type EventKind, FLOOR_COUNT, type RoomType, THEMES, type ThemeId, cluesFor, floorSize, themeOf,
+  FIRST_EVENT_KINDS, WARREN_EVENT_KINDS, type EventKind, FLOOR_COUNT, type RoomType, THEMES, type ThemeId, cluesFor, floorSize, themeOf,
 } from './content/floors.js';
 import type { Text } from './content/text.js';
 import { type Rng, createRng } from './rng.js';
@@ -63,9 +63,24 @@ export interface Labyrinth {
 export function generateLabyrinth(seed: string): Labyrinth {
   const floors: Floor[] = [];
   for (let n = 1; n <= FLOOR_COUNT; n++) {
-    floors.push(hideRooms(createRng(`${seed}:floor:${n}:secrets`), generateFloor(createRng(`${seed}:floor:${n}`), n)));
+    const floor = hideRooms(createRng(`${seed}:floor:${n}:secrets`), generateFloor(createRng(`${seed}:floor:${n}`), n));
+    floors.push(warrenEvents(createRng(`${seed}:floor:${n}:warren-events`), floor));
   }
   return { seed, floors };
+}
+
+/** A quarter of the goblin warrens' event Rooms hold one of the kinds added later (v0). */
+export const WARREN_EVENT_SHARE = 0.25;
+
+/**
+ * The warrens' later event kinds, rolled on their own seed after the Floor is made:
+ * a Labyrinth generated before they existed keeps its layout, Clues and every
+ * other event.
+ */
+function warrenEvents(rng: Rng, floor: Floor): Floor {
+  if (floor.theme !== 'warrens') return floor;
+  const rooms = floor.rooms.map((r) => (r.type === 'event' && rng.chance(WARREN_EVENT_SHARE) ? { ...r, event: rng.pick(WARREN_EVENT_KINDS) } : r));
+  return { ...floor, rooms };
 }
 
 /** Rooms that can become hidden rooms: plain ones, a dead end with a single ordinary Door, a few steps from the landing. */
@@ -280,7 +295,7 @@ function generateFloor(rng: Rng, number: number): Floor {
       x: id % width,
       y: Math.floor(id / width),
       type,
-      event: type === 'event' ? rng.pick(EVENT_KINDS) : null,
+      event: type === 'event' ? rng.pick(FIRST_EVENT_KINDS) : null,
       map: rng.pick(THEMES[theme].maps),
     });
   }

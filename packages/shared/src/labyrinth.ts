@@ -208,7 +208,7 @@ export const mapDoorSchema = z.object({ a: z.number().int(), b: z.number().int()
 
 export const EVENT_KINDS = [
   'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
-  'fountain', 'prisoner', 'library', 'bone-pile', 'riddle',
+  'fountain', 'prisoner', 'library', 'bone-pile', 'riddle', 'cookpot', 'webbed-body',
 ] as const;
 export const eventKindSchema = z.enum(EVENT_KINDS);
 export type EventKindId = z.infer<typeof eventKindSchema>;
@@ -254,6 +254,8 @@ export const eventViewSchema = z.discriminatedUnion('kind', [
     right: z.number().int().nullable(),
   }),
   z.object({ kind: z.literal('bone-pile'), done: z.boolean() }),
+  z.object({ kind: z.literal('cookpot'), done: z.boolean() }),
+  z.object({ kind: z.literal('webbed-body'), done: z.boolean() }),
 ]);
 export type EventView = z.infer<typeof eventViewSchema>;
 
@@ -273,6 +275,8 @@ export const eventActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('read') }),
   z.object({ action: z.literal('search') }),
   z.object({ action: z.literal('answer'), choice: z.number().int().min(0).max(2) }),
+  z.object({ action: z.literal('eat') }),
+  z.object({ action: z.literal('cut') }),
 ]);
 export type EventAction = z.infer<typeof eventActionSchema>;
 

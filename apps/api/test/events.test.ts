@@ -252,5 +252,31 @@ describe('Event rooms', () => {
     if (r.fight) expect(r.fight.events[1]).toEqual({ type: 'surprise', side: 'hero' });
     if (!r.fight || r.fight.outcome === 'victory') expect(r.gold).toBeGreaterThan(0);
   });
+
+  it('the Goblin cookpot fills or sickens, with a CON Check on screen, once a day', async () => {
+    const { floor, room } = roomWith('cookpot');
+    expect(floor.number).toBeLessThanOrEqual(3);
+    await placeAt(floor.number, room, { hp: 100, stamina: 5 });
+    const r = await act({ action: 'eat' });
+    expect(r.checks).toHaveLength(1);
+    const after = await hero();
+    if (r.checks[0]!.success) {
+      expect(after.hp).toBeGreaterThan(100);
+      expect(after.stamina).toBe(8);
+    } else {
+      expect(after.hp).toBeLessThan(100);
+    }
+    expect((await post('/api/labyrinth/event', { action: 'eat' })).json().error).toBe('event_done');
+  });
+
+  it('the Webbed body pays its purse, after a spider if the knife slips', async () => {
+    const { floor, room } = roomWith('webbed-body');
+    await placeAt(floor.number, room, { str: 30, dex: 30 });
+    const r = await act({ action: 'cut' });
+    expect(r.checks).toHaveLength(1);
+    if (r.checks[0]!.success) expect(r.fight).toBeNull();
+    else expect(r.fight!.monsters.map((m) => m.name.en)).toEqual(['Giant spider']);
+    if (!r.fight || r.fight.outcome === 'victory') expect(r.gold).toBeGreaterThan(0);
+  });
 });
 

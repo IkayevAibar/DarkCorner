@@ -415,7 +415,10 @@ Small goals give each session a reason to go down today *(v0)*.
 | Library | Read a tome: an INT Check against 11 + half the Floor number (Wizards add proficiency and roll with advantage). Success teaches 60 XP per Floor number; failing by 5 or more, or a natural 1, costs a tenth of full health *(v0)*. |
 | Bone pile | Search: an old adventurer's purse, 10–40 × (Floor + 1) gold and half the time an Item. 35% of the time the bones rise first and strike first: one Skeleton, two from Floor 4 *(v0)*. |
 | Riddling statue | A stone head asks a folk riddle, with three answers to choose from. Right: 50 XP per Floor number, and it points out the Floor's secret Door if the Hero hasn't found it (the room behind goes on the Map). Wrong: its eyes burn 15% of full health, never below 1 *(v0)*. |
+| Goblin cookpot (Floors 1–3) | Taste the stew: a CON Check against 10 + half the Floor (Dwarves with advantage). Success heals a third of full health and gives 3 Stamina; failing, it was not meat: a tenth of full health *(v0)*. |
+| Webbed body (Floors 1–3) | Cut it down: a DEX Check against 11 + half the Floor (Rogues add proficiency and roll with advantage). Its purse, 10–30 × (Floor + 1) gold, and half the time an Item with the odds of a Floor deeper. Failing, a Giant spider drops first and strikes first *(v0)*. |
 
+- **Where they are:** each event Room holds one kind for the whole Season. The goblin cookpot and the webbed body came later: a quarter of the warrens' event Rooms hold one of them, rolled apart from the rest so the other Rooms kept their events *(v0)*.
 - **Daily and personal:** what an Event room holds comes from the Hero, the Room and the day, so leaving and coming back doesn't reroll it. Each Event room works once a day per Hero (the merchant sells until his wares are gone).
 - **Luck:** a Hero with the Lucky charm or the Luckstone rerolls one failed Check or death save per Run and keeps the better roll.
 
