@@ -214,13 +214,20 @@ Every monster has a signature power, so a fight plays differently depending on w
 | 4–6 | Wraith | **Life drain:** heals itself for half the damage it deals |
 | 4–6 | Grave robber | **Thief** and **Quick** |
 | 4–6 | Banshee | **Wail:** as the fight starts, before the first blow, 2d6 to the Hero, WIS save (DC 12) for half |
+| 4–6 | Mummy | **Undying**, and **Terrifying:** a WIS save as the fight starts (DC 11), or 1 round of disadvantage on attacks |
+| 4–6 | Rot grubs | **Swarm**, and **Venom:** a hit calls for a CON save (DC 11), or poison deals 1d6 at the start of the Hero's next 2 turns |
 | 7–9 | Cultist | **Dark mending:** once per fight, instead of attacking, heals an ally below half health by 2d8 |
 | 7–9 | Imp | **Hellfire:** a hit sets the Hero burning, 1d4 at the start of its next 2 turns |
 | 7–9 | Hellhound | **Fire breath:** 3d6, DEX save (DC 13) for half. Ready at the start, and again on a 5–6 on a d6 each turn |
 | 7–9 | Demon brute | **Several attacks:** two a turn |
+| 7–9 | Flame skull | **Hellfire** (1d6 for 2 turns) and **Quick** |
+| 7–9 | Night hag | **Life drain**, and **Terrifying** (DC 13, 1 round) |
+| 7–9 | Chain devil | **Several attacks:** two a turn, and **Rage:** below half health, once, it gains +2 AC and +1 to hit |
 | 10 | Kobold | **Pack hunter** |
 | 10 | Drake | **Fire breath:** 7d6, DC 15 |
 | any | Mimic | Bites before the Hero can move: the Hero is surprised. |
+
+- **One fear a fight:** when several monsters are Terrifying, only the first one's roar calls for a save.
 
 - **Deeper is harder** *(v0)*: gear keeps getting better, so the monsters do too.
   - Each Floor into a theme adds 15% health and +1 to hit and to damage.
@@ -417,8 +424,10 @@ Small goals give each session a reason to go down today *(v0)*.
 | Riddling statue | A stone head asks a folk riddle, with three answers to choose from. Right: 50 XP per Floor number, and it points out the Floor's secret Door if the Hero hasn't found it (the room behind goes on the Map). Wrong: its eyes burn 15% of full health, never below 1 *(v0)*. |
 | Goblin cookpot (Floors 1–3) | Taste the stew: a CON Check against 10 + half the Floor (Dwarves with advantage). Success heals a third of full health and gives 3 Stamina; failing, it was not meat: a tenth of full health *(v0)*. |
 | Webbed body (Floors 1–3) | Cut it down: a DEX Check against 11 + half the Floor (Rogues add proficiency and roll with advantage). Its purse, 10–30 × (Floor + 1) gold, and half the time an Item with the odds of a Floor deeper. Failing, a Giant spider drops first and strikes first *(v0)*. |
+| Sarcophagus (Floors 4–6) | Pry the lid: a STR Check against 11 + half the Floor (Fighters add proficiency and roll with advantage). The grave goods either way: 20–50 × (Floor + 1) gold and an Item with the odds of two Floors deeper. Failing, the lid grinds loud enough to wake its Mummy, which strikes first *(v0)*. |
+| Devil's bargain (Floors 7–9) | A chain devil bound in a circle of salt offers two deals a day, each paid in health: 30–60 × (Floor + 1) gold for a fifth of full health, or an Item of a Tier it shows up front (Rare 60%, Epic 30%, Legendary 9%, Mythic 1%) for a quarter, a third, half or 60% of full health. A deal needs more health than it takes, and only one is made a day. Or banish it: a WIS Check against 12 + half the Floor (Clerics add proficiency and roll with advantage) for 60 XP per Floor number; failing, the devil breaks the circle and fights *(v0)*. |
 
-- **Where they are:** each event Room holds one kind for the whole Season. The goblin cookpot and the webbed body came later: a quarter of the warrens' event Rooms hold one of them, rolled apart from the rest so the other Rooms kept their events *(v0)*.
+- **Where they are:** each event Room holds one kind for the whole Season. The goblin cookpot and the webbed body came later: a quarter of the warrens' event Rooms hold one of them. The sarcophagus and the Devil's bargain came later still: a fifth of the crypts' event Rooms hold a sarcophagus and a fifth of the depths' a bargain. Each is rolled apart from the rest, so the other Rooms kept their events *(v0)*.
 - **Daily and personal:** what an Event room holds comes from the Hero, the Room and the day, so leaving and coming back doesn't reroll it. Each Event room works once a day per Hero (the merchant sells until his wares are gone).
 - **Luck:** a Hero with the Lucky charm or the Luckstone rerolls one failed Check or death save per Run and keeps the better roll.
 

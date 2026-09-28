@@ -16,6 +16,29 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-29-depths',
+    date: '2026-09-29',
+    title: t('New faces deeper down', 'Новые лица на глубине'),
+    items: [
+      t(
+        'Two new monsters in the crypts (Floors 4–6): a mummy that won’t stay down and whose stare freezes the nerve, and rot grubs that blades barely scratch, with a poisonous bite.',
+        'Двое новых в склепах (этажи 4–6): мумия, которая не желает лежать и сковывает волю взглядом, и трупные личинки с ядовитым укусом, которых клинки почти не берут.',
+      ),
+      t(
+        'Three in the depths (Floors 7–9): a flame skull, fast and burning; a night hag that drinks life; and a chain devil that strikes twice and rages when hurt.',
+        'Трое в глубинах (этажи 7–9): быстрый пылающий череп, ночная карга, что пьёт жизнь, и цепной дьявол, который бьёт дважды и свирепеет от ран.',
+      ),
+      t(
+        'A new event in the crypts: a sealed sarcophagus full of grave goods. Fighters are best at prying the lid; grind it too loud and its mummy wakes.',
+        'Новое событие в склепах: запечатанный саркофаг с погребальными дарами. Лучше всех крышку сдвигают воины; заскрежещет слишком громко — проснётся мумия.',
+      ),
+      t(
+        'A new event in the depths: a devil’s bargain. Trade health for gold, or for an Item whose Tier it shows up front, or try to banish it (Clerics do it best).',
+        'Новое событие в глубинах: сделка с дьяволом. Обменяйте здоровье на золото или на предмет, ранг которого он показывает заранее, или попробуйте изгнать его (лучше всех это удаётся жрецам).',
+      ),
+    ],
+  },
+  {
     id: '2026-09-28-warrens',
     date: '2026-09-28',
     title: t('New monsters and events, and the game on your home screen', 'Новые монстры и события, и игра на главном экране'),

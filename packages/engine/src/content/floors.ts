@@ -48,7 +48,10 @@ export const FIRST_EVENT_KINDS = [
 ] as const;
 /** Kinds added later for the goblin warrens: rolled onto some of their event Rooms after a Floor is made (labyrinth.ts). */
 export const WARREN_EVENT_KINDS = ['cookpot', 'webbed-body'] as const;
-export const EVENT_KINDS = [...FIRST_EVENT_KINDS, ...WARREN_EVENT_KINDS] as const;
+/** Kinds added later for the crypts and the depths, rolled the same way on their own seed. */
+export const CRYPT_EVENT_KINDS = ['sarcophagus'] as const;
+export const DEPTH_EVENT_KINDS = ['bargain'] as const;
+export const EVENT_KINDS = [...FIRST_EVENT_KINDS, ...WARREN_EVENT_KINDS, ...CRYPT_EVENT_KINDS, ...DEPTH_EVENT_KINDS] as const;
 export type EventKind = (typeof EVENT_KINDS)[number];
 
 /**

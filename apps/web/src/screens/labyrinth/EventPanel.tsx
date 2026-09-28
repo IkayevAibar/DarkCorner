@@ -26,6 +26,9 @@ const ACTION_SOUND: Partial<Record<EventAction['action'], Sound>> = {
   search: 'loot',
   eat: 'page',
   cut: 'latch',
+  pry: 'latch',
+  bargain: 'coins',
+  banish: 'page',
 };
 
 const ALTAR_TIERS = ['common', 'uncommon', 'rare'];
@@ -203,6 +206,36 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
 
       {event.kind === 'webbed-body' && !event.done && (
         <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'cut' })}>{t('event.webbed-body.cut')}</button>
+      )}
+
+      {event.kind === 'sarcophagus' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'pry' })}>{t('event.sarcophagus.pry')}</button>
+      )}
+
+      {event.kind === 'bargain' && !event.done && (
+        <div className="grid gap-2">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              className="btn grid justify-items-center gap-0.5 p-2"
+              disabled={busy || view.hero.hp <= event.goldPrice}
+              onClick={() => void send({ action: 'bargain', offer: 'gold' })}
+            >
+              <span className="font-head text-xl text-[#f1c75b]">{event.gold.toLocaleString()}</span>
+              <span className="text-xs font-normal">{t('event.bargain.gold', { n: event.goldPrice })}</span>
+            </button>
+            <button
+              type="button"
+              className="btn grid justify-items-center gap-0.5 p-2"
+              disabled={busy || view.hero.hp <= event.itemPrice}
+              onClick={() => void send({ action: 'bargain', offer: 'item' })}
+            >
+              <span className="font-head text-xl" style={{ color: `var(--color-tier-${event.tier})` }}>{t(`tier.${event.tier}`)}</span>
+              <span className="text-xs font-normal">{t('event.bargain.item', { n: event.itemPrice })}</span>
+            </button>
+          </div>
+          <button type="button" className="btn" disabled={busy} onClick={() => void send({ action: 'banish' })}>{t('event.bargain.banish')}</button>
+        </div>
       )}
     </section>
   );

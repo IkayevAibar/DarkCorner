@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { FIRST_EVENT_KINDS, FLOOR_COUNT, type Floor, WARREN_EVENT_KINDS, doorsOf, generateLabyrinth } from '../src/index.js';
+import {
+  CRYPT_EVENT_KINDS, DEEP_EVENT_SHARE, DEPTH_EVENT_KINDS, FIRST_EVENT_KINDS, FLOOR_COUNT, type Floor, WARREN_EVENT_KINDS, WARREN_EVENT_SHARE,
+  doorsOf, generateLabyrinth,
+} from '../src/index.js';
 
 /** Rooms reachable from the landing through Doors of the given kinds. */
 function reachable(floor: Floor, kinds: string[]): Set<number> {
@@ -93,25 +96,30 @@ describe('generateLabyrinth', () => {
     expect(share('treasure')).toBeGreaterThan(0.04);
   });
 
-  it('rolls the warrens’ later event kinds onto about a quarter of their Event rooms, and nowhere else', () => {
-    let events = 0;
-    let later = 0;
+  it('rolls each theme’s later event kinds onto its share of that theme’s Event rooms, and nowhere else', () => {
+    const later: Record<string, { kinds: readonly string[]; share: number }> = {
+      warrens: { kinds: WARREN_EVENT_KINDS, share: WARREN_EVENT_SHARE },
+      crypts: { kinds: CRYPT_EVENT_KINDS, share: DEEP_EVENT_SHARE },
+      depths: { kinds: DEPTH_EVENT_KINDS, share: DEEP_EVENT_SHARE },
+    };
+    const counts: Record<string, { events: number; later: number }> = {};
     for (let i = 0; i < 20; i++) {
-      for (const floor of generateLabyrinth(`warren-${i}`).floors) {
+      for (const floor of generateLabyrinth(`later-${i}`).floors) {
         for (const room of floor.rooms) {
           if (room.type !== 'event') continue;
-          const isLater = (WARREN_EVENT_KINDS as readonly string[]).includes(room.event!);
-          if (floor.theme !== 'warrens') {
-            expect((FIRST_EVENT_KINDS as readonly string[]).includes(room.event!), room.event!).toBe(true);
-            continue;
-          }
-          events++;
-          if (isLater) later++;
+          const first = (FIRST_EVENT_KINDS as readonly string[]).includes(room.event!);
+          expect(first || Boolean(later[floor.theme]?.kinds.includes(room.event!)), `${room.event} on ${floor.theme}`).toBe(true);
+          const c = (counts[floor.theme] ??= { events: 0, later: 0 });
+          c.events++;
+          if (!first) c.later++;
         }
       }
     }
-    expect(later / events).toBeGreaterThan(0.15);
-    expect(later / events).toBeLessThan(0.35);
+    for (const [theme, { share }] of Object.entries(later)) {
+      const c = counts[theme]!;
+      expect(c.later / c.events, theme).toBeGreaterThan(share - 0.1);
+      expect(c.later / c.events, theme).toBeLessThan(share + 0.1);
+    }
   });
 
   it('gives every Room an event kind only when it is an Event room', () => {

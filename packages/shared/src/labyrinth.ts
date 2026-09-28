@@ -208,7 +208,7 @@ export const mapDoorSchema = z.object({ a: z.number().int(), b: z.number().int()
 
 export const EVENT_KINDS = [
   'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
-  'fountain', 'prisoner', 'library', 'bone-pile', 'riddle', 'cookpot', 'webbed-body',
+  'fountain', 'prisoner', 'library', 'bone-pile', 'riddle', 'cookpot', 'webbed-body', 'sarcophagus', 'bargain',
 ] as const;
 export const eventKindSchema = z.enum(EVENT_KINDS);
 export type EventKindId = z.infer<typeof eventKindSchema>;
@@ -256,6 +256,16 @@ export const eventViewSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('bone-pile'), done: z.boolean() }),
   z.object({ kind: z.literal('cookpot'), done: z.boolean() }),
   z.object({ kind: z.literal('webbed-body'), done: z.boolean() }),
+  z.object({ kind: z.literal('sarcophagus'), done: z.boolean() }),
+  /** The Devil's bargain: today's two offers, each priced in health (`goldPrice`, `itemPrice`), or a try at banishing it. */
+  z.object({
+    kind: z.literal('bargain'),
+    done: z.boolean(),
+    gold: z.number().int(),
+    goldPrice: z.number().int(),
+    tier: tierSchema,
+    itemPrice: z.number().int(),
+  }),
 ]);
 export type EventView = z.infer<typeof eventViewSchema>;
 
@@ -277,6 +287,9 @@ export const eventActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('answer'), choice: z.number().int().min(0).max(2) }),
   z.object({ action: z.literal('eat') }),
   z.object({ action: z.literal('cut') }),
+  z.object({ action: z.literal('pry') }),
+  z.object({ action: z.literal('bargain'), offer: z.enum(['gold', 'item']) }),
+  z.object({ action: z.literal('banish') }),
 ]);
 export type EventAction = z.infer<typeof eventActionSchema>;
 

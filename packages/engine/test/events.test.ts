@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   ALTAR_SUCCESS, LOCKPICK_DC, SHRINE_DC, cacheContents, createRng, goblinDice, merchantWares, nextTier, offerAtAltar,
   pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones, RIDDLES, statueRiddle,
-  cookpotDc, cutWeb, tasteStew, webDc,
+  cookpotDc, cutWeb, tasteStew, webDc, BARGAIN_GOLD_PRICE, BARGAIN_ITEM_PRICE, banishDc, banishDevil, bloodPrice, devilOffers,
+  pryLid, sarcophagusDc,
 } from '../src/index.js';
 
 const plain = { modifier: 0, advantage: false, rerollOnes: false };
@@ -186,6 +187,48 @@ describe('the newer Event rooms', () => {
       expect(r.gold).toBeGreaterThanOrEqual(30);
       expect(r.gold).toBeLessThanOrEqual(90);
       expect(r.check.dc).toBe(12);
+    }
+  });
+
+  it('the Sarcophagus holds its grave goods either way, on a STR Check against 11 + half the Floor', () => {
+    expect([4, 5, 6].map(sarcophagusDc)).toEqual([13, 14, 14]);
+    for (let i = 0; i < 200; i++) {
+      const r = pryLid(createRng(`lid-${i}`), { ...plain, floor: 5 });
+      expect(r.gold).toBeGreaterThanOrEqual(120);
+      expect(r.gold).toBeLessThanOrEqual(300);
+      expect(r.check.dc).toBe(14);
+    }
+  });
+});
+
+describe('the Devil’s bargain', () => {
+  it('offers gold for a fifth of full health, or an Item of Rare or better that costs more the better it is', () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 2000; i++) {
+      const o = devilOffers(createRng(`deal-${i}`), 8);
+      expect(o.gold).toBeGreaterThanOrEqual(270);
+      expect(o.gold).toBeLessThanOrEqual(540);
+      expect(o.goldPrice).toBe(BARGAIN_GOLD_PRICE);
+      expect(o.itemPrice).toBe(BARGAIN_ITEM_PRICE[o.tier]);
+      expect(o.itemPrice).toBeGreaterThan(o.goldPrice);
+      seen.add(o.tier);
+    }
+    expect([...seen].sort()).toEqual(['epic', 'legendary', 'mythic', 'rare']);
+    expect(devilOffers(createRng('deal-1'), 8)).toEqual(devilOffers(createRng('deal-1'), 8));
+    const prices = (['rare', 'epic', 'legendary', 'mythic'] as const).map((tier) => BARGAIN_ITEM_PRICE[tier]!);
+    expect([...prices].sort((a, b) => a - b)).toEqual(prices);
+  });
+
+  it('prices in whole health, never below 1', () => {
+    expect(bloodPrice(100, 0.2)).toBe(20);
+    expect(bloodPrice(3, 0.2)).toBe(1);
+  });
+
+  it('banishing is a WIS Check against 12 + half the Floor that teaches XP', () => {
+    expect([7, 8, 9].map(banishDc)).toEqual([16, 16, 17]);
+    for (let i = 0; i < 200; i++) {
+      const r = banishDevil(createRng(`banish-${i}`), { ...plain, modifier: 5, floor: 8 });
+      expect(r.xp).toBe(r.check.success ? 480 : 0);
     }
   });
 });

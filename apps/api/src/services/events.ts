@@ -6,6 +6,7 @@ import {
   chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
   pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
   RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
+  banishDevil, bloodPrice, devilOffers, pryLid,
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
@@ -157,6 +158,15 @@ export async function eventView(tx: Tx, hero: HeroWithItems, season: Season, flo
         answers: today.answers.map((i) => RIDDLES[i]!.answer),
         chosen: state.answered ?? null,
         right: done ? today.right : null,
+      };
+    }
+    case 'bargain': {
+      const offers = devilOffers(createRng(seed), floor.number);
+      const full = fullHealth(hero);
+      return {
+        kind, done,
+        gold: withGoldFind(hero, offers.gold), goldPrice: bloodPrice(full, offers.goldPrice),
+        tier: offers.tier, itemPrice: bloodPrice(full, offers.itemPrice),
       };
     }
     default:
@@ -534,6 +544,76 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       out.gold += gold;
       if (cut.tier) await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[cut.tier, 1]], source: 'webbed-body' }, out);
       out.notices.push(t('The cocoon splits open: an old adventurer’s purse.', 'Кокон лопается: кошель давнего искателя приключений.'));
+      return;
+    }
+
+    case 'sarcophagus': {
+      if (action.action !== 'pry') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      const fighter = hero.class === 'fighter';
+      const lid = await withLuck(tx, hero, t('Strength against the lid', 'Сила против крышки'), () => pryLid(rng, {
+        modifier: mod(hero.str) + (fighter ? proficiencyBonus(hero.level) : 0), advantage: fighter, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+      }), out);
+      await logRoll(tx, hero, rollSeed, { event: kind, success: lid.check.success, gold: lid.gold, tier: lid.tier });
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      if (!lid.check.success) {
+        out.notices.push(t('The lid grinds loud, and whoever lies inside sits up.', 'Крышка громко скрежещет, и тот, кто лежит внутри, садится.'));
+        const result = await fight(tx, hero, season, floor, room, 'fight', out, {
+          monsters: [instantiate(monsterById('mummy'), floor.number, 'm0')], clears: false, surprise: 'hero',
+        });
+        if (result !== 'victory') return;
+      }
+      const gold = withGoldFind(hero, lid.gold);
+      await earnCarried(tx, hero, gold);
+      out.gold += gold;
+      await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[lid.tier, 1]], source: 'sarcophagus' }, out);
+      out.notices.push(t('Grave goods: gold, and something the dead won’t miss.', 'Погребальные дары: золото и то, что мёртвому уже ни к чему.'));
+      return;
+    }
+
+    case 'bargain': {
+      if (action.action === 'banish') {
+        const { seed: rollSeed, rng } = seeded();
+        const cleric = hero.class === 'cleric';
+        const rite = await withLuck(tx, hero, t('Wisdom against the devil', 'Мудрость против дьявола'), () => banishDevil(rng, {
+          modifier: mod(hero.wis) + (cleric ? proficiencyBonus(hero.level) : 0), advantage: cleric, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        }), out);
+        await logRoll(tx, hero, rollSeed, { event: kind, banished: rite.check.success });
+        await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+        if (!rite.check.success) {
+          out.notices.push(t('The salt scatters. The devil steps out of its circle, smiling.', 'Соль рассыпается. Дьявол с улыбкой выходит из круга.'));
+          await fight(tx, hero, season, floor, room, 'fight', out, { monsters: [instantiate(monsterById('chain-devil'), floor.number, 'm0')], clears: false });
+          return;
+        }
+        const xp = await boostedXp(tx, hero, season, rite.xp);
+        const levelUp = gainXp(hero, xp);
+        await tx.hero.update({ where: { id: hero.id }, data: levelUp.data });
+        Object.assign(hero, levelUp.data);
+        out.xp += xp;
+        out.levelUp = levelUp.newLevel ?? out.levelUp;
+        out.notices.push(t('The devil howls and sinks back to wherever it came from.', 'Дьявол воет и проваливается туда, откуда пришёл.'));
+        return;
+      }
+      if (action.action !== 'bargain') throw wrong();
+      const offers = devilOffers(createRng(seed), floor.number);
+      const full = fullHealth(hero);
+      const price = bloodPrice(full, action.offer === 'gold' ? offers.goldPrice : offers.itemPrice);
+      const hp = Math.min(hero.hp, full);
+      // The deal never kills: it needs more health than it takes.
+      if (hp <= price) throw ApiError.conflict('too_weak', 'Not enough health for that deal');
+      await tx.hero.update({ where: { id: hero.id }, data: { hp: hp - price } });
+      hero.hp = hp - price;
+      await logRoll(tx, hero, seed, { event: kind, offer: action.offer, price, ...offers });
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      if (action.offer === 'gold') {
+        const gold = withGoldFind(hero, offers.gold);
+        await earnCarried(tx, hero, gold);
+        out.gold += gold;
+        out.notices.push(t(`The devil drinks ${price} health and pays in hot coins.`, `Дьявол выпивает ${price} здоровья и платит горячими монетами.`));
+      } else {
+        await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[offers.tier, 1]], source: 'bargain' }, out);
+        out.notices.push(t(`The devil drinks ${price} health and hands over its gift.`, `Дьявол выпивает ${price} здоровья и отдаёт свой дар.`));
+      }
       return;
     }
 

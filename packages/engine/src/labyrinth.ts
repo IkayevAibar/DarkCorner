@@ -1,5 +1,5 @@
 import {
-  FIRST_EVENT_KINDS, WARREN_EVENT_KINDS, type EventKind, FLOOR_COUNT, type RoomType, THEMES, type ThemeId, cluesFor, floorSize, themeOf,
+  CRYPT_EVENT_KINDS, DEPTH_EVENT_KINDS, FIRST_EVENT_KINDS, WARREN_EVENT_KINDS, type EventKind, FLOOR_COUNT, type RoomType, THEMES, type ThemeId, cluesFor, floorSize, themeOf,
 } from './content/floors.js';
 import type { Text } from './content/text.js';
 import { type Rng, createRng } from './rng.js';
@@ -64,22 +64,32 @@ export function generateLabyrinth(seed: string): Labyrinth {
   const floors: Floor[] = [];
   for (let n = 1; n <= FLOOR_COUNT; n++) {
     const floor = hideRooms(createRng(`${seed}:floor:${n}:secrets`), generateFloor(createRng(`${seed}:floor:${n}`), n));
-    floors.push(warrenEvents(createRng(`${seed}:floor:${n}:warren-events`), floor));
+    floors.push(laterEvents(seed, floor));
   }
   return { seed, floors };
 }
 
-/** A quarter of the goblin warrens' event Rooms hold one of the kinds added later (v0). */
+/** A quarter of the goblin warrens' event Rooms hold one of the kinds added later, and a fifth of the crypts' and the depths' (v0). */
 export const WARREN_EVENT_SHARE = 0.25;
+export const DEEP_EVENT_SHARE = 0.2;
+
+/** Event kinds added after Season 0 began, per theme: the share of event Rooms they take, and the name of their seed. */
+const LATER_EVENTS: Partial<Record<ThemeId, { kinds: readonly EventKind[]; share: number; seed: string }>> = {
+  warrens: { kinds: WARREN_EVENT_KINDS, share: WARREN_EVENT_SHARE, seed: 'warren-events' },
+  crypts: { kinds: CRYPT_EVENT_KINDS, share: DEEP_EVENT_SHARE, seed: 'deep-events' },
+  depths: { kinds: DEPTH_EVENT_KINDS, share: DEEP_EVENT_SHARE, seed: 'deep-events' },
+};
 
 /**
- * The warrens' later event kinds, rolled on their own seed after the Floor is made:
+ * A theme's later event kinds, rolled on their own seed after the Floor is made:
  * a Labyrinth generated before they existed keeps its layout, Clues and every
  * other event.
  */
-function warrenEvents(rng: Rng, floor: Floor): Floor {
-  if (floor.theme !== 'warrens') return floor;
-  const rooms = floor.rooms.map((r) => (r.type === 'event' && rng.chance(WARREN_EVENT_SHARE) ? { ...r, event: rng.pick(WARREN_EVENT_KINDS) } : r));
+function laterEvents(seed: string, floor: Floor): Floor {
+  const later = LATER_EVENTS[floor.theme];
+  if (!later) return floor;
+  const rng = createRng(`${seed}:floor:${floor.number}:${later.seed}`);
+  const rooms = floor.rooms.map((r) => (r.type === 'event' && rng.chance(later.share) ? { ...r, event: rng.pick(later.kinds) } : r));
   return { ...floor, rooms };
 }
 

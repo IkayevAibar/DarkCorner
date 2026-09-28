@@ -51,3 +51,15 @@ Added on 2026-09-28 for more variety where every Hero is early in the Season: fo
 | `giant-spider.png` | 1–3 | A giant spider, head and front legs: a black bristly body, a cluster of eight glinting red eyes, dripping green-tinged fangs, strands of web catching the light. |
 | `grave-robber.png` | 4–6 | A grave robber: a gaunt human in a hooded cloak with a scarf over the mouth, a dirt-stained shovel over one shoulder, a stolen gold locket in the other hand, wary eyes. |
 | `banshee.png` | 4–6 | A banshee: the pale, translucent spirit of a woman with long drifting white hair and hollow eyes, her mouth wide open in a scream, a tattered grey burial veil trailing into mist. |
+
+## Batch 3: five monsters for the crypts and the depths
+
+Added on 2026-09-29 so the deeper Floors don't repeat themselves: two in the crypts and three in the depths. Same style block, same steps; save them in `art/monsters/` as before ([codex-13](../tasks/codex-13-deep-monster-tokens.md)).
+
+| File | Floors | Prompt |
+|---|---|---|
+| `mummy.png` | 4–6 | A mummy: a withered face half-wrapped in rotting, yellowed linen bandages, one dead eye glowing faint green through a gap, a tarnished brass burial collar, dust sifting from its wrappings. |
+| `rot-grubs.png` | 4–6 | A heap of rot grubs: dozens of fat, pale, segmented maggots writhing together into one mound that fills the circle, tiny dark mouths, a wet sheen, an old bone half buried among them. |
+| `flame-skull.png` | 7–9 | A flame skull: a cracked human skull floating in a crown of dull orange fire, flames pouring from its eye sockets and trailing behind it, the jaw hanging open in a grin. |
+| `night-hag.png` | 7–9 | A night hag: a hunched crone with blue-black skin, long matted black hair, a hooked nose and broken teeth, yellow eyes that stare straight through you, a clawed hand clutching a small glowing gem. |
+| `chain-devil.png` | 7–9 | A chain devil: a tall devil wrapped head to toe in rusted, hooked chains that coil around it like snakes, a scarred grey face between the links, burning eyes, loose chain ends swinging with hooks. |

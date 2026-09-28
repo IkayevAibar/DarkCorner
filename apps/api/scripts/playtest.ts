@@ -357,6 +357,16 @@ async function eventAction(bot: Bot, view: LabyrinthView): Promise<boolean> {
       case 'fountain': return view.hero.hp < view.hero.maxHp ? { action: 'drink' } : null;
       case 'library': return { action: 'read' };
       case 'bone-pile': return view.hero.hp > view.hero.maxHp * 0.6 ? { action: 'search' } : null;
+      case 'cookpot': return view.hero.hp < view.hero.maxHp ? { action: 'eat' } : null;
+      case 'webbed-body': return view.hero.hp > view.hero.maxHp * 0.6 ? { action: 'cut' } : null;
+      case 'sarcophagus': return view.hero.hp > view.hero.maxHp * 0.6 ? { action: 'pry' } : null;
+      case 'bargain': {
+        // Clerics try the banishing; the rest pay in blood when they can spare it and keep half their health.
+        if (bot.cls === 'cleric') return view.hero.hp > view.hero.maxHp * 0.6 ? { action: 'banish' } : null;
+        if (view.hero.hp - e.itemPrice > view.hero.maxHp * 0.5) return { action: 'bargain', offer: 'item' };
+        if (view.hero.hp - e.goldPrice > view.hero.maxHp * 0.5) return { action: 'bargain', offer: 'gold' };
+        return null;
+      }
       case 'riddle': {
         // A thinking player knows most of these; the rest is a guess.
         const truth = RIDDLES.find((r) => r.question.en === e.question.en)!.answer.en;

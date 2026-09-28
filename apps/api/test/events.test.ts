@@ -278,5 +278,62 @@ describe('Event rooms', () => {
     else expect(r.fight!.monsters.map((m) => m.name.en)).toEqual(['Giant spider']);
     if (!r.fight || r.fight.outcome === 'victory') expect(r.gold).toBeGreaterThan(0);
   });
+
+  it('the Sarcophagus gives up its grave goods, after its Mummy if the lid grinds', async () => {
+    const { floor, room } = roomWith('sarcophagus');
+    expect(floor.theme).toBe('crypts');
+    await placeAt(floor.number, room, { str: 30, dex: 30 });
+    const r = await act({ action: 'pry' });
+    expect(r.checks).toHaveLength(1);
+    if (r.checks[0]!.success) expect(r.fight).toBeNull();
+    else expect(r.fight!.monsters.map((m) => m.name.en)).toEqual(['Mummy']);
+    if (!r.fight || r.fight.outcome === 'victory') {
+      expect(r.gold).toBeGreaterThan(0);
+      expect(r.loot).toHaveLength(1);
+    }
+  });
+
+  it('the Devil’s bargain takes the health it asked for, once a day, and never more than the Hero can spare', async () => {
+    const { floor, room } = roomWith('bargain');
+    expect(floor.theme).toBe('depths');
+    await placeAt(floor.number, room, { hp: 400 });
+    const offer = (await view()).room!.eventView!;
+    if (offer.kind !== 'bargain') throw new Error('kind');
+    expect(offer).toMatchObject({ done: false });
+    expect(offer.itemPrice).toBeGreaterThan(offer.goldPrice);
+
+    await placeAt(floor.number, room, { hp: offer.itemPrice });
+    expect((await post('/api/labyrinth/event', { action: 'bargain', offer: 'item' })).json().error).toBe('too_weak');
+
+    await placeAt(floor.number, room, { hp: 400 });
+    const r = await act({ action: 'bargain', offer: 'gold' });
+    expect(r.gold).toBe(offer.gold);
+    expect((await hero()).hp).toBe(400 - offer.goldPrice);
+    expect((await post('/api/labyrinth/event', { action: 'bargain', offer: 'item' })).json().error).toBe('event_done');
+  });
+
+  it('the Devil’s bargain: an Item of the Tier it showed', async () => {
+    const { floor, room } = roomWith('bargain');
+    await placeAt(floor.number, room, { hp: 400 });
+    const offer = (await view()).room!.eventView!;
+    if (offer.kind !== 'bargain') throw new Error('kind');
+    const r = await act({ action: 'bargain', offer: 'item' });
+    expect(r.loot).toHaveLength(1);
+    expect(r.loot[0]!.tier).toBe(offer.tier);
+    expect((await hero()).hp).toBe(400 - offer.itemPrice);
+  });
+
+  it('banishing the devil teaches XP, or it breaks the circle and fights', async () => {
+    const { floor, room } = roomWith('bargain');
+    await placeAt(floor.number, room, { wis: 30 });
+    const r = await act({ action: 'banish' });
+    expect(r.checks).toHaveLength(1);
+    if (r.checks[0]!.success) {
+      expect(r.fight).toBeNull();
+      expect(r.xp).toBeGreaterThan(0);
+    } else {
+      expect(r.fight!.monsters.map((m) => m.name.en)).toEqual(['Chain devil']);
+    }
+  });
 });
 

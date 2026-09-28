@@ -224,6 +224,46 @@ export function cutWeb(rng: Rng, o: CheckOptions & { floor: number }): { check: 
   return { check: result, gold: rng.int(10, 30) * (o.floor + 1), tier: rng.chance(0.5) ? rollTier(rng, dropOdds(Math.min(10, o.floor + 1))) : null };
 }
 
+// ─── Sarcophagus ──────────────────────────────────────────────────────────
+
+export const sarcophagusDc = (floor: number): number => 11 + Math.ceil(floor / 2);
+
+/**
+ * Prying the lid: a STR Check. The grave goods either way: gold and an Item with the
+ * odds of two Floors deeper; failing, the lid grinds loud enough to wake its Mummy first.
+ */
+export function pryLid(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; gold: number; tier: Tier } {
+  const result = roll(rng, sarcophagusDc(o.floor), o);
+  return { check: result, gold: rng.int(20, 50) * (o.floor + 1), tier: rollTier(rng, dropOdds(Math.min(10, o.floor + 2))) };
+}
+
+// ─── Devil's bargain ──────────────────────────────────────────────────────
+
+/** Gold costs this share of full health (v0). */
+export const BARGAIN_GOLD_PRICE = 0.2;
+/** The devil only offers Items worth the blood, and asks more for better ones (v0). */
+export const BARGAIN_ITEM_ODDS: [Tier, number][] = [['rare', 60], ['epic', 30], ['legendary', 9], ['mythic', 1]];
+export const BARGAIN_ITEM_PRICE: Partial<Record<Tier, number>> = { rare: 0.25, epic: 0.35, legendary: 0.5, mythic: 0.6 };
+
+/** Today's two offers, each for a share of full health: a purse of gold, or an Item of a Tier shown up front. */
+export function devilOffers(rng: Rng, floor: number): { gold: number; goldPrice: number; tier: Tier; itemPrice: number } {
+  const tier = rollTier(rng, BARGAIN_ITEM_ODDS);
+  return { gold: rng.int(30, 60) * (floor + 1), goldPrice: BARGAIN_GOLD_PRICE, tier, itemPrice: BARGAIN_ITEM_PRICE[tier]! };
+}
+
+/** Health a share of full health costs; always at least 1. */
+export const bloodPrice = (fullHealth: number, share: number): number => Math.max(1, Math.round(fullHealth * share));
+
+export const banishDc = (floor: number): number => 12 + Math.ceil(floor / 2);
+/** A banishment teaches this much XP per Floor number (v0). */
+export const BANISH_XP = 60;
+
+/** Banishing the devil instead: a WIS Check. Failing, it breaks the circle and fights. */
+export function banishDevil(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; xp: number } {
+  const result = roll(rng, banishDc(o.floor), o);
+  return { check: result, xp: result.success ? BANISH_XP * o.floor : 0 };
+}
+
 // ─── Riddling statue ──────────────────────────────────────────────────────
 
 /** A right answer teaches this much XP per Floor number; a wrong one burns this share of full health (v0). */
