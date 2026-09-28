@@ -16,6 +16,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-28-lodging-daily',
+    date: '2026-09-28',
+    title: t('Lodging once a day', 'Ночлег раз в сутки'),
+    items: [
+      t(
+        'Lodging at the Tavern is now one night a day; the day turns at midnight UTC (05:00 in Astana). Each night still costs more than the last.',
+        'Ночлег в таверне теперь раз в сутки; сутки сменяются в полночь по UTC (в 05:00 по Астане). Каждая ночь по-прежнему дороже предыдущей.',
+      ),
+    ],
+  },
+  {
     id: '2026-09-28-rests',
     date: '2026-09-28',
     title: t('A new Labyrinth screen, rests and Rankings', 'Новый экран Лабиринта, отдых и рейтинг'),
@@ -45,8 +56,8 @@ export const NEWS: NewsEntry[] = [
         'По знакомым комнатам можно ходить без выносливости, если сегодня там не появилось ничего нового. Бесплатные двери помечены.',
       ),
       t(
-        'Lodging at the Tavern: once a day, a bed for the night fills Stamina and brings the short rests back, for gold. Each night costs more than the last.',
-        'Ночлег в таверне: раз в сутки кровать на ночь заполняет выносливость и возвращает короткие отдыхи за золото. Каждая ночь дороже предыдущей.',
+        'Lodging at the Tavern: a bed for the night fills Stamina and brings the short rests back, for gold. Each night costs more than the last.',
+        'Ночлег в таверне: кровать на ночь заполняет выносливость и возвращает короткие отдыхи за золото. Каждая ночь дороже предыдущей.',
       ),
       t(
         'Rankings in the Tavern: nine boards (deepest, level, richest, victories, finest Item, Graves, Vaults, deaths and the Dragon), each with its podium.',
