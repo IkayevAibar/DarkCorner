@@ -5,6 +5,7 @@ const PATHS = {
   heroes: 'M5 20.5c0-4 3.1-7 7-7s7 3 7 7M12 13a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9z',
   close: 'M6 6l12 12M18 6 6 18',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4.4 3.6-7 8-7s8 2.6 8 7',
+  news: 'M8 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7M8 4a2 2 0 0 0-2 2v12a2 2 0 0 1-2 2h3M8 4a2 2 0 0 1 2 2M10 9h6M10 13h6M10 17h4',
 } as const;
 
 export type IconName = keyof typeof PATHS;

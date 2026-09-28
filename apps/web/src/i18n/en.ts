@@ -27,6 +27,8 @@ export const en = {
   signOut: 'Sign out',
 
   'guide.title': 'How to play',
+  'news.title': 'What’s new',
+  'news.blurb': 'Changes to the game, newest first.',
   'guide.hero.title': 'Your Hero',
   'guide.hero.body': 'Your Hero fights on its own. You choose which Doors to open, which fights to take and in what Stance, and when to go home.',
   'guide.moves.title': 'Moves and Stamina',

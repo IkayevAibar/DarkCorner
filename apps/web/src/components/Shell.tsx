@@ -3,6 +3,7 @@ import type { Locale } from '@dark/shared';
 import { Guide, useFirstVisitGuide } from './Guide';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
+import { markNewsRead, newsUnread } from '../news';
 import { useSession } from '../session';
 import { setSoundOn, useSoundOn } from '../sound';
 import { Icon, type IconName } from './Icon';
@@ -48,6 +49,18 @@ function TopBar() {
         <button type="button" className="chip" onClick={() => changeLocale(other)}>
           {other.toUpperCase()}
         </button>
+        {player && (
+          <NavLink
+            to="/news"
+            className="chip relative size-[34px] justify-center rounded-full p-0 no-underline"
+            aria-label={t('news.title')}
+            title={t('news.title')}
+            onClick={markNewsRead}
+          >
+            <Icon name="news" className="size-[18px]" />
+            {newsUnread() && <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full border border-black bg-tier-mythic" />}
+          </NavLink>
+        )}
         <button
           type="button"
           className="chip size-[34px] justify-center rounded-full p-0 font-head text-base font-extrabold"

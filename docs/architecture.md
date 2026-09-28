@@ -67,6 +67,7 @@ There are no websockets in Season 0. The web checks the Feed and "who's online" 
 - **Domain:** a Caddy site file for `dark.ugolok.world` goes in Aetherbound's Caddy config (`D:\RPG_DND_Game_website\docker\caddy-sites\`), plus a DNS record.
 - **Backups:** nightly Postgres backups, copying MC's backup timer.
 - **CI:** GitHub Actions runs type checks, tests and the build.
+- **Patch notes:** a release that Players will notice adds an entry at the top of `apps/web/src/news.ts` (a new `id`, the date, and short lines in `en` and `ru`). The "What's new" page shows it, and the top bar marks it with a dot until each Player has opened it.
 
 ## Local development
 

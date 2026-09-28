@@ -28,6 +28,8 @@ export const ru: Record<MessageKey, string> = {
   signOut: 'Выйти',
 
   'guide.title': 'Как играть',
+  'news.title': 'Что нового',
+  'news.blurb': 'Изменения в игре, сначала новые.',
   'guide.hero.title': 'Ваш герой',
   'guide.hero.body': 'Герой сражается сам. Вы выбираете, какие двери открывать, какие бои принимать и в какой стойке, и когда возвращаться домой.',
   'guide.moves.title': 'Ходы и выносливость',

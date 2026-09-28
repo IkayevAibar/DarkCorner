@@ -23,6 +23,7 @@ const Market = screen(() => import('./screens/city/Market'), 'Market');
 const Temple = screen(() => import('./screens/city/Temple'), 'Temple');
 const Tavern = screen(() => import('./screens/city/Tavern'), 'Tavern');
 const Admin = screen(() => import('./screens/Admin'), 'Admin');
+const News = screen(() => import('./screens/News'), 'News');
 /** Development builds only: production never ships the sandbox or its fixtures. */
 const Sandbox = import.meta.env.DEV ? screen(() => import('./screens/Sandbox'), 'Sandbox') : null;
 
@@ -57,6 +58,7 @@ export function App() {
         <Route path="/labyrinth" element={page(Labyrinth)} />
         <Route path="/loot" element={page(Loot)} />
         <Route path="/heroes" element={page(Heroes)} />
+        <Route path="/news" element={page(News)} />
         {session.player.isAdmin && <Route path="/admin" element={page(Admin)} />}
         {Sandbox && <Route path="/sandbox" element={page(Sandbox)} />}
         <Route path="*" element={<Navigate to="/city" replace />} />
