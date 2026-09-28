@@ -38,3 +38,16 @@ For every image in this chat: a monster portrait for a round game token in a dar
 | `drake.png` | 10 | A drake: a wingless young dragon, head and neck, bronze-black scales, a long toothy snout, smoke curling from its jaws, amber eyes. |
 | `doppelganger.png` | any (the false prisoner) | A doppelganger: a pale, half-finished face caught between two people, eyes too wide, grey featureless skin at the edges, a torn prisoner's shirt and a broken shackle at the throat. |
 | `mimic.png` | any (the chest that bites) | A mimic: a wooden treasure chest seen from the front, its lid a mouth of jagged teeth, a long purple tongue, rusted iron bands, small yellow eyes along the lid. |
+
+## Batch 2: six new monsters
+
+Added on 2026-09-28 for more variety where every Hero is early in the Season: four in the goblin warrens and two in the crypts. Same style block, same steps; save them in `art/monsters/` as before ([codex-12](../tasks/codex-12-new-monster-tokens.md)).
+
+| File | Floors | Prompt |
+|---|---|---|
+| `goblin-sapper.png` | 1–3 | A goblin sapper: a soot-blackened face, singed eyebrows and a manic grin, goggles pushed up on its forehead, a round iron bomb with a lit, sparking fuse clutched to its chest. |
+| `goblin-shaman.png` | 1–3 | A goblin shaman: small bones and feathers braided into wild hair, white stripes painted across the face, a staff topped with a rat skull, a faint green glow of healing magic in one raised hand. |
+| `bat-swarm.png` | 1–3 | A swarm of bats: a dense cloud of dozens of small black bats with tiny red eyes and bared fangs, their wings overlapping into one shape that fills the circle. |
+| `giant-spider.png` | 1–3 | A giant spider, head and front legs: a black bristly body, a cluster of eight glinting red eyes, dripping green-tinged fangs, strands of web catching the light. |
+| `grave-robber.png` | 4–6 | A grave robber: a gaunt human in a hooded cloak with a scarf over the mouth, a dirt-stained shovel over one shoulder, a stolen gold locket in the other hand, wary eyes. |
+| `banshee.png` | 4–6 | A banshee: the pale, translucent spirit of a woman with long drifting white hair and hollow eyes, her mouth wide open in a scream, a tattered grey burial veil trailing into mist. |

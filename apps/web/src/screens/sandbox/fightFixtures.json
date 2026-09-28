@@ -20,13 +20,13 @@
    {
     "key": "m0",
     "name": {
-     "en": "Giant rat",
-     "ru": "Гигантская крыса"
+     "en": "Goblin",
+     "ru": "Гоблин"
     },
-    "art": "/art/tokens/giant-rat.webp",
-    "hp": 4,
-    "maxHp": 4,
-    "ac": 11,
+    "art": "/art/tokens/goblin.webp",
+    "hp": 7,
+    "maxHp": 7,
+    "ac": 12,
     "boss": false,
     "banner": null,
     "elite": null,
@@ -35,18 +35,18 @@
    {
     "key": "m1",
     "name": {
-     "en": "Goblin archer",
-     "ru": "Гоблин-лучник"
+     "en": "Goblin sapper",
+     "ru": "Гоблин-подрывник"
     },
-    "art": "/art/tokens/goblin-archer.webp",
-    "hp": 6,
-    "maxHp": 6,
-    "ac": 12,
+    "art": null,
+    "hp": 5,
+    "maxHp": 5,
+    "ac": 11,
     "boss": false,
     "banner": null,
     "elite": null,
     "powers": [
-     "quick"
+     "explode"
     ]
    }
   ],
@@ -54,109 +54,113 @@
    {
     "type": "initiative",
     "order": [
-     "m1",
      "hero",
+     "m1",
      "m0"
     ]
    },
    {
     "type": "attack",
-    "actor": "m1",
-    "target": "hero",
-    "natural": 16,
-    "total": 19,
-    "hit": true,
-    "crit": false,
-    "damage": 4,
-    "targetHp": 10,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
     "actor": "hero",
-    "target": "m0",
-    "natural": 19,
-    "total": 24,
+    "target": "m1",
+    "natural": 16,
+    "total": 21,
     "hit": true,
     "crit": false,
-    "damage": 11,
+    "damage": 7,
     "targetHp": 0,
     "kind": "weapon"
    },
    {
     "type": "defeated",
-    "key": "m0"
+    "key": "m1"
+   },
+   {
+    "type": "save",
+    "ability": "dex",
+    "natural": 18,
+    "total": 20,
+    "dc": 10,
+    "success": true
+   },
+   {
+    "type": "power",
+    "actor": "m1",
+    "power": "explode",
+    "target": "hero",
+    "amount": 2,
+    "hp": 12
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 18,
     "total": 21,
     "hit": true,
     "crit": false,
     "damage": 3,
-    "targetHp": 7,
+    "targetHp": 9,
     "kind": "weapon"
    },
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
+    "target": "m0",
     "natural": 8,
     "total": 13,
     "hit": true,
     "crit": false,
     "damage": 5,
-    "targetHp": 1,
+    "targetHp": 2,
     "kind": "weapon"
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 12,
     "total": 15,
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 7,
+    "targetHp": 9,
     "kind": "weapon"
    },
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
+    "target": "m0",
     "natural": 6,
     "total": 11,
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 1,
+    "targetHp": 2,
     "kind": "weapon"
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 20,
     "total": 23,
     "hit": true,
     "crit": true,
     "damage": 4,
-    "targetHp": 3,
+    "targetHp": 5,
     "kind": "weapon"
    },
    {
     "type": "heal",
     "actor": "hero",
     "ability": "second-wind",
-    "amount": 11,
+    "amount": 9,
     "hp": 14
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 5,
     "total": 8,
@@ -169,7 +173,7 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
+    "target": "m0",
     "natural": 12,
     "total": 17,
     "hit": true,
@@ -180,7 +184,7 @@
    },
    {
     "type": "defeated",
-    "key": "m1"
+    "key": "m0"
    },
    {
     "type": "end",
@@ -210,6 +214,38 @@
    {
     "key": "m0",
     "name": {
+     "en": "Giant rat",
+     "ru": "Гигантская крыса"
+    },
+    "art": "/art/tokens/giant-rat.webp",
+    "hp": 6,
+    "maxHp": 6,
+    "ac": 11,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": []
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Goblin archer",
+     "ru": "Гоблин-лучник"
+    },
+    "art": "/art/tokens/goblin-archer.webp",
+    "hp": 9,
+    "maxHp": 9,
+    "ac": 12,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "quick"
+    ]
+   },
+   {
+    "key": "m2",
+    "name": {
      "en": "Goblin",
      "ru": "Гоблин"
     },
@@ -221,73 +257,67 @@
     "banner": null,
     "elite": null,
     "powers": []
-   },
-   {
-    "key": "m1",
-    "name": {
-     "en": "Goblin cutpurse",
-     "ru": "Гоблин-карманник"
-    },
-    "art": "/art/tokens/goblin-cutpurse.webp",
-    "hp": 9,
-    "maxHp": 9,
-    "ac": 13,
-    "boss": false,
-    "banner": null,
-    "elite": null,
-    "powers": [
-     "thief"
-    ]
-   },
-   {
-    "key": "m2",
-    "name": {
-     "en": "Goblin cutpurse",
-     "ru": "Гоблин-карманник"
-    },
-    "art": "/art/tokens/goblin-cutpurse.webp",
-    "hp": 9,
-    "maxHp": 9,
-    "ac": 13,
-    "boss": false,
-    "banner": null,
-    "elite": null,
-    "powers": [
-     "thief"
-    ]
    }
   ],
   "events": [
    {
     "type": "initiative",
     "order": [
-     "m2",
      "hero",
      "m1",
-     "m0"
+     "m0",
+     "m2"
     ]
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 15,
+    "total": 20,
+    "hit": true,
+    "crit": false,
+    "damage": 13,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "defeated",
+    "key": "m0"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 10,
+    "total": 16,
+    "hit": true,
+    "crit": false,
+    "damage": 7,
+    "targetHp": 14,
+    "kind": "weapon"
    },
    {
     "type": "attack",
     "actor": "m2",
     "target": "hero",
-    "natural": 5,
-    "total": 12,
-    "hit": false,
+    "natural": 15,
+    "total": 21,
+    "hit": true,
     "crit": false,
-    "damage": 0,
-    "targetHp": 21,
+    "damage": 5,
+    "targetHp": 9,
     "kind": "weapon"
    },
    {
     "type": "attack",
     "actor": "hero",
     "target": "m1",
-    "natural": 15,
-    "total": 20,
+    "natural": 9,
+    "total": 14,
     "hit": true,
     "crit": false,
-    "damage": 14,
+    "damage": 10,
     "targetHp": 0,
     "kind": "weapon"
    },
@@ -297,124 +327,22 @@
    },
    {
     "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 18,
-    "total": 24,
-    "hit": true,
-    "crit": false,
-    "damage": 8,
-    "targetHp": 13,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
     "actor": "m2",
     "target": "hero",
-    "natural": 17,
-    "total": 24,
-    "hit": true,
+    "natural": 7,
+    "total": 13,
+    "hit": false,
     "crit": false,
-    "damage": 8,
-    "targetHp": 5,
-    "kind": "weapon"
-   },
-   {
-    "type": "heal",
-    "actor": "hero",
-    "ability": "potion",
-    "amount": 12,
-    "hp": 17
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 16,
-    "total": 22,
-    "hit": true,
-    "crit": false,
-    "damage": 7,
-    "targetHp": 10,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "m2",
-    "target": "hero",
-    "natural": 10,
-    "total": 17,
-    "hit": true,
-    "crit": false,
-    "damage": 8,
-    "targetHp": 2,
+    "damage": 0,
+    "targetHp": 9,
     "kind": "weapon"
    },
    {
     "type": "attack",
     "actor": "hero",
     "target": "m2",
-    "natural": 20,
-    "total": 25,
-    "hit": true,
-    "crit": true,
-    "damage": 17,
-    "targetHp": 0,
-    "kind": "weapon"
-   },
-   {
-    "type": "defeated",
-    "key": "m2"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 18,
+    "natural": 19,
     "total": 24,
-    "hit": true,
-    "crit": false,
-    "damage": 9,
-    "targetHp": 0,
-    "kind": "weapon"
-   },
-   {
-    "type": "down"
-   },
-   {
-    "type": "death-save",
-    "natural": 16,
-    "successes": 1,
-    "failures": 0
-   },
-   {
-    "type": "death-save",
-    "natural": 9,
-    "successes": 1,
-    "failures": 1
-   },
-   {
-    "type": "death-save",
-    "natural": 7,
-    "successes": 1,
-    "failures": 2
-   },
-   {
-    "type": "death-save",
-    "natural": 20,
-    "successes": 1,
-    "failures": 2
-   },
-   {
-    "type": "rise",
-    "hp": 5
-   },
-   {
-    "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 11,
-    "total": 16,
     "hit": true,
     "crit": false,
     "damage": 12,
@@ -423,7 +351,7 @@
    },
    {
     "type": "defeated",
-    "key": "m0"
+    "key": "m2"
    },
    {
     "type": "end",
@@ -470,18 +398,18 @@
    {
     "key": "m1",
     "name": {
-     "en": "Skeleton",
-     "ru": "Скелет"
+     "en": "Zombie",
+     "ru": "Зомби"
     },
-    "art": "/art/tokens/skeleton.webp",
-    "hp": 24,
-    "maxHp": 24,
-    "ac": 13,
+    "art": "/art/tokens/zombie.webp",
+    "hp": 37,
+    "maxHp": 37,
+    "ac": 8,
     "boss": false,
     "banner": null,
     "elite": null,
     "powers": [
-     "brittle"
+     "undying"
     ]
    }
   ],
@@ -490,8 +418,8 @@
     "type": "initiative",
     "order": [
      "m0",
-     "m1",
-     "hero"
+     "hero",
+     "m1"
     ]
    },
    {
@@ -500,33 +428,33 @@
     "by": "shield"
    },
    {
-    "type": "attack",
-    "actor": "m1",
-    "target": "hero",
-    "natural": 7,
-    "total": 14,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 42,
-    "kind": "weapon"
-   },
-   {
     "type": "burst",
     "actor": "hero",
     "source": "spell",
     "targets": [
      {
       "key": "m0",
-      "damage": 10,
-      "hp": 14
+      "damage": 4,
+      "hp": 20
      },
      {
       "key": "m1",
-      "damage": 7,
-      "hp": 17
+      "damage": 11,
+      "hp": 26
      }
     ]
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 12,
+    "total": 18,
+    "hit": true,
+    "crit": false,
+    "damage": 8,
+    "targetHp": 34,
+    "kind": "weapon"
    },
    {
     "type": "attack",
@@ -536,20 +464,8 @@
     "total": 23,
     "hit": true,
     "crit": false,
-    "damage": 9,
-    "targetHp": 33,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "m1",
-    "target": "hero",
-    "natural": 19,
-    "total": 26,
-    "hit": true,
-    "crit": false,
-    "damage": 6,
-    "targetHp": 27,
+    "damage": 11,
+    "targetHp": 23,
     "kind": "weapon"
    },
    {
@@ -559,15 +475,27 @@
     "targets": [
      {
       "key": "m0",
-      "damage": 10,
-      "hp": 4
+      "damage": 8,
+      "hp": 12
      },
      {
       "key": "m1",
       "damage": 7,
-      "hp": 10
+      "hp": 19
      }
     ]
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 6,
+    "total": 12,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 23,
+    "kind": "weapon"
    },
    {
     "type": "attack",
@@ -578,30 +506,18 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 27,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "m1",
-    "target": "hero",
-    "natural": 16,
-    "total": 23,
-    "hit": true,
-    "crit": false,
-    "damage": 9,
-    "targetHp": 18,
+    "targetHp": 23,
     "kind": "weapon"
    },
    {
     "type": "attack",
     "actor": "hero",
     "target": "m0",
-    "natural": 15,
-    "total": 21,
+    "natural": 16,
+    "total": 22,
     "hit": true,
     "crit": false,
-    "damage": 12,
+    "damage": 15,
     "targetHp": 0,
     "kind": "spell"
    },
@@ -613,12 +529,36 @@
     "type": "attack",
     "actor": "m1",
     "target": "hero",
-    "natural": 14,
+    "natural": 15,
     "total": 21,
     "hit": true,
     "crit": false,
     "damage": 9,
-    "targetHp": 9,
+    "targetHp": 14,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 14,
+    "total": 20,
+    "hit": true,
+    "crit": false,
+    "damage": 15,
+    "targetHp": 4,
+    "kind": "spell"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 11,
+    "total": 17,
+    "hit": true,
+    "crit": false,
+    "damage": 7,
+    "targetHp": 7,
     "kind": "weapon"
    },
    {
@@ -626,29 +566,29 @@
     "actor": "hero",
     "ability": "potion",
     "amount": 11,
-    "hp": 20
+    "hp": 18
    },
    {
     "type": "attack",
     "actor": "m1",
     "target": "hero",
-    "natural": 10,
-    "total": 17,
+    "natural": 18,
+    "total": 24,
     "hit": true,
     "crit": false,
-    "damage": 8,
-    "targetHp": 12,
+    "damage": 10,
+    "targetHp": 8,
     "kind": "weapon"
    },
    {
     "type": "attack",
     "actor": "hero",
     "target": "m1",
-    "natural": 15,
-    "total": 21,
+    "natural": 20,
+    "total": 26,
     "hit": true,
-    "crit": false,
-    "damage": 21,
+    "crit": true,
+    "damage": 30,
     "targetHp": 0,
     "kind": "spell"
    },
@@ -975,14 +915,48 @@
      "ru": "Волк"
     },
     "art": "/art/tokens/wolf.webp",
-    "hp": 17,
-    "maxHp": 17,
+    "hp": 26,
+    "maxHp": 26,
     "ac": 12,
+    "boss": false,
+    "banner": null,
+    "elite": "gilded",
+    "powers": [
+     "pack"
+    ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Goblin cutpurse",
+     "ru": "Гоблин-карманник"
+    },
+    "art": "/art/tokens/goblin-cutpurse.webp",
+    "hp": 9,
+    "maxHp": 9,
+    "ac": 13,
     "boss": false,
     "banner": null,
     "elite": null,
     "powers": [
-     "pack"
+     "thief"
+    ]
+   },
+   {
+    "key": "m2",
+    "name": {
+     "en": "Goblin shaman",
+     "ru": "Гоблин-шаман"
+    },
+    "art": null,
+    "hp": 12,
+    "maxHp": 12,
+    "ac": 11,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "mend"
     ]
    }
   ],
@@ -991,49 +965,39 @@
     "type": "initiative",
     "order": [
      "hero",
-     "m0"
+     "m0",
+     "m1",
+     "m2"
     ]
    },
    {
     "type": "heal",
     "actor": "hero",
     "ability": "second-wind",
-    "amount": 8,
-    "hp": 16
+    "amount": 4,
+    "hp": 12
    },
    {
     "type": "attack",
     "actor": "m0",
     "target": "hero",
-    "natural": 19,
-    "total": 25,
+    "natural": 13,
+    "total": 19,
     "hit": true,
     "crit": false,
-    "damage": 10,
-    "targetHp": 6,
+    "damage": 8,
+    "targetHp": 4,
     "kind": "weapon"
    },
    {
     "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 16,
-    "total": 21,
-    "hit": true,
-    "crit": false,
-    "damage": 9,
-    "targetHp": 8,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
+    "actor": "m1",
     "target": "hero",
-    "natural": 17,
-    "total": 23,
+    "natural": 12,
+    "total": 19,
     "hit": true,
     "crit": false,
-    "damage": 9,
+    "damage": 7,
     "targetHp": 0,
     "kind": "weapon"
    },
@@ -1048,27 +1012,21 @@
    },
    {
     "type": "death-save",
-    "natural": 9,
-    "successes": 1,
-    "failures": 1
-   },
-   {
-    "type": "death-save",
-    "natural": 6,
-    "successes": 1,
-    "failures": 2
-   },
-   {
-    "type": "death-save",
     "natural": 12,
     "successes": 2,
-    "failures": 2
+    "failures": 0
+   },
+   {
+    "type": "death-save",
+    "natural": 7,
+    "successes": 2,
+    "failures": 1
    },
    {
     "type": "death-save",
     "natural": 10,
     "successes": 3,
-    "failures": 2
+    "failures": 1
    },
    {
     "type": "end",
@@ -2141,18 +2099,18 @@
    {
     "key": "m0",
     "name": {
-     "en": "Goblin cutpurse",
-     "ru": "Гоблин-карманник"
+     "en": "Goblin sapper",
+     "ru": "Гоблин-подрывник"
     },
-    "art": "/art/tokens/goblin-cutpurse.webp",
-    "hp": 7,
-    "maxHp": 7,
-    "ac": 13,
+    "art": null,
+    "hp": 6,
+    "maxHp": 6,
+    "ac": 11,
     "boss": false,
     "banner": null,
     "elite": null,
     "powers": [
-     "thief"
+     "explode"
     ]
    },
    {
@@ -2189,7 +2147,7 @@
     "actor": "m0",
     "target": "hero",
     "natural": 18,
-    "total": 23,
+    "total": 22,
     "hit": true,
     "crit": false,
     "damage": 6,
@@ -2213,7 +2171,7 @@
     "actor": "m0",
     "target": "hero",
     "natural": 16,
-    "total": 21,
+    "total": 20,
     "hit": true,
     "crit": false,
     "damage": 4,
@@ -2244,7 +2202,7 @@
     "actor": "m0",
     "target": "hero",
     "natural": 11,
-    "total": 16,
+    "total": 15,
     "hit": false,
     "crit": false,
     "damage": 0,
@@ -2272,7 +2230,7 @@
     "actor": "m0",
     "target": "hero",
     "natural": 4,
-    "total": 9,
+    "total": 8,
     "hit": false,
     "crit": false,
     "damage": 0,
@@ -2294,6 +2252,22 @@
    {
     "type": "defeated",
     "key": "m0"
+   },
+   {
+    "type": "save",
+    "ability": "dex",
+    "natural": 2,
+    "total": 4,
+    "dc": 10,
+    "success": false
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "explode",
+    "target": "hero",
+    "amount": 8,
+    "hp": 2
    },
    {
     "type": "end",
@@ -2323,30 +2297,30 @@
    {
     "key": "m0",
     "name": {
-     "en": "Goblin archer",
-     "ru": "Гоблин-лучник"
+     "en": "Wolf",
+     "ru": "Волк"
     },
-    "art": "/art/tokens/goblin-archer.webp",
-    "hp": 9,
-    "maxHp": 9,
+    "art": "/art/tokens/wolf.webp",
+    "hp": 17,
+    "maxHp": 17,
     "ac": 12,
     "boss": false,
     "banner": null,
     "elite": null,
     "powers": [
-     "quick"
+     "pack"
     ]
    },
    {
     "key": "m1",
     "name": {
-     "en": "Giant rat",
-     "ru": "Гигантская крыса"
+     "en": "Goblin",
+     "ru": "Гоблин"
     },
-    "art": "/art/tokens/giant-rat.webp",
-    "hp": 6,
-    "maxHp": 6,
-    "ac": 11,
+    "art": "/art/tokens/goblin.webp",
+    "hp": 11,
+    "maxHp": 11,
+    "ac": 12,
     "boss": false,
     "banner": null,
     "elite": null,
@@ -2358,8 +2332,8 @@
     "type": "initiative",
     "order": [
      "hero",
-     "m0",
-     "m1"
+     "m1",
+     "m0"
     ]
    },
    {
@@ -2370,7 +2344,7 @@
      {
       "key": "m0",
       "damage": 12,
-      "hp": 0
+      "hp": 5
      },
      {
       "key": "m1",
@@ -2381,11 +2355,23 @@
    },
    {
     "type": "defeated",
-    "key": "m0"
+    "key": "m1"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 14,
+    "total": 19,
+    "hit": true,
+    "crit": false,
+    "damage": 14,
+    "targetHp": 0,
+    "kind": "weapon"
    },
    {
     "type": "defeated",
-    "key": "m1"
+    "key": "m0"
    },
    {
     "type": "end",
@@ -2415,18 +2401,36 @@
    {
     "key": "m0",
     "name": {
-     "en": "Ghoul",
-     "ru": "Упырь"
+     "en": "Grave robber",
+     "ru": "Расхититель могил"
     },
-    "art": "/art/tokens/ghoul.webp",
-    "hp": 40,
-    "maxHp": 40,
-    "ac": 12,
+    "art": null,
+    "hp": 29,
+    "maxHp": 29,
+    "ac": 13,
     "boss": false,
     "banner": null,
     "elite": null,
     "powers": [
-     "paralyze"
+     "thief",
+     "quick"
+    ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Skeleton",
+     "ru": "Скелет"
+    },
+    "art": "/art/tokens/skeleton.webp",
+    "hp": 24,
+    "maxHp": 24,
+    "ac": 13,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "brittle"
     ]
    }
   ],
@@ -2434,69 +2438,10 @@
    {
     "type": "initiative",
     "order": [
+     "m0",
      "hero",
-     "m0"
+     "m1"
     ]
-   },
-   {
-    "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 8,
-    "total": 11,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 40,
-    "kind": "spell"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 2,
-    "total": 9,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 27,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 7,
-    "total": 10,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 40,
-    "kind": "spell"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 9,
-    "total": 16,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 27,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 20,
-    "total": 23,
-    "hit": true,
-    "crit": true,
-    "damage": 11,
-    "targetHp": 29,
-    "kind": "spell"
    },
    {
     "type": "blocked",
@@ -2504,16 +2449,64 @@
     "by": "shield"
    },
    {
-    "type": "attack",
+    "type": "burst",
     "actor": "hero",
-    "target": "m0",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 10,
+      "hp": 19
+     },
+     {
+      "key": "m1",
+      "damage": 13,
+      "hp": 11
+     }
+    ]
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 13,
+    "total": 20,
+    "hit": true,
+    "crit": false,
+    "damage": 6,
+    "targetHp": 21,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 17,
+    "total": 24,
+    "hit": true,
+    "crit": false,
+    "damage": 11,
+    "targetHp": 10,
+    "kind": "weapon"
+   },
+   {
+    "type": "escape",
+    "natural": 9,
+    "total": 11,
+    "dc": 12,
+    "success": false
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
     "natural": 4,
-    "total": 7,
+    "total": 11,
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 29,
-    "kind": "spell"
+    "targetHp": 10,
+    "kind": "weapon"
    },
    {
     "type": "attack",
@@ -2524,20 +2517,27 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 27,
+    "targetHp": 10,
     "kind": "weapon"
    },
    {
-    "type": "attack",
-    "actor": "hero",
-    "target": "m0",
+    "type": "escape",
     "natural": 1,
-    "total": 4,
-    "hit": false,
+    "total": 3,
+    "dc": 12,
+    "success": false
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 19,
+    "total": 26,
+    "hit": true,
     "crit": false,
-    "damage": 0,
-    "targetHp": 29,
-    "kind": "spell"
+    "damage": 6,
+    "targetHp": 4,
+    "kind": "weapon"
    },
    {
     "type": "attack",
@@ -2547,42 +2547,28 @@
     "total": 21,
     "hit": true,
     "crit": false,
-    "damage": 13,
-    "targetHp": 14,
+    "damage": 6,
+    "targetHp": 0,
     "kind": "weapon"
    },
    {
-    "type": "save",
-    "ability": "con",
-    "natural": 14,
-    "total": 16,
-    "dc": 10,
-    "success": true
+    "type": "down"
+   },
+   {
+    "type": "death-save",
+    "natural": 20,
+    "successes": 0,
+    "failures": 0
+   },
+   {
+    "type": "rise",
+    "hp": 8
    },
    {
     "type": "escape",
-    "natural": 5,
-    "total": 7,
-    "dc": 10,
-    "success": false
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 1,
-    "total": 8,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 14,
-    "kind": "weapon"
-   },
-   {
-    "type": "escape",
-    "natural": 15,
-    "total": 17,
-    "dc": 10,
+    "natural": 20,
+    "total": 22,
+    "dc": 12,
     "success": true
    },
    {
@@ -2626,62 +2612,81 @@
     "powers": [
      "thief"
     ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Wolf",
+     "ru": "Волк"
+    },
+    "art": "/art/tokens/wolf.webp",
+    "hp": 13,
+    "maxHp": 13,
+    "ac": 12,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "pack"
+    ]
+   },
+   {
+    "key": "m2",
+    "name": {
+     "en": "Goblin cutpurse",
+     "ru": "Гоблин-карманник"
+    },
+    "art": "/art/tokens/goblin-cutpurse.webp",
+    "hp": 7,
+    "maxHp": 7,
+    "ac": 13,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "thief"
+    ]
    }
   ],
   "events": [
    {
     "type": "initiative",
     "order": [
+     "m2",
+     "m0",
      "hero",
-     "m0"
+     "m1"
     ]
    },
    {
     "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 2,
-    "total": 7,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 7,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
+    "actor": "m2",
     "target": "hero",
-    "natural": 10,
-    "total": 15,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 24,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 4,
-    "total": 9,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 7,
-    "kind": "weapon"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 19,
-    "total": 24,
+    "natural": 14,
+    "total": 19,
     "hit": true,
     "crit": false,
-    "damage": 3,
-    "targetHp": 21,
+    "damage": 5,
+    "targetHp": 19,
+    "kind": "weapon"
+   },
+   {
+    "type": "power",
+    "actor": "m2",
+    "power": "thief",
+    "target": "hero",
+    "amount": 20
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 20,
+    "total": 25,
+    "hit": true,
+    "crit": true,
+    "damage": 8,
+    "targetHp": 11,
     "kind": "weapon"
    },
    {
@@ -2689,30 +2694,153 @@
     "actor": "m0",
     "power": "thief",
     "target": "hero",
-    "amount": 32
+    "amount": 22
    },
    {
     "type": "attack",
     "actor": "hero",
     "target": "m0",
-    "natural": 7,
-    "total": 12,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 7,
+    "natural": 20,
+    "total": 25,
+    "hit": true,
+    "crit": true,
+    "damage": 16,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "defeated",
+    "key": "m0"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 20,
+    "total": 24,
+    "hit": true,
+    "crit": true,
+    "damage": 10,
+    "targetHp": 1,
     "kind": "weapon"
    },
    {
     "type": "fled",
-    "key": "m0"
+    "key": "m2"
+   },
+   {
+    "type": "heal",
+    "actor": "hero",
+    "ability": "second-wind",
+    "amount": 8,
+    "hp": 9
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 10,
+    "total": 14,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 9,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 11,
+    "total": 16,
+    "hit": true,
+    "crit": false,
+    "damage": 5,
+    "targetHp": 8,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 19,
+    "total": 23,
+    "hit": true,
+    "crit": false,
+    "damage": 3,
+    "targetHp": 6,
+    "kind": "weapon"
+   },
+   {
+    "type": "heal",
+    "actor": "hero",
+    "ability": "potion",
+    "amount": 10,
+    "hp": 16
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 20,
+    "total": 24,
+    "hit": true,
+    "crit": true,
+    "damage": 11,
+    "targetHp": 5,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 19,
+    "total": 24,
+    "hit": true,
+    "crit": false,
+    "damage": 4,
+    "targetHp": 4,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 16,
+    "total": 20,
+    "hit": true,
+    "crit": false,
+    "damage": 6,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "down"
+   },
+   {
+    "type": "death-save",
+    "natural": 14,
+    "successes": 1,
+    "failures": 0
+   },
+   {
+    "type": "death-save",
+    "natural": 4,
+    "successes": 1,
+    "failures": 1
+   },
+   {
+    "type": "death-save",
+    "natural": 1,
+    "successes": 1,
+    "failures": 3
    },
    {
     "type": "end",
-    "outcome": "victory"
+    "outcome": "dead"
    }
   ],
-  "outcome": "victory"
+  "outcome": "dead"
  },
  "ghoul-paralyzes": {
   "map": "crypt-1",
@@ -2735,23 +2863,6 @@
    {
     "key": "m0",
     "name": {
-     "en": "Zombie",
-     "ru": "Зомби"
-    },
-    "art": "/art/tokens/zombie.webp",
-    "hp": 37,
-    "maxHp": 37,
-    "ac": 8,
-    "boss": false,
-    "banner": null,
-    "elite": null,
-    "powers": [
-     "undying"
-    ]
-   },
-   {
-    "key": "m1",
-    "name": {
      "en": "Ghoul",
      "ru": "Упырь"
     },
@@ -2765,6 +2876,23 @@
     "powers": [
      "paralyze"
     ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Zombie",
+     "ru": "Зомби"
+    },
+    "art": "/art/tokens/zombie.webp",
+    "hp": 37,
+    "maxHp": 37,
+    "ac": 8,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "undying"
+    ]
    }
   ],
   "events": [
@@ -2772,14 +2900,14 @@
     "type": "initiative",
     "order": [
      "hero",
-     "m1",
-     "m0"
+     "m0",
+     "m1"
     ]
    },
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m0",
+    "target": "m1",
     "natural": 18,
     "total": 24,
     "hit": true,
@@ -2790,7 +2918,7 @@
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 5,
     "total": 12,
@@ -2802,7 +2930,7 @@
    },
    {
     "type": "attack",
-    "actor": "m0",
+    "actor": "m1",
     "target": "hero",
     "natural": 12,
     "total": 18,
@@ -2815,7 +2943,7 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m0",
+    "target": "m1",
     "natural": 17,
     "total": 23,
     "hit": true,
@@ -2826,13 +2954,13 @@
    },
    {
     "type": "power",
-    "actor": "m0",
+    "actor": "m1",
     "power": "undying",
     "hp": 1
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 10,
     "total": 17,
@@ -2844,7 +2972,7 @@
    },
    {
     "type": "attack",
-    "actor": "m0",
+    "actor": "m1",
     "target": "hero",
     "natural": 17,
     "total": 23,
@@ -2857,7 +2985,7 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m0",
+    "target": "m1",
     "natural": 11,
     "total": 17,
     "hit": true,
@@ -2868,11 +2996,11 @@
    },
    {
     "type": "defeated",
-    "key": "m0"
+    "key": "m1"
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 4,
     "total": 11,
@@ -2885,7 +3013,7 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
+    "target": "m0",
     "natural": 9,
     "total": 15,
     "hit": true,
@@ -2896,7 +3024,7 @@
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 19,
     "total": 26,
@@ -2917,7 +3045,7 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
+    "target": "m0",
     "natural": 16,
     "total": 22,
     "hit": true,
@@ -2928,7 +3056,7 @@
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 13,
     "total": 20,
@@ -2958,7 +3086,7 @@
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 9,
     "total": 16,
@@ -2977,7 +3105,7 @@
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 16,
     "total": 23,
@@ -3004,7 +3132,7 @@
    },
    {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
     "natural": 7,
     "total": 14,
@@ -3017,7 +3145,7 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
+    "target": "m0",
     "natural": 17,
     "total": 23,
     "hit": true,
@@ -3028,7 +3156,7 @@
    },
    {
     "type": "defeated",
-    "key": "m1"
+    "key": "m0"
    },
    {
     "type": "end",
@@ -3686,18 +3814,18 @@
    {
     "key": "m1",
     "name": {
-     "en": "Zombie",
-     "ru": "Зомби"
+     "en": "Skeleton",
+     "ru": "Скелет"
     },
-    "art": "/art/tokens/zombie.webp",
-    "hp": 37,
-    "maxHp": 37,
-    "ac": 8,
+    "art": "/art/tokens/skeleton.webp",
+    "hp": 24,
+    "maxHp": 24,
+    "ac": 13,
     "boss": false,
     "banner": null,
     "elite": null,
     "powers": [
-     "undying"
+     "brittle"
     ]
    }
   ],
@@ -3706,8 +3834,8 @@
     "type": "initiative",
     "order": [
      "hero",
-     "m0",
-     "m1"
+     "m1",
+     "m0"
     ]
    },
    {
@@ -3722,27 +3850,15 @@
     "targets": [
      {
       "key": "m0",
-      "damage": 16,
-      "hp": 21
+      "damage": 13,
+      "hp": 24
      },
      {
       "key": "m1",
-      "damage": 13,
-      "hp": 24
+      "damage": 16,
+      "hp": 8
      }
     ]
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 5,
-    "total": 11,
-    "hit": false,
-    "crit": false,
-    "damage": 0,
-    "targetHp": 50,
-    "kind": "weapon"
    },
    {
     "type": "blocked",
@@ -3750,28 +3866,11 @@
     "by": "shield"
    },
    {
-    "type": "burst",
-    "actor": "hero",
-    "source": "spell",
-    "targets": [
-     {
-      "key": "m0",
-      "damage": 9,
-      "hp": 12
-     },
-     {
-      "key": "m1",
-      "damage": 15,
-      "hp": 9
-     }
-    ]
-   },
-   {
     "type": "attack",
     "actor": "m0",
     "target": "hero",
-    "natural": 11,
-    "total": 17,
+    "natural": 14,
+    "total": 20,
     "hit": true,
     "crit": false,
     "damage": 5,
@@ -3785,21 +3884,88 @@
     "left": 22
    },
    {
+    "type": "feature",
+    "feature": "ward",
+    "left": 25
+   },
+   {
+    "type": "burst",
+    "actor": "hero",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 15,
+      "hp": 9
+     },
+     {
+      "key": "m1",
+      "damage": 15,
+      "hp": 0
+     }
+    ]
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
     "type": "attack",
-    "actor": "m1",
+    "actor": "m0",
     "target": "hero",
-    "natural": 20,
-    "total": 26,
+    "natural": 17,
+    "total": 23,
     "hit": true,
-    "crit": true,
-    "damage": 11,
+    "crit": false,
+    "damage": 8,
     "targetHp": 50,
     "kind": "weapon"
    },
    {
     "type": "feature",
     "feature": "ward",
-    "amount": 11,
+    "amount": 8,
+    "left": 17
+   },
+   {
+    "type": "feature",
+    "feature": "ward",
+    "left": 20
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 9,
+    "total": 15,
+    "hit": true,
+    "crit": false,
+    "damage": 11,
+    "targetHp": 1,
+    "kind": "spell"
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "undying",
+    "hp": 1
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 13,
+    "total": 19,
+    "hit": true,
+    "crit": false,
+    "damage": 9,
+    "targetHp": 50,
+    "kind": "weapon"
+   },
+   {
+    "type": "feature",
+    "feature": "ward",
+    "amount": 9,
     "left": 11
    },
    {
@@ -3810,86 +3976,12 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
-    "natural": 5,
-    "total": 11,
-    "hit": true,
-    "crit": false,
-    "damage": 16,
-    "targetHp": 0,
-    "kind": "spell"
-   },
-   {
-    "type": "defeated",
-    "key": "m1"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 13,
-    "total": 19,
-    "hit": true,
-    "crit": false,
-    "damage": 5,
-    "targetHp": 50,
-    "kind": "weapon"
-   },
-   {
-    "type": "feature",
-    "feature": "ward",
-    "amount": 5,
-    "left": 9
-   },
-   {
-    "type": "feature",
-    "feature": "ward",
-    "left": 12
-   },
-   {
-    "type": "attack",
-    "actor": "hero",
     "target": "m0",
-    "natural": 18,
-    "total": 24,
+    "natural": 12,
+    "total": 18,
     "hit": true,
     "crit": false,
-    "damage": 9,
-    "targetHp": 3,
-    "kind": "spell"
-   },
-   {
-    "type": "attack",
-    "actor": "m0",
-    "target": "hero",
-    "natural": 17,
-    "total": 23,
-    "hit": true,
-    "crit": false,
-    "damage": 10,
-    "targetHp": 50,
-    "kind": "weapon"
-   },
-   {
-    "type": "feature",
-    "feature": "ward",
-    "amount": 10,
-    "left": 2
-   },
-   {
-    "type": "feature",
-    "feature": "ward",
-    "left": 5
-   },
-   {
-    "type": "attack",
-    "actor": "hero",
-    "target": "m0",
-    "natural": 18,
-    "total": 24,
-    "hit": true,
-    "crit": false,
-    "damage": 20,
+    "damage": 7,
     "targetHp": 0,
     "kind": "spell"
    },
@@ -4448,35 +4540,35 @@
    {
     "key": "m0",
     "name": {
-     "en": "Goblin cutpurse",
-     "ru": "Гоблин-карманник"
+     "en": "Goblin sapper",
+     "ru": "Гоблин-подрывник"
     },
-    "art": "/art/tokens/goblin-cutpurse.webp",
-    "hp": 14,
-    "maxHp": 14,
-    "ac": 13,
+    "art": null,
+    "hp": 8,
+    "maxHp": 8,
+    "ac": 11,
     "boss": false,
     "banner": null,
-    "elite": "gilded",
+    "elite": null,
     "powers": [
-     "thief"
+     "explode"
     ]
    },
    {
     "key": "m1",
     "name": {
-     "en": "Goblin archer",
-     "ru": "Гоблин-лучник"
+     "en": "Wolf",
+     "ru": "Волк"
     },
-    "art": "/art/tokens/goblin-archer.webp",
-    "hp": 9,
-    "maxHp": 9,
+    "art": "/art/tokens/wolf.webp",
+    "hp": 26,
+    "maxHp": 26,
     "ac": 12,
     "boss": false,
     "banner": null,
-    "elite": null,
+    "elite": "gilded",
     "powers": [
-     "quick"
+     "pack"
     ]
    }
   ],
@@ -4492,7 +4584,7 @@
    {
     "type": "attack",
     "actor": "hero",
-    "target": "m1",
+    "target": "m0",
     "natural": 19,
     "total": 24,
     "hit": true,
@@ -4503,19 +4595,168 @@
    },
    {
     "type": "defeated",
-    "key": "m1"
+    "key": "m0"
+   },
+   {
+    "type": "save",
+    "ability": "dex",
+    "natural": 9,
+    "total": 14,
+    "dc": 11,
+    "success": true
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "explode",
+    "target": "hero",
+    "amount": 2,
+    "hp": 37
    },
    {
     "type": "attack",
-    "actor": "m0",
+    "actor": "m1",
     "target": "hero",
-    "natural": 9,
-    "total": 16,
+    "natural": 20,
+    "total": 26,
+    "hit": true,
+    "crit": true,
+    "damage": 5,
+    "targetHp": 32,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 6,
+    "total": 11,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 26,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 19,
+    "total": 25,
     "hit": true,
     "crit": false,
     "damage": 3,
-    "targetHp": 36,
+    "targetHp": 29,
     "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 11,
+    "total": 16,
+    "hit": true,
+    "crit": false,
+    "damage": 16,
+    "targetHp": 10,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 12,
+    "total": 18,
+    "hit": true,
+    "crit": false,
+    "damage": 4,
+    "targetHp": 25,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 17,
+    "total": 22,
+    "hit": true,
+    "crit": false,
+    "damage": 16,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
+    "type": "end",
+    "outcome": "victory"
+   }
+  ],
+  "outcome": "victory"
+ },
+ "sapper-blast": {
+  "map": "goblins-1",
+  "hero": {
+   "key": "hero",
+   "name": {
+    "en": "Garrick",
+    "ru": "Garrick"
+   },
+   "art": "/art/portraits/human-fighter-1.webp",
+   "hp": 24,
+   "maxHp": 24,
+   "ac": 18,
+   "boss": false,
+   "banner": "#9e2a2a",
+   "elite": null,
+   "powers": []
+  },
+  "monsters": [
+   {
+    "key": "m0",
+    "name": {
+     "en": "Goblin sapper",
+     "ru": "Гоблин-подрывник"
+    },
+    "art": null,
+    "hp": 6,
+    "maxHp": 6,
+    "ac": 11,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "explode"
+    ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Goblin sapper",
+     "ru": "Гоблин-подрывник"
+    },
+    "art": null,
+    "hp": 6,
+    "maxHp": 6,
+    "ac": 11,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "explode"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "type": "initiative",
+    "order": [
+     "hero",
+     "m1",
+     "m0"
+    ]
    },
    {
     "type": "attack",
@@ -4525,13 +4766,637 @@
     "total": 25,
     "hit": true,
     "crit": true,
-    "damage": 14,
+    "damage": 11,
     "targetHp": 0,
     "kind": "weapon"
    },
    {
     "type": "defeated",
     "key": "m0"
+   },
+   {
+    "type": "save",
+    "ability": "dex",
+    "natural": 5,
+    "total": 7,
+    "dc": 10,
+    "success": false
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "explode",
+    "target": "hero",
+    "amount": 5,
+    "hp": 19
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 18,
+    "total": 22,
+    "hit": true,
+    "crit": false,
+    "damage": 3,
+    "targetHp": 16,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 11,
+    "total": 16,
+    "hit": true,
+    "crit": false,
+    "damage": 6,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
+    "type": "save",
+    "ability": "dex",
+    "natural": 16,
+    "total": 18,
+    "dc": 10,
+    "success": true
+   },
+   {
+    "type": "power",
+    "actor": "m1",
+    "power": "explode",
+    "target": "hero",
+    "amount": 2,
+    "hp": 14
+   },
+   {
+    "type": "end",
+    "outcome": "victory"
+   }
+  ],
+  "outcome": "victory"
+ },
+ "spider-poison": {
+  "map": "goblins-1",
+  "hero": {
+   "key": "hero",
+   "name": {
+    "en": "Borin",
+    "ru": "Borin"
+   },
+   "art": "/art/portraits/dwarf-cleric-1.webp",
+   "hp": 22,
+   "maxHp": 22,
+   "ac": 18,
+   "boss": false,
+   "banner": "#b08a2e",
+   "elite": null,
+   "powers": []
+  },
+  "monsters": [
+   {
+    "key": "m0",
+    "name": {
+     "en": "Giant spider",
+     "ru": "Гигантский паук"
+    },
+    "art": null,
+    "hp": 14,
+    "maxHp": 14,
+    "ac": 12,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "poison"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "type": "initiative",
+    "order": [
+     "hero",
+     "m0"
+    ]
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 14,
+    "total": 19,
+    "hit": true,
+    "crit": false,
+    "damage": 6,
+    "targetHp": 8,
+    "kind": "spell"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 19,
+    "total": 23,
+    "hit": true,
+    "crit": false,
+    "damage": 8,
+    "targetHp": 14,
+    "kind": "weapon"
+   },
+   {
+    "type": "save",
+    "ability": "con",
+    "natural": 6,
+    "total": 8,
+    "dc": 10,
+    "success": false
+   },
+   {
+    "type": "status",
+    "target": "hero",
+    "status": "poisoned",
+    "turns": 2
+   },
+   {
+    "type": "tick",
+    "target": "hero",
+    "damage": 4,
+    "hp": 10,
+    "status": "poisoned"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 17,
+    "total": 22,
+    "hit": true,
+    "crit": false,
+    "damage": 5,
+    "targetHp": 3,
+    "kind": "spell"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 16,
+    "total": 20,
+    "hit": true,
+    "crit": false,
+    "damage": 4,
+    "targetHp": 6,
+    "kind": "weapon"
+   },
+   {
+    "type": "tick",
+    "target": "hero",
+    "damage": 1,
+    "hp": 5,
+    "status": "poisoned"
+   },
+   {
+    "type": "heal",
+    "actor": "hero",
+    "ability": "cure-wounds",
+    "amount": 7,
+    "hp": 12
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 14,
+    "total": 18,
+    "hit": true,
+    "crit": false,
+    "damage": 6,
+    "targetHp": 6,
+    "kind": "weapon"
+   },
+   {
+    "type": "save",
+    "ability": "con",
+    "natural": 2,
+    "total": 4,
+    "dc": 10,
+    "success": false
+   },
+   {
+    "type": "status",
+    "target": "hero",
+    "status": "poisoned",
+    "turns": 2
+   },
+   {
+    "type": "tick",
+    "target": "hero",
+    "damage": 2,
+    "hp": 4,
+    "status": "poisoned"
+   },
+   {
+    "type": "heal",
+    "actor": "hero",
+    "ability": "potion",
+    "amount": 12,
+    "hp": 16
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 20,
+    "total": 24,
+    "hit": true,
+    "crit": true,
+    "damage": 9,
+    "targetHp": 7,
+    "kind": "weapon"
+   },
+   {
+    "type": "tick",
+    "target": "hero",
+    "damage": 1,
+    "hp": 6,
+    "status": "poisoned"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 8,
+    "total": 13,
+    "hit": true,
+    "crit": false,
+    "damage": 5,
+    "targetHp": 0,
+    "kind": "spell"
+   },
+   {
+    "type": "defeated",
+    "key": "m0"
+   },
+   {
+    "type": "end",
+    "outcome": "victory"
+   }
+  ],
+  "outcome": "victory"
+ },
+ "bat-swarm-bomb": {
+  "map": "goblins-1",
+  "hero": {
+   "key": "hero",
+   "name": {
+    "en": "Pip",
+    "ru": "Pip"
+   },
+   "art": "/art/portraits/halfling-rogue-1.webp",
+   "hp": 30,
+   "maxHp": 30,
+   "ac": 14,
+   "boss": false,
+   "banner": "#2f7f86",
+   "elite": null,
+   "powers": []
+  },
+  "monsters": [
+   {
+    "key": "m0",
+    "name": {
+     "en": "Giant spider",
+     "ru": "Гигантский паук"
+    },
+    "art": null,
+    "hp": 19,
+    "maxHp": 19,
+    "ac": 12,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "poison"
+    ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Bat swarm",
+     "ru": "Стая летучих мышей"
+    },
+    "art": null,
+    "hp": 14,
+    "maxHp": 14,
+    "ac": 12,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "swarm",
+     "quick"
+    ]
+   },
+   {
+    "key": "m2",
+    "name": {
+     "en": "Giant rat",
+     "ru": "Гигантская крыса"
+    },
+    "art": "/art/tokens/giant-rat.webp",
+    "hp": 6,
+    "maxHp": 6,
+    "ac": 11,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": []
+   }
+  ],
+  "events": [
+   {
+    "type": "initiative",
+    "order": [
+     "m2",
+     "m1",
+     "hero",
+     "m0"
+    ]
+   },
+   {
+    "type": "burst",
+    "actor": "hero",
+    "source": "bomb",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 11,
+      "hp": 8
+     },
+     {
+      "key": "m1",
+      "damage": 22,
+      "hp": 0
+     },
+     {
+      "key": "m2",
+      "damage": 11,
+      "hp": 0
+     }
+    ]
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
+    "type": "defeated",
+    "key": "m2"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 14,
+    "total": 19,
+    "hit": true,
+    "crit": false,
+    "damage": 16,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "defeated",
+    "key": "m0"
+   },
+   {
+    "type": "end",
+    "outcome": "victory"
+   }
+  ],
+  "outcome": "victory"
+ },
+ "banshee-wail": {
+  "map": "crypt-1",
+  "hero": {
+   "key": "hero",
+   "name": {
+    "en": "Ilyra",
+    "ru": "Ilyra"
+   },
+   "art": "/art/portraits/elf-wizard-1.webp",
+   "hp": 42,
+   "maxHp": 42,
+   "ac": 15,
+   "boss": false,
+   "banner": "#3b5fa8",
+   "elite": null,
+   "powers": []
+  },
+  "monsters": [
+   {
+    "key": "m0",
+    "name": {
+     "en": "Skeleton",
+     "ru": "Скелет"
+    },
+    "art": "/art/tokens/skeleton.webp",
+    "hp": 18,
+    "maxHp": 18,
+    "ac": 13,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "brittle"
+    ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Banshee",
+     "ru": "Банши"
+    },
+    "art": null,
+    "hp": 34,
+    "maxHp": 34,
+    "ac": 12,
+    "boss": false,
+    "banner": null,
+    "elite": null,
+    "powers": [
+     "wail"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "type": "initiative",
+    "order": [
+     "m0",
+     "hero",
+     "m1"
+    ]
+   },
+   {
+    "type": "save",
+    "ability": "wis",
+    "natural": 2,
+    "total": 6,
+    "dc": 12,
+    "success": false
+   },
+   {
+    "type": "power",
+    "actor": "m1",
+    "power": "wail",
+    "target": "hero",
+    "amount": 10,
+    "hp": 32
+   },
+   {
+    "type": "blocked",
+    "actor": "m0",
+    "by": "shield"
+   },
+   {
+    "type": "burst",
+    "actor": "hero",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 9,
+      "hp": 9
+     },
+     {
+      "key": "m1",
+      "damage": 7,
+      "hp": 27
+     }
+    ]
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 8,
+    "total": 14,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 32,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 20,
+    "total": 26,
+    "hit": true,
+    "crit": true,
+    "damage": 13,
+    "targetHp": 19,
+    "kind": "weapon"
+   },
+   {
+    "type": "burst",
+    "actor": "hero",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 11,
+      "hp": 0
+     },
+     {
+      "key": "m1",
+      "damage": 12,
+      "hp": 15
+     }
+    ]
+   },
+   {
+    "type": "defeated",
+    "key": "m0"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 16,
+    "total": 22,
+    "hit": true,
+    "crit": false,
+    "damage": 10,
+    "targetHp": 9,
+    "kind": "weapon"
+   },
+   {
+    "type": "heal",
+    "actor": "hero",
+    "ability": "potion",
+    "amount": 12,
+    "hp": 21
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 8,
+    "total": 14,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 21,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 17,
+    "total": 23,
+    "hit": true,
+    "crit": false,
+    "damage": 12,
+    "targetHp": 3,
+    "kind": "spell"
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 6,
+    "total": 12,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 21,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 20,
+    "total": 26,
+    "hit": true,
+    "crit": true,
+    "damage": 25,
+    "targetHp": 0,
+    "kind": "spell"
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
    },
    {
     "type": "end",

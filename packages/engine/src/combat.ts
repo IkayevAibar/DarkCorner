@@ -247,8 +247,8 @@ function spawnGroup(rng: Rng, floor: number, kind: 'fight' | 'miniboss' | 'boss'
 /** Escaped: an Escape roll got the Hero out; like surviving, it ends back in the last safe Room. */
 export type FightOutcome = 'victory' | 'survived' | 'escaped' | 'dead';
 
-/** Lasting effects: burning hurts each turn, paralyzed loses a turn, frightened attacks with disadvantage. */
-export type StatusId = 'burning' | 'paralyzed' | 'frightened';
+/** Lasting effects: burning and poisoned hurt each turn, paralyzed loses a turn, frightened attacks with disadvantage. */
+export type StatusId = 'burning' | 'paralyzed' | 'frightened' | 'poisoned';
 
 export type FightEvent =
   | { type: 'initiative'; order: string[] }
@@ -266,14 +266,14 @@ export type FightEvent =
   | { type: 'feature'; feature: 'survivor' | 'indomitable' | 'ward'; amount?: number; hp?: number; left?: number }
   /**
    * A monster's power at work. `amount` is gold stolen (thief), health restored
-   * (mend, drain) or damage dealt (breath); `hp` is the target's health after it.
+   * (mend, drain) or damage dealt (breath, explode, wail); `hp` is the target's health after it.
    */
   | { type: 'power'; actor: string; power: MonsterPowerId; target?: string; amount?: number; hp?: number }
   /** A saving throw the Hero makes against a monster's power. */
   | { type: 'save'; ability: Ability; natural: number; total: number; dc: number; success: boolean }
   | { type: 'status'; target: string; status: StatusId; turns: number }
-  /** Burning damage at the start of a turn. */
-  | { type: 'tick'; target: string; damage: number; hp: number }
+  /** Damage at the start of a turn: burning, or `status` poisoned. */
+  | { type: 'tick'; target: string; damage: number; hp: number; status?: 'poisoned' }
   /** Paralyzed: the turn is lost. */
   | { type: 'held'; target: string }
   /** A monster runs off, a thief with what it stole. */
@@ -399,6 +399,8 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
 
   // What lasts between turns.
   const burning = new Map<string, { turns: number; dice: [number, number] }>();
+  /** Only the Hero is ever poisoned. */
+  const poisoned = { turns: 0, dice: [1, 4] as [number, number] };
   let held = 0;
   let frightened = 0;
   const stolen = new Map<string, number>();
@@ -415,6 +417,15 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         defeated.push(mm.key);
         stolen.delete(mm.key);
         events.push({ type: 'defeated', key: mm.key });
+        // A sapper's bomb goes off as it falls.
+        const blast = powerOf(mm, 'explode');
+        if (blast && hero.hp > 0) {
+          const full = Math.round(sum(rollDice(rng, blast.dice[0], blast.dice[1])) * mm.damageFactor * (fireproof ? 0.5 : 1));
+          const saved = heroSave('dex', dcOf(mm, blast.dc));
+          const damage = Math.max(1, saved ? Math.floor(full / 2) : full);
+          const after = hurtHero(damage);
+          events.push({ type: 'power', actor: mm.key, power: 'explode', target: 'hero', amount: damage, hp: hero.hp }, ...after);
+        }
       }
     }
   };
@@ -487,8 +498,9 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     const damage = sum(rollDice(rng, input.bomb.dice, input.bomb.sides)) + input.bomb.bonus;
     const after: FightEvent[] = [];
     const targets = mons.map((mm) => {
-      after.push(...wound(mm, damage, false));
-      return { key: mm.key, damage, hp: mm.hp };
+      const taken = damage * (powerOf(mm, 'swarm') ? 2 : 1);
+      after.push(...wound(mm, taken, false));
+      return { key: mm.key, damage: taken, hp: mm.hp };
     });
     events.push({ type: 'burst', actor: 'hero', source: 'bomb', targets }, ...after);
     markDefeated();
@@ -503,6 +515,16 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       frightened = fear.rounds;
       events.push({ type: 'status', target: 'hero', status: 'frightened', turns: fear.rounds });
     }
+  }
+  // Every wail is heard before the first blow; steady nerves (a WIS save) take half.
+  for (const mm of alive().filter((x) => powerOf(x, 'wail'))) {
+    if (hero.hp <= 0) break;
+    const wail = powerOf(mm, 'wail')!;
+    const full = Math.round(sum(rollDice(rng, wail.dice[0], wail.dice[1])) * mm.damageFactor);
+    const saved = heroSave('wis', dcOf(mm, wail.dc));
+    const damage = Math.max(1, saved ? Math.floor(full / 2) : full);
+    const after = hurtHero(damage);
+    events.push({ type: 'power', actor: mm.key, power: 'wail', target: 'hero', amount: damage, hp: hero.hp }, ...after);
   }
 
   const heal = (ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal', amount: number) => {
@@ -571,6 +593,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       damage += heavyHitter;
       if (hero.uniques.includes('oathbreaker') && hero.hp < hero.maxHp / 2) damage *= 1.5;
       if (hero.uniques.includes('dragonbone-blade') && targetDef.kin === 'dragonkin') damage *= 2;
+      if (!caster && powerOf(target, 'swarm')) damage *= 0.5;
       damage = Math.max(1, Math.round(damage));
       after = wound(target, damage, crit);
     }
@@ -632,7 +655,8 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       const after: FightEvent[] = [];
       const lone = alive().length === 1 ? 2 : 1;
       const targets = alive().map((mm) => {
-        const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + empowered) * lone * (1 + hero.spellPower / 100)));
+        const swarm = powerOf(mm, 'swarm') ? 2 : 1;
+        const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + empowered) * lone * swarm * (1 + hero.spellPower / 100)));
         after.push(...wound(mm, damage, false));
         return { key: mm.key, damage, hp: mm.hp };
       });
@@ -641,7 +665,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       return;
     }
     const attacks = attacksPerTurn(hero.class, hero.level, hero.path);
-    for (let i = 0; i < attacks && alive().length > 0; i++) heroAttack();
+    for (let i = 0; i < attacks && alive().length > 0 && hero.hp > 0; i++) heroAttack();
   };
 
   const monsterAttack = (mm: MonsterInstance) => {
@@ -703,6 +727,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       held = 1;
       events.push({ type: 'status', target: 'hero', status: 'paralyzed', turns: 1 });
     }
+    const poison = powerOf(mm, 'poison');
+    if (poison && poisoned.turns === 0 && !heroSave('con', dcOf(mm, poison.dc))) {
+      poisoned.turns = poison.turns;
+      poisoned.dice = poison.dice;
+      events.push({ type: 'status', target: 'hero', status: 'poisoned', turns: poison.turns });
+    }
   };
 
   const monsterTurn = (mm: MonsterInstance) => {
@@ -759,6 +789,13 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         if (mm.hp <= 0) return false;
       }
     }
+    if (key === 'hero' && poisoned.turns > 0) {
+      poisoned.turns--;
+      const damage = sum(rollDice(rng, poisoned.dice[0], poisoned.dice[1]));
+      const after = hurtHero(damage);
+      events.push({ type: 'tick', target: 'hero', damage, hp: hero.hp, status: 'poisoned' }, ...after);
+      if (hero.hp <= 0) return false;
+    }
     if (key === 'hero' && held > 0) {
       held--;
       events.push({ type: 'held', target: 'hero' });
@@ -779,6 +816,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const deathSaves = (): 'rise' | 'survived' | 'dead' => {
     events.push({ type: 'down' });
     burning.delete('hero');
+    poisoned.turns = 0;
     held = 0;
     let successes = 0;
     let failures = 0;
@@ -810,6 +848,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const spared = (): 'survived' => {
     events.push({ type: 'down' });
     burning.delete('hero');
+    poisoned.turns = 0;
     held = 0;
     hero.hp = 1;
     return 'survived';
@@ -833,10 +872,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         if (mm.hp > 0 && !fled.has(mm.key) && startTurn(mm.key)) monsterTurn(mm);
       }
       if (escaped) outcome = 'escaped';
-      else if (alive().length === 0) outcome = 'victory';
-      else if (hero.hp <= 0) {
-        const save = input.spare ? spared() : deathSaves();
-        if (save !== 'rise') outcome = save;
+      else {
+        if (hero.hp <= 0) {
+          const save = input.spare ? spared() : deathSaves();
+          if (save !== 'rise') outcome = save;
+        }
+        if (outcome === null && alive().length === 0) outcome = 'victory';
       }
     }
     if (frightened > 0) frightened--;

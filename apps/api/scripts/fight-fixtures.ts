@@ -128,6 +128,26 @@ const SCENARIOS: Record<string, Scenario> = {
     level: 4, floor: 3, kind: 'fight', health: 1, potions: 2,
     want: (r, m) => r.outcome === 'victory' && m.some((x) => x.elite === 'gilded'),
   },
+  'sapper-blast': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.webp', banner: BANNER_COLORS[0] },
+    level: 2, floor: 2, kind: 'fight', health: 1, potions: 1,
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'power' && e.power === 'explode'),
+  },
+  'spider-poison': {
+    hero: { name: 'Borin', race: 'dwarf', class: 'cleric', portrait: '/art/portraits/dwarf-cleric-1.webp', banner: BANNER_COLORS[3] },
+    level: 2, floor: 2, kind: 'fight', health: 1, potions: 1,
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'status' && e.status === 'poisoned') && has(r, (e) => e.type === 'tick' && e.status === 'poisoned'),
+  },
+  'bat-swarm-bomb': {
+    hero: { name: 'Pip', race: 'halfling', class: 'rogue', portrait: '/art/portraits/halfling-rogue-1.webp', banner: BANNER_COLORS[5] },
+    level: 3, floor: 3, kind: 'fight', health: 1, potions: 1, bomb: true,
+    want: (r, m) => r.outcome === 'victory' && m.some((x) => x.id === 'bat-swarm') && m.length >= 2,
+  },
+  'banshee-wail': {
+    hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] },
+    level: 5, floor: 4, kind: 'fight', health: 1, potions: 1,
+    want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'power' && e.power === 'wail'),
+  },
 };
 
 function combatant(m: MonsterInstance): Combatant {

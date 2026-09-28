@@ -153,6 +153,88 @@ describe('monster powers', () => {
     const pack = rate('pack', () => [mon('wolf', 3, 'm0'), { ...mon('giant-rat', 3, 'm1'), hp: 500, maxHp: 500 }]);
     expect(pack).toBeGreaterThan(alone + 0.1);
   });
+
+  it('poisons only after a failed CON save, and the poison bites at the start of the Hero’s next 2 turns', () => {
+    let poisonings = 0;
+    for (let i = 0; i < 200; i++) {
+      const r = fight(`spider-${i}`, { ...hero('fighter', 1), hp: 999, maxHp: 999 }, [mon('giant-spider', 1)]);
+      r.events.forEach((e, at) => {
+        if (e.type !== 'status' || e.status !== 'poisoned') return;
+        poisonings++;
+        const save = r.events[at - 1];
+        expect(save).toMatchObject({ type: 'save', ability: 'con', success: false });
+        expect(e.turns).toBe(2);
+      });
+      const ticks = of(r.events, 'tick').filter((e) => e.status === 'poisoned');
+      for (const tick of ticks) expect(tick.damage).toBeGreaterThanOrEqual(1);
+      expect(ticks.length).toBeLessThanOrEqual(2 * of(r.events, 'status').filter((e) => e.status === 'poisoned').length);
+    }
+    expect(poisonings).toBeGreaterThan(20);
+  });
+
+  it('sets off a sapper’s bomb as it falls: a DEX save halves it', () => {
+    let blasts = 0;
+    for (let i = 0; i < 200; i++) {
+      const r = fight(`sapper-${i}`, { ...hero('fighter', 1), hp: 999, maxHp: 999 }, [mon('goblin-sapper', 1)]);
+      const fell = r.events.findIndex((e) => e.type === 'defeated' && e.key === 'm0');
+      if (fell < 0) continue;
+      blasts++;
+      expect(r.events[fell + 1]).toMatchObject({ type: 'save', ability: 'dex' });
+      const blast = r.events[fell + 2];
+      expect(blast).toMatchObject({ type: 'power', power: 'explode', actor: 'm0', target: 'hero' });
+      const saved = (r.events[fell + 1] as { success: boolean }).success;
+      expect((blast as { amount: number }).amount).toBeLessThanOrEqual(saved ? 4 : 8);
+    }
+    expect(blasts).toBeGreaterThan(150);
+  });
+
+  it('lets a last blast drop a winning Hero, who then makes death saves', () => {
+    for (let i = 0; i < 100; i++) {
+      const r = fight(`last-blast-${i}`, { ...hero('fighter', 3), hp: 1, maxHp: 30 }, [{ ...mon('goblin-sapper', 1), hp: 1, maxHp: 1 }], { stance: 'steady' });
+      // Whatever happens, a Hero never walks off a winner with no health.
+      expect(r.hp > 0 || r.outcome === 'dead').toBe(true);
+      if (of(r.events, 'down').length > 0) expect(r.outcome === 'victory' ? r.hp > 0 : true).toBe(true);
+    }
+  });
+
+  it('halves weapon hits on a swarm, and doubles bombs and bursts', () => {
+    const avg = (label: string, target: () => MonsterInstance) => {
+      let damage = 0;
+      let hits = 0;
+      for (let i = 0; i < 300; i++) {
+        const r = fight(`swarm-${label}-${i}`, { ...hero('fighter', 3), hp: 999, maxHp: 999 }, [{ ...target(), hp: 500, maxHp: 500 }], { stance: 'steady' });
+        for (const e of of(r.events, 'attack')) {
+          if (e.actor !== 'hero' || !e.hit || e.crit) continue;
+          damage += e.damage;
+          hits++;
+        }
+      }
+      return damage / hits;
+    };
+    const swarm = avg('on', () => mon('bat-swarm', 2));
+    const plain = avg('off', () => ({ ...mon('bat-swarm', 2), powers: [] }));
+    expect(swarm / plain).toBeGreaterThan(0.4);
+    expect(swarm / plain).toBeLessThan(0.6);
+
+    const bombed = fight('swarm-bomb', { ...hero('fighter', 3), hp: 999, maxHp: 999 }, [
+      { ...mon('bat-swarm', 2, 'm0'), hp: 500, maxHp: 500 }, { ...mon('goblin', 2, 'm1'), hp: 500, maxHp: 500 },
+    ], { bomb: { dice: 2, sides: 6, bonus: 4 } });
+    const burst = of(bombed.events, 'burst')[0]!;
+    expect(burst.targets[0]!.damage).toBe(2 * burst.targets[1]!.damage);
+  });
+
+  it('opens with a banshee’s wail: a WIS save halves it', () => {
+    for (let i = 0; i < 100; i++) {
+      const h = { ...hero('cleric', 5), hp: 999, maxHp: 999 };
+      const r = fight(`banshee-${i}`, h, [mon('banshee', 4)]);
+      const at = r.events.findIndex((e) => e.type === 'power' && e.power === 'wail');
+      expect(at).toBeGreaterThan(0);
+      expect(r.events[at - 1]).toMatchObject({ type: 'save', ability: 'wis' });
+      const wail = r.events[at] as { amount: number; hp: number };
+      expect(wail.hp).toBe(999 - wail.amount);
+      expect(r.events.slice(0, at).some((e) => e.type === 'attack')).toBe(false);
+    }
+  });
 });
 
 describe('elite packs and escorts', () => {

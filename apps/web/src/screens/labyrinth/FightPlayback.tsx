@@ -248,6 +248,8 @@ function effectOn(key: string, event: FightEventView | null): Effect | null {
     case 'power':
       switch (event.power) {
         case 'breath':
+        case 'explode':
+        case 'wail':
           if (event.target === key) return { shake: true, float: { text: `−${event.amount ?? 0}`, tone: 'burn' } };
           return event.actor === key ? { shake: true } : null;
         case 'thief':
@@ -309,7 +311,8 @@ function sound(event: FightEventView): void {
     case 'tick': play('hit', { rate: 1.3, volume: 0.5 }); break;
     case 'fled': play('step'); play('step', { delay: 180 }); break;
     case 'power':
-      if (event.power === 'breath') play('crit', { rate: 0.6 });
+      if (event.power === 'breath' || event.power === 'explode') play('crit', { rate: 0.6 });
+      else if (event.power === 'wail') play('crit', { rate: 0.5, volume: 0.8 });
       else if (event.power === 'thief') play('coins', { rate: 1.2 });
       else if (event.power === 'enrage' || event.power === 'frighten') play('crit', { rate: 0.7, volume: 0.8 });
       else if (event.power === 'undying') play('creak');
@@ -335,7 +338,7 @@ function pause(event: FightEventView): number {
     case 'reroll': return 900;
     case 'rise': return 1000;
     case 'defeated': return 520;
-    case 'power': return event.power === 'breath' || event.power === 'frighten' ? 1100 : 900;
+    case 'power': return ['breath', 'frighten', 'explode', 'wail'].includes(event.power) ? 1100 : 900;
     case 'save': return 950;
     case 'tick': return 650;
     case 'fled': return 900;
@@ -367,6 +370,8 @@ const POWER_LINES: Partial<Record<MonsterPowerView, MessageKey>> = {
   undying: 'fight.power.undying',
   enrage: 'fight.power.enrage',
   frighten: 'fight.power.frighten',
+  explode: 'fight.power.explode',
+  wail: 'fight.power.wail',
 };
 
 function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: Record<string, string>): string | null {
@@ -394,7 +399,7 @@ function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: 
     case 'save':
       return t('fight.save', { ability: t(`ability.${e.ability}`), d: e.natural, t: e.total, dc: e.dc, result: t(e.success ? 'result.success' : 'result.failure') });
     case 'status': return t(`fight.status.${e.status}`, { name: n(e.target) });
-    case 'tick': return t('fight.tick', { name: n(e.target), n: e.damage });
+    case 'tick': return t(e.status === 'poisoned' ? 'fight.tickPoison' : 'fight.tick', { name: n(e.target), n: e.damage });
     case 'held': return t('fight.held', { name: n(e.target) });
     case 'feature':
       if (e.feature === 'survivor') return t('fight.feature.survivor', { name: n('hero'), n: e.amount ?? 0 });

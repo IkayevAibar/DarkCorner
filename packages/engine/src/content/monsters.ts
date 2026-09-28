@@ -34,7 +34,15 @@ export type MonsterPower =
   /** As the fight starts: a WIS save, or disadvantage on attacks for `rounds` rounds. */
   | { id: 'frighten'; dc: number; rounds: number }
   /** Below half health, once: +2 AC, +1 to hit, and its breath (if any) is ready again. */
-  | { id: 'enrage' };
+  | { id: 'enrage' }
+  /** A hit calls for a CON save; failing it, `dice` poison damage at the start of the Hero's next `turns` turns. */
+  | { id: 'poison'; dc: number; turns: number; dice: [number, number] }
+  /** When it falls, its bomb goes off: `dice` damage to the Hero, a DEX save halves it. */
+  | { id: 'explode'; dc: number; dice: [number, number] }
+  /** A cloud of small bodies: weapon hits deal half damage, bursts and Fire bombs double. */
+  | { id: 'swarm' }
+  /** As the fight starts, a scream: `dice` damage to the Hero, a WIS save halves it. */
+  | { id: 'wail'; dc: number; dice: [number, number] };
 
 export type MonsterPowerId = MonsterPower['id'];
 
@@ -83,6 +91,18 @@ export const MONSTERS: MonsterDef[] = [
   m({ id: 'wolf', name: text('Wolf', 'Волк'), theme: 'warrens', kin: 'beast', art: '/art/tokens/wolf.webp', role: 'brute', hp: 11, ac: 12, attack: 3, damage: [2, 4, 0], dex: 15, xp: 18, weight: 2,
     powers: [{ id: 'pack' }],
     about: text('Hunts in packs, and bites harder while the rest of the pack still stands.', 'Охотится стаей и кусает злее, пока остальная стая ещё на ногах.') }),
+  m({ id: 'goblin-sapper', name: text('Goblin sapper', 'Гоблин-подрывник'), theme: 'warrens', kin: 'goblinoid', art: null, role: 'minion', hp: 5, ac: 11, attack: 3, damage: [1, 4, 1], dex: 13, xp: 12, weight: 2,
+    powers: [{ id: 'explode', dc: 10, dice: [2, 4] }],
+    about: text('Carries a lit bomb and no plan. When it falls, the bomb goes off.', 'Таскает зажжённую бомбу и никакого плана. Когда он падает, бомба взрывается.') }),
+  m({ id: 'goblin-shaman', name: text('Goblin shaman', 'Гоблин-шаман'), theme: 'warrens', kin: 'goblinoid', art: null, role: 'minion', hp: 8, ac: 11, attack: 3, damage: [1, 6, 0], dex: 12, xp: 14, weight: 1,
+    powers: [{ id: 'mend', dice: [1, 8] }],
+    about: text('Bones in its hair and a charm for every wound: once a fight it patches up a badly hurt friend.', 'Кости в волосах и заговор на каждую рану: раз за бой латает тяжело раненого друга.') }),
+  m({ id: 'bat-swarm', name: text('Bat swarm', 'Стая летучих мышей'), theme: 'warrens', kin: 'beast', art: null, role: 'minion', hp: 9, ac: 12, attack: 3, damage: [1, 4, 0], dex: 16, xp: 10, weight: 2,
+    powers: [{ id: 'swarm' }, { id: 'quick' }],
+    about: text('A hundred wings and teeth. Blades find little to cut; fire finds plenty.', 'Сотня крыльев и зубов. Клинку тут почти нечего рубить, а огню есть чем поживиться.') }),
+  m({ id: 'giant-spider', name: text('Giant spider', 'Гигантский паук'), theme: 'warrens', kin: 'beast', art: null, role: 'brute', hp: 12, ac: 12, attack: 3, damage: [1, 6, 1], dex: 15, xp: 20, weight: 2,
+    powers: [{ id: 'poison', dc: 10, turns: 2, dice: [1, 4] }],
+    about: text('Waits in the corners the torchlight misses. Its bite keeps burning long after.', 'Ждёт в углах, куда не достаёт свет факела. Его укус жжёт ещё долго.') }),
   m({ id: 'goblin-chieftain', name: text('Goblin chieftain', 'Вождь гоблинов'), theme: 'warrens', kin: 'goblinoid', art: '/art/tokens/goblin-chieftain.webp', role: 'miniboss', hp: 34, ac: 15, attack: 5, damage: [2, 6, 3], dex: 14, xp: 90, weight: 0,
     escort: ['goblin-archer'],
     about: text('The biggest goblin in the warrens, and the loudest. Never fights without archers at its back.', 'Самый крупный гоблин в норах и самый громкий. Без лучников за спиной в бой не идёт.') }),
@@ -100,6 +120,12 @@ export const MONSTERS: MonsterDef[] = [
   m({ id: 'wraith', name: text('Wraith', 'Призрак'), theme: 'crypts', kin: 'undead', art: '/art/tokens/wraith.webp', role: 'brute', hp: 28, ac: 13, attack: 5, damage: [2, 8, 1], dex: 16, xp: 90, weight: 1,
     powers: [{ id: 'drain' }],
     about: text('A cold shadow that drinks the life it takes, and heals on it.', 'Холодная тень, которая пьёт отнятую жизнь и ею же лечится.') }),
+  m({ id: 'grave-robber', name: text('Grave robber', 'Расхититель могил'), theme: 'crypts', kin: 'humanoid', art: null, role: 'minion', hp: 16, ac: 13, attack: 4, damage: [1, 6, 2], dex: 16, xp: 30, weight: 2,
+    powers: [{ id: 'thief' }, { id: 'quick' }],
+    about: text('Came for the dead and found you instead. Quick hands, quicker feet.', 'Пришёл за мертвецами, а нашёл вас. Быстрые руки и ещё более быстрые ноги.') }),
+  m({ id: 'banshee', name: text('Banshee', 'Банши'), theme: 'crypts', kin: 'undead', art: null, role: 'brute', hp: 24, ac: 12, attack: 4, damage: [1, 8, 1], dex: 14, xp: 60, weight: 1,
+    powers: [{ id: 'wail', dc: 12, dice: [2, 6] }],
+    about: text('Its scream opens the fight before any blade can. Steady nerves take half of it.', 'Её крик начинает бой раньше любого клинка. Крепкие нервы вдвое его ослабляют.') }),
   m({ id: 'bone-knight', name: text('Bone knight', 'Костяной рыцарь'), theme: 'crypts', kin: 'undead', art: '/art/tokens/bone-knight.webp', role: 'miniboss', hp: 70, ac: 17, attack: 6, damage: [2, 8, 5], dex: 12, xp: 250, weight: 0,
     powers: [{ id: 'undying' }], escort: ['skeleton'],
     about: text('Swore to guard these crypts forever, and keeps the oath. Skeletons march at its side.', 'Поклялся вечно стеречь эти склепы и держит клятву. Рядом с ним шагают скелеты.') }),

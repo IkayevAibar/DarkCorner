@@ -19,7 +19,8 @@ describe('art', () => {
   it('points every portrait, unique Item, monster and Room map at a file the web serves', () => {
     for (const p of PORTRAITS) expect(served(p.url), p.url).toBe(true);
     for (const u of UNIQUES) expect(u.art !== null && served(u.art), u.id).toBe(true);
-    for (const m of MONSTERS) expect(m.art !== null && served(m.art), m.id).toBe(true);
+    // A monster may still wait for its token (its initial stands in); any art it names must be served.
+    for (const m of MONSTERS) if (m.art !== null) expect(served(m.art), m.id).toBe(true);
     for (const theme of Object.values(THEMES)) for (const map of theme.maps) expect(served(`/art/rooms/${map}.webp`), map).toBe(true);
   });
 });

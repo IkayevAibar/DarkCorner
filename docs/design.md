@@ -196,7 +196,7 @@ The rules are a light version of the D&D System Reference Document (SRD 5.2).
 
 ### Monsters
 
-Every monster has a signature power, so a fight plays differently depending on who is in it. The Door's Threat already counts them, and the Player sees them before choosing (Before a fight). Season 0's bestiary *(v0)*:
+Every monster has a signature power, so a fight plays differently depending on who is in it. The Door's Threat already counts them, and the Player sees them before choosing (Before a fight). Save DCs grow by 1 for every two Floors deeper into a theme. Season 0's bestiary *(v0)*:
 
 | Floors | Monster | Power |
 |---|---|---|
@@ -204,10 +204,16 @@ Every monster has a signature power, so a fight plays differently depending on w
 | 1–3 | Goblin archer | **Quick:** +5 to initiative |
 | 1–3 | Goblin cutpurse | **Thief:** a hit snatches carried gold, 2d10 × (Floors into the theme + 1). It runs with it on its next turn unless it falls first. The gold that gets away is lost. |
 | 1–3 | Wolf | **Pack hunter:** advantage while another monster still stands |
+| 1–3 | Goblin sapper | **Lit bomb:** when it falls, its bomb goes off: 2d4 to the Hero, DEX save (DC 10) for half |
+| 1–3 | Goblin shaman | **Dark mending:** once per fight, instead of attacking, heals an ally below half health by 1d8 |
+| 1–3 | Bat swarm | **Swarm:** weapon hits deal half damage; spells hit it fully, and bursts and Fire bombs deal double. Also **Quick** |
+| 1–3 | Giant spider | **Venom:** a hit calls for a CON save (DC 10), or poison deals 1d4 at the start of the Hero's next 2 turns |
 | 4–6 | Skeleton | **Brittle bones:** blunt weapons deal +50%, piercing ones −25% |
 | 4–6 | Zombie | **Undying:** half the time, the first killing blow that isn't a critical hit leaves it at 1 health |
 | 4–6 | Ghoul | **Paralyzing touch:** a hit calls for a CON save (DC 10), or the Hero loses its next turn |
 | 4–6 | Wraith | **Life drain:** heals itself for half the damage it deals |
+| 4–6 | Grave robber | **Thief** and **Quick** |
+| 4–6 | Banshee | **Wail:** as the fight starts, before the first blow, 2d6 to the Hero, WIS save (DC 12) for half |
 | 7–9 | Cultist | **Dark mending:** once per fight, instead of attacking, heals an ally below half health by 2d8 |
 | 7–9 | Imp | **Hellfire:** a hit sets the Hero burning, 1d4 at the start of its next 2 turns |
 | 7–9 | Hellhound | **Fire breath:** 3d6, DEX save (DC 13) for half. Ready at the start, and again on a 5–6 on a d6 each turn |
@@ -243,6 +249,7 @@ Every monster has a signature power, so a fight plays differently depending on w
     | Swift | +5 to initiative and one more attack a turn |
 - **Statuses:**
   - Burning: damage at the start of each turn. Ember Fang's critical hits now set enemies burning for 3 turns, 1d6 a turn, as its text always said.
+  - Poisoned: damage at the start of each of the Hero's turns; a fresh bite doesn't stack while the poison lasts.
   - Paralyzed: the next turn is lost.
   - Frightened: disadvantage on attacks.
 

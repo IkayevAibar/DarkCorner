@@ -20,6 +20,7 @@ export type Direction = z.infer<typeof directionSchema>;
 /** Monster signatures (engine: content/monsters.ts). */
 export const MONSTER_POWERS = [
   'pack', 'quick', 'thief', 'brittle', 'paralyze', 'undying', 'drain', 'mend', 'burn', 'breath', 'multiattack', 'frighten', 'enrage',
+  'poison', 'explode', 'swarm', 'wail',
 ] as const;
 export const monsterPowerSchema = z.enum(MONSTER_POWERS);
 export type MonsterPowerView = z.infer<typeof monsterPowerSchema>;
@@ -29,7 +30,7 @@ export const ELITES = ['gilded', 'frenzied', 'armored', 'vampiric', 'swift'] as 
 export const eliteSchema = z.enum(ELITES);
 export type Elite = z.infer<typeof eliteSchema>;
 
-export const STATUSES = ['burning', 'paralyzed', 'frightened'] as const;
+export const STATUSES = ['burning', 'paralyzed', 'frightened', 'poisoned'] as const;
 export const statusSchema = z.enum(STATUSES);
 
 export const combatantSchema = z.object({
@@ -89,8 +90,8 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     dc: z.number().int(), success: z.boolean(),
   }),
   z.object({ type: z.literal('status'), target: z.string(), status: statusSchema, turns: z.number().int() }),
-  /** Burning damage at the start of a turn. */
-  z.object({ type: z.literal('tick'), target: z.string(), damage: z.number().int(), hp: z.number().int() }),
+  /** Damage at the start of a turn: burning, or poison when `status` says so. */
+  z.object({ type: z.literal('tick'), target: z.string(), damage: z.number().int(), hp: z.number().int(), status: z.literal('poisoned').optional() }),
   /** Paralyzed: the turn is lost. */
   z.object({ type: z.literal('held'), target: z.string() }),
   /** A monster runs off, a thief with what it stole. */
