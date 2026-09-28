@@ -113,7 +113,7 @@ The Room where a Hero arrives on a Floor: from the stairs above, or on Floor 1 f
 _Avoid_: spawn, start room
 
 **Stamina**:
-The points a Hero spends on Moves. They refill over real time.
+The points a Hero spends on Moves into Rooms that are new to it, or that have something new in them today. They refill over real time.
 _Avoid_: energy, action points
 
 **Run**:
@@ -135,6 +135,10 @@ _Avoid_: recall, teleport, hearthstone
 **Camp**:
 A safe Room. A Hero waiting there can't be attacked and takes a long rest.
 _Avoid_: safe room, bonfire
+
+**Short rest** (короткий отдых):
+A breather taken anywhere in the Labyrinth that monsters don't block: half of full health and half of full Stamina back. A Run starts with two.
+_Avoid_: nap, breather, rest (alone)
 
 **Event room**:
 A Room with a choice, gamble or minigame instead of a fight (e.g., Shrine, Goblin gambler).
@@ -316,6 +320,10 @@ _Avoid_: chat, log, news
 **Broadcast**:
 A post the game sends to the friends' Discord channel about a big moment.
 _Avoid_: announcement, notification
+
+**Lodging** (ночлег):
+A bed for the night at the Tavern, bought with City gold: full Stamina and the short rests back. Each night costs more than the one before.
+_Avoid_: inn, sleep, rest (alone)
 
 **Rankings** (рейтинг):
 The Tavern's boards of the current Season's records, one per record (deepest Floor, level, gold, fights won, finest Item, Graves looted, Vaults emptied, deaths, the Dragon), each with a podium. Unlike the Hall of Fame, they end with the Wipe.

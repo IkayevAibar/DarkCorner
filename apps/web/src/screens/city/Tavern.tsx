@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { BountiesView, BountyView, HallEntry, HuntView, SeasonView } from '@dark/shared';
+import type { BountiesView, BountyView, HallEntry, HuntView, LodgingView, SeasonView } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { Building, Loading } from '../../components/Building';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
@@ -9,11 +9,12 @@ import { useSheet } from '../../components/Sheet';
 import { describeError } from '../../errors';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
+import { play } from '../../sound';
 import { formatDuration, useNow } from '../../time';
 import { Rankings } from './Rankings';
 
 /**
- * The Tavern: the Season, the Feed, who's online, the Rankings, and the Hall of Fame.
+ * The Tavern: the Season, Lodging, the Feed, who's online, the Rankings, and the Hall of Fame.
  * Stand-in until Codex's Tavern lands (docs/tasks/codex-08-tavern-hall.md).
  */
 export function Tavern() {
@@ -29,6 +30,7 @@ export function Tavern() {
   return (
     <Building title={t('city.tavern')} blurb={t('tavern.blurb')} hero={null}>
       <SeasonCard season={season} />
+      <Lodging />
       <Bounties />
 
       <div className="grid grid-cols-3 gap-1.5">
@@ -62,6 +64,47 @@ export function Tavern() {
       {tab === 'rankings' && <Rankings />}
       {tab === 'hall' && <Hall entries={hall.data?.entries ?? null} />}
     </Building>
+  );
+}
+
+/** Lodging: a bed upstairs for City gold, for full Stamina and the short rests back; each night costs more. */
+function Lodging() {
+  const { t } = useI18n();
+  const [data, setData] = useState<LodgingView | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [slept, setSlept] = useState(false);
+  useEffect(() => {
+    api.lodging().then(setData).catch(() => setData(null));
+  }, []);
+  if (!data) return null;
+  const rested = data.stamina >= data.staminaMax && data.shortRests.left >= data.shortRests.of;
+  const short = data.gold < data.price;
+  const sleep = async () => {
+    setError(null);
+    try {
+      setData(await api.takeLodging());
+      setSlept(true);
+      play('coins');
+    } catch (e) {
+      setError(describeError(t, e));
+    }
+  };
+  return (
+    <section className="panel grid gap-2 p-3.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-head text-xl font-extrabold">{t('lodging.title')}</span>
+        <span className="text-xs text-muted">{t('lodging.state', { s: data.stamina, max: data.staminaMax, l: data.shortRests.left, of: data.shortRests.of })}</span>
+      </div>
+      <p className="m-0 text-sm text-muted">{t('lodging.about')}</p>
+      <button type="button" className="btn btn-primary" disabled={!data.inCity || rested || short} onClick={() => void sleep()}>
+        {t('lodging.take', { n: data.price.toLocaleString() })}
+      </button>
+      <span className="text-xs text-muted">
+        {!data.inCity ? t('lodging.inside') : rested ? t('lodging.rested') : short ? t('lodging.gold', { n: data.gold.toLocaleString() }) : t('lodging.rising')}
+      </span>
+      {slept && <p className="m-0 text-sm text-tier-uncommon">{t('lodging.done')}</p>}
+      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+    </section>
   );
 }
 

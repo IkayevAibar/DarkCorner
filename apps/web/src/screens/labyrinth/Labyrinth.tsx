@@ -254,12 +254,15 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
   // them aside; a finished event opens again only when asked.
   const [aside, setAside] = useState(false);
   const [peek, setPeek] = useState(false);
+  /** The monster whose card is open, by its key. */
+  const [foe, setFoe] = useState<string | null>(null);
   const facing = room.facing;
   const event = room.eventView;
   const eventOpen = event !== null && !event.done;
   useEffect(() => {
     setAside(false);
     setPeek(false);
+    setFoe(null);
   }, [floor.number, room.id, facing !== null, eventOpen]);
   // A new Room: back up to the stage, since the Door was often tapped below it.
   useEffect(() => {
@@ -289,7 +292,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         {/* Maps are square and turn, so the map is a square as wide as the stage's longer side. */}
         <img {...roomArt(room.map, { floor: floor.number, room: room.id })} alt="" className="absolute top-1/2 left-1/2 size-[max(100cqw,100cqh)] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover brightness-[0.78]" draggable={false} />
         {facing ? (
-          <FacingTokens facing={facing} view={view} />
+          <FacingTokens facing={facing} view={view} onFoe={setFoe} />
         ) : (
           <>
             <div className="absolute inset-0 grid place-items-center">
@@ -379,7 +382,8 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
 
       {view.graves.length > 0 && <Graves view={view} busy={busy} act={act} />}
 
-      {facingCard && <FacingCard facing={facing} view={view} busy={busy} act={act} onAside={() => setAside(true)} />}
+      {facingCard && <FacingCard facing={facing} view={view} busy={busy} act={act} onAside={() => setAside(true)} onFoe={setFoe} />}
+      {facing && foe && <FoeCard facing={facing} monsterKey={foe} onClose={() => setFoe(null)} />}
       {eventCard && (
         <CenterModal
           label={t(`event.${event.kind}` as MessageKey)}
@@ -415,6 +419,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
       {popup && typeof popup === 'object' && 'kit' in popup && (
         <KitCard pick={popup.kit} view={view} busy={busy} onClose={() => setPopup(null)} act={act} />
       )}
+      {popup && typeof popup === 'object' && 'rest' in popup && <RestCard view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
     </>
   );
 }
@@ -574,18 +579,24 @@ function ThreatChip({ threat }: { threat: Threat }) {
 }
 
 /** The monsters in the doorway above, the Hero below, as in the fight that may follow. */
-function FacingTokens({ facing, view }: { facing: Facing; view: LabyrinthView }) {
+function FacingTokens({ facing, view, onFoe }: { facing: Facing; view: LabyrinthView; onFoe: (key: string) => void }) {
   const text = useText();
   const size = facing.monsters.length <= 2 ? 78 : 62;
   return (
     <>
       <div className="absolute inset-x-3 top-[116px] flex flex-wrap justify-center gap-3">
         {facing.monsters.map((m) => (
-          <div key={m.key} className="grid justify-items-center gap-1" style={{ width: Math.max(size, 72) }}>
+          <button
+            key={m.key}
+            type="button"
+            className="grid justify-items-center gap-1 border-0 bg-transparent p-0 active:scale-95"
+            style={{ width: Math.max(size, 72) }}
+            onClick={() => onFoe(m.key)}
+          >
             <Token art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={m.boss && facing.monsters.length === 1 ? 118 : size} />
             <span className="max-w-full truncate rounded-[2px] bg-black/65 px-1.5 font-head text-xs font-bold text-bone">{text(m.name)}</span>
             {m.elite && <EliteBadge elite={m.elite} />}
-          </div>
+          </button>
         ))}
       </div>
       <div className="absolute inset-x-0 bottom-[66px] flex justify-center">
@@ -596,7 +607,9 @@ function FacingTokens({ facing, view }: { facing: Facing; view: LabyrinthView })
 }
 
 /** Monsters in the doorway: the Threat, the Stance, and Fight, Sneak past or Retreat. */
-function FacingCard({ facing, view, busy, act, onAside }: { facing: Facing; view: LabyrinthView; busy: boolean; act: Act; onAside: () => void }) {
+function FacingCard({ facing, view, busy, act, onAside, onFoe }: {
+  facing: Facing; view: LabyrinthView; busy: boolean; act: Act; onAside: () => void; onFoe: (key: string) => void;
+}) {
   const { t } = useI18n();
   const text = useText();
   const stance = view.hero.stance;
@@ -620,7 +633,9 @@ function FacingCard({ facing, view, busy, act, onAside }: { facing: Facing; view
           <span className="font-head text-sm font-extrabold text-muted">{t('facing.vs')}</span>
           <div className="flex min-w-0 flex-wrap gap-1">
             {facing.monsters.map((m) => (
-              <Token key={m.key} art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={44} />
+              <button key={m.key} type="button" className="rounded-full border-0 bg-transparent p-0 active:scale-95" aria-label={text(m.name)} onClick={() => onFoe(m.key)}>
+                <Token art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={44} />
+              </button>
             ))}
           </div>
         </div>
@@ -633,7 +648,9 @@ function FacingCard({ facing, view, busy, act, onAside }: { facing: Facing; view
         </p>
       </div>
 
-      <Foes facing={facing} />
+      <p className="-mt-1.5 m-0 text-xs text-muted">{t('foe.tap')}</p>
+
+      <Foes facing={facing} onFoe={onFoe} />
 
       <div className="grid gap-1.5">
         <span className="sub-heading">{t('stance.title')}</span>
@@ -688,7 +705,7 @@ function FacingCard({ facing, view, busy, act, onAside }: { facing: Facing; view
 }
 
 /** What each monster in the doorway can do, so the Player can weigh the fight. */
-function Foes({ facing }: { facing: Facing }) {
+function Foes({ facing, onFoe }: { facing: Facing; onFoe: (key: string) => void }) {
   const { t } = useI18n();
   const text = useText();
   const seen = new Set<string>();
@@ -705,7 +722,9 @@ function Foes({ facing }: { facing: Facing }) {
       <ul className="m-0 grid list-none gap-1.5 p-0">
         {kinds.map((m) => (
           <li key={m.key} className="text-sm leading-snug">
-            <strong className="font-head">{text(m.name)}</strong>
+            <button type="button" className="border-0 bg-transparent p-0 font-head font-bold text-bone underline decoration-brass-dim decoration-dotted underline-offset-4" onClick={() => onFoe(m.key)}>
+              {text(m.name)}
+            </button>
             {m.elite && <span className={m.elite === 'gilded' ? 'text-gold' : 'text-tier-epic'}> · {t(`elite.${m.elite}`)}: {t(`elite.${m.elite}.blurb`)}</span>}
             {m.powers.map((p) => (
               <span key={p} className="block text-muted">
@@ -717,6 +736,113 @@ function Foes({ facing }: { facing: Facing }) {
       </ul>
       {kinds.some((m) => m.elite) && <p className="m-0 text-xs text-muted">{t('elite.note')}</p>}
     </div>
+  );
+}
+
+/** One monster up close: what it is, and how it fights on this Floor today. */
+function FoeCard({ facing, monsterKey, onClose }: { facing: Facing; monsterKey: string; onClose: () => void }) {
+  const { t } = useI18n();
+  const text = useText();
+  const m = facing.monsters.find((x) => x.key === monsterKey);
+  const foe = facing.foes.find((x) => x.key === monsterKey);
+  if (!m || !foe) return null;
+  const [n, sides, bonus] = foe.damage;
+  const dice = `${n}d${sides}${bonus > 0 ? ` + ${bonus}` : bonus < 0 ? ` − ${-bonus}` : ''}`;
+  const average = Math.round(((n * (sides + 1)) / 2 + bonus) * foe.damageFactor);
+  const stats: [string, string][] = [
+    [t('foe.health'), String(m.maxHp)],
+    [t('foe.ac'), String(m.ac)],
+    [t('foe.toHit'), `+${foe.attack}`],
+    [t('foe.damage'), t('foe.damageValue', { dice, n: average })],
+    ...(foe.attacks > 1 ? [[t('foe.attacks'), String(foe.attacks)] as [string, string]] : []),
+  ];
+  return (
+    <CenterModal
+      label={text(m.name)}
+      onClose={onClose}
+      head={
+        <div className="flex items-center gap-3">
+          <Token art={m.art} label={text(m.name)} ring={m.boss ? BOSS_RING : MONSTER_RING} size={64} />
+          <div className="grid min-w-0 justify-items-start gap-1">
+            <span className="font-head text-[22px] leading-tight font-extrabold">{text(m.name)}</span>
+            <span className="text-sm text-muted">{t(`kin.${foe.kin}`)} · {t(`foe.role.${foe.role}`)}</span>
+            {m.elite && <EliteBadge elite={m.elite} />}
+          </div>
+        </div>
+      }
+    >
+      <p className="m-0 text-[15px] leading-snug italic">{text(foe.about)}</p>
+      <dl className="m-0 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+        {stats.map(([label, value]) => (
+          <div key={label} className="flex items-baseline justify-between gap-2 border-b border-line/40 pb-1">
+            <dt className="text-muted">{label}</dt>
+            <dd className="m-0 text-right font-bold">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {(m.elite || m.powers.length > 0) && (
+        <ul className="m-0 grid list-none gap-1.5 p-0 text-sm leading-snug">
+          {m.elite && (
+            <li className={m.elite === 'gilded' ? 'text-gold' : 'text-tier-epic'}>
+              <span className="font-bold">{t(`elite.${m.elite}`)}.</span> {t(`elite.${m.elite}.blurb`)}
+            </li>
+          )}
+          {m.powers.map((p) => (
+            <li key={p} className="text-muted">
+              <span className="font-bold text-bone">{t(`power.${p}`)}.</span> {t(`power.${p}.blurb`)}
+            </li>
+          ))}
+        </ul>
+      )}
+      <button type="button" className="btn" onClick={onClose}>{t('close')}</button>
+    </CenterModal>
+  );
+}
+
+/** The short rests on the belt: what one gives now, and when used ones come back. */
+function RestCard({ view, busy, act, onClose }: { view: LabyrinthView; busy: boolean; act: Act; onClose: () => void }) {
+  const { t, locale } = useI18n();
+  const hero = view.hero;
+  const { left, of, backAt } = hero.shortRests;
+  const blocked = view.room?.facing != null;
+  const full = hero.hp >= hero.maxHp && hero.stamina >= hero.staminaMax;
+  const hpAfter = Math.min(hero.maxHp, hero.hp + Math.ceil(hero.maxHp / 2));
+  const staminaAfter = Math.min(hero.staminaMax, hero.stamina + Math.ceil(hero.staminaMax / 2));
+  return (
+    <CenterModal
+      label={t('rest.title')}
+      onClose={onClose}
+      head={
+        <div className="flex items-center gap-3">
+          <span className={`grid size-14 shrink-0 place-items-center rounded-[2px] border bg-[#241c12] ${left > 0 ? 'border-gold text-gold' : 'border-line text-brass-dim'}`}>
+            <BeltIcon name="rest" className="size-8" />
+          </span>
+          <div className="grid gap-0.5">
+            <span className="font-head text-[22px] leading-tight font-extrabold">{t('rest.title')}</span>
+            <span className="text-sm text-muted">{t('rest.left', { left, of })}</span>
+          </div>
+        </div>
+      }
+    >
+      <p className="m-0 text-[15px] leading-snug">{t('rest.about')}</p>
+      {left > 0 && !full && !blocked && (
+        <p className="m-0 text-sm">{t('rest.preview', { hp: hero.hp, hpAfter, st: hero.stamina, stAfter: staminaAfter })}</p>
+      )}
+      <p className="m-0 text-sm text-muted">{backAt ? t('rest.backAt', { time: formatClock(locale, backAt) }) : t('rest.back')}</p>
+      <button
+        type="button"
+        className="btn btn-primary"
+        disabled={busy || left === 0 || blocked || full}
+        onClick={() => {
+          onClose();
+          play('page', { rate: 0.8 });
+          void act(api.shortRest);
+        }}
+      >
+        {blocked ? t('rest.blocked') : left === 0 ? t('rest.none') : full ? t('rest.full') : t('rest.take')}
+      </button>
+      <button type="button" className="btn" onClick={onClose}>{t('close')}</button>
+    </CenterModal>
   );
 }
 
@@ -761,7 +887,7 @@ function ExitButton({ exit, disabled, onMove }: { exit: Exit; disabled: boolean;
   if (exit.kind === 'cracked') notes.push({ key: 'crack', line: t('lab.exit.cracked'), tone: 'text-[#e8cf9a]' });
   if (exit.kind === 'secret') notes.push({ key: 'secret', line: t('lab.exit.secret'), tone: 'text-tier-epic' });
   if (exit.suspicious) notes.push({ key: 'lie', line: t('lab.exit.suspicious'), tone: 'text-[#ff9a8a]' });
-  if (exit.visited) notes.push({ key: 'seen', line: t('lab.exit.visited'), tone: 'text-muted' });
+  if (exit.visited) notes.push({ key: 'seen', line: exit.free ? t('lab.exit.visited') : t('lab.exit.again'), tone: 'text-muted' });
 
   return (
     <button

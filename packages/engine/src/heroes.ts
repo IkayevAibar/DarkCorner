@@ -75,6 +75,27 @@ export function recoveredHealth(hp: number, full: number, savedAt: Date, now: Da
   return { hp: healed, savedAt: healed >= full ? now : new Date(savedAt.getTime() + hours * HOUR_MS) };
 }
 
+// ─── Resting ──────────────────────────────────────────────────────────────
+
+/** Short rests a Run starts with (docs/design.md → Moving and stamina, v0). */
+export const SHORT_RESTS = 2;
+/** A short rest gives back half of full health and half of full Stamina (v0). */
+export const SHORT_REST_SHARE = 0.5;
+/** Short rests come back when a Run starts, but no sooner than this after they last did (v0). */
+export const SHORT_REST_RECHARGE_MS = 8 * HOUR_MS;
+
+/** Stamina after `gained` points come back at once, on top of what came back with time. */
+export function addStamina(saved: number, savedAt: Date, gained: number, now: Date): { stamina: number; savedAt: Date } {
+  const current = currentStamina(saved, savedAt, now);
+  const stamina = Math.min(STAMINA_MAX, current.stamina + gained);
+  return { stamina, savedAt: stamina >= STAMINA_MAX ? now : current.savedAt };
+}
+
+/** A night at the Tavern: 50 gold the first time, then half again each time, in tens (v0). */
+export const LODGING_PRICE = 50;
+export const LODGING_GROWTH = 1.5;
+export const lodgingPrice = (nights: number): number => Math.round((LODGING_PRICE * LODGING_GROWTH ** nights) / 10) * 10;
+
 // ─── Growing ──────────────────────────────────────────────────────────────
 
 /**

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import {
   CLASS_DEFS, CLASSES, MONSTERS, PORTRAITS, RACES, THEMES, RECOVERY_PER_HOUR, STAMINA_MAX, STAMINA_REFILL_MS, UNIQUES, baseById, currentStamina, isGear, portraitsFor,
-  recoveredHealth, startingHealth, validateHeroChoices,
+  recoveredHealth, startingHealth, validateHeroChoices, addStamina, lodgingPrice,
 } from '../src/index.js';
 
 describe('art', () => {
@@ -92,6 +92,20 @@ describe('currentStamina', () => {
   it('stops at the maximum', () => {
     const result = currentStamina(19, t0, new Date(t0.getTime() + STAMINA_REFILL_MS * 10));
     expect(result.stamina).toBe(STAMINA_MAX);
+  });
+});
+
+describe('resting', () => {
+  const t0 = new Date('2026-11-06T12:00:00Z');
+
+  it('adds Stamina on top of what came back with time, keeping the clock unless the bar fills', () => {
+    const later = new Date(t0.getTime() + STAMINA_REFILL_MS * 1.5);
+    expect(addStamina(4, t0, 10, later)).toEqual({ stamina: 15, savedAt: new Date(t0.getTime() + STAMINA_REFILL_MS) });
+    expect(addStamina(15, t0, 10, later)).toEqual({ stamina: STAMINA_MAX, savedAt: later });
+  });
+
+  it('prices each night at the Tavern half again above the last, in tens', () => {
+    expect([0, 1, 2, 3, 4, 5].map(lodgingPrice)).toEqual([50, 80, 110, 170, 250, 380]);
   });
 });
 

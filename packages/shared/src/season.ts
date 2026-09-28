@@ -117,6 +117,24 @@ export type HallEntry = z.infer<typeof hallEntrySchema>;
 export const hallViewSchema = z.object({ entries: z.array(hallEntrySchema) });
 export type HallView = z.infer<typeof hallViewSchema>;
 
+/**
+ * GET /api/tavern/lodging — a night at the Tavern for City gold: full Stamina and
+ * short rests back, each night dearer than the last (docs/design.md → The City).
+ */
+export const lodgingViewSchema = z.object({
+  /** What the next night costs. */
+  price: z.number().int(),
+  /** Nights this Hero has taken this Season. */
+  nights: z.number().int(),
+  gold: z.number().int(),
+  stamina: z.number().int(),
+  staminaMax: z.number().int(),
+  shortRests: z.object({ left: z.number().int(), of: z.number().int() }),
+  /** A bed is only for a Hero in the City. */
+  inCity: z.boolean(),
+});
+export type LodgingView = z.infer<typeof lodgingViewSchema>;
+
 /** The Tavern's Rankings: one board per record, each with its own podium (docs/design.md → Rankings). */
 export const RANKINGS = ['deepest', 'level', 'richest', 'victories', 'finest', 'graves', 'vaults', 'deaths', 'dragon'] as const;
 export type RankingKind = (typeof RANKINGS)[number];

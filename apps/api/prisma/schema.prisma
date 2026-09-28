@@ -133,6 +133,12 @@ model Hero {
   lucky       Boolean      @default(true)
   /// When the Hero sat down in a Camp; four hours later it is fully rested.
   campSince   DateTime?
+  /// Short rests left: half of full health and Stamina back each (docs/design.md → Moving and stamina).
+  shortRests   Int       @default(2)
+  /// When the short rests last came back: a Run brings them back no sooner than 8 hours later.
+  shortRestsAt DateTime?
+  /// Nights taken at the Tavern this Season: each costs more than the last.
+  tavernNights Int       @default(0)
 
   // Luck
   /// The Bad-luck meter: at 120 the next Item that drops is Legendary or better.

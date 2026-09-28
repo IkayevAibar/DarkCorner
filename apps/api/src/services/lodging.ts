@@ -1,0 +1,49 @@
+import type { Hero, Player } from '@prisma/client';
+import type { LodgingView } from '@dark/shared';
+import { type ClassId, type PathId, SHORT_RESTS, STAMINA_MAX, currentStamina, lodgingPrice, restUses } from '@dark/engine';
+import { prisma } from '../db.js';
+import { ApiError } from '../lib/errors.js';
+import { fullHealth } from './heroes.js';
+import { lockHero, requireCity, spendGold } from './ledger.js';
+import { currentSeason } from './seasons.js';
+
+// A night at the Tavern (docs/design.md → The City): City gold for full Stamina and
+// the short rests back. Each night costs half again as much as the last, all Season.
+
+function view(hero: Hero, now: Date): LodgingView {
+  return {
+    price: lodgingPrice(hero.tavernNights),
+    nights: hero.tavernNights,
+    gold: hero.gold,
+    stamina: currentStamina(hero.stamina, hero.staminaAt, now).stamina,
+    staminaMax: STAMINA_MAX,
+    shortRests: { left: hero.shortRests, of: SHORT_RESTS },
+    inCity: hero.location === 'CITY',
+  };
+}
+
+export async function lodgingView(player: Player): Promise<LodgingView> {
+  const season = await currentSeason();
+  const hero = await prisma.hero.findFirst({ where: { playerId: player.id, seasonId: season.id, retiredAt: null } });
+  if (!hero) throw ApiError.conflict('no_hero', 'Create a Hero first');
+  return view(hero, new Date());
+}
+
+export async function takeLodging(player: Player): Promise<LodgingView> {
+  const season = await currentSeason();
+  const now = new Date();
+  return prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    requireCity(hero);
+    const stamina = currentStamina(hero.stamina, hero.staminaAt, now).stamina;
+    if (stamina >= STAMINA_MAX && hero.shortRests >= SHORT_RESTS) throw ApiError.conflict('rested', 'Already fully rested');
+    await spendGold(tx, hero, lodgingPrice(hero.tavernNights));
+    const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
+    const rested = {
+      stamina: STAMINA_MAX, staminaAt: now, hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals,
+      shortRests: SHORT_RESTS, shortRestsAt: now, tavernNights: hero.tavernNights + 1,
+    };
+    await tx.hero.update({ where: { id: hero.id }, data: rested });
+    return view({ ...hero, ...rested }, now);
+  });
+}

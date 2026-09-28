@@ -127,9 +127,30 @@ export const threatSchema = z.enum(THREATS);
 export type Threat = z.infer<typeof threatSchema>;
 
 /** Monsters the Hero has walked in on and not fought yet: it must Fight, Sneak past or Retreat. */
+export const MONSTER_KINS = ['beast', 'goblinoid', 'undead', 'demon', 'dragonkin', 'humanoid'] as const;
+
+/** What a monster's card shows beyond its token: what it is and how it fights, as it is on this Floor. */
+export const foeSchema = z.object({
+  /** Its `key` among the Facing's monsters. */
+  key: z.string(),
+  kin: z.enum(MONSTER_KINS),
+  role: z.enum(['minion', 'brute', 'miniboss', 'boss']),
+  about: localizedTextSchema,
+  /** Added to its d20 to hit. */
+  attack: z.number().int(),
+  /** Each hit: [dice, sides, bonus], then times `damageFactor` (an elite's fury, the Boss weakening, the day's Omen). */
+  damage: z.tuple([z.number().int(), z.number().int(), z.number().int()]),
+  damageFactor: z.number(),
+  /** Attacks each turn. */
+  attacks: z.number().int(),
+});
+export type Foe = z.infer<typeof foeSchema>;
+
 export const facingSchema = z.object({
   kind: z.enum(['fight', 'miniboss', 'boss']),
   monsters: z.array(combatantSchema),
+  /** Each monster's card, in the same order. */
+  foes: z.array(foeSchema),
   /** The Threat in each Stance, so switching Stance shows its effect at once. */
   threat: z.object({ bold: threatSchema, steady: threatSchema, wary: threatSchema }),
   /** The DEX Check to Sneak past; null where there is no sneaking past (Mini-bosses, the Boss). */
@@ -175,6 +196,8 @@ export const exitSchema = z.object({
   /** Whether this Hero can go through (cracked walls: Fighters; locks: Rogues or a Key). */
   passable: z.boolean(),
   visited: z.boolean(),
+  /** Walking in costs no Stamina: the Hero knows the Room and nothing new waits there today. */
+  free: z.boolean(),
 });
 export type Exit = z.infer<typeof exitSchema>;
 
@@ -318,6 +341,11 @@ export const labyrinthViewSchema = z.object({
     /** The belt: the Hero's class features, then the Bag items it carries for a Run. */
     features: z.array(featureViewSchema),
     kit: z.array(kitItemSchema),
+    /**
+     * Short rests left: each gives back half of full health and Stamina. They come back
+     * when a Run starts, from `backAt` on (null when none are used or they are due already).
+     */
+    shortRests: z.object({ left: z.number().int(), of: z.number().int(), backAt: z.string().nullable() }),
   }),
   /** The Labyrinth opens when the Season starts; the Boss gate opens later. */
   season: z.object({ status: seasonStatusSchema, bossGateAt: z.string().nullable(), omen: omenViewSchema.nullable() }),

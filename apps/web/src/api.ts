@@ -1,6 +1,6 @@
 import type {
   AdminGrant, AdminPlayer, AdminPlayerDecision, AdminPlayersResponse, AdminSeasonView, ApiErrorBody, AuthStatus, BlessingIdView, BountiesView,
-  CreateHeroRequest, GrowRequest, HallView, RankingsView, LevelUpRequest, LevelUpResponse, PathIdView, RollLogView, TavernView,
+  CreateHeroRequest, GrowRequest, HallView, LodgingView, RankingsView, LevelUpRequest, LevelUpResponse, PathIdView, RollLogView, TavernView,
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
@@ -63,6 +63,7 @@ export const api = {
   ascend: () => request<LabyrinthResult>('POST', '/api/labyrinth/ascend'),
   leaveLabyrinth: () => request<LabyrinthResult>('POST', '/api/labyrinth/leave'),
   readPortal: () => request<LabyrinthResult>('POST', '/api/labyrinth/portal'),
+  shortRest: () => request<LabyrinthResult>('POST', '/api/labyrinth/short-rest'),
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
   eventAction: (action: EventAction) => request<LabyrinthResult>('POST', '/api/labyrinth/event', action),
   face: (action: FaceAction) => request<LabyrinthResult>('POST', '/api/labyrinth/face', action),
@@ -94,6 +95,8 @@ export const api = {
   swapBounty: (id: string) => request<BountiesView>('POST', `/api/tavern/bounties/${encodeURIComponent(id)}/swap`),
   hall: () => request<HallView>('GET', '/api/hall'),
   rankings: () => request<RankingsView>('GET', '/api/tavern/rankings'),
+  lodging: () => request<LodgingView>('GET', '/api/tavern/lodging'),
+  takeLodging: () => request<LodgingView>('POST', '/api/tavern/lodging'),
   adminSeason: () => request<AdminSeasonView>('GET', '/api/admin/season'),
   adminSeasonAction: (action: 'start' | 'end' | 'gate' | 'vault' | 'discard', minutes?: number) =>
     request<AdminSeasonView>('POST', '/api/admin/season', { action, minutes }),

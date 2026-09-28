@@ -9,11 +9,14 @@
  * pick the Stance with the best Threat, fight what looks winnable, Sneak or
  * Retreat from the rest, explore toward unknown Rooms, take the stairs once a
  * Floor is well explored, handle Event rooms, drink potions when hurt, rest at
- * Camps, go back for their Grave with a Smoke bomb, and in the City identify,
- * equip, sell, restock and grow.
+ * Camps, take a short rest when Stamina runs low, go back for their Grave with a
+ * Smoke bomb, and in the City identify, equip, sell, restock, grow and, when rich
+ * and tired, take Lodging. PLAYTEST_NO_RESTS=1 plays without short rests and Lodging.
  */
 import { execSync } from 'node:child_process';
-import type { ClassId, ForgeQuote, HeroDraft, HeroView, LabyrinthResult, LabyrinthView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult } from '@dark/shared';
+import type {
+  ClassId, ForgeQuote, HeroDraft, HeroView, LabyrinthResult, LabyrinthView, LodgingView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult,
+} from '@dark/shared';
 import { TEST_DATABASE_URL } from '../test/test-db.js';
 
 // ─── A fake clock, installed before the app loads ─────────────────────────
@@ -48,6 +51,7 @@ const { CLASS_DEFS, CLUES, RIDDLES, TIERS, baseById, canUse, isGear } = await im
 const WAYPOINT_CLUES = new Set((CLUES.waypoint as { en: string }[]).map((c) => c.en));
 
 const DAYS = Number(process.argv[2] ?? 14);
+const RESTS = !process.env.PLAYTEST_NO_RESTS;
 const SESSIONS_PER_DAY = 3;
 const THREAT_RANK: Record<Threat, number> = { trivial: 0, easy: 1, risky: 2, dangerous: 3, deadly: 4 };
 
@@ -58,7 +62,7 @@ await prisma.season.create({ data: { number: 0, seed: 'playtest' } });
 interface Stats {
   fights: number; won: number; escaped: number; survived: number; deaths: number; sneaks: number; caught: number; retreats: number;
   events: number; bounties: number; hidden: number; graves: number; moves: number; xp: number; items: Record<string, number>;
-  minibosses: number; minibossWins: number; chests: number; dropped: number;
+  minibosses: number; minibossWins: number; chests: number; dropped: number; rests: number; nights: number; newRooms: number;
   salvaged: number; forge: Record<string, number>; goldForged: number; portals: number; dragon: string[];
   market: { listed: number; bought: number; spent: number; expired: number };
   threats: Record<Threat, number>; errors: string[]; deathLog: string[];
@@ -83,7 +87,7 @@ interface Bot {
 
 const newStats = (): Stats => ({
   fights: 0, won: 0, escaped: 0, survived: 0, deaths: 0, sneaks: 0, caught: 0, retreats: 0, events: 0, bounties: 0, hidden: 0, graves: 0,
-  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, dragon: [], market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
+  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, rests: 0, nights: 0, newRooms: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, dragon: [], market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
 });
 
 async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: object): Promise<{ ok: boolean; status: number; body: T & { error?: string } }> {
@@ -228,6 +232,11 @@ async function city(bot: Bot) {
   if (count('scroll-portal') < 2 && hero.gold >= 200) await call(bot, 'POST', '/api/shop/buy', { offer: 'scroll-portal', quantity: 2 - count('scroll-portal') });
   if (bot.grave && count('bomb-smoke') < 1 && hero.gold >= 30) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-smoke', quantity: 1 });
   if (count('bomb-fire') < 1 && hero.gold >= 400) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-fire', quantity: 1 });
+  // Tired and rich: a bed at the Tavern, while it costs a third of the gold or less.
+  if (RESTS) {
+    const bed = (await call<LodgingView>(bot, 'GET', '/api/tavern/lodging')).body;
+    if (bed.stamina <= 5 && bed.gold >= bed.price * 3 && (await call(bot, 'POST', '/api/tavern/lodging')).ok) bot.stats.nights++;
+  }
 }
 
 /**
@@ -479,9 +488,16 @@ async function session(bot: Bot) {
       await act(bot, '/api/labyrinth/portal');
       continue;
     }
+    if (RESTS && hero.shortRests.left > 0 && (hero.stamina <= 2 || (hero.hp < hero.maxHp * 0.4 && hero.potions === 0))) {
+      if (await act(bot, '/api/labyrinth/short-rest')) {
+        bot.stats.rests++;
+        continue;
+      }
+    }
     // Hurt with no potions: wait out the rest of the session at a Camp.
     if (room.type === 'camp' && hero.hp < hero.maxHp * 0.6) return;
-    if (hero.stamina <= 0) return;
+    // Out of Stamina: only known Rooms are free, so only the way home is still open.
+    if (hero.stamina <= 0 && !goHome) return;
 
     const known = new Map(view.map!.rooms.map((r) => [r.id, r]));
     const explored = view.map!.rooms.filter((r) => r.visited).length / (view.floor!.width * view.floor!.height);
@@ -517,6 +533,7 @@ async function session(bot: Bot) {
     const moved = await act(bot, '/api/labyrinth/move', { to }, view);
     if (!moved) return;
     bot.stats.moves++;
+    if (moved.view.hero.stamina < hero.stamina) bot.stats.newRooms++;
   }
 }
 
@@ -548,7 +565,7 @@ for (const [cls, race, portrait] of CLASSES) {
 const started = await call(bots[0]!, 'POST', '/api/admin/season', { action: 'start' });
 if (!started.ok) throw new Error(`starting the Season failed: ${JSON.stringify(started.body)}`);
 let jobsRun = 0;
-console.log(`Playtest: ${bots.length} bots, ${DAYS} days, ${SESSIONS_PER_DAY} sessions a day\n`);
+console.log(`Playtest: ${bots.length} bots, ${DAYS} days, ${SESSIONS_PER_DAY} sessions a day${RESTS ? '' : ', no short rests or Lodging'}\n`);
 let wipedOn: number | null = null;
 for (let day = 1; day <= DAYS && wipedOn === null; day++) {
   try {
@@ -574,7 +591,8 @@ for (let day = 1; day <= DAYS && wipedOn === null; day++) {
     const s = bot.stats;
     rows.push(`${bot.cls.padEnd(7)} lv ${String(h.level).padStart(2)} F${String(h.bestFloor).padStart(2)} ${(h.path ?? '-').padEnd(9)} gold ${String(h.gold).padStart(5)} `
       + `worn ${TIERS[best]!.padEnd(9)} won ${s.won}/${s.fights} ran ${s.escaped} dead ${s.deaths} graves ${s.graves} sneak ${s.sneaks - s.caught}/${s.sneaks} `
-      + `back ${s.retreats} boss ${s.minibossWins}/${s.minibosses} chests ${s.chests} bounties ${s.bounties} hidden ${s.hidden} portals ${s.portals} wp ${h.waypoints.length}`);
+      + `back ${s.retreats} boss ${s.minibossWins}/${s.minibosses} chests ${s.chests} bounties ${s.bounties} hidden ${s.hidden} portals ${s.portals} wp ${h.waypoints.length} `
+      + `moves ${s.moves} (new ${s.newRooms}) rests ${s.rests} nights ${s.nights}`);
   }
   console.log(`— day ${day}\n${rows.join('\n')}`);
 }

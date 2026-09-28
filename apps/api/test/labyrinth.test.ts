@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { type Floor, abilityModifier, check, createRng, doorsOf, generateLabyrinth, instantiate, monsterById } from '@dark/engine';
-import { labyrinthResultSchema } from '@dark/shared';
+import { labyrinthResultSchema, lodgingViewSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
 import { emptyOutcome, fight } from '../src/services/fights.js';
@@ -22,6 +22,7 @@ const floor1: Floor = generateLabyrinth(SEED).floors[0]!;
 const fightNextToLanding = doorsOf(floor1, floor1.landing).find(({ door, to }) => door.kind === 'open' && floor1.rooms[to]!.type === 'fight')!.to;
 
 const post = (url: string, payload: object = {}) => app.inject({ method: 'POST', url, headers: { cookie }, payload });
+const get = (url: string) => app.inject({ method: 'GET', url, headers: { cookie } });
 async function act(url: string, payload: object = {}) {
   const response = await post(url, payload);
   if (response.statusCode !== 200) throw new Error(`${url} → ${response.statusCode} ${response.body}`);
@@ -274,7 +275,8 @@ describe('the Labyrinth', () => {
     const above = await act('/api/labyrinth/ascend');
     expect(above.view.floor?.number).toBe(1);
     expect(above.view.room).toMatchObject({ id: stairs.id, type: 'stairs' });
-    expect(above.view.hero.stamina).toBe(18);
+    // Down to a new landing costs one; back up to stairs already known is free.
+    expect(above.view.hero.stamina).toBe(19);
   });
 
   it('dies, leaves a Grave, wakes at the Temple, and can loot the Grave back', async () => {
@@ -406,3 +408,80 @@ describe('the Labyrinth', () => {
   });
 });
 
+
+describe('walking back and resting', () => {
+  it('walks back through known Rooms for free, unless something new waits there today', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999 } });
+    // A new Room costs one; Retreating out of it is free.
+    expect((await act('/api/labyrinth/move', { to: fightNextToLanding })).view.hero.stamina).toBe(19);
+    const back = await act('/api/labyrinth/face', { action: 'retreat' });
+    expect(back.view.exits.find((e) => e.to === fightNextToLanding)).toMatchObject({ visited: true, free: false });
+    // The monsters are still in there, so walking back in costs one again.
+    expect((await walkIn(fightNextToLanding)).view.hero.stamina).toBe(18);
+    expect((await act('/api/labyrinth/move', { to: floor1.landing })).view.hero.stamina).toBe(18);
+    // Cleared today: free, even with no Stamina left; a new Room is not.
+    await prisma.hero.updateMany({ data: { stamina: 0, staminaAt: new Date() } });
+    expect((await act('/api/labyrinth/move', { to: fightNextToLanding })).view.room?.id).toBe(fightNextToLanding);
+    const fresh = doorsOf(floor1, fightNextToLanding).find(({ door, to }) => door.kind === 'open' && to !== floor1.landing);
+    if (fresh) expect((await post('/api/labyrinth/move', { to: fresh.to })).json().error).toBe('no_stamina');
+  });
+
+  it('shows each monster’s card: what it is and how hard it hits here', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    const facing = (await act('/api/labyrinth/move', { to: fightNextToLanding })).view.room!.facing!;
+    expect(facing.foes.map((f) => f.key)).toEqual(facing.monsters.map((m) => m.key));
+    for (const foe of facing.foes) {
+      expect(foe.about.en.length).toBeGreaterThan(10);
+      expect(foe.about.ru.length).toBeGreaterThan(10);
+      expect(foe.attacks).toBeGreaterThanOrEqual(1);
+      expect(foe.damage[0]).toBeGreaterThanOrEqual(1);
+    }
+  });
+
+  it('rests twice a Run for half of full health and Stamina, and gets them back no sooner than 8 hours later', async () => {
+    const entered = await act('/api/labyrinth/enter', { floor: 1 });
+    expect(entered.view.hero.shortRests).toEqual({ left: 2, of: 2, backAt: null });
+    expect((await post('/api/labyrinth/short-rest')).json().error).toBe('rested');
+    await act('/api/labyrinth/move', { to: fightNextToLanding });
+    expect((await post('/api/labyrinth/short-rest')).json().error).toBe('facing');
+    await act('/api/labyrinth/face', { action: 'retreat' });
+
+    await prisma.hero.updateMany({ data: { hp: 1, stamina: 3, staminaAt: new Date() } });
+    const rested = await act('/api/labyrinth/short-rest');
+    const full = rested.view.hero.maxHp;
+    expect(rested.view.hero.hp).toBe(Math.min(full, 1 + Math.ceil(full / 2)));
+    expect(rested.view.hero.stamina).toBe(13);
+    expect(rested.view.hero.shortRests.left).toBe(1);
+    expect(rested.notices[0]?.en).toMatch(/^A short rest: \+\d+ health, \+10 Stamina\.$/);
+    await act('/api/labyrinth/short-rest');
+    expect((await post('/api/labyrinth/short-rest')).json().error).toBe('no_short_rests');
+
+    // Out at the gate and straight back in: they stay used.
+    await act('/api/labyrinth/leave');
+    const again = await act('/api/labyrinth/enter', { floor: 1 });
+    expect(again.view.hero.shortRests.left).toBe(0);
+    expect(again.view.hero.shortRests.backAt).not.toBeNull();
+    // Eight hours after they last came back, the next Run brings them back.
+    await prisma.hero.updateMany({ data: { shortRestsAt: new Date(Date.now() - 8 * 3_600_000) } });
+    await act('/api/labyrinth/leave');
+    expect((await act('/api/labyrinth/enter', { floor: 1 })).view.hero.shortRests).toEqual({ left: 2, of: 2, backAt: null });
+  });
+
+  it('sells a night at the Tavern for City gold, dearer each time', async () => {
+    const lodging = (r: { json(): unknown }) => lodgingViewSchema.parse(r.json());
+    await prisma.hero.updateMany({ data: { gold: 1000, stamina: 2, staminaAt: new Date(), shortRests: 0 } });
+    expect(lodging(await get('/api/tavern/lodging'))).toMatchObject({ price: 50, nights: 0, stamina: 2, inCity: true });
+    expect(lodging(await post('/api/tavern/lodging'))).toMatchObject({ price: 80, nights: 1, gold: 950, stamina: 20, shortRests: { left: 2 } });
+    // Fully rested: nothing to pay for.
+    expect((await post('/api/tavern/lodging')).json().error).toBe('rested');
+    await prisma.hero.updateMany({ data: { stamina: 0, staminaAt: new Date() } });
+    expect(lodging(await post('/api/tavern/lodging'))).toMatchObject({ price: 110, nights: 2, gold: 870 });
+    // Only in the City, and only with the gold.
+    await act('/api/labyrinth/enter', { floor: 1 });
+    expect((await post('/api/tavern/lodging')).json().error).toBe('not_in_city');
+    await act('/api/labyrinth/leave');
+    await prisma.hero.updateMany({ data: { gold: 10, stamina: 0, staminaAt: new Date() } });
+    expect((await post('/api/tavern/lodging')).json().error).toBe('not_enough_gold');
+  });
+});

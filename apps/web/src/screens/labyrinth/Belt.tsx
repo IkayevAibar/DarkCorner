@@ -3,7 +3,7 @@ import { useText } from '../../components/items/ItemChip';
 import { useI18n } from '../../i18n';
 
 /** Stroke icons for the belt, drawn at 24 px. */
-const ICONS: Record<FeatureView['icon'] | KitItemView['base'] | 'lock', string> = {
+const ICONS: Record<FeatureView['icon'] | KitItemView['base'] | 'lock' | 'rest', string> = {
   flame: 'M12 3c1 4 5 5.5 5 10.5a5 5 0 0 1-10 0c0-3 1.5-4.5 2.5-6.5.5 1.5 1.3 2.5 2.5 3.5 0-2.5-.4-5 0-7.5z',
   shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z',
   bolt: 'M13 2 4 14h7l-1 8 9-12h-7l1-8z',
@@ -20,6 +20,7 @@ const ICONS: Record<FeatureView['icon'] | KitItemView['base'] | 'lock', string> 
   'bomb-smoke': 'M5 16a4 4 0 0 1 1-7.9A5 5 0 0 1 15.5 7 4 4 0 0 1 19 15H5zM8 20h8',
   'scroll-portal': 'M8 3h11a2 2 0 0 1 2 2v2h-4M17 7v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2h12M8 3a2 2 0 0 0-2 2v12',
   lock: 'M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3',
+  rest: 'M4 21l16-4M4 17l16 4M12 3c1 3 4 4.5 4 8a4 4 0 0 1-8 0c0-2 1-3.5 2-5 .4 1.4 1 2.3 2 3 0-2-.5-4 0-6z',
 };
 
 export function BeltIcon({ name, className = 'size-6' }: { name: keyof typeof ICONS; className?: string }) {
@@ -30,17 +31,31 @@ export function BeltIcon({ name, className = 'size-6' }: { name: keyof typeof IC
   );
 }
 
-export type BeltPick = { feature: FeatureView } | { kit: KitItemView };
+export type BeltPick = { feature: FeatureView } | { kit: KitItemView } | { rest: true };
+
+/** Diamonds for uses: filled while left. */
+function Pips({ left, of }: { left: number; of: number }) {
+  return (
+    <span className="absolute inset-x-0 bottom-1 flex justify-center gap-[3px]">
+      {Array.from({ length: of }, (_, i) => (
+        <span key={i} className={`size-[6px] rotate-45 border border-gold ${i < left ? 'bg-gold' : ''}`} />
+      ))}
+    </span>
+  );
+}
 
 /**
  * The belt along the bottom of the Room (layout B, D1): the Hero's class features
- * on the left, the Bag items it carries for a Run on the right. Diamonds are uses
- * left until a rest, a dashed frame is always on, a number is how many are carried.
+ * on the left; on the right its short rests, then the Bag items it carries for a
+ * Run. Diamonds are uses left, a dashed frame is always on, a number is how many
+ * are carried.
  */
 export function Belt({ hero, onPick }: { hero: LabyrinthView['hero']; onPick: (pick: BeltPick) => void }) {
   const { t } = useI18n();
   const text = useText();
   const label = (f: FeatureView) => `${text(f.name)}: ${f.uses ? t('belt.kind.rest', { left: f.uses.left, of: f.uses.of }) : t(`belt.kind.${f.kind}`)}`;
+  const rests = hero.shortRests;
+  const restLabel = `${t('rest.title')}: ${t('rest.left', { left: rests.left, of: rests.of })}`;
   return (
     <div className="absolute inset-x-2.5 bottom-2.5 flex items-end justify-between gap-2 overflow-x-auto [scrollbar-width:none]">
       <div className="flex shrink-0 gap-1.5">
@@ -57,17 +72,23 @@ export function Belt({ hero, onPick }: { hero: LabyrinthView['hero']; onPick: (p
           >
             <BeltIcon name={f.icon} />
             {f.kind === 'locked' && <span className="absolute -top-1.5 -right-1.5 text-brass"><BeltIcon name="lock" className="size-3.5" /></span>}
-            {f.uses && f.uses.of > 0 && (
-              <span className="absolute inset-x-0 bottom-1 flex justify-center gap-[3px]">
-                {Array.from({ length: f.uses.of }, (_, i) => (
-                  <span key={i} className={`size-[6px] rotate-45 border border-gold ${i < f.uses!.left ? 'bg-gold' : ''}`} />
-                ))}
-              </span>
-            )}
+            {f.uses && f.uses.of > 0 && <Pips left={f.uses.left} of={f.uses.of} />}
           </button>
         ))}
       </div>
       <div className="flex shrink-0 gap-1.5">
+        <button
+          type="button"
+          aria-label={restLabel}
+          title={restLabel}
+          onClick={() => onPick({ rest: true })}
+          className={`relative grid size-11 shrink-0 place-items-center rounded-[2px] border bg-[rgb(21_18_15/0.92)] p-0 shadow-[0_0_0_1px_#000,0_4px_10px_rgb(0_0_0/0.6)] ${
+            rests.left > 0 ? 'border-gold text-gold' : 'border-line text-brass-dim'
+          }`}
+        >
+          <BeltIcon name="rest" />
+          <Pips left={rests.left} of={rests.of} />
+        </button>
         {hero.kit.map((k) => (
           <button
             key={k.base}

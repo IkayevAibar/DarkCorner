@@ -4,7 +4,7 @@ import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
   PATH_MASTERY, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
-  threatOf, tierRank, baseById, heroFeatures, itemAbout,
+  threatOf, tierRank, baseById, heroFeatures, itemAbout, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -115,6 +115,32 @@ async function stillFacing(tx: Tx, hero: HeroWithItems, season: Season, floor: F
   return kind;
 }
 
+/**
+ * Whether a Room holds something new for this Hero now: monsters back, a Treasure or
+ * hoard not taken, an event not done today (a Merchant never counts). Walking into a
+ * known Room is free only without one, so a known Floor can't be farmed for nothing.
+ */
+function somethingNew(floor: Floor, roomId: number, hf: HeroFloor | null, now: Date): boolean {
+  const room = floor.rooms[roomId]!;
+  switch (room.type) {
+    case 'fight':
+    case 'miniboss':
+    case 'boss':
+    case 'treasure':
+      return !isCleared(hf, roomId, now);
+    case 'hidden':
+      return !isCleared(hf, roomId, now, HOARD_MS);
+    case 'event':
+      return room.event !== 'merchant' && !isCleared(hf, roomId, now);
+    default:
+      return false;
+  }
+}
+
+/** Free to walk into: a Room the Hero has stood in, with nothing new in it today. */
+const freeToEnter = (floor: Floor, roomId: number, hf: HeroFloor | null, now: Date): boolean =>
+  (hf?.seen.includes(roomId) ?? false) && !somethingNew(floor, roomId, hf, now);
+
 /** Fight Rooms can be snuck past; Mini-bosses only by a Thief who has grown into its Path (Ghost); the Boss never. */
 const canSneak = (hero: Hero, kind: FightKind): boolean =>
   kind === 'fight' || (kind === 'miniboss' && onPath({ path: hero.path as PathId | null, level: hero.level }, 'thief', PATH_MASTERY));
@@ -130,6 +156,14 @@ function facingView(hero: HeroWithItems, season: Season, floor: Floor, roomId: n
   return {
     kind,
     monsters: monsters.map((m) => combatant(m.key, m)),
+    foes: monsters.map((m) => {
+      const def = monsterById(m.id);
+      const multi = m.powers.find((p) => p.id === 'multiattack');
+      return {
+        key: m.key, kin: def.kin, role: def.role, about: def.about, attack: m.attack, damage: m.damage, damageFactor: m.damageFactor,
+        attacks: multi?.id === 'multiattack' ? multi.attacks : 1,
+      };
+    }),
     threat: { bold: rate('bold'), steady: rate('steady'), wary: rate('wary') },
     sneak: sneak ? { modifier: sneak.modifier, dc: sneak.dc, edge: sneak.edge ?? 'normal' } : null,
   };
@@ -174,6 +208,26 @@ function seesThrough(hero: Hero, floor: number, door: Door, from: number): boole
   }).success;
 }
 
+// ─── Short rests ──────────────────────────────────────────────────────────
+
+/**
+ * A Run starts with its short rests back, but no sooner than 8 hours after they
+ * last came back (v0): stepping out at the gate and in again can't refill them.
+ * A Hero without a rest clock yet (new, or from before short rests) starts one.
+ */
+function restsOnEntry(hero: Hero, now: Date): { shortRests?: number; shortRestsAt?: Date } {
+  if (hero.shortRests >= SHORT_RESTS) return hero.shortRestsAt ? {} : { shortRestsAt: now };
+  if (hero.shortRestsAt && now.getTime() - hero.shortRestsAt.getTime() < SHORT_REST_RECHARGE_MS) return {};
+  return { shortRests: SHORT_RESTS, shortRestsAt: now };
+}
+
+/** When used short rests can come back with the next Run; null when none are used or they can already. */
+function restsBackAt(hero: Hero, now: Date): string | null {
+  if (hero.shortRests >= SHORT_RESTS || !hero.shortRestsAt) return null;
+  const at = hero.shortRestsAt.getTime() + SHORT_REST_RECHARGE_MS;
+  return at > now.getTime() ? new Date(at).toISOString() : null;
+}
+
 /** A Town Portal stays open for a day behind the Hero who read it (v0). */
 const PORTAL_MS = 24 * HOUR_MS;
 
@@ -216,6 +270,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     // What the Bag lends the belt, in the order a Run reaches for it.
     kit: KIT_BASES.map((base) => ({ base, count: stackTotal(hero, base), name: baseById(base).name, about: itemAbout(base)! }))
       .filter((k) => k.count > 0),
+    shortRests: { left: hero.shortRests, of: SHORT_RESTS, backAt: restsBackAt(hero, now) },
   };
   const base = {
     hero: heroPart,
@@ -254,6 +309,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
         suspicious: !truth && clue.lie && seesThrough(hero, floor.number, door, room.id),
         passable: canPass(door, hero),
         visited: seen.has(to),
+        free: freeToEnter(floor, to, hf, now),
       };
     });
 
@@ -375,9 +431,9 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
     const hero = await loadHero(tx, player, season.id);
     if (hero.location !== 'CITY') throw ApiError.conflict('already_inside', 'Already in the Labyrinth');
     if (season.status === 'PLANNED') throw ApiError.conflict('season_not_started', 'The Season has not started yet');
+    const now = new Date();
     if (viaPortal) {
       // Back through the open Town Portal, to the Room it was read in; it closes behind the Hero.
-      const now = new Date();
       if (!portalOf(hero, now)) throw ApiError.conflict('no_portal', 'You have no open Town Portal');
       const floor = floorOf(lab, hero.portalFloor!);
       const room = hero.portalRoom!;
@@ -388,7 +444,7 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
         data: {
           location: 'LABYRINTH', floor: floor.number, room, prevRoom: waiting ? floor.landing : room, facing: waiting !== null,
           deathless: true, lucky: true, campSince: floor.rooms[room]!.type === 'camp' ? now : null, hpAt: now,
-          portalFloor: null, portalRoom: null, portalUntil: null,
+          portalFloor: null, portalRoom: null, portalUntil: null, ...restsOnEntry(hero, now),
         },
       });
       return hero.id;
@@ -404,7 +460,7 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
       where: { id: hero.id },
       data: {
         location: 'LABYRINTH', floor: floorNumber, room, prevRoom: room, deathless: true, lucky: true, campSince: null,
-        bestFloor: Math.max(hero.bestFloor, floorNumber),
+        bestFloor: Math.max(hero.bestFloor, floorNumber), ...restsOnEntry(hero, now),
       },
     });
     return hero.id;
@@ -412,7 +468,7 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
   return respond(heroId, season, emptyOutcome());
 }
 
-/** One Move: through a Door into the next Room, for one Stamina, and whatever waits there. */
+/** One Move: through a Door into the next Room (one Stamina unless it is known and nothing new waits there), and whatever does. */
 export async function moveTo(player: Player, to: number): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const lab = labyrinthFor(season);
@@ -439,8 +495,12 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     if (target.type === 'boss' && (!season.bossGateAt || season.bossGateAt > now)) {
       throw ApiError.conflict('boss_gate_closed', 'The Boss gate is still sealed');
     }
+    // Walking back through known Rooms is free, unless something new waits in one today.
+    const hf = await heroFloor(tx, hero.id, floor.number);
+    const known = hf.seen.includes(to);
+    const free = freeToEnter(floor, to, hf, now);
     const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
-    if (stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
+    if (!free && stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
 
     // A locked Door without a Rogue costs one Iron key.
     if (exit.door.kind === 'locked' && hero.class !== 'rogue') {
@@ -449,15 +509,14 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
       else await tx.item.delete({ where: { id: key.id } });
     }
 
-    const hf = await heroFloor(tx, hero.id, floor.number);
-    if (!hf.seen.includes(to)) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: to } } });
+    if (!known) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: to } } });
     // Monsters stop the Hero in the doorway: the Player sees them and chooses (face()).
     // Any other Room becomes the last safe one.
     const waiting = await monstersWaiting(tx, hero, season, floor, to, now);
     await tx.hero.update({
       where: { id: hero.id },
       data: {
-        stamina: stamina.stamina - 1, staminaAt: stamina.savedAt, room: to, campSince: target.type === 'camp' ? now : null,
+        ...(free ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }), room: to, campSince: target.type === 'camp' ? now : null,
         facing: waiting !== null, ...(waiting ? {} : { prevRoom: to }),
       },
     });
@@ -635,7 +694,7 @@ export async function actInEvent(player: Player, action: EventAction): Promise<L
   return respond(heroId, season, outcome);
 }
 
-/** Down the stairs to the next Floor's landing, for one Stamina. */
+/** Down the stairs to the next Floor's landing: one Stamina the first time, free after. */
 export async function descend(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const lab = labyrinthFor(season);
@@ -647,13 +706,12 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
     if (floor.rooms[room]!.type !== 'stairs' || floor.number >= FLOOR_COUNT) {
       throw ApiError.conflict('no_stairs', 'There are no stairs down here');
     }
-    const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
-    if (stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
     const next = floorOf(lab, floor.number + 1);
     const hf = await heroFloor(tx, hero.id, next.number);
-    if (!hf.seen.includes(next.landing)) {
-      await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: next.landing } } });
-    }
+    const known = hf.seen.includes(next.landing);
+    const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
+    if (!known && stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
+    if (!known) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: next.landing } } });
     // A Floor never reached before is worth XP.
     const firstXp = next.number > hero.bestFloor ? await boostedXp(tx, hero, season, NEW_FLOOR_XP * next.number) : 0;
     const levelUp = firstXp > 0 ? gainXp(hero, firstXp) : null;
@@ -668,7 +726,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
       where: { id: hero.id },
       data: {
         floor: next.number, room: next.landing, prevRoom: next.landing, campSince: null,
-        stamina: stamina.stamina - 1, staminaAt: stamina.savedAt, bestFloor: Math.max(hero.bestFloor, next.number),
+        ...(known ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }), bestFloor: Math.max(hero.bestFloor, next.number),
         ...levelUp?.data,
       },
     });
@@ -678,9 +736,10 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
 }
 
 /**
- * From a lower Floor's landing back up the stairs, for one Stamina. Every stairs
- * Room leads to the same landing, so the Hero comes out at stairs it already
- * knows, or at the first stairs Room of the Floor above.
+ * From a lower Floor's landing back up the stairs: free when the Hero comes out at
+ * stairs it knows, one Stamina otherwise. Every stairs Room leads to the same
+ * landing, so the Hero comes out at stairs it already knows, or at the first
+ * stairs Room of the Floor above.
  */
 export async function ascend(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
@@ -690,16 +749,19 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
     const hero = await loadHero(tx, player, season.id);
     const { floor, room: at } = whereIs(hero, lab);
     if (floor.number === 1 || at !== floor.landing) throw ApiError.conflict('no_stairs_up', 'There are no stairs up here');
-    const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
-    if (stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
     const above = floorOf(lab, floor.number - 1);
     const hf = await heroFloor(tx, hero.id, above.number);
     const stairs = above.rooms.filter((r) => r.type === 'stairs');
     const room = (stairs.find((r) => hf.seen.includes(r.id)) ?? stairs[0]!).id;
-    if (!hf.seen.includes(room)) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: room } } });
+    const known = hf.seen.includes(room);
+    const stamina = currentStamina(hero.stamina, hero.staminaAt, now);
+    if (!known && stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
+    if (!known) await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: room } } });
     await tx.hero.update({
       where: { id: hero.id },
-      data: { floor: above.number, room, prevRoom: room, campSince: null, stamina: stamina.stamina - 1, staminaAt: stamina.savedAt },
+      data: {
+        floor: above.number, room, prevRoom: room, campSince: null, ...(known ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }),
+      },
     });
     return hero.id;
   });
@@ -736,6 +798,38 @@ export async function leaveByWaypoint(player: Player): Promise<LabyrinthResult> 
     return hero.id;
   });
   outcome.notices.unshift(t('You are back in the City.', 'Вы вернулись в город.'));
+  return respond(heroId, season, outcome);
+}
+
+/** A short rest anywhere in the Labyrinth without monsters in the way: half of full health and Stamina back (v0). */
+export async function shortRest(player: Player): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const lab = labyrinthFor(season);
+  const now = new Date();
+  const outcome = emptyOutcome();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await loadHero(tx, player, season.id);
+    const { floor } = whereIs(hero, lab);
+    await restIfDue(tx, hero, now);
+    if (await stillFacing(tx, hero, season, floor, now)) throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
+    if (hero.shortRests < 1) throw ApiError.conflict('no_short_rests', 'No short rests left on this Run');
+    const full = fullHealth(hero);
+    const before = currentStamina(hero.stamina, hero.staminaAt, now).stamina;
+    if (hero.hp >= full && before >= STAMINA_MAX) throw ApiError.conflict('rested', 'Already fully rested');
+    const hp = Math.min(full, hero.hp + Math.ceil(full * SHORT_REST_SHARE));
+    const stamina = addStamina(hero.stamina, hero.staminaAt, Math.ceil(STAMINA_MAX * SHORT_REST_SHARE), now);
+    await tx.hero.update({
+      where: { id: hero.id },
+      data: { hp, stamina: stamina.stamina, staminaAt: stamina.savedAt, shortRests: hero.shortRests - 1 },
+    });
+    const healed = hp - hero.hp;
+    const gained = stamina.stamina - before;
+    outcome.notices.push(t(
+      `A short rest: ${[healed > 0 && `+${healed} health`, gained > 0 && `+${gained} Stamina`].filter(Boolean).join(', ')}.`,
+      `Короткий отдых: ${[healed > 0 && `+${healed} здоровья`, gained > 0 && `+${gained} выносливости`].filter(Boolean).join(', ')}.`,
+    ));
+    return hero.id;
+  });
   return respond(heroId, season, outcome);
 }
 

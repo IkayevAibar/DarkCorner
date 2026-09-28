@@ -4,7 +4,7 @@ import {
 } from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import {
-  actInEvent, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal, setStance,
+  actInEvent, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal, setStance, shortRest,
 } from '../services/labyrinth.js';
 
 export async function labyrinthRoutes(app: FastifyInstance) {
@@ -32,6 +32,7 @@ export async function labyrinthRoutes(app: FastifyInstance) {
   app.post('/api/labyrinth/event', guard, async (request): Promise<LabyrinthResult> =>
     actInEvent(request.player!, eventActionSchema.parse(request.body)));
   app.post('/api/labyrinth/portal', guard, async (request): Promise<LabyrinthResult> => readPortal(request.player!));
+  app.post('/api/labyrinth/short-rest', guard, async (request): Promise<LabyrinthResult> => shortRest(request.player!));
 
   app.post<{ Params: { id: string } }>('/api/labyrinth/graves/:id/loot', guard, async (request): Promise<LabyrinthResult> =>
     lootGrave(request.player!, request.params.id));

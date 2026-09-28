@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Hero" ADD COLUMN     "shortRests" INTEGER NOT NULL DEFAULT 2,
+ADD COLUMN     "shortRestsAt" TIMESTAMP(3),
+ADD COLUMN     "tavernNights" INTEGER NOT NULL DEFAULT 0;

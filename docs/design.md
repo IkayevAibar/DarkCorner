@@ -250,6 +250,8 @@ Every monster has a signature power, so a fight plays differently depending on w
 
 Opening the Door of a Room with monsters doesn't start the fight. The Hero stops in the doorway, the Player sees who is there, and chooses. Until then the Room's other Doors stay shut.
 
+- **Monster cards:** tapping a monster shows what it is, with its health, Armor Class, attack and damage as they are on this Floor today, its powers and its elite gift.
+
 - **Threat:** how dangerous the fight is for this Hero right now: Trivial, Easy, Risky, Dangerous or Deadly. The server plays the fight 60 times with the Hero as it stands, with its health, potions, gear and Stance, and never with the real dice. It rates the fight by how often the Hero won and died *(v0)*:
 
   | Threat | When |
@@ -289,7 +291,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 
 | Building | When | What it does |
 |---|---|---|
-| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, and your bounties. Later you can also find a Duo partner and play tavern games here. |
+| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, the Rankings, and your bounties. Lodging: a bed for the night, for City gold, fills Stamina and brings back the short rests. The first night costs 50 gold, and each night after costs half again as much as the one before, all Season *(v0)*. Later you can also find a Duo partner and play tavern games here. |
 | Shops | Season 0 | Sell Common and Uncommon gear, potions, scrolls (Identify, Town Portal, Protection) and Keys. Buy any Item at its Buyback price. |
 | Forge | Season 0 | Upgrade, Reforge, Salvage, and craft Keys and scrolls from Materials. |
 | Market | Season 0 | Players list Items at their own price, and anyone can buy at any time. |
@@ -362,9 +364,10 @@ Small goals give each session a reason to go down today *(v0)*.
 
 ### Moving and stamina
 
-- **Moving:** each Move is instant and costs 1 Stamina.
-- **Stamina:** up to 20, and 1 point refills every 24 minutes, so an empty bar is full again after 8 hours *(v0)*. A Player who checks in 2–3 times a day makes about 40–60 Moves.
+- **Moving:** each Move is instant. A Move into a Room the Hero has never stood in costs 1 Stamina. Walking back through Rooms it knows is free, and so are stairs to a landing or stairs it knows. A known Room costs 1 again when something new waits there today: monsters back, a Treasure or hoard not taken, or an event not done (a Merchant never counts). Otherwise a known Floor could be farmed without Stamina. The Door says which way is free.
+- **Stamina:** up to 20, and 1 point refills every 24 minutes, so an empty bar is full again after 8 hours *(v0)*. A Player who checks in 2–3 times a day reaches about 40–60 Rooms that cost Stamina, plus what short rests and Lodging add.
 - **Only Moves cost Stamina.** City actions, Waypoints and Town Portals are free.
+- **Short rests** *(v0)*: a Run starts with 2. Each gives back half of full health and half of full Stamina (10), anywhere monsters don't block the way. They come back when a Run starts, but no sooner than 8 hours after they last came back, so stepping out at the gate and straight back in can't refill them. Lodging at the Tavern brings them back too.
 
 ### Doors, clues and the map
 
