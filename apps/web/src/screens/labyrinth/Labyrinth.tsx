@@ -18,7 +18,8 @@ import { play, playTier } from '../../sound';
 import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
-import { EliteBadge, FightPlayback } from './FightPlayback';
+import { EliteBadge } from '../../components/EliteBadge';
+import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
 import { FloorMap } from './FloorMap';
 import { roomArt } from './roomArt';
 
@@ -37,6 +38,8 @@ export function Labyrinth() {
   /** A result whose fight is being played back; its view shows once the fight is over. */
   const [playing, setPlaying] = useState<LabyrinthResult | null>(null);
   const [report, setReport] = useState<LabyrinthResult | null>(null);
+
+  useEffect(() => { void preloadFightScene().catch(() => { /* Playback can retry or show its fallback. */ }); }, []);
 
   const load = useCallback(async () => {
     try {
@@ -113,7 +116,7 @@ export function Labyrinth() {
         <Inside view={view} busy={busy} error={error} act={act} />
       )}
       {playing?.fight && (
-        <FightPlayback
+        <FightScene
           replay={playing.fight}
           room={view?.floor && view.room ? { floor: view.floor.number, room: view.room.id } : undefined}
           onDone={fightOver}

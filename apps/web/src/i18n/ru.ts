@@ -379,6 +379,9 @@ export const ru: Record<MessageKey, string> = {
   'dir.w': 'Запад',
 
   'fight.title': 'Бой',
+  'fight.whiff': 'Мимо',
+  'fight.deathSaveTitle': 'Спасбросок от смерти',
+  'fight.saveCount': 'Успехов: {s}, провалов: {f}',
   'fight.skip': 'Пропустить',
   'fight.victory': 'Победа',
   'fight.survived': 'Едва живы',

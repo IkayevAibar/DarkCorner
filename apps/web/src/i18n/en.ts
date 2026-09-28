@@ -378,6 +378,9 @@ export const en = {
   'dir.w': 'West',
 
   'fight.title': 'Fight',
+  'fight.whiff': 'Miss',
+  'fight.deathSaveTitle': 'Death save',
+  'fight.saveCount': '{s} successes, {f} failures',
   'fight.skip': 'Skip',
   'fight.victory': 'Victory',
   'fight.survived': 'Barely alive',
