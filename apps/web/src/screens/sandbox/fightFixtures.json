@@ -1089,7 +1089,7 @@
      "en": "Rot grubs",
      "ru": "Трупные личинки"
     },
-    "art": null,
+    "art": "/art/tokens/rot-grubs.webp",
     "hp": 14,
     "maxHp": 14,
     "ac": 9,
@@ -5671,7 +5671,7 @@
      "en": "Mummy",
      "ru": "Мумия"
     },
-    "art": null,
+    "art": "/art/tokens/mummy.webp",
     "hp": 55,
     "maxHp": 55,
     "ac": 11,
@@ -6389,7 +6389,7 @@
      "en": "Night hag",
      "ru": "Ночная карга"
     },
-    "art": null,
+    "art": "/art/tokens/night-hag.webp",
     "hp": 101,
     "maxHp": 101,
     "ac": 14,
@@ -6407,7 +6407,7 @@
      "en": "Flame skull",
      "ru": "Пылающий череп"
     },
-    "art": null,
+    "art": "/art/tokens/flame-skull.webp",
     "hp": 46,
     "maxHp": 46,
     "ac": 14,
@@ -6872,7 +6872,7 @@
      "en": "Chain devil",
      "ru": "Цепной дьявол"
     },
-    "art": null,
+    "art": "/art/tokens/chain-devil.webp",
     "hp": 139,
     "maxHp": 139,
     "ac": 15,
