@@ -4,7 +4,7 @@ import { FIGHTS, EXTRA_FIGHTS, REAL_FIGHTS } from '../../screens/sandbox/fightEx
 import { advance, dieFor, framesFor, initialFrame } from './replay';
 
 describe('recorded fight playback', () => {
-  it('accepts all 27 engine replays and both supplemental examples without mutating them', () => {
+  it('accepts all 27 engine replays and supplemental examples without mutating them', () => {
     expect(Object.keys(REAL_FIGHTS)).toHaveLength(27);
     for (const replay of Object.values(FIGHTS)) {
       fightReplaySchema.parse(replay);

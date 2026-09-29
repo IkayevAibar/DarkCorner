@@ -7,6 +7,9 @@
 .fight-loading{position:absolute;inset:0;display:grid;place-items:center;color:#d4c6ae}
 .fight-log{min-height:100px;background:#17130f;border:1px solid #3d3225;border-left:3px solid #8a6d3e;padding:10px 12px;display:grid;align-content:end;gap:3px;font-size:15px;line-height:1.25}
 .fight-log p{margin:0;color:#a99a83}.fight-log p:last-child{color:#e8dcc5}
+.fight-actions{display:flex;gap:8px}.fight-actions .btn{min-height:46px;padding:9px 10px}.fight-actions [data-fight-skip]{flex:1}.fight-actions [aria-pressed=true]{border-color:#d9b574;color:#f5d492}
+.fight-history{height:190px;overflow-y:auto;overscroll-behavior:contain;background:#17130f;border:1px solid #8a6d3e;padding:10px 12px}.fight-history:focus-visible{outline:2px solid #ddbc83}
+.fight-paused *{animation-play-state:paused!important}
 .fight-outcome{position:absolute;left:0;right:0;top:43%;padding:14px 4px;background:rgb(8 6 4 / .9);border-block:1px solid #96754a;text-align:center;font-family:var(--font-head,Georgia,serif);font-size:clamp(26px,7vw,40px);font-weight:800;color:#e8ddc5;text-shadow:0 2px #000}
 .fight-outcome-victory{color:#e6bd66}.fight-outcome-dead{color:#df7264}
 .fight-ambush{position:absolute;left:3%;right:3%;top:43%;padding:10px;background:#190907e8;text-align:center;color:#ffb5a3;font-size:22px;font-weight:bold}
@@ -17,7 +20,7 @@
 .fight-die strong{position:absolute;inset:0;display:grid;place-items:center;font-size:29px;font-family:Georgia,serif;text-shadow:0 2px #000}
 .fight-die-large strong{font-size:48px}.fight-die-crit{color:#ffdc82}.fight-die-fumble{color:#f18775}
 .fight-die-label{position:absolute;top:-27px;left:-50%;width:200%;text-align:center;font-size:16px;background:#100d0adc;padding:2px;white-space:nowrap}
-.fight-die-motion{animation:fight-die-land .55s ease-out both}.fight-die-large.fight-die-motion{animation-duration:1.05s}.fight-die-motion strong{animation:fight-die-reveal .55s step-end both}.fight-die-large.fight-die-motion strong{animation-duration:1.05s}
+.fight-die-motion{animation:fight-die-land calc(.55s / var(--fight-speed,1)) ease-out both}.fight-die-large.fight-die-motion{animation-duration:calc(1.05s / var(--fight-speed,1))}.fight-die-motion strong{animation:fight-die-reveal calc(.55s / var(--fight-speed,1)) step-end both}.fight-die-large.fight-die-motion strong{animation-duration:calc(1.05s / var(--fight-speed,1))}
 .fight-saves{position:absolute;left:0;right:0;bottom:9px;display:flex;justify-content:center;gap:18px;background:#100c08c9;font-size:20px;letter-spacing:3px}.fight-save-success{color:#aad19a}.fight-save-failure{color:#df7264}
 .fight-fallback{position:absolute;inset:0;display:flex;justify-content:center;align-content:flex-start;flex-wrap:wrap;gap:12px;padding:12% 8px 0}.fight-fallback-map{position:absolute;inset:0;width:100%;height:100%;filter:brightness(.62)}.fight-fallback>div{z-index:1;display:grid;justify-items:center;font-size:11px;color:#e8ddc5}.fight-fallback-hero{position:absolute;bottom:9%;left:35%;right:35%}
 @keyframes fight-die-land{0%{opacity:0;transform:translate(-50%,-65%) rotate(-90deg) scale(.65)}65%{opacity:1;transform:translate(-50%,-47%) rotate(5deg) scale(1.07)}100%{transform:translate(-50%,-50%) rotate(0) scale(1)}}
