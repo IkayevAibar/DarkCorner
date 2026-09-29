@@ -21,6 +21,7 @@ import { EventPanel } from './EventPanel';
 import { EliteBadge, FightPlayback } from './FightPlayback';
 import { FloorMap } from './FloorMap';
 import { roomArt } from './roomArt';
+import { TierBurst } from '../../components/loot/TierBurst';
 
 type Act = (call: () => Promise<LabyrinthResult>) => Promise<void>;
 
@@ -957,7 +958,9 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
             <span className="sub-heading">{t('report.loot')}</span>
             <div className="flex flex-wrap gap-2">
               {result.loot.map((item) => (
-                <ItemChip key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />
+                <TierBurst key={item.id} tier={item.tier}>
+                  <ItemChip item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />
+                </TierBurst>
               ))}
             </div>
           </div>

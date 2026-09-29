@@ -8,10 +8,10 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
-import { playTier } from '../../sound';
 import { formatDuration, useNow } from '../../time';
 import { NeedHero } from '../city/NeedHero';
-import { ChestSpin } from './ChestSpin';
+import { ChestSpin } from '../../components/loot/ChestSpin';
+import { IdentifyReveal } from '../../components/loot/IdentifyReveal';
 
 const GRADES = ['iron', 'silver', 'gold'] as const;
 
@@ -116,19 +116,13 @@ function IdentifySheet({ item, scrolls, free, onDone, onClose }: { item: ItemVie
   const { busy, error, run } = useAction();
   const [revealed, setRevealed] = useState<ItemView | null>(null);
   if (revealed) {
-    return (
-      <div className="anim-pop grid gap-4">
-        <ItemDetails item={revealed} />
-        <button type="button" className="btn btn-primary" onClick={onClose}>{t('report.dismiss')}</button>
-      </div>
-    );
+    return <IdentifyReveal before={item} after={revealed} onDone={onClose} />;
   }
   return (
     <div className="grid gap-4">
       <ItemDetails item={item} />
       <button type="button" className="btn btn-primary" disabled={busy || (!free && scrolls === 0)} onClick={() => void run(async () => {
         const r = await api.identify(item.id);
-        playTier(r.item.tier);
         setRevealed(r.item);
         onDone();
       })}>
