@@ -14,3 +14,4 @@ export * from './labyrinth.js';
 export * from './economy.js';
 export * from './season.js';
 export * from './push.js';
+export * from './delve.js';

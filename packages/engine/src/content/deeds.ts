@@ -11,7 +11,7 @@ export type DeedMetric =
   | 'minibosses' | 'elites' | 'dragon' | 'deadly'
   | 'saved' | 'rose'
   | 'depth' | 'rooms' | 'hidden' | 'events' | 'riddles' | 'bargains' | 'sarcophagi'
-  | 'banked' | 'chests' | 'legendary' | 'bounties';
+  | 'banked' | 'chests' | 'legendary' | 'bounties' | 'delves';
 
 export interface DeedDef {
   id: string;
@@ -50,6 +50,7 @@ export const DEEDS: DeedDef[] = [
   deed('chest-cracker', 'chests', 25, 500, text('Chest-cracker', 'Взломщик сундуков'), text('Open 25 Chests.', 'Откройте 25 сундуков.')),
   deed('legend-seeker', 'legendary', 1, 300, text('Legend-seeker', 'Искатель легенд'), text('Find a Legendary Item.', 'Найдите легендарный предмет.')),
   deed('sellsword', 'bounties', 20, 500, text('Sellsword', 'Наёмник'), text('Finish 20 Bounties.', 'Выполните 20 заданий.')),
+  deed('well-diver', 'delves', 3, 500, text('Well-diver', 'Покоритель колодца'), text('Win all six Rooms of the Daily Delve three times.', 'Трижды пройдите все шесть комнат спуска дня.')),
 ];
 
 export const deedById = (id: string): DeedDef | undefined => DEEDS.find((d) => d.id === id);

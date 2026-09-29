@@ -4,7 +4,7 @@ import { localeSchema } from './auth.js';
 // Push notifications to a Player's phone or browser (docs/design.md → Notifications).
 
 /** What a notification can be about; a Player can turn each kind off. */
-export const PUSH_KINDS = ['stamina', 'camp', 'gate', 'market'] as const;
+export const PUSH_KINDS = ['stamina', 'camp', 'gate', 'market', 'delve'] as const;
 export const pushKindSchema = z.enum(PUSH_KINDS);
 export type PushKind = z.infer<typeof pushKindSchema>;
 

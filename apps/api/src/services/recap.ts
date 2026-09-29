@@ -11,7 +11,7 @@ import type { Tx } from './ledger.js';
  */
 const WORTH: Record<string, number> = {
   'boss-kill': 100, relic: 90, 'hunt-done': 80, upgrade10: 70, vault: 60,
-  drop: 40, chest: 40, identify: 40, depth: 35, 'grave-looted': 30, 'boss-attempt': 28, hidden: 20, bounty: 15, 'market-sale': 10,
+  drop: 40, chest: 40, identify: 40, depth: 35, 'grave-looted': 30, 'boss-attempt': 28, 'delve-cleared': 25, hidden: 20, bounty: 15, 'market-sale': 10,
 };
 const MAX_LINES = 5;
 const MAX_FALLEN = 6;

@@ -325,6 +325,14 @@ _Avoid_: buff
 The Tavern's running list of notable things happening in the game.
 _Avoid_: chat, log, news
 
+**Delve** (спуск):
+The Daily Delve at the City's Well: once a day, six Rooms the same for every Hero, each deeper than the last. Nothing the Hero owns is at risk; the Player stops when they like and banks the score for the day's board.
+_Avoid_: dungeon run, daily run, challenge
+
+**Boon** (дар):
+A gift taken between the Rooms of a Delve, one of two on offer: health back, a potion, or an edge that lasts the rest of the Delve.
+_Avoid_: buff, perk, Blessing (a Blessing is bought at the Temple)
+
 **Broadcast**:
 A post the game sends to the friends' Discord channel about a big moment.
 _Avoid_: announcement, notification

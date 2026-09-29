@@ -122,7 +122,8 @@ const localeOf = (player: Pick<Player, 'locale'>): Locale => (player.locale === 
  * fails a Player's action.
  */
 export async function notify(tx: Tx, playerId: string, message: PushMessage, at = new Date()): Promise<void> {
-  await schedule(tx, 'push', at, { playerId, message: message as unknown as Record<string, unknown> });
+  const listening = await tx.player.count({ where: { id: playerId, pushSubs: { some: {} }, NOT: { pushOff: { has: message.kind } } } });
+  if (listening > 0) await schedule(tx, 'push', at, { playerId, message: message as unknown as Record<string, unknown> });
 }
 
 /** The same notification for every Player who has a device and wants this kind. */
@@ -131,7 +132,7 @@ export async function notifyAll(tx: Tx, message: PushMessage, at = new Date()): 
     where: { pushSubs: { some: {} }, NOT: { pushOff: { has: message.kind } } },
     select: { id: true },
   });
-  for (const p of players) await notify(tx, p.id, message, at);
+  for (const p of players) await schedule(tx, 'push', at, { playerId: p.id, message: message as unknown as Record<string, unknown> });
 }
 
 onJob('push', async (payload) => {

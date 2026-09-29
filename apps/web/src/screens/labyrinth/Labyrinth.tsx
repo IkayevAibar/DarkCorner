@@ -2,7 +2,7 @@ import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } 
 import { NavLink } from 'react-router';
 import {
   STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
-  type LabyrinthView, type RunSummary, type Threat,
+  type LabyrinthView, type RunSummary,
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { CenterModal } from '../../components/CenterModal';
@@ -20,6 +20,7 @@ import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
 import { EliteBadge } from '../../components/EliteBadge';
+import { THREAT_TONE, ThreatChip } from '../../components/ThreatChip';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
 import { FightLog } from './FightLog';
 import { FloorMap } from './FloorMap';
@@ -598,19 +599,6 @@ function BagCard({ onClose }: { onClose: () => void }) {
       )}
     </CenterModal>
   );
-}
-
-const THREAT_TONE: Record<Threat, string> = {
-  trivial: 'border-line text-muted',
-  easy: 'border-tier-uncommon text-tier-uncommon',
-  risky: 'border-gold text-gold',
-  dangerous: 'border-tier-legendary text-tier-legendary',
-  deadly: 'border-tier-mythic text-tier-mythic',
-};
-
-function ThreatChip({ threat }: { threat: Threat }) {
-  const { t } = useI18n();
-  return <span className={`chip bg-[rgb(22_18_14/0.9)] font-head font-extrabold ${THREAT_TONE[threat]}`}>{t(`threat.${threat}`)}</span>;
 }
 
 /** The monsters in the doorway above, the Hero below, as in the fight that may follow. */

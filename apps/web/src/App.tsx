@@ -22,6 +22,7 @@ const Forge = screen(() => import('./screens/city/Forge'), 'Forge');
 const Market = screen(() => import('./screens/city/Market'), 'Market');
 const Temple = screen(() => import('./screens/city/Temple'), 'Temple');
 const Tavern = screen(() => import('./screens/city/Tavern'), 'Tavern');
+const Delve = screen(() => import('./screens/city/Delve'), 'Delve');
 const Admin = screen(() => import('./screens/Admin'), 'Admin');
 const News = screen(() => import('./screens/News'), 'News');
 /** Development builds only: production never ships the sandbox or its fixtures. */
@@ -55,6 +56,7 @@ export function App() {
         <Route path="/city/market" element={page(Market)} />
         <Route path="/city/temple" element={page(Temple)} />
         <Route path="/city/tavern" element={page(Tavern)} />
+        <Route path="/city/delve" element={page(Delve)} />
         <Route path="/labyrinth" element={page(Labyrinth)} />
         <Route path="/loot" element={page(Loot)} />
         <Route path="/heroes" element={page(Heroes)} />

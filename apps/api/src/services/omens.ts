@@ -4,6 +4,7 @@ import { DAY_MS, OMEN_DEFS, type OmenDef, omenFor } from '@dark/engine';
 import { prisma } from '../db.js';
 import { broadcast } from './broadcast.js';
 import { dayNumber } from './ledger.js';
+import { closeDelves } from './delve.js';
 import { dayRecap } from './recap.js';
 import { onJob, schedule } from './scheduler.js';
 
@@ -26,9 +27,9 @@ export function omenView(season: Pick<Season, 'seed' | 'status'>, now = new Date
 export const nextOmenAt = (now: Date): Date => new Date((dayNumber(now) + 1) * 86_400_000 + 60_000);
 
 /**
- * At each midnight UTC: retell the past day on Discord, say the new Omen in the Feed
- * and on Discord, then wait for the next. The recap and the Omen go as two messages,
- * the Omen a second later so it lands underneath.
+ * At each midnight UTC: retell the past day on Discord, close the day's Delve, say the
+ * new Omen in the Feed and on Discord, then wait for the next. The recap, the Delve's
+ * podium and the Omen go as separate messages, a second or two apart, in that order.
  */
 onJob('omen', async (payload) => {
   const season = await prisma.season.findUnique({ where: { id: String(payload.seasonId) } });
@@ -39,12 +40,13 @@ onJob('omen', async (payload) => {
   await prisma.$transaction(async (tx) => {
     const recap = await dayRecap(tx, season, new Date(midnight - DAY_MS), new Date(midnight));
     if (recap) await broadcast(tx, recap, now);
+    await closeDelves(tx, season, now);
     if (omen) {
       await tx.feedEvent.create({ data: { seasonId: season.id, kind: 'omen', data: { omen: omen.id } } });
       await broadcast(tx, {
         en: `🌘 Today's Omen in the Labyrinth: ${omen.name.en}. ${omen.description.en}`,
         ru: `🌘 Знамение дня в лабиринте: ${omen.name.ru}. ${omen.description.ru}`,
-      }, new Date(now.getTime() + 1000));
+      }, new Date(now.getTime() + 2000));
     }
     await schedule(tx, 'omen', nextOmenAt(now), { seasonId: season.id });
   });

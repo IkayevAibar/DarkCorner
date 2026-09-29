@@ -79,6 +79,13 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
     }
     case 'gate-open':
       return { tier: null, text: { en: 'The Boss gate is open', ru: 'Врата босса открыты' } };
+    case 'delve-cleared':
+      return { tier: 'rare', text: { en: `${hero} won all six Rooms of the Daily Delve: ${d.score} points`, ru: `${hero} проходит все шесть комнат спуска дня (очки: ${d.score})` } };
+    case 'delve-podium': {
+      const podium = (Array.isArray(d.podium) ? d.podium : []) as { hero: string; score: number }[];
+      const line = podium.map((p, i) => `${['🥇', '🥈', '🥉'][i]} ${p.hero} ${p.score}`).join(' · ');
+      return { tier: null, text: { en: `Yesterday's Delve: ${line}`, ru: `Вчерашний спуск: ${line}` } };
+    }
     case 'weaken':
       return { tier: null, text: { en: `The Dragon weakens: −${d.percent}%`, ru: `Дракон слабеет: −${d.percent}%` } };
     default:

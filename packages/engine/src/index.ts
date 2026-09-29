@@ -30,3 +30,4 @@ export * from './content/deeds.js';
 export * from './content/strikes.js';
 export * from './levels.js';
 export * from './features.js';
+export * from './delve.js';

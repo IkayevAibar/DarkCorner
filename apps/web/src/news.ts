@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-delve',
+    date: '2026-09-30',
+    title: t('The Daily Delve', 'Спуск дня'),
+    items: [
+      t('The City’s old Well opens every day: six Rooms, the same for everyone, each deeper than the last. Your Hero goes down at full health, and nothing is lost down there.',
+        'Старый колодец в городе открывается каждый день: шесть комнат, одни на всех, и каждая глубже прежней. Герой спускается с полным здоровьем, и внизу ничего не теряется.'),
+      t('After each Room won, take one of two Boons. Stop whenever you like to bank your points; fall, and half of them stay.',
+        'После каждой выигранной комнаты возьмите один из двух даров. Остановитесь, когда захотите, чтобы сохранить очки; при падении остаётся половина.'),
+      t('The day’s first three win a Gold, a Silver and an Iron Chest at midnight UTC. The new Deed “Well-diver” waits for those who win all six Rooms.',
+        'Трое лучших за день получают в полночь по UTC золотой, серебряный и железный сундук. А тех, кто пройдёт все шесть комнат, ждёт новый подвиг «Покоритель колодца».'),
+    ],
+  },
+  {
     id: '2026-09-30-notifications',
     date: '2026-09-30',
     title: t('Notifications on your phone', 'Уведомления на телефон'),

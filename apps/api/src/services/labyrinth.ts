@@ -15,7 +15,7 @@ import { omenOf, omenView } from './omens.js';
 import { enterEvent, eventAction, eventView, withLuck } from './events.js';
 import { feed } from './feed.js';
 import {
-  DAY_MS, type FightKind, type Outcome, combatOf, combatant, emptyOutcome, fallBack, fight, fightInput, heroFloor, isCleared, markCleared,
+  DAY_MS, type FightKind, type Outcome, combatOf, combatant, emptyOutcome, fallBack, fight, fightInput, foeOf, heroFloor, isCleared, markCleared,
   monstersFor, t,
 } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
@@ -157,14 +157,7 @@ function facingView(hero: HeroWithItems, season: Season, floor: Floor, roomId: n
   return {
     kind,
     monsters: monsters.map((m) => combatant(m.key, m)),
-    foes: monsters.map((m) => {
-      const def = monsterById(m.id);
-      const multi = m.powers.find((p) => p.id === 'multiattack');
-      return {
-        key: m.key, kin: def.kin, role: def.role, about: def.about, attack: m.attack, damage: m.damage, damageFactor: m.damageFactor,
-        attacks: multi?.id === 'multiattack' ? multi.attacks : 1,
-      };
-    }),
+    foes: monsters.map(foeOf),
     threat: { bold: rate('bold'), steady: rate('steady'), wary: rate('wary') },
     sneak: sneak ? { modifier: sneak.modifier, dc: sneak.dc, edge: sneak.edge ?? 'normal' } : null,
   };

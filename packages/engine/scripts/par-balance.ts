@@ -11,71 +11,18 @@
  * Run: npm run balance:par -w @dark/engine [-- hp hit damage] (to try other MIGHT values)
  */
 import {
-  CLASS_DEFS, type ClassId, GEAR_BASES, type GearBase, type HeroCombat, MIGHT, type PathId, THREATS, type ThreatId, type WornForCombat, canUse, createRng, dropOdds,
-  fightOdds, heroCombat, pathsOf, restUses, rollGear, rollTier, simulateFight, spawnEncounter, startingHealth, threatOf, tierRank,
+  type ClassId, type HeroCombat, MIGHT, THREATS, type ThreatId, createRng, fightOdds, pathsOf, restUses, simulateFight, spawnEncounter, threatOf,
 } from '../src/index.js';
+import { CLASSES, type Gearing, heroesAt as parHeroes, parLevel } from './par.js';
 
-const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric'] as const;
-const SLOTS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring', 'ring'] as const;
-const GROWTH = [4, 8, 12, 16, 19];
 /** Several gear rolls per Floor, to even out luck. */
-const GEAR_SEEDS = onlyDragonRun() ? 8 : 3;
-function onlyDragonRun() { return process.argv.includes('dragon'); }
+const GEAR_SEEDS = process.argv.includes('dragon') ? 8 : 3;
 const ROOMS = 50;
 
 const [hpArg, hitArg, damageArg] = process.argv.slice(2).filter((a) => a !== 'dragon').map(Number);
 if (hpArg !== undefined && !Number.isNaN(hpArg)) Object.assign(MIGHT, { hp: hpArg, hit: hitArg ?? MIGHT.hit, damage: damageArg ?? MIGHT.damage });
 
-/** Level on first reaching a Floor (playtest v0). */
-export const parLevel = (floor: number): number => Math.min(20, Math.max(1, Math.round(1.5 * floor - 0.5)));
-
-/** Late in the Season: many more drops to pick from, and gold spent at the Forge. */
-interface Gearing { draws: number; upgrade: number }
-
-/** Gear a Player would wear: usable, and for a Fighter a STR weapon rather than a dagger or a bow. */
-const suits = (cls: ClassId, b: GearBase) => canUse(cls, b) && !(cls === 'fighter' && (b.weapon === 'dagger' || b.weapon === 'bow'));
-
-function parHero(cls: ClassId, floor: number, level: number, pathIndex: number, seed: number, gearing?: Gearing): HeroCombat {
-  const rng = createRng(`par-${cls}-${floor}-${level}-${pathIndex}-${seed}`);
-  const def = CLASS_DEFS[cls];
-  const primary = def.primary;
-  const grown = GROWTH.filter((l) => l <= level).length;
-  const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, [primary]: Math.min(20, 16 + 2 * grown) };
-  const perLevel = Math.ceil(def.hitDie / 2) + 1 + 2 + 2;
-  const hp = startingHealth(cls, 'human', ['alert', 'tough'], scores.con) + (level - 1) * perLevel;
-  // Drops so far come from the Floors above; the best usable one per slot is worn.
-  const from = [Math.max(1, floor - 2), Math.max(1, floor - 1)] as const;
-  const draws = gearing?.draws ?? 1 + floor;
-  const worn: WornForCombat[] = [];
-  let twoHanded = false;
-  for (const slot of SLOTS) {
-    const bases = GEAR_BASES.filter((b) => b.slot === slot && suits(cls, b));
-    if (bases.length === 0 || (slot === 'off' && twoHanded)) continue;
-    let best: (WornForCombat & { rank: number }) | null = null;
-    for (let d = 0; d < draws; d++) {
-      const itemLevel = rng.int(from[0], from[1]);
-      const tier = rollTier(rng, dropOdds(itemLevel));
-      const unique = tier === 'legendary' || tier === 'mythic';
-      const roll = rollGear(rng, { tier, itemLevel, baseId: unique ? undefined : rng.pick(bases).id });
-      const base = GEAR_BASES.find((b) => b.id === roll.base)!;
-      if (base.slot !== slot || !suits(cls, base)) continue;
-      const rank = tierRank(roll.tier) * 100 + roll.itemLevel;
-      if (best === null || rank > best.rank) {
-        best = { base: roll.base, quality: roll.quality, upgrade: gearing?.upgrade ?? Math.floor(floor / 3), radiant: roll.radiant, bonusStats: roll.bonusStats, uniqueId: roll.uniqueId, rank };
-      }
-    }
-    if (best) {
-      worn.push(best);
-      if (slot === 'main' && GEAR_BASES.find((b) => b.id === best!.base)?.weapon === 'heavy') twoHanded = true;
-    }
-  }
-  const path: PathId | null = level >= 3 ? pathsOf(cls)[pathIndex]!.id : null;
-  const h = heroCombat({ name: 'Par', class: cls, race: 'human', level, talents: ['alert', 'tough'], path, scores, maxHp: hp, hp, worn });
-  return { ...h, hp: h.maxHp };
-}
-
-const heroesAt = (cls: ClassId, floor: number, level = parLevel(floor), pathIndex = 0, gearing?: Gearing) =>
-  Array.from({ length: GEAR_SEEDS }, (_, seed) => parHero(cls, floor, level, pathIndex, seed, gearing));
+const heroesAt = (cls: ClassId, floor: number, level = parLevel(floor), pathIndex = 0, gearing?: Gearing) => parHeroes(cls, floor, level, pathIndex, gearing, GEAR_SEEDS);
 const onlyDragon = process.argv.includes('dragon');
 const avg = (heroes: HeroCombat[], f: (h: HeroCombat) => number) => Math.round(heroes.reduce((s, h) => s + f(h), 0) / heroes.length);
 const pct = (x: number) => `${Math.round(100 * x)}%`.padStart(4);

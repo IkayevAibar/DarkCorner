@@ -4,6 +4,7 @@ import type {
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
+  BoonId, DelveResult,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -41,6 +42,12 @@ export const api = {
   pushUnsubscribe: (endpoint: string) => request<PushView>('POST', '/api/push/unsubscribe', { endpoint }),
   pushPrefs: (off: PushKind[]) => request<PushView>('PUT', '/api/push/prefs', { off }),
   pushTest: (endpoint: string) => request<{ sent: boolean }>('POST', '/api/push/test', { endpoint }),
+
+  delve: () => request<DelveResult>('GET', '/api/delve'),
+  delveStart: () => request<DelveResult>('POST', '/api/delve/start'),
+  delveFight: (boon: BoonId | null) => request<DelveResult>('POST', '/api/delve/fight', { boon }),
+  delveStop: () => request<DelveResult>('POST', '/api/delve/stop'),
+  delveClaim: () => request<DelveResult>('POST', '/api/delve/claim'),
   adminPlayers: () => request<AdminPlayersResponse>('GET', '/api/admin/players'),
   setGate: (open: boolean) => request<AdminPlayersResponse>('POST', '/api/admin/gate', { open }),
   decidePlayer: (id: string, decision: AdminPlayerDecision['decision']) =>

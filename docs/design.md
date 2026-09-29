@@ -197,6 +197,7 @@ A **Deed** is a feat a Hero works toward all Season. The moment one is done, its
 | Chest-cracker | Open 25 Chests. | 500 |
 | Legend-seeker | Find a Legendary Item (a Relic counts). | 300 |
 | Sellsword | Finish 20 Bounties. | 500 |
+| Well-diver | Win all six Rooms of the Daily Delve three times. | 500 |
 
 ### Retiring
 
@@ -371,6 +372,17 @@ Once a week the whole server hunts together *(v0)*.
 - **The quarry:** every Monday (00:00 UTC) the Tavern posts a Hunt against one kin of monster: goblins, beasts, undead, demons, cultists or dragonkin. It is drawn from the kins that live on the Floors down to where most Heroes are, so everyone can take part.
 - **The target:** 40 for every Hero seen that week, never fewer than 120; a Hunt first posted mid-week (a new Season) asks only its share for the days left. Every monster of that kin any Hero defeats counts, and the board shows the total, your own kills and the top three hunters.
 - **The reward:** when the server reaches the target, every Hero with 10 or more kills gets a Silver Chest in its room at the Tavern, and the top hunter a Gold Chest instead. The Hunt and its end go in the Feed.
+
+### The Daily Delve *(v0)*
+
+The City's old Well opens onto a different stretch of the deep every day (midnight to midnight UTC). Each Player gets one Delve a day, with the Hero they have.
+
+- **Six Rooms, the same for everyone:** the day's seed decides who waits in each Room and which Boons are offered. The first Room comes from the Hero's own Floor: its deepest, or half its level rounded up, whichever is deeper. The Rooms go deeper two by two (+0, +0, +1, +1, +2, +2 Floors, never past Floor 10), and the sixth holds a guardian: that Floor's Mini-boss, or two Drakes (one an elite) in the Dragon's lair.
+- **Nothing is lost:** the Hero goes down at full health with the Well's own 2 Healing potions and its abilities fresh. Its real health, Bag and Items stay as they are; the Delve keeps its own health, potions and ability uses from Room to Room. The fights use the Hero's gear and Stance, and the day's Omen.
+- **Boons:** after each Room won, the Player takes one of two Boons before the next: Mend (40% of full health), Draught (one more potion), Second breath (spells and healing prayers back, and 15% health), or one that lasts the rest of the Delve: Whetstone (+15% damage), Ward (+2 AC), Keen eye (+10% critical chance), Leech (10% life steal).
+- **Stop or go on:** before each Room the Player sees who waits there and the Threat in each Stance, and can stop and bank. The score is 100 points a Room won, plus the health left in percent when the Player stops or wins all six. An Escape roll ends the Delve with the Rooms' points only; falling keeps half of them.
+- **Pay:** gold for every Room won (10 × (the Delve's Floor + 1) each), into the City purse. Winning all six counts toward the Well-diver Deed.
+- **The board:** the Well shows the day's finished Delves, best first (ties go to whoever finished first), and yesterday's best three. At midnight UTC, Delves still under way stop and bank, and the day's first three win a Gold, a Silver and an Iron Chest, taken at the Well. The podium goes in the Feed and on Discord, and the three hear it as a Notification.
 
 ### Tavern bounties
 
@@ -651,6 +663,7 @@ A Player can turn on push notifications for each phone or browser in the Account
 - **Stamina is full:** once each time a Hero's bar fills. Nothing is sent if the Player has been on the site since it filled.
 - **A Camp rest is done:** four hours in a Camp, when the rest gives something back (health, abilities, Stamina or short rests). It also covers the Stamina it filled.
 - **Something sells on the Market:** the Item, the buyer, the price and the seller's share.
+- **A place in the Daily Delve's first three,** and the Chest that waits at the Well.
 - **The Boss gate opens.**
 
 Each kind can be turned off. Nothing arrives between 23:00 and 08:00 on the device's own clock; what comes due at night arrives in the morning. On an iPhone, notifications only work once the game is on the Home Screen.

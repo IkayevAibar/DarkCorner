@@ -1,5 +1,5 @@
 import type { Hero, HeroFloor, Season } from '@prisma/client';
-import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
+import { type Combatant, type FightReplay, type Foe, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT, type MonsterInstance,
   type PathId, RELIC_CHANCE, type RaceId, type StanceId, type TalentId, type ThreatId, weakeningAt,
@@ -99,6 +99,16 @@ export function combatant(key: string, m: MonsterInstance): Combatant {
   return {
     key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
     elite: m.elite, powers: m.powers.map((p) => p.id), strike: monsterStrike(def), kin: def.kin, class: null,
+  };
+}
+
+/** A monster's card for the Player: what it is, and how hard it hits. */
+export function foeOf(m: MonsterInstance): Foe {
+  const def = monsterById(m.id);
+  const multi = m.powers.find((p) => p.id === 'multiattack');
+  return {
+    key: m.key, kin: def.kin, role: def.role, about: def.about, attack: m.attack, damage: m.damage, damageFactor: m.damageFactor,
+    attacks: multi?.id === 'multiattack' ? multi.attacks : 1,
   };
 }
 
