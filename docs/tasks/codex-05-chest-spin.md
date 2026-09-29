@@ -9,7 +9,7 @@ Loot is the game's big emotion ([design.md → Chests and keys](../design.md#che
 
 - **The Spin:** opening a Chest. A strip of Items scrolls past and slows to a stop on the prize, with light and sound that grow with the Tier.
 - **The identify reveal:** an Unidentified Item's `?` gives way to its name, Quality, Bonus stats and power, line by line. Radiant shows its shimmer.
-- **Tier drop effects:** when Items arrive (the Labyrinth report, the Spin, the reveal): beams of light and particles that grow with the Tier, and a screen shake for Mythic and above. Android phones vibrate on Mythic or better (`navigator.vibrate`); iPhones can't.
+- **Tier drop effects:** when Items arrive (the Labyrinth report, the Spin, the reveal): beams of light and particles that grow with the Tier, and a screen shake for Mythic and above. Android phones vibrate on Mythic or better (`buzz()` from `apps/web/src/sound.ts`); iPhones can't.
 
 ## Contract
 
@@ -37,7 +37,7 @@ Claude's stand-ins, to replace:
 - `IdentifySheet` in `apps/web/src/screens/loot/Loot.tsx` shows the revealed Item with a plain pop. Use `IdentifyReveal` there, and in the Heroes tab's Item actions (`CharacterSheet.tsx`).
 - Loot in the Labyrinth report (`Report` in `apps/web/src/screens/labyrinth/Labyrinth.tsx`) and the Spin: wrap tiles in `TierBurst`.
 
-Sound (Howler.js) comes with the sound pack the owner approves; leave a hook such as `onTier(tier)` so it can be added in one place.
+Sound: the stand-ins already play `playTier(tier)` and `play()` from `apps/web/src/sound.ts` (Kenney's sounds); keep those calls at the moments they fire now. If you use PixiJS, it is already a dependency with the fight scene (PR 6); load it with a dynamic `import()` as `FightScene` does, so it stays out of the first page load.
 
 On `/sandbox`: a button per Chest grade that plays the Spin on a fixture `OpenChestResult` (write fixtures by hand from the schema, including an Unidentified prize), a reveal for a Rare, a Radiant Legendary and a Relic, and a row of `TierBurst` tiles for every Tier.
 
