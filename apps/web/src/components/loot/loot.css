@@ -1,0 +1,40 @@
+.loot-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; overflow-y: auto; overscroll-behavior: contain; padding: 24px 12px; background: rgb(5 4 3 / .92); }
+.loot-scene { display: grid; gap: 18px; width: 100%; max-width: 520px; margin: auto; padding: 22px 16px 16px; min-width: 0; }
+.loot-heading { text-align: center; }
+.loot-heading h2 { margin: 4px 0 0; font: 800 26px/1.15 var(--font-head); color: var(--color-bone); }
+.spin-window { position: relative; height: 120px; overflow: hidden; margin-inline: -16px; border-block: 1px solid var(--color-brass-dim); background: #0a0807; }
+.spin-window::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, #080706 0%, transparent 24%, transparent 76%, #080706 100%); }
+.spin-strip { position: absolute; top: 21px; left: 50%; display: flex; gap: 12px; will-change: transform; }
+[data-spin-complete=true] .spin-strip { will-change: auto; }
+.spin-needle { position: absolute; z-index: 1; top: 0; bottom: 0; left: 50%; width: 2px; background: #efd08c; box-shadow: 0 0 14px #ffd274; }
+.spin-needle::before, .spin-needle::after { content: ''; position: absolute; left: -5px; width: 12px; height: 12px; background: #efd08c; transform: rotate(45deg); }
+.spin-needle::before { top: -6px; } .spin-needle::after { bottom: -6px; }
+.spin-hint { margin: 0; min-height: 42px; text-align: center; font-style: italic; color: var(--color-muted); }
+.spin-prize { padding: 10px 0 4px; }
+.spin-prize .tier-burst, .identify-card > .tier-burst { --loot-x: 42px; --loot-y: 42px; }
+.tier-burst { position: relative; min-width: 0; isolation: isolate; }
+.tier-content { position: relative; z-index: 1; }
+.tier-fx { position: absolute; inset: -8px; pointer-events: none; z-index: 0; overflow: clip; overflow-clip-margin: 40px; }
+.tier-glow { position: absolute; left: var(--loot-x, 50%); top: var(--loot-y, 50%); width: 220px; height: 220px; margin: -110px; background: radial-gradient(ellipse, color-mix(in srgb, var(--loot-color) 45%, transparent), transparent 70%); opacity: 0; animation: loot-glow 1.8s ease-out both; }
+.tier-ring { position: absolute; left: var(--loot-x, 50%); top: var(--loot-y, 50%); width: 140px; height: 140px; margin: -70px; border: 2px solid var(--loot-color); border-radius: 50%; animation: loot-ring 1s ease-out both; }
+.tier-ray { position: absolute; width: calc(14px + var(--loot-rank) * 4px); height: calc(70px + var(--loot-rank) * 18px); left: var(--loot-x, 50%); bottom: calc(100% - var(--loot-y, 50%)); transform-origin: 50% 100%; background: linear-gradient(0deg, var(--loot-color), transparent); clip-path: polygon(46% 100%, 0 0, 100% 0, 54% 100%); animation: loot-ray 1.8s ease-out both; }
+.tier-spark { position: absolute; top: var(--loot-y, 50%); left: var(--loot-x, 50%); width: 3px; height: 5px; background: var(--loot-color); box-shadow: 0 0 5px var(--loot-color); animation: loot-spark 1.15s var(--delay) ease-out both; }
+[data-tier=relic] .tier-spark:nth-child(3n) { background: #fff6d4; }
+.identify-reveal { display: grid; gap: 18px; }
+.identify-card { position: relative; min-height: 180px; padding: 12px 4px; }
+.identify-sealed { animation: loot-seal .65s ease-out both; }
+.identify-radiant::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 35%, #ffd1f33d 43%, #d1ecff80 49%, #ffefbc42 55%, transparent 65%); background-size: 300% 100%; animation: loot-shimmer 2.8s ease-out both; }
+.reveal-line { transition: opacity .22s ease-out, translate .22s ease-out; }
+.reveal-line[data-hidden=true] { visibility: hidden; opacity: 0; translate: 0 5px; }
+@keyframes loot-glow { 0% { opacity: 0; scale: .65; } 15% { opacity: 1; } 100% { opacity: 0; scale: 1.15; } }
+@keyframes loot-ring { from { opacity: .85; scale: .2; } to { opacity: 0; scale: 1.65; } }
+@keyframes loot-ray { 0% { opacity: 0; transform: translateX(-50%) rotate(var(--angle)) scaleY(.1); } 16% { opacity: .8; } 100% { opacity: 0; transform: translateX(-50%) rotate(var(--angle)) scaleY(1.25); } }
+@keyframes loot-spark { from { opacity: 0; transform: translate(0, 0) scale(.5); } 12% { opacity: 1; } to { opacity: 0; transform: translate(var(--x), var(--y)) scale(.25); } }
+@keyframes loot-seal { 50% { filter: brightness(1.6); } }
+@keyframes loot-shimmer { from { background-position: 120% 0; } to { background-position: -20% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .tier-glow { animation: none; opacity: .25; }
+  .tier-ring, .tier-ray, .tier-spark, .identify-radiant::after { display: none; }
+  .identify-sealed { animation: none; }
+  .reveal-line { transition: none; translate: none; }
+}

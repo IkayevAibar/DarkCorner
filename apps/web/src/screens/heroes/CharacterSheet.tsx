@@ -8,7 +8,8 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
-import { play, playTier } from '../../sound';
+import { play } from '../../sound';
+import { IdentifyReveal } from '../../components/loot/IdentifyReveal';
 import { DeedsPanel } from './Deeds';
 import { Growth } from './Growth';
 
@@ -47,8 +48,7 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
       title: text(item.name),
       body: (
         <div className="grid gap-4">
-          <ItemDetails item={item} />
-          <ItemActions item={item} place={place} heroClass={hero.class} onDone={() => { closeSheet(); onChanged(); }} />
+          <ItemActions item={item} place={place} heroClass={hero.class} onIdentified={onChanged} onDone={() => { closeSheet(); onChanged(); }} />
         </div>
       ),
     });
@@ -199,19 +199,20 @@ function ItemGrid({ title, items, onPick }: { title: string; items: ItemView[]; 
   );
 }
 
-function ItemActions({ item, place, heroClass, onDone }: { item: ItemView; place: Place; heroClass: ClassId; onDone: () => void }) {
+function ItemActions({ item, place, heroClass, onIdentified, onDone }: { item: ItemView; place: Place; heroClass: ClassId; onIdentified: () => void; onDone: () => void }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Dropping is for good: the first tap asks, the second throws it away.
   const [dropping, setDropping] = useState(false);
+  const [revealed, setRevealed] = useState<ItemView | null>(null);
 
-  const act = async (action: () => Promise<unknown>) => {
+  const act = async (action: () => Promise<unknown>, close = true) => {
     setBusy(true);
     setError(null);
     try {
       await action();
-      onDone();
+      if (close) onDone();
     } catch (e) {
       setError(describeError(t, e));
     } finally {
@@ -222,8 +223,10 @@ function ItemActions({ item, place, heroClass, onDone }: { item: ItemView; place
   const wearable = item.kind === 'gear';
   // The card already says why; the server would refuse it anyway.
   const barred = item.gear?.classes != null && !item.gear.classes.includes(heroClass);
+  if (revealed) return <IdentifyReveal before={item} after={revealed} onDone={onDone} />;
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-4">
+      <ItemDetails item={item} />
       <div className="flex flex-wrap gap-2">
         {place === 'worn' && (
           <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(async () => {
@@ -242,7 +245,10 @@ function ItemActions({ item, place, heroClass, onDone }: { item: ItemView; place
           </button>
         )}
         {wearable && !item.identified && (
-          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(async () => playTier((await api.identify(item.id)).item.tier))}>
+          <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(async () => {
+            setRevealed((await api.identify(item.id)).item);
+            onIdentified();
+          }, false)}>
             {t('loot.identifyFree')}
           </button>
         )}

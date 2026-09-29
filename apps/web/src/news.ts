@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-chest-spin',
+    date: '2026-09-30',
+    title: t('A little theatre for your loot', 'Маленькое представление для добычи'),
+    items: [
+      t('Chests spin to their prize, with light and sound that grow with its Tier. Skip shows your Item straight away.',
+        'Сундуки прокручивают ленту до добычи: чем выше ранг, тем ярче свет и громче звук. «Пропустить» сразу показывает предмет.'),
+      t('Identifying unveils the name, Quality, Bonus stats and power one line at a time. Radiant Items shimmer, and Mythic and Relic drops make an entrance.',
+        'При опознании по очереди открываются название, качество, дополнительные характеристики и сила. Сияющие предметы переливаются, а мифические предметы и реликвии появляются с особым размахом.'),
+      t('Reduced motion shows the result immediately, with a quiet glow instead of moving effects.',
+        'При уменьшении движения результат виден сразу, со спокойным свечением вместо движущихся эффектов.'),
+    ],
+  },
+  {
     id: '2026-09-30-camps',
     date: '2026-09-30',
     title: t('Camps give a full rest', 'Лагерь — это полный отдых'),
