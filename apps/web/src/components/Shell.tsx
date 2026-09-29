@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useMatch } from 'react-router';
 import type { Locale } from '@dark/shared';
-import { Guide, useFirstVisitGuide } from './Guide';
+import { Guide } from './Guide';
 import { InstallCard } from './InstallCard';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
@@ -39,7 +39,6 @@ function TopBar() {
   const { openSheet } = useSheet();
   const other: Locale = locale === 'en' ? 'ru' : 'en';
   const player = session.state === 'signedIn' ? session.player : null;
-  useFirstVisitGuide(player !== null);
 
   return (
     <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-[rgb(11_10_9/0.92)] px-4 py-2.5 backdrop-blur-md">

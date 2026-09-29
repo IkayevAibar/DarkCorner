@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router';
+import { useNavigate } from 'react-router';
 import { api } from '../../api';
 import { CityMap } from '../../components/city/CityMap';
 import { InstallCard } from '../../components/InstallCard';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { isPhone } from '../../install';
+import { QuickStart } from '../heroes/QuickStart';
 
 const INSTALL_DISMISSED = 'dc.install.dismissed';
 const seen = (key: string) => {
@@ -26,6 +27,7 @@ const remember = (key: string) => {
 /** Existing Tavern data supplies the Season; map rendering stays independently previewable. */
 export function City() {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const { data, failed, reload } = useLoad(api.tavern);
   useRefresh(reload, 25_000);
   // A new Player lands here first: point them at the one thing to do before anything else.
@@ -44,6 +46,7 @@ export function City() {
         <span>{t('city.statusUnavailable')}</span>
         <button type="button" className="btn btn-small" onClick={() => void reload()}>{t('retry')}</button>
       </div> : !data && <p className="m-0 text-sm text-muted" role="status">{t('city.statusLoading')}</p>}
+      {needsHero && <QuickStart onCreated={() => navigate('/labyrinth')} onCustom={() => navigate('/heroes?custom=1')} />}
       {offerInstall && (
         <InstallCard
           onDismiss={() => {
@@ -51,12 +54,6 @@ export function City() {
             setOfferInstall(false);
           }}
         />
-      )}
-      {needsHero && (
-        <div className="panel grid gap-2 p-3">
-          <p className="m-0 text-sm">{t('city.noHero')}</p>
-          <NavLink to="/heroes" className="btn btn-primary no-underline">{t('lab.createHero')}</NavLink>
-        </div>
       )}
       <CityMap season={data?.season ?? null} />
     </div>

@@ -64,6 +64,8 @@ Each Player has one Hero per Season. Fights are automatic in Season 0: the Playe
 4. **Look:** choose a portrait from the set for that Race and Class, a name and a banner color.
 5. **Start:** the Hero receives its Starter kit and 100 gold *(v0)*, and appears in the Tavern.
 
+**Quick start:** a new Player's first screen offers the four Classes by their portraits. Picking one and a name (the Player's own by default) makes the Hero by the same rules, with the rest chosen to suit the Class: a Human Fighter (Tough, Savage attacker), a Halfling Rogue (Alert), an Elf Wizard (Tough) or a Dwarf Cleric (Lucky charm). Its dice are rolled with every reroll, keeping the set best for the Class's main ability. The Hero goes straight to the Labyrinth gate, where three short tips wait before its first Run; the full guide stays behind the "?". "Make it my own" opens the steps above instead.
+
 ### Races (Season 0)
 
 The bonuses are small. Race is a matter of taste, not power.

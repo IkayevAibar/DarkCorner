@@ -6,6 +6,7 @@ import {
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { CenterModal } from '../../components/CenterModal';
+import { Guide } from '../../components/Guide';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { useLoad } from '../../components/useLoad';
 import { OmenNote } from '../../components/OmenNote';
@@ -185,9 +186,29 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
         ))}
       </section>
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
+      {view.bestFloor === 0 && <FirstRunTips />}
 
       {popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
     </>
+  );
+}
+
+/** Three things to know before a first Run, with the whole guide a tap away. */
+function FirstRunTips() {
+  const { t } = useI18n();
+  const { openSheet } = useSheet();
+  return (
+    <section className="panel grid gap-2 p-3.5">
+      <span className="sub-heading">{t('lab.firstTips.title')}</span>
+      <ul className="m-0 grid gap-1.5 pl-4 text-sm">
+        <li>{t('lab.firstTips.doors')}</li>
+        <li>{t('lab.firstTips.monsters')}</li>
+        <li>{t('lab.firstTips.gold')}</li>
+      </ul>
+      <button type="button" className="btn btn-small justify-self-start" onClick={() => openSheet({ title: t('guide.title'), body: <Guide /> })}>
+        {t('lab.firstTips.guide')}
+      </button>
+    </section>
   );
 }
 

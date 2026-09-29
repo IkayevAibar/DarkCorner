@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import type { CreationOptions, MyHeroResponse } from '@dark/shared';
 import { api } from '../../api';
 import { useI18n } from '../../i18n';
 import { CharacterSheet } from './CharacterSheet';
 import { CreateHero } from './CreateHero';
+import { QuickStart } from './QuickStart';
 
 /** The Heroes tab: create a Hero if there is none, otherwise the character sheet. */
 export function Heroes() {
@@ -11,6 +13,9 @@ export function Heroes() {
   const [state, setState] = useState<MyHeroResponse | null>(null);
   const [options, setOptions] = useState<CreationOptions | null>(null);
   const [failed, setFailed] = useState(false);
+  const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const custom = params.has('custom');
 
   const load = useCallback(async () => {
     try {
@@ -42,6 +47,10 @@ export function Heroes() {
     return <CharacterSheet hero={state.hero} canRetire={state.canRetire} options={options} onChanged={() => void load()} />;
   }
   if (state.canCreate) {
+    // A Player who has rolled abilities already is building their own.
+    if (!custom && !state.draft) {
+      return <QuickStart onCreated={() => navigate('/labyrinth')} onCustom={() => setParams({ custom: '1' })} />;
+    }
     return <CreateHero options={options} initialDraft={state.draft} onCreated={() => void load()} />;
   }
   return <p className="text-center text-muted">{t('hero.retireUsed')}</p>;

@@ -1,7 +1,5 @@
-import { useEffect } from 'react';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
-import { useSheet } from './Sheet';
 
 /** The guide's sections, in the order a new Player meets them. */
 const SECTIONS = ['hero', 'moves', 'facing', 'alive', 'death', 'loot', 'grow', 'daily', 'season'] as const;
@@ -19,22 +17,4 @@ export function Guide() {
       ))}
     </div>
   );
-}
-
-const SEEN_KEY = 'dark.guideSeen';
-
-/** Opens the guide once, the first time a signed-in Player arrives (remembered per browser). */
-export function useFirstVisitGuide(signedIn: boolean) {
-  const { t } = useI18n();
-  const { openSheet } = useSheet();
-  useEffect(() => {
-    if (!signedIn) return;
-    try {
-      if (localStorage.getItem(SEEN_KEY)) return;
-      localStorage.setItem(SEEN_KEY, '1');
-    } catch {
-      return; // No storage (a private window): don't nag on every visit.
-    }
-    openSheet({ title: t('guide.title'), body: <Guide /> });
-  }, [signedIn, openSheet, t]);
 }
