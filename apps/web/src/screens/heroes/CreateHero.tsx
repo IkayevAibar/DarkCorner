@@ -45,7 +45,7 @@ export function CreateHero({ options, initialDraft, onCreated }: {
   // What a new Player should look for in a roll: the Class's own ability, and CON for health.
   const keyAbilities: AbilityId[] = classOption ? [classOption.primary, 'con'] : [];
   const portraits = options.portraits.filter(
-    (p) => (p.race === race && p.class === cls) || (p.race === null && p.class === null),
+    (p) => (p.race === race && p.class === (classOption?.wears ?? cls)) || (p.race === null && p.class === null),
   );
   const current: Step = STEPS[step]!;
   const ready: Record<Step, boolean> = {

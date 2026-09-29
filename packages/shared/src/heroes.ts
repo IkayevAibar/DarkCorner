@@ -39,6 +39,8 @@ export const creationOptionsSchema = z.object({
     id: classIdSchema, name: localizedTextSchema, hitDie: z.number().int(), fights: localizedTextSchema, trick: localizedTextSchema,
     /** The ability the Class attacks and casts with, marked when rolling abilities. */
     primary: abilityIdSchema,
+    /** The Class whose portraits it wears: its own, or a painted Class's until its own are painted. */
+    wears: classIdSchema,
   })),
   /** Every Talent; `origin` ones can be picked when creating a Hero, the rest are learned by growing. */
   talents: z.array(z.object({ id: talentIdSchema, name: localizedTextSchema, description: localizedTextSchema, origin: z.boolean() })),

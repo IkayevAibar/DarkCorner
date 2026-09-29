@@ -22,9 +22,8 @@ const PICKS: Record<ClassId, { race: RaceId; talents: TalentId[]; banner: string
   ranger: { race: 'elf', talents: ['alert'], banner: '#2f7f86', fallbackName: 'Tamsin' },
 };
 const CLASSES: ClassId[] = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'];
-/** Barbarians and Rangers wear a Fighter's and a Rogue's portrait until their own are painted (engine: portraitsFor). */
-const PAINTED_AS: Partial<Record<ClassId, ClassId>> = { barbarian: 'fighter', ranger: 'rogue' };
-const portraitOf = (cls: ClassId) => `${PICKS[cls].race}-${PAINTED_AS[cls] ?? cls}-1`;
+/** `wears`: the Class whose portraits it wears (a new Class borrows a painted one's until its own are in). */
+const portraitOf = (cls: ClassId, wears: ClassId) => `${PICKS[cls].race}-${wears}-1`;
 
 /** A Discord name made fit for a Hero ("nova_star.99" becomes "nova star 99"): letters, digits, spaces, hyphens and apostrophes, 2–20 of them. */
 function heroName(from: string | undefined, cls: ClassId): string {
@@ -49,9 +48,10 @@ export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onC
   const classes = options.data?.classes ?? [];
   const choose = (cls: ClassId) => {
     play('page');
+    const def = classes.find((c) => c.id === cls)!;
     openSheet({
-      title: text(classes.find((c) => c.id === cls)!.name),
-      body: <Begin cls={cls} onCreated={() => { closeSheet(); onCreated(); }} onCustom={() => { closeSheet(); onCustom(); }} />,
+      title: text(def.name),
+      body: <Begin cls={cls} wears={def.wears} onCreated={() => { closeSheet(); onCreated(); }} onCustom={() => { closeSheet(); onCustom(); }} />,
     });
   };
 
@@ -72,12 +72,16 @@ export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onC
               disabled={!def}
               onClick={() => choose(cls)}
             >
-              <img
-                src={`/art/portraits/${portraitOf(cls)}.webp`}
-                alt=""
-                className="aspect-[4/5] w-full rounded-[2px] border object-cover object-[50%_30%]"
-                style={{ borderColor: PICKS[cls].banner }}
-              />
+              {def ? (
+                <img
+                  src={`/art/portraits/${portraitOf(cls, def.wears)}.webp`}
+                  alt=""
+                  className="aspect-[4/5] w-full rounded-[2px] border object-cover object-[50%_30%]"
+                  style={{ borderColor: PICKS[cls].banner }}
+                />
+              ) : (
+                <span className="aspect-[4/5] w-full rounded-[2px] border" style={{ borderColor: PICKS[cls].banner }} />
+              )}
               <span className="font-head text-base font-extrabold tracking-wide uppercase">{def ? text(def.name) : '…'}</span>
               <span className="text-xs leading-snug text-muted">{t(`quick.${cls}`)}</span>
             </button>
@@ -90,7 +94,7 @@ export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onC
 }
 
 /** The last step: a name (the Player's own by default), then into the game. */
-function Begin({ cls, onCreated, onCustom }: { cls: ClassId; onCreated: () => void; onCustom: () => void }) {
+function Begin({ cls, wears, onCreated, onCustom }: { cls: ClassId; wears: ClassId; onCreated: () => void; onCustom: () => void }) {
   const { t } = useI18n();
   const { session } = useSession();
   const pick = PICKS[cls];
@@ -103,7 +107,7 @@ function Begin({ cls, onCreated, onCustom }: { cls: ClassId; onCreated: () => vo
     const made = await run(async () => {
       const set = await bestSet(primary[cls]);
       return api.createHero({
-        name: name.trim(), race: pick.race, class: cls, talents: pick.talents, portrait: portraitOf(cls), banner: pick.banner, set,
+        name: name.trim(), race: pick.race, class: cls, talents: pick.talents, portrait: portraitOf(cls, wears), banner: pick.banner, set,
       });
     });
     if (made) {
@@ -115,7 +119,7 @@ function Begin({ cls, onCreated, onCustom }: { cls: ClassId; onCreated: () => vo
   return (
     <div className="grid gap-3">
       <img
-        src={`/art/portraits/${portraitOf(cls)}.webp`}
+        src={`/art/portraits/${portraitOf(cls, wears)}.webp`}
         alt=""
         className="mx-auto aspect-[4/5] w-40 rounded-[2px] border-2 object-cover object-[50%_30%]"
         style={{ borderColor: pick.banner }}

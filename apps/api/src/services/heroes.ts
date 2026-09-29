@@ -8,7 +8,7 @@ import {
   DAY_MS, type GearBase, PORTRAITS, RACE_DEFS, type Tier, UNCOMMON_KIT_AFTER_DAYS, isGear, itemName, luckOf, tierRank,
   RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
   type ClassId, type Growth, type GrowthChoice, ORIGIN_TALENTS, PATH_DEFS, PATH_LEVEL, type PathId, type TalentId, createRng, currentStamina, maxHealth,
-  pathsOf, pendingGrowth, portraitById, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth, talentArmor, talentOffer,
+  pathsOf, pendingGrowth, portraitById, portraitClass, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth, talentArmor, talentOffer,
   validateGrowth, validateHeroChoices, MAX_LEVEL, XP_FOR_LEVEL, type RaceId, levelChoice, levelGains,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -30,7 +30,7 @@ export function creationOptions(): CreationOptions {
     }),
     classes: CLASSES.map((id) => {
       const c = CLASS_DEFS[id];
-      return { id, name: c.name, hitDie: c.hitDie, fights: c.fights, trick: c.trick, primary: c.primary };
+      return { id, name: c.name, hitDie: c.hitDie, fights: c.fights, trick: c.trick, primary: c.primary, wears: portraitClass(id) };
     }),
     talents: TALENTS.map((id) => ({
       id, name: TALENT_DEFS[id].name, description: TALENT_DEFS[id].description, origin: (ORIGIN_TALENTS as readonly string[]).includes(id),

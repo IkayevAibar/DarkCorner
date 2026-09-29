@@ -31,12 +31,14 @@ export function portraitById(id: string): PortraitDef | undefined {
 /** Classes not painted yet borrow a painted Class's portraits for the same Race until they are. */
 const STAND_INS: Partial<Record<ClassId, ClassId>> = { barbarian: 'fighter', ranger: 'rogue' };
 
-/** Portraits offered for a Race and Class: the exact matches (or borrowed ones) first, then the ones for anyone. */
+/** The Class whose portraits a Class wears: its own once they're painted, a stand-in's until then. */
+export const portraitClass = (cls: ClassId): ClassId =>
+  PORTRAITS.some((p) => p.class === cls) ? cls : (STAND_INS[cls] ?? cls);
+
+/** Portraits offered for a Race and Class: the ones it wears first, then the ones for anyone. */
 export function portraitsFor(race: RaceId, cls: ClassId): PortraitDef[] {
-  const painted = (c: ClassId) => PORTRAITS.filter((p) => p.race === race && p.class === c);
-  const exact = painted(cls);
-  const stand = STAND_INS[cls];
-  const borrowed = exact.length === 0 && stand ? painted(stand) : [];
+  const wears = portraitClass(cls);
+  const own = PORTRAITS.filter((p) => p.race === race && p.class === wears);
   const anyone = PORTRAITS.filter((p) => p.race === null && p.class === null);
-  return [...exact, ...borrowed, ...anyone];
+  return [...own, ...anyone];
 }
