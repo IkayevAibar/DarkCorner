@@ -1,6 +1,6 @@
 {
   "source": "Real local API with isolated dark_corner_test database, no network stubs",
-  "events": 16,
+  "events": 30,
   "outcome": "victory",
   "errors": []
 }
