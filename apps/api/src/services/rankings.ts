@@ -2,6 +2,7 @@ import type { Hero, Player } from '@prisma/client';
 import { RANKINGS, type Ranking, type RankingKind, type RankingRow, type RankingsView } from '@dark/shared';
 import { type Tier, baseById, tierRank } from '@dark/engine';
 import { prisma } from '../db.js';
+import { deedsDone, titleOf } from './deeds.js';
 import { portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
 import { currentSeason } from './seasons.js';
@@ -93,6 +94,7 @@ export async function rankingsView(me: Player): Promise<RankingsView> {
       return hero && hero.retiredAt === null ? [{ playerId, hero, value: hero.gold + hero.carriedGold }] : [];
     }),
     victories: counted(new Map(victories.map((v) => [v.playerId, Number(v.n)]))),
+    deeds: bestHero((h) => deedsDone(h), (h) => h.xp),
     finest: [...finest.values()],
     graves: counted(feedCount('grave-looted')),
     vaults: counted(feedCount('vault')),
@@ -103,6 +105,7 @@ export async function rankingsView(me: Player): Promise<RankingsView> {
     rank,
     player: nameOf(byId.get(s.playerId)!),
     hero: s.hero.name,
+    title: titleOf(s.hero),
     portraitUrl: portraitUrlOf(s.hero),
     banner: s.hero.banner,
     value: s.value,
@@ -129,7 +132,7 @@ export async function rankingsView(me: Player): Promise<RankingsView> {
         const hero = heroById.get(k.heroId);
         if (!player) return [];
         return [{
-          rank: k.place, player: nameOf(player), hero: k.heroName, portraitUrl: hero ? portraitUrlOf(hero) : null, banner: hero?.banner ?? null,
+          rank: k.place, player: nameOf(player), hero: k.heroName, title: titleOf(hero), portraitUrl: hero ? portraitUrlOf(hero) : null, banner: hero?.banner ?? null,
           value: k.place, item: null, me: k.playerId === me.id,
         }];
       }),

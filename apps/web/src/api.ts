@@ -55,6 +55,7 @@ export const api = {
 
   choosePath: (path: PathIdView) => request<HeroResponse>('POST', '/api/heroes/path', { path }),
   grow: (body: GrowRequest) => request<HeroResponse>('POST', '/api/heroes/grow', body),
+  setTitle: (deed: string | null) => request<HeroResponse>('POST', '/api/heroes/title', { deed }),
   levelUp: (body: LevelUpRequest) => request<LevelUpResponse>('POST', '/api/heroes/level-up', body),
   labyrinth: () => request<LabyrinthResult>('GET', '/api/labyrinth'),
   enterLabyrinth: (floor: number, portal = false) => request<LabyrinthResult>('POST', '/api/labyrinth/enter', { floor, portal }),

@@ -168,6 +168,34 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
 
   Tough learned late counts for every level the Hero already has.
 
+### Deeds and Titles *(v0)*
+
+A **Deed** is a feat a Hero works toward all Season. The moment one is done, its gold goes to the Hero's gold in the City, the Feed says so, and the Hero earns its **Title**. The Player may wear one earned Title after the Hero's name, or none; others see it in the Tavern and on the Rankings. Each Deed is done once per Hero. Counting started with Deeds themselves, except the deepest Floor, which counts from the Hero's own record.
+
+| Title | Deed | Gold |
+|---|---|---|
+| Goblin-bane | Defeat 100 goblins. | 300 |
+| Beast-hunter | Defeat 100 beasts. | 300 |
+| Grave warden | Put 150 undead to rest. | 500 |
+| Demon-slayer | Defeat 100 demons. | 800 |
+| Bane of warlords | Defeat 10 Mini-bosses. | 800 |
+| Elite hunter | Defeat 25 elite monsters. | 500 |
+| Dragonslayer | Defeat the Ancient Dragon. | 2,500 |
+| Against all odds | Win a fight the Door called Deadly. | 300 |
+| Too tough to die | Go down in 5 fights, and live through each. | 300 |
+| Fortune's favourite | Stand back up on a natural 20 death save. | 200 |
+| Deep delver | Reach Floor 10. | 1,000 |
+| Pathfinder | Walk into 500 Rooms for the first time. | 500 |
+| Keeper of secrets | Plunder 5 hidden rooms. | 300 |
+| Curious soul | See 50 Event rooms through. | 300 |
+| Riddle master | Answer 10 riddles right. | 300 |
+| Blood-trader | Strike 5 devil's bargains. | 300 |
+| Tomb robber | Open 5 sarcophagi. | 300 |
+| Moneybags | Bring 10,000 gold home from the Labyrinth. | 500 |
+| Chest-cracker | Open 25 Chests. | 500 |
+| Legend-seeker | Find a Legendary Item (a Relic counts). | 300 |
+| Sellsword | Finish 20 Bounties. | 500 |
+
 ### Retiring
 
 Once per Season, a Player may Retire their Hero at the Temple and create a new one, with a new Race, Class and ability roll, starting at level 1. Gold and Storage are kept, and the old Hero's gear moves into Storage. It is also the only way to try another Path.
@@ -613,7 +641,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 
 ### Rankings
 
-The Tavern's Rankings show the current Season's records, one board each, with a podium for the first three, the rest of the top ten under it, and the Player's own place when it is lower. Equal values share a place.
+The Tavern's Rankings show the current Season's records, one board each, with a podium for the first three, the rest of the top ten under it, and the Player's own place when it is lower. Equal values share a place. Each Hero shows with the Title it wears.
 
 | Board | What it counts |
 | --- | --- |
@@ -621,6 +649,7 @@ The Tavern's Rankings show the current Season's records, one board each, with a 
 | Level | A Hero's level. XP orders a tie within its place. |
 | Richest | Gold in the City plus gold carried, for the Hero played now. |
 | Victories | Fights won this Season, by all of a Player's Heroes. |
+| Deeds | Deeds done by a Player's best Hero on it. |
 | Finest Item | The best identified Item a Hero has, worn, in the Bag or in Storage: Tier first, then Upgrade, then item level. |
 | Graves | Other Heroes' Graves looted. |
 | Vaults | Vaults emptied. |

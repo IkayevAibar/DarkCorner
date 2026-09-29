@@ -3,7 +3,7 @@ import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fi
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT, type MonsterInstance,
   type PathId, RELIC_CHANCE, type RaceId, type StanceId, type TalentId, type ThreatId, weakeningAt,
-  createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
+  type DeedCounts, KILL_METRIC, createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { feed } from './feed.js';
@@ -13,6 +13,7 @@ import { addBadLuck, dropChest, dropGear, dropStack, withGoldFind } from './loot
 import { boostedXp, gainXp } from './progression.js';
 import { grantRelic } from './relics.js';
 import { trackBounties } from './bounties.js';
+import { countDeeds } from './deeds.js';
 import { trackHunt } from './hunts.js';
 import { omenOf } from './omens.js';
 
@@ -241,6 +242,10 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   };
   await tx.hero.update({ where: { id: hero.id }, data: after });
   Object.assign(hero, after);
+  // Going down and living through it is a Deed's worth; a natural 20 that stands the Hero up, another.
+  if (result.events.some((e) => e.type === 'down')) {
+    await countDeeds(tx, hero, { saved: 1, rose: result.events.some((e) => e.type === 'rise') ? 1 : 0 }, out);
+  }
 
   if (result.outcome === 'survived') {
     out.notices.push(t('Barely alive, you crawl back to the last safe Room.', 'Едва живы, вы отползаете в последнюю безопасную комнату.'));
@@ -287,6 +292,12 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     type: 'fight-won', floor: floor.number, kins, elites, threat: opts.threat ?? null, miniboss: kind === 'miniboss',
   }, out);
   await trackHunt(tx, season, hero, kins, out, now);
+  const kills: DeedCounts = {};
+  for (const kin of kins) {
+    const metric = KILL_METRIC[kin];
+    if (metric) kills[metric] = (kills[metric] ?? 0) + 1;
+  }
+  await countDeeds(tx, hero, { ...kills, minibosses: kind === 'miniboss' ? 1 : 0, elites, deadly: opts.threat === 'deadly' ? 1 : 0 }, out);
   return 'victory';
 }
 

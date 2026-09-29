@@ -133,7 +133,8 @@ describe('Event rooms', () => {
 
     const epic = await bagGear('epic');
     const sold = await act({ action: 'sell', itemId: epic.id });
-    expect(sold.gold).toBe(Math.round(250 * 1.2) * 2);
+    // A Radiant one (now and then) is worth half again as much.
+    expect(sold.gold).toBe(Math.round(250 * 1.2 * (epic.radiant ? 1.5 : 1)) * 2);
   });
 
   it('the Trapped corridor springs once when walked into', async () => {

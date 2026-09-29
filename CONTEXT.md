@@ -189,6 +189,14 @@ _Avoid_: secret room, stash
 How the whole Labyrinth leans for one day, for everyone: tougher monsters and more gold, easier Sneaking, a hotter Forge…
 _Avoid_: weather, modifier, event
 
+**Deed** (подвиг):
+A feat a Hero works toward all Season, such as defeating 100 goblins or reaching Floor 10. Done once, it pays gold and earns a Title.
+_Avoid_: achievement, trophy, quest
+
+**Title** (титул):
+What a Deed earns: a name the Player may show after the Hero's name, seen in the Tavern and on the Rankings. One is worn at a time.
+_Avoid_: badge, rank (a Tier is a rank)
+
 **Bounty**:
 A small goal from the Tavern: three a day and one a week per Hero, paid the moment it is done.
 _Avoid_: quest, mission, task
@@ -326,7 +334,7 @@ A bed for the night at the Tavern, bought with City gold: full Stamina and the s
 _Avoid_: inn, sleep, rest (alone)
 
 **Rankings** (рейтинг):
-The Tavern's boards of the current Season's records, one per record (deepest Floor, level, gold, fights won, finest Item, Graves looted, Vaults emptied, deaths, the Dragon), each with a podium. Unlike the Hall of Fame, they end with the Wipe.
+The Tavern's boards of the current Season's records, one per record (deepest Floor, level, gold, fights won, Deeds done, finest Item, Graves looted, Vaults emptied, deaths, the Dragon), each with a podium. Unlike the Hall of Fame, they end with the Wipe.
 _Avoid_: tops, leaderboard, scores
 
 **Duo**:

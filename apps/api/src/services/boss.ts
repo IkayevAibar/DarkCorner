@@ -4,6 +4,7 @@ import { newSeed } from '../lib/seed.js';
 import { broadcast } from './broadcast.js';
 import { feed } from './feed.js';
 import { type Outcome, heroFloor, markCleared, t } from './fights.js';
+import { countDeeds } from './deeds.js';
 import type { HeroWithItems, Tx } from './ledger.js';
 import { dropGear, dropStack, withGoldFind } from './loot.js';
 import { lockSeason, playerName } from './relics.js';
@@ -18,6 +19,7 @@ const PLACE_KIND = ['champion', 'second', 'third'] as const;
  */
 export async function bossVictory(tx: Tx, hero: HeroWithItems, season: Season, floor: number, roomId: number, out: Outcome): Promise<void> {
   const now = new Date();
+  await countDeeds(tx, hero, { dragon: 1 }, out);
   await lockSeason(tx, season.id);
   const fresh = await tx.season.findUniqueOrThrow({ where: { id: season.id } });
   const kills = await tx.bossKill.findMany({ where: { seasonId: season.id } });

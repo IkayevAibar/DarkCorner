@@ -16,6 +16,29 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-29-deeds',
+    date: '2026-09-29',
+    title: t('Deeds and Titles', 'Подвиги и титулы'),
+    items: [
+      t(
+        'Deeds: 21 feats to work toward all Season, from defeating 100 goblins to slaying the Dragon. Each one pays gold the moment it’s done. See them on your Hero’s page.',
+        'Подвиги: 21 свершение на весь сезон — от сотни побеждённых гоблинов до победы над драконом. За каждый сразу платят золотом. Они на странице вашего героя.',
+      ),
+      t(
+        'Every Deed earns a Title to wear after your Hero’s name, for everyone to see in the Tavern and on the Rankings, where Deeds have a board of their own.',
+        'Каждый подвиг даёт титул, который можно носить рядом с именем героя: его видят все в таверне и в рейтингах, где у подвигов теперь свой зачёт.',
+      ),
+      t(
+        'Deeds count from today; the deepest Floor counts from your Hero’s own record.',
+        'Подвиги считаются с сегодняшнего дня; самый глубокий этаж засчитывается по рекорду героя.',
+      ),
+      t(
+        'Every monster now has its painted token, including the five new ones in the crypts and depths.',
+        'У всех монстров теперь нарисованные жетоны, включая пятерых новых в склепах и глубинах.',
+      ),
+    ],
+  },
+  {
     id: '2026-09-29-depths',
     date: '2026-09-29',
     title: t('New faces deeper down, and a summary for every Run', 'Новые лица на глубине и итог каждой вылазки'),

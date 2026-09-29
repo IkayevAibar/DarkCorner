@@ -23,6 +23,7 @@ import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, lockHero, stackTotal, takeStack } from './ledger.js';
 import { dropChest, dropGear, withGoldFind } from './loot.js';
 import { boostedXp, gainXp } from './progression.js';
+import { countDeeds } from './deeds.js';
 import { newRun, tallyRun } from './runs.js';
 import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
@@ -515,6 +516,7 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     if (!known) {
       await tx.heroFloor.update({ where: { id: hf.id }, data: { seen: { push: to } } });
       outcome.explored++;
+      await countDeeds(tx, hero, { rooms: 1 }, outcome);
     }
     // Monsters stop the Hero in the doorway: the Player sees them and chooses (face()).
     // Any other Room becomes the last safe one.
@@ -574,6 +576,7 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
         await markCleared(tx, hf, roomId, now);
         out.notices.push(t('A hidden hoard, untouched for years!', 'Потайной клад, нетронутый годами!'));
         await feed(tx, season, hero, 'hidden', { floor: floor.number });
+        await countDeeds(tx, hero, { hidden: 1 }, out);
         await trackBounties(tx, hero, { type: 'treasure' }, out, now);
       } else {
         out.notices.push(t('The hoard here is taken. It fills again in a week.', 'Клад здесь уже взят. Он наполнится через неделю.'));
@@ -732,6 +735,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
       await feed(tx, season, hero, 'depth', { floor: next.number });
     }
     await trackBounties(tx, hero, { type: 'depth', floor: next.number }, outcome, now);
+    await countDeeds(tx, hero, {}, outcome, { depth: next.number });
     await tx.hero.update({
       where: { id: hero.id },
       data: {
@@ -781,7 +785,10 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
 /** Back to the City: gold becomes safe, health and abilities come back. */
 async function goHome(tx: Tx, hero: HeroWithItems, out: Outcome) {
   out.runEnd = { gold: hero.carriedGold };
-  if (hero.carriedGold > 0) await trackBounties(tx, hero, { type: 'bank', gold: hero.carriedGold }, out);
+  if (hero.carriedGold > 0) {
+    await trackBounties(tx, hero, { type: 'bank', gold: hero.carriedGold }, out);
+    await countDeeds(tx, hero, { banked: hero.carriedGold }, out);
+  }
   const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
   await tx.hero.update({
     where: { id: hero.id },

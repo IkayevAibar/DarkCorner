@@ -6,6 +6,7 @@ import {
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { broadcast } from './broadcast.js';
+import { countDeeds } from './deeds.js';
 import { feed } from './feed.js';
 import { heroLuck } from './heroes.js';
 import { gearData, toItemView } from './items.js';
@@ -55,7 +56,10 @@ export async function dropGear(tx: Tx, hero: HeroWithItems, season: Season, opts
     const item = await tx.item.create({ data: { ...gearData(roll, seed), seasonId: season.id, heroId: hero.id, place } });
     hero.items.push(item);
     haul.loot.push(toItemView(item));
-    if (tierRank(tier) >= tierRank('legendary')) await feed(tx, season, hero, 'drop', { tier, base: roll.base, forced, floor: opts.floor });
+    if (tierRank(tier) >= tierRank('legendary')) {
+      await feed(tx, season, hero, 'drop', { tier, base: roll.base, forced, floor: opts.floor });
+      await countDeeds(tx, hero, { legendary: 1 }, haul);
+    }
     if (tier === 'mythic') {
       await broadcast(tx, {
         en: `🔴 ${hero.name} found a Mythic Item on Floor ${opts.floor}!`,

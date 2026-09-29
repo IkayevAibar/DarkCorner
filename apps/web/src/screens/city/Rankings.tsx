@@ -95,6 +95,7 @@ const STEP_HEIGHT: Record<number, number> = { 1: 88, 2: 64, 3: 48 };
 function Step({ row, kind }: { row: RankingRow | undefined; kind: RankingKind }) {
   const { t } = useI18n();
   const value = useValue();
+  const text = useText();
   const height = STEP_HEIGHT[row?.rank ?? 3] ?? STEP_HEIGHT[3]!;
   if (!row) {
     return (
@@ -109,6 +110,7 @@ function Step({ row, kind }: { row: RankingRow | undefined; kind: RankingKind })
       <Token art={row.portraitUrl} label={row.hero} ring={row.banner ?? PLAIN_RING} size={top ? 68 : 56} />
       <div className="grid w-full min-w-0 gap-0">
         <span className={`truncate font-head text-[15px] leading-tight font-extrabold ${row.me ? 'text-gold' : ''}`}>{row.hero}</span>
+        {row.title && <span className="truncate text-[11px] text-gold italic">{text(row.title)}</span>}
         <span className="truncate text-xs text-muted">{row.me ? t('rankings.you') : row.player}</span>
         <span className="truncate text-[13px] font-bold">{value(row, kind)}</span>
       </div>
@@ -128,13 +130,17 @@ function Step({ row, kind }: { row: RankingRow | undefined; kind: RankingKind })
 function Line({ row, kind }: { row: RankingRow; kind: RankingKind }) {
   const { t } = useI18n();
   const value = useValue();
+  const text = useText();
   return (
     <li className={`flex items-center gap-3 border-b border-line/50 px-3 py-2 last:border-b-0 ${row.me ? 'rounded-[2px] border border-gold bg-[#2a2014]' : ''}`}>
       <span className="w-6 shrink-0 text-right font-head text-lg font-extrabold text-muted">{row.rank}</span>
       <Token art={row.portraitUrl} label={row.hero} ring={row.banner ?? PLAIN_RING} size={34} />
       <span className="grid min-w-0 flex-1">
         <span className={`truncate font-head font-bold ${row.me ? 'text-gold' : ''}`}>{row.hero}</span>
-        <span className="truncate text-xs text-muted">{row.me ? t('rankings.you') : row.player}</span>
+        <span className="truncate text-xs text-muted">
+          {row.me ? t('rankings.you') : row.player}
+          {row.title && <span className="text-gold italic"> · {text(row.title)}</span>}
+        </span>
       </span>
       <span className="shrink-0 text-right text-sm font-bold">{value(row, kind)}</span>
     </li>

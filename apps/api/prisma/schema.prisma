@@ -143,6 +143,11 @@ model Hero {
   lodgedAt     DateTime?
   /// What the Run under way has brought so far, summed up on the way home (services/runs.ts).
   run          Json?
+  /// Deeds (docs/design.md → Deeds and Titles): what each one counts so far, and the Deeds done (id → when).
+  deedCounts   Json      @default("{}")
+  deeds        Json      @default("{}")
+  /// The Title the Player chose to wear: a done Deed's id.
+  title        String?
 
   // Luck
   /// The Bad-luck meter: at 120 the next Item that drops is Legendary or better.

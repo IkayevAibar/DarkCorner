@@ -9,6 +9,7 @@ import { useAction } from '../../components/useAction';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
 import { play, playTier } from '../../sound';
+import { DeedsPanel } from './Deeds';
 import { Growth } from './Growth';
 
 type Place = 'worn' | 'bag' | 'storage';
@@ -52,6 +53,7 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
       ),
     });
   const race = options.races.find((r) => r.id === hero.race)!;
+  const title = hero.deeds.find((d) => d.id === hero.title)?.title ?? null;
   const cls = options.classes.find((c) => c.id === hero.class)!;
 
   const confirmRetire = () =>
@@ -72,6 +74,7 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
           </div>
           <div className="grid min-w-0 flex-1 gap-1">
             <h1 className="m-0 truncate font-head text-[26px] leading-tight font-extrabold">{hero.name}</h1>
+            {title && <span className="truncate font-head text-sm font-bold text-gold italic">{text(title)}</span>}
             <span className="text-sm">{text(race.name)} · {text(cls.name)}</span>
             <span className="text-sm text-muted">
               {t('hero.level', { n: hero.level })}
@@ -157,6 +160,8 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
       </article>
 
       <Growth hero={hero} onChanged={onChanged} />
+
+      <DeedsPanel hero={hero} onChanged={onChanged} />
 
       <ItemGrid title={t('hero.bag', { n: hero.bag.length, m: hero.bagSlots })} items={hero.bag} onPick={(i) => showItem(i, 'bag')} />
       <ItemGrid

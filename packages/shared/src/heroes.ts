@@ -120,6 +120,19 @@ export const levelUpViewSchema = z.object({
 });
 export type LevelUpView = z.infer<typeof levelUpViewSchema>;
 
+/** One Deed: what it asks, how far along the Hero is, and when it was done (docs/design.md → Deeds and Titles). */
+export const deedViewSchema = z.object({
+  id: z.string(),
+  /** The Title it earns. */
+  title: localizedTextSchema,
+  about: localizedTextSchema,
+  progress: z.number().int(),
+  target: z.number().int(),
+  gold: z.number().int(),
+  doneAt: z.string().nullable(),
+});
+export type DeedView = z.infer<typeof deedViewSchema>;
+
 export const heroSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -159,8 +172,15 @@ export const heroSchema = z.object({
   xpNext: z.number().int().nullable(),
   /** The next level, when its XP is there and the Player can take it. */
   levelUp: levelUpViewSchema.nullable(),
+  deeds: z.array(deedViewSchema),
+  /** The Title worn after the Hero's name: a done Deed's id, or none. */
+  title: z.string().nullable(),
 });
 export type HeroView = z.infer<typeof heroSchema>;
+
+/** POST /api/heroes/title: wear a done Deed's Title, or none. */
+export const titleRequestSchema = z.object({ deed: z.string().nullable() });
+export type TitleRequest = z.infer<typeof titleRequestSchema>;
 
 /** POST /api/heroes/path */
 export const choosePathRequestSchema = z.object({ path: pathIdSchema });

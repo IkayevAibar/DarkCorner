@@ -2,6 +2,7 @@ import type { Prisma, Season } from '@prisma/client';
 import { createRng, pickRelic, rollGear } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { broadcast } from './broadcast.js';
+import { countDeeds } from './deeds.js';
 import { feed } from './feed.js';
 import type { Outcome } from './fights.js';
 import { gearData, toItemView } from './items.js';
@@ -55,6 +56,7 @@ export async function grantRelic(tx: Tx, hero: HeroWithItems, season: Season, fl
     },
   });
   await feed(tx, season, hero, 'relic', { uniqueId: relic.id, serial, of, floor });
+  await countDeeds(tx, hero, { legendary: 1 }, out);
   await broadcast(tx, {
     en: `✨ ${hero.name} found a Relic: ${relic.name.en} #${serial}/${of}!`,
     ru: `✨ Реликвия у героя ${hero.name}: ${relic.name.ru} №${serial}/${of}!`,

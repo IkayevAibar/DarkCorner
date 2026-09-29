@@ -1,6 +1,6 @@
 import type { FeedEvent } from '@prisma/client';
 import type { LocalizedText, Tier } from '@dark/shared';
-import { KIN_NAMES, TIER_TEXT, baseById, type MonsterKin, uniqueById, OMEN_DEFS, type OmenId } from '@dark/engine';
+import { KIN_NAMES, TIER_TEXT, baseById, deedById, type MonsterKin, uniqueById, OMEN_DEFS, type OmenId } from '@dark/engine';
 
 // How each Feed line reads, in both languages. It needs nothing but the engine's
 // content, so the Tavern, the Hall of Fame and the midnight recap can all use it.
@@ -72,6 +72,10 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
     case 'hunt-done': {
       const kin = KIN_NAMES[d.kin as MonsterKin];
       return { tier: 'epic', text: { en: `The Hunt for ${kin.en} is done! ${d.leader} led it with ${d.count}`, ru: `Охота на ${kin.ru} окончена! Лучший охотник — ${d.leader}: ${d.count}` } };
+    }
+    case 'deed': {
+      const title = deedById(String(d.deed))?.title;
+      return { tier: 'epic', text: { en: `${hero} earned the Title “${title?.en ?? '?'}”`, ru: `${hero} получает титул «${title?.ru ?? '?'}»` } };
     }
     case 'gate-open':
       return { tier: null, text: { en: 'The Boss gate is open', ru: 'Врата босса открыты' } };

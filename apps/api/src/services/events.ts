@@ -19,6 +19,7 @@ import {
 import { dropGear, dropStack, withGoldFind } from './loot.js';
 import { boostedXp, gainXp } from './progression.js';
 import { trackBounties } from './bounties.js';
+import { countDeeds } from './deeds.js';
 
 // Event rooms (docs/design.md → Event rooms). What a room holds comes from a seed
 // per Hero, Room and day, so it can't be rerolled by leaving and coming back;
@@ -51,6 +52,7 @@ async function finish(tx: Tx, visit: EventVisit, hero: HeroWithItems, floor: num
   });
   await markCleared(tx, await heroFloor(tx, hero.id, floor), room, now);
   await trackBounties(tx, hero, { type: 'event' }, out ?? null, now);
+  await countDeeds(tx, hero, { events: 1 }, out ?? null);
 }
 
 /** A fresh seed and its Rng; event rolls are logged with the seed like every roll that matters. */
@@ -462,6 +464,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       Object.assign(hero, levelUp.data);
       out.xp += xp;
       out.levelUp = levelUp.newLevel ?? out.levelUp;
+      await countDeeds(tx, hero, { riddles: 1 }, out);
       // It also points out a secret Door the Hero hasn't found: the room behind it goes on the Map.
       const known = await heroFloor(tx, hero.id, floor.number);
       const hidden = floor.rooms.find((r) => r.type === 'hidden' && !known.seen.includes(r.id));
@@ -556,6 +559,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       }), out);
       await logRoll(tx, hero, rollSeed, { event: kind, success: lid.check.success, gold: lid.gold, tier: lid.tier });
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      await countDeeds(tx, hero, { sarcophagi: 1 }, out);
       if (!lid.check.success) {
         out.notices.push(t('The lid grinds loud, and whoever lies inside sits up.', 'Крышка громко скрежещет, и тот, кто лежит внутри, садится.'));
         const result = await fight(tx, hero, season, floor, room, 'fight', out, {
@@ -605,6 +609,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       hero.hp = hp - price;
       await logRoll(tx, hero, seed, { event: kind, offer: action.offer, price, ...offers });
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      await countDeeds(tx, hero, { bargains: 1 }, out);
       if (action.offer === 'gold') {
         const gold = withGoldFind(hero, offers.gold);
         await earnCarried(tx, hero, gold);

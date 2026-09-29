@@ -15,6 +15,7 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { gearData, toItemView } from './items.js';
+import { deedViews, isDone } from './deeds.js';
 import { type Tx, lockHero, requireCity } from './ledger.js';
 import { levelReady, raiseLevel } from './progression.js';
 import { currentSeason } from './seasons.js';
@@ -113,6 +114,8 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     inCity: hero.location === 'CITY',
     luck: luckView(hero, now),
     ...growthView(hero),
+    deeds: deedViews(hero),
+    title: hero.title,
   };
 }
 
@@ -369,6 +372,18 @@ export async function choosePath(player: Player, path: PathId): Promise<HeroView
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await lockHero(tx, player, season.id);
     await applyPath(tx, hero, path);
+    return hero.id;
+  });
+  return heroById(heroId);
+}
+
+/** Wears a done Deed's Title after the Hero's name, or none. */
+export async function setTitle(player: Player, deed: string | null): Promise<HeroView> {
+  const season = await currentSeason();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    if (deed !== null && !isDone(hero, deed)) throw ApiError.badRequest('deed_not_done', 'That Deed is not done yet');
+    await tx.hero.update({ where: { id: hero.id }, data: { title: deed } });
     return hero.id;
   });
   return heroById(heroId);

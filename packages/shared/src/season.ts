@@ -52,6 +52,8 @@ export type FeedEntry = z.infer<typeof feedEntrySchema>;
 export const onlinePlayerSchema = z.object({
   name: z.string(),
   hero: z.string().nullable(),
+  /** The Title the Hero wears. */
+  title: localizedTextSchema.nullable(),
   /** "In the City", "Floor 4"… */
   where: localizedTextSchema,
 });
@@ -138,7 +140,7 @@ export const lodgingViewSchema = z.object({
 export type LodgingView = z.infer<typeof lodgingViewSchema>;
 
 /** The Tavern's Rankings: one board per record, each with its own podium (docs/design.md → Rankings). */
-export const RANKINGS = ['deepest', 'level', 'richest', 'victories', 'finest', 'graves', 'vaults', 'deaths', 'dragon'] as const;
+export const RANKINGS = ['deepest', 'level', 'richest', 'victories', 'deeds', 'finest', 'graves', 'vaults', 'deaths', 'dragon'] as const;
 export type RankingKind = (typeof RANKINGS)[number];
 
 export const rankingRowSchema = z.object({
@@ -146,6 +148,8 @@ export const rankingRowSchema = z.object({
   rank: z.number().int(),
   player: z.string(),
   hero: z.string(),
+  /** The Title the Hero wears. */
+  title: localizedTextSchema.nullable(),
   portraitUrl: z.string().nullable(),
   banner: z.string().nullable(),
   /** What the board counts: a Floor, a level, gold, a count, or a place on the Dragon's podium. */

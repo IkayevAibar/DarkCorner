@@ -9,6 +9,7 @@ import { ApiError } from '../lib/errors.js';
 import { stackView } from './items.js';
 import { type HeroWithItems, type Tx, dayNumber, lockHero } from './ledger.js';
 import { t, type Outcome } from './fights.js';
+import { countDeeds } from './deeds.js';
 import { feed } from './feed.js';
 import { huntView } from './hunts.js';
 import { currentSeason } from './seasons.js';
@@ -113,6 +114,7 @@ export async function trackBounties(tx: Tx, hero: HeroWithItems, event: BountyEv
     const gold = spec.reward.gold + extra;
     await tx.hero.update({ where: { id: hero.id }, data: { gold: { increment: gold } } });
     hero.gold += gold;
+    await countDeeds(tx, hero, { bounties: 1 }, out);
     const title = bountyTitle(spec);
     const item = spec.reward.item ? baseById(spec.reward.item.base).name : null;
     out?.notices.push(item

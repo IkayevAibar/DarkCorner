@@ -8,6 +8,7 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { broadcast } from './broadcast.js';
+import { countDeeds } from './deeds.js';
 import { feed } from './feed.js';
 import { fullHealth, toHeroView } from './heroes.js';
 import { gearData, toItemView } from './items.js';
@@ -60,6 +61,7 @@ export async function openChest(player: Player, itemId: string): Promise<OpenChe
     const roll = rollGear(rng, { tier, itemLevel: Math.max(1, hero.bestFloor) });
     const prize = await giveItem(tx, hero, { ...gearData(roll, seed), seasonId: season.id });
     await tx.rollLog.create({ data: { playerId: player.id, kind: 'chest', seed, detail: { grade, tier, base: roll.base } } });
+    await countDeeds(tx, hero, { chests: 1, legendary: tierRank(tier) >= tierRank('legendary') ? 1 : 0 }, null);
     if (tierRank(tier) >= tierRank('legendary')) {
       // A Legendary from a Chest ends a streak of bad luck just as a drop does.
       await tx.hero.update({ where: { id: hero.id }, data: { badLuck: 0 } });

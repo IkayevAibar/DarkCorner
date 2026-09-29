@@ -45,7 +45,11 @@ export function Tavern() {
             <span className="sub-heading">{t('tavern.online', { n: online.length })}</span>
             {online.length === 0 ? <p className="m-0 text-sm text-muted italic">{t('tavern.nobody')}</p> : online.map((o) => (
               <div key={o.name} className="flex justify-between gap-3 text-sm">
-                <span className="truncate font-bold">{o.hero ?? o.name} <span className="font-normal text-muted">({o.name})</span></span>
+                <span className="truncate font-bold">
+                  {o.hero ?? o.name}
+                  {o.title && <span className="font-normal text-gold italic"> · {text(o.title)}</span>}
+                  <span className="font-normal text-muted"> ({o.name})</span>
+                </span>
                 <span className="shrink-0 text-muted">{text(o.where)}</span>
               </div>
             ))}
