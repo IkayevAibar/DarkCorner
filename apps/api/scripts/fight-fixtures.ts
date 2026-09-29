@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { type Combatant, type FightReplay, fightReplaySchema } from '@dark/shared';
 import {
   BANNER_COLORS, CLASS_DEFS, type ClassId, type FightInput, type FightResult, type MonsterInstance, type PathId, type RaceId, type StanceId, THEMES, createRng,
-  fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter, startingHealth, themeOf,
+  fireBomb, heroCombat, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth, themeOf, weaponStrike,
 } from '@dark/engine';
 
 interface Scenario {
@@ -177,7 +177,7 @@ function combatant(m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
   return {
     key: m.key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
-    elite: m.elite, powers: m.powers.map((p) => p.id),
+    elite: m.elite, powers: m.powers.map((p) => p.id), strike: monsterStrike(def), kin: def.kin,
   };
 }
 
@@ -199,7 +199,10 @@ function run(name: string, s: Scenario): FightReplay {
     if (!s.want(result, monsters)) continue;
     return fightReplaySchema.parse({
       map: THEMES[themeOf(s.floor)].maps[0],
-      hero: { key: 'hero', name: { en: s.hero.name, ru: s.hero.name }, art: s.hero.portrait, hp, maxHp, ac: hero.ac, boss: false, banner: s.hero.banner, elite: null, powers: [] },
+      hero: {
+        key: 'hero', name: { en: s.hero.name, ru: s.hero.name }, art: s.hero.portrait, hp, maxHp, ac: hero.ac, boss: false, banner: s.hero.banner, elite: null,
+        powers: [], strike: weaponStrike(hero.weapon?.base), kin: null,
+      },
       monsters: monsters.map(combatant),
       events: result.events,
       outcome: result.outcome,

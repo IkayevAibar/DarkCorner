@@ -33,6 +33,10 @@ export type Elite = z.infer<typeof eliteSchema>;
 export const STATUSES = ['burning', 'paralyzed', 'frightened', 'poisoned'] as const;
 export const statusSchema = z.enum(STATUSES);
 
+/** How a fighter lands its blows: a sword's arc, an arrow, a bite… Spells are the attack's own `kind`. */
+export const STRIKE_IDS = ['slash', 'pierce', 'blunt', 'shoot', 'bite', 'claw', 'touch'] as const;
+export const MONSTER_KINS = ['beast', 'goblinoid', 'undead', 'demon', 'dragonkin', 'humanoid'] as const;
+
 export const combatantSchema = z.object({
   /** "hero", or "m0", "m1", … for monsters. */
   key: z.string(),
@@ -47,6 +51,10 @@ export const combatantSchema = z.object({
   banner: z.string().nullable(),
   /** A monster's elite gift, if it has one. */
   elite: eliteSchema.nullable(),
+  /** How it strikes: the Hero by its main weapon, a monster by its nature. */
+  strike: z.enum(STRIKE_IDS),
+  /** A monster's kin (undead crumble, demons burn…); null for the Hero. */
+  kin: z.enum(MONSTER_KINS).nullable(),
   /** A monster's powers, elite ones included; empty for a Hero. */
   powers: z.array(monsterPowerSchema),
 });
@@ -133,9 +141,6 @@ export const THREATS = ['trivial', 'easy', 'risky', 'dangerous', 'deadly'] as co
 export const threatSchema = z.enum(THREATS);
 export type Threat = z.infer<typeof threatSchema>;
 
-/** Monsters the Hero has walked in on and not fought yet: it must Fight, Sneak past or Retreat. */
-export const MONSTER_KINS = ['beast', 'goblinoid', 'undead', 'demon', 'dragonkin', 'humanoid'] as const;
-
 /** What a monster's card shows beyond its token: what it is and how it fights, as it is on this Floor. */
 export const foeSchema = z.object({
   /** Its `key` among the Facing's monsters. */
@@ -153,6 +158,7 @@ export const foeSchema = z.object({
 });
 export type Foe = z.infer<typeof foeSchema>;
 
+/** Monsters the Hero has walked in on and not fought yet: it must Fight, Sneak past or Retreat. */
 export const facingSchema = z.object({
   kind: z.enum(['fight', 'miniboss', 'boss']),
   monsters: z.array(combatantSchema),

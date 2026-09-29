@@ -3,7 +3,7 @@ import { type Combatant, type FightReplay, type ItemView, type LocalizedText, fi
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT, type MonsterInstance,
   type PathId, RELIC_CHANCE, type RaceId, type StanceId, type TalentId, type ThreatId, weakeningAt,
-  type DeedCounts, KILL_METRIC, createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
+  type DeedCounts, KILL_METRIC, monsterStrike, weaponStrike, createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { feed } from './feed.js';
@@ -98,7 +98,7 @@ export function combatant(key: string, m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
   return {
     key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
-    elite: m.elite, powers: m.powers.map((p) => p.id),
+    elite: m.elite, powers: m.powers.map((p) => p.id), strike: monsterStrike(def), kin: def.kin,
   };
 }
 
@@ -192,7 +192,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     map: floor.rooms[roomId]!.map,
     hero: {
       key: 'hero', name: { en: hero.name, ru: hero.name }, art: portraitUrlOf(hero), hp: combat.hp, maxHp: combat.maxHp, ac: combat.ac,
-      boss: false, banner: hero.banner, elite: null, powers: [],
+      boss: false, banner: hero.banner, elite: null, powers: [], strike: weaponStrike(combat.weapon?.base), kin: null,
     },
     monsters: monsters.map((m) => combatant(m.key, m)),
     events: result.events,

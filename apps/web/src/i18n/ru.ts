@@ -437,6 +437,7 @@ export const ru: Record<MessageKey, string> = {
   'report.failure': 'провал',
   'report.dice': 'кости {list}',
   'report.rerolled': 'удача перебросила {n}',
+  'report.fightLog': 'Журнал боя',
   'report.deed': 'Подвиг совершён',
   'report.deedReward': '+{n} золота и титул, который можно носить',
   'deeds.title': 'Подвиги',

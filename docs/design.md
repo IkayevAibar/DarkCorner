@@ -52,7 +52,7 @@ Every feature serves at least one of these:
 
 ## Heroes
 
-Each Player has one Hero per Season. Fights are automatic in Season 0: the Player decides whether to fight and in which Stance (see Before a fight), then watches. More control in fights may come later.
+Each Player has one Hero per Season. Fights are automatic in Season 0: the Player decides whether to fight and in which Stance (see Before a fight), then watches it play out on the Room's map, and can read the whole fight line by line afterwards (the Fight log). More control in fights may come later.
 
 ### Creating a hero
 

@@ -27,5 +27,6 @@ export * from './content/riddles.js';
 export * from './content/hunts.js';
 export * from './content/about.js';
 export * from './content/deeds.js';
+export * from './content/strikes.js';
 export * from './levels.js';
 export * from './features.js';

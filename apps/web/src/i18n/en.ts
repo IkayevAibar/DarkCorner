@@ -436,6 +436,7 @@ export const en = {
   'report.failure': 'failure',
   'report.dice': 'dice {list}',
   'report.rerolled': 'luck rerolled a {n}',
+  'report.fightLog': 'Fight log',
   'report.deed': 'Deed done',
   'report.deedReward': '+{n} gold, and a Title to wear',
   'deeds.title': 'Deeds',

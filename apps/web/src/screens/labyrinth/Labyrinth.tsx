@@ -21,6 +21,7 @@ import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
 import { EliteBadge } from '../../components/EliteBadge';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
+import { FightLog } from './FightLog';
 import { FloorMap } from './FloorMap';
 import { roomArt } from './roomArt';
 
@@ -1003,6 +1004,15 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
             <span className="text-sm">{t('report.deedReward', { n: d.gold })}</span>
           </NavLink>
         ))}
+        {result.fight && (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => openSheet({ title: t('report.fightLog'), body: <FightLog replay={result.fight!} /> })}
+          >
+            {t('report.fightLog')}
+          </button>
+        )}
         <button type="button" className="btn btn-primary mt-1" onClick={onClose}>{t('report.dismiss')}</button>
       </div>
     </CenterModal>
