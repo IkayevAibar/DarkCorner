@@ -5,6 +5,20 @@ import fixtures from './fightFixtures.json';
 export const REAL_FIGHTS = fixtures as unknown as Record<string, FightReplay>;
 const base = REAL_FIGHTS['goblins-victory-crit']!;
 export const EXTRA_FIGHTS: Record<string, FightReplay> = {
+  'visual-hero-bow': {
+    ...base,
+    hero: { ...base.hero, strike: 'shoot' },
+    monsters: [{ ...base.monsters[0]!, key: 'm0', hp: 12, maxHp: 12 }],
+    events: [
+      { type: 'initiative', order: ['hero', 'm0'] },
+      { type: 'attack', actor: 'hero', target: 'm0', natural: 14, total: 18, hit: true, crit: false, damage: 6, targetHp: 6, kind: 'weapon' },
+      { type: 'attack', actor: 'm0', target: 'hero', natural: 5, total: 8, hit: false, crit: false, damage: 0, targetHp: base.hero.hp, kind: 'weapon' },
+      { type: 'attack', actor: 'hero', target: 'm0', natural: 20, total: 24, hit: true, crit: true, damage: 12, targetHp: 0, kind: 'weapon' },
+      { type: 'defeated', key: 'm0' },
+      { type: 'end', outcome: 'victory' },
+    ],
+    outcome: 'victory',
+  },
   'visual-lucky-reroll': {
     ...base,
     events: [

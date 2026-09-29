@@ -60,12 +60,12 @@ async function through(page, count) {
 
     const errors = [];
     const results = [];
-    for (const locale of ['en', 'ru']) {
+    for (const locale of ['en', 'ru']) for (const reducedMotion of ['reduce', 'no-preference']) {
       const context = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 1,
-        reducedMotion: locale === 'ru' ? 'reduce' : 'no-preference' });
+        reducedMotion });
       const page = await context.newPage(); page.on('pageerror', e => errors.push(e.message));
       await prepare(page, locale); await page.clock.install();
-      const names = [...Object.keys(fixtures), 'visual-lucky-reroll', 'visual-elite-powers-fallback'];
+      const names = [...Object.keys(fixtures), 'visual-lucky-reroll', 'visual-elite-powers-fallback', 'visual-hero-bow'];
       for (const name of names) {
         await open(page, name);
         assert.equal(await page.locator('.fight-canvas canvas').count(), 1, `${name}: canvas`);
@@ -75,19 +75,41 @@ async function through(page, count) {
         assert.equal(await page.locator('.fight-panel').evaluate(el => el.getBoundingClientRect().right <= innerWidth), true);
         if (name === 'dragon' || name === 'visual-elite-powers-fallback')
           await page.screenshot({ path: path.join(output, `${name}-${locale}.png`) });
-        await page.locator('.fight-panel > button').click();
+        await page.locator('[data-fight-skip]').click();
         assert.equal(await page.locator('.fight-overlay, .fight-canvas canvas').count(), 0);
-        results.push({ name, locale, outcome: label }); console.log(`PASS ${locale} ${name}`);
+        results.push({ name, locale, reducedMotion, outcome: label }); console.log(`PASS ${locale} ${reducedMotion} ${name}`);
       }
       // Escape, keyboard focus restoration, and repeated mounts with cached art.
       for (let i = 0; i < 5; i++) {
         await open(page, 'wizard-burst');
         await page.keyboard.press('Tab');
-        assert.equal(await page.locator('.fight-panel > button').evaluate(el => el === document.activeElement), true);
+        assert.equal(await page.locator('[data-fight-speed]').evaluate(el => el === document.activeElement), true);
         await page.keyboard.press('Escape');
         assert.equal(await page.locator('.fight-overlay').count(), 0);
         assert.equal(await page.getByRole('button', { name: 'wizard-burst', exact: true }).evaluate(el => el === document.activeElement), true);
       }
+      // Pausing freezes the canvas and event cursor, and only reveals the log so far.
+      await open(page, 'dragon');
+      await page.clock.fastForward(3000);
+      await page.locator('[data-fight-log]').click();
+      const step = await page.locator('[data-fight-step]').getAttribute('data-fight-step');
+      const sceneTime = await page.locator('.fight-canvas').getAttribute('data-scene-time');
+      const lines = await page.locator('.fight-history li').count();
+      assert.ok(lines > 0 && lines < fixtures.dragon.events.length);
+      assert.equal(await page.locator('.fight-history .text-center').count(), 0, 'no future outcome');
+      await page.clock.fastForward(10000);
+      assert.equal(await page.locator('[data-fight-step]').getAttribute('data-fight-step'), step);
+      assert.equal(await page.locator('.fight-canvas').getAttribute('data-scene-time'), sceneTime);
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('.fight-history').count(), 0);
+      assert.equal(await page.locator('.fight-overlay').count(), 1);
+      await page.locator('[data-fight-speed]').click();
+      assert.equal(await page.evaluate(() => localStorage.getItem('dc.fight.speed')), '2');
+      await page.locator('[data-fight-skip]').click();
+      await open(page, 'wizard-burst');
+      assert.equal(await page.locator('[data-fight-speed]').innerText(), '2×');
+      await page.locator('[data-fight-speed]').click();
+      await page.locator('[data-fight-skip]').click();
       await context.close();
     }
     // Skip must work before the dynamically imported graphics module arrives.
@@ -117,7 +139,7 @@ async function through(page, count) {
       await prepare(page); await page.clock.install(); await open(page, 'wizard-burst');
       assert.equal(await page.locator('.fight-fallback').count(), 1);
       await through(page, fixtures['wizard-burst'].events.length);
-      await page.locator('.fight-panel > button').click(); await context.close();
+      await page.locator('[data-fight-skip]').click(); await context.close();
     }
     // Exercise the production Labyrinth component's Fight -> replay -> report handoff.
     // Only the network is stubbed; the screen, modal stack and turned Room map are real.
@@ -149,7 +171,7 @@ async function through(page, count) {
       assert.equal(await page.locator('.fight-canvas canvas').count(), 1);
       await page.screenshot({ path: path.join(output, 'labyrinth-fight.png') });
       await through(page, replay.events.length);
-      await page.locator('.fight-panel > button').click();
+      await page.locator('[data-fight-skip]').click();
       assert.equal(await page.locator('.fight-overlay').count(), 0);
       await page.getByRole('button', { name: 'Continue', exact: true }).click();
       assert.equal(await page.getByRole('button', { name: 'Fight', exact: true }).count(), 0);

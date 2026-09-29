@@ -19,6 +19,16 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-juice',
+    date: '2026-09-30',
+    title: t('Feel every blow', 'Почувствуйте каждый удар'),
+    items: [
+      t('Swords slash, bows send arrows and claws rake. Critical hits land harder; undead crumble and demons scatter embers.', 'Мечи рубят, луки пускают стрелы, когти оставляют борозды. Критические удары ощутимее; нежить рассыпается, а демоны разлетаются искрами.'),
+      t('Spells leave trails, the Dragon breathes a torrent of fire, and lasting effects move with each fighter. Low health brings a red heartbeat around the Room.', 'Заклинания оставляют следы, дракон извергает поток огня, а длительные эффекты оживают вокруг бойцов. При низком здоровье по краям комнаты пульсирует красный свет.'),
+      t('Choose 1× or 2× speed, or pause with Fight log to read every event so far. Reduced motion keeps the effects calm.', 'Выберите скорость 1× или 2×, либо откройте журнал боя: повтор остановится, чтобы можно было прочитать уже случившееся. Уменьшение движения делает эффекты спокойнее.'),
+    ],
+  },
+  {
     id: '2026-09-30-chest-spin',
     date: '2026-09-30',
     title: t('A little theatre for your loot', 'Маленькое представление для добычи'),

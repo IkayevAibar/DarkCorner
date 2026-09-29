@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { FightReplay } from '@dark/shared';
 import { useI18n } from '../../i18n';
 import { roomArt } from '../../screens/labyrinth/roomArt';
 import { BOSS_RING, MONSTER_RING, Token } from '../Token';
 import { describe, displayNames, sound } from './presentation';
-import { dieFor, duration, framesFor } from './replay';
+import { dieFor, framesFor } from './replay';
+import { cueDuration, cueFor, Playhead, readSpeed, saveSpeed, sceneTime } from './choreography';
+import { FightLog } from '../../screens/labyrinth/FightLog';
 import type { FightStage } from './stage';
 import './fight.css';
 
@@ -33,15 +35,22 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
   done.current = onDone;
   const [step, setStep] = useState(0), [ready, setReady] = useState(false), [fallback, setFallback] = useState(false);
   const [reduced, setReduced] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const [speed, setSpeed] = useState(readSpeed);
+  const [logOpen, setLogOpen] = useState(false);
+  const [hidden, setHidden] = useState(document.hidden);
+  const logState = useRef(logOpen); logState.current = logOpen;
   const names = useMemo(() => displayNames(replay, value => value[locale]), [replay, locale]);
   const frames = useMemo(() => framesFor(replay), [replay]);
   const frame = frames[step]!;
   const event = step ? replay.events[step - 1]! : null;
   const complete = step === replay.events.length;
+  const paused = logOpen || hidden;
+  const cue = useMemo(() => cueFor(replay, event, reduced), [replay, event, reduced]);
+  const clock = useMemo(() => new Playhead(), [step, replay]);
   const die = dieFor(event);
   const dramatic = event?.type === 'death-save' || event?.type === 'reroll';
   const map = useMemo(() => roomArt(replay.map, room), [replay.map, room?.floor, room?.room]);
-  const latest = useRef({ frame, event, reduced }); latest.current = { frame, event, reduced };
+  const latest = useRef({ frame, event, reduced, cue }); latest.current = { frame, event, reduced, cue };
   const finish = useCallback(() => {
     if (finishedOnce.current) return;
     finishedOnce.current = true;
@@ -57,15 +66,26 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
   }, []);
 
   useEffect(() => {
+    const changed = () => setHidden(document.hidden);
+    document.addEventListener('visibilitychange', changed);
+    return () => document.removeEventListener('visibilitychange', changed);
+  }, []);
+
+  useEffect(() => {
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     skip.current?.focus();
     const keys = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(); }
+      if (e.key === 'Escape') {
+        e.preventDefault(); e.stopPropagation();
+        if (logState.current) setLogOpen(false); else finish();
+      }
       if (e.key === 'Tab') {
-        // The dialog has one action throughout playback. Keep focus out of the underlying Room.
-        e.preventDefault(); skip.current?.focus();
+        const items = Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex="0"]') ?? []);
+        const first = items[0], last = items.at(-1);
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
       }
     };
     dialog.current?.addEventListener('keydown', keys);
@@ -88,7 +108,7 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
       if (controller.signal.aborted || finishedOnce.current) { stage.destroy(); return; }
       renderer.current = stage;
       const value = latest.current;
-      stage.show(value.frame, value.event, value.reduced);
+      stage.show(value.frame, value.event, value.reduced, value.cue);
       setReady(true);
     }).catch(() => {
       if (!controller.signal.aborted && !finishedOnce.current) { setFallback(true); setReady(true); }
@@ -97,24 +117,40 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
   }, [replay, names, map, miss]);
 
   useEffect(() => {
-    renderer.current?.show(frame, event, reduced);
-  }, [frame, event, reduced]);
-
-  useEffect(() => {
-    if (!ready || complete || finishedOnce.current) return;
-    const timer = window.setTimeout(() => setStep(s => s + 1), duration(event, reduced));
-    return () => window.clearTimeout(timer);
-  }, [ready, complete, event, reduced]);
+    renderer.current?.show(frame, event, reduced, cue);
+  }, [frame, event, reduced, cue]);
 
   const sounded = useRef(0);
   useEffect(() => {
-    if (event && sounded.current !== step) { sounded.current = step; sound(event); }
-  }, [step, event]);
+    if (!ready || finishedOnce.current) return;
+    if (complete) {
+      if (event && sounded.current !== step) { sounded.current = step; sound(event); }
+      return;
+    }
+    if (paused) return;
+    let animation = 0, timer = 0, lastDraw = -Infinity;
+    const length = cueDuration(cue);
+    clock.setRate(performance.now(), speed);
+    const pump = (now: number) => {
+      const elapsed = Math.min(length, clock.update(now));
+      // High-refresh displays still need only 60 canvas updates per second.
+      if (now - lastDraw >= 1000 / 60 - .5 || elapsed >= length) {
+        renderer.current?.draw(sceneTime(elapsed, cue)); lastDraw = now;
+      }
+      if (event && elapsed >= cue.contact && sounded.current !== step) { sounded.current = step; sound(event); }
+      if (elapsed >= length) { clock.setRate(now, 0); setStep(s => s + 1); return; }
+      // Calm effects have faded. Sleep until the next event instead of rendering a still canvas.
+      if (reduced && elapsed >= 260) timer = window.setTimeout(() => pump(performance.now()), (length - elapsed) / speed);
+      else animation = requestAnimationFrame(pump);
+    };
+    pump(performance.now());
+    return () => { cancelAnimationFrame(animation); clearTimeout(timer); clock.setRate(performance.now(), 0); };
+  }, [ready, complete, paused, speed, reduced, clock, cue, event, step]);
 
   const lines = replay.events.slice(0, step).map(e => describe(t, e, names)).filter((line): line is string => line !== null).slice(-3);
   const outcome = event?.type === 'end' ? event.outcome : replay.outcome;
   return createPortal(
-    <div className="fight-overlay" ref={dialog} role="dialog" aria-modal="true" aria-label={t('fight.title')} data-fight-step={step} data-fight-ready={ready} data-fight-complete={complete}>
+    <div className={`fight-overlay ${paused ? 'fight-paused' : ''}`} ref={dialog} role="dialog" aria-modal="true" aria-label={t('fight.title')} data-fight-step={step} data-fight-ready={ready} data-fight-complete={complete} data-fight-paused={paused} style={{ '--fight-speed': speed } as CSSProperties}>
       <div className="fight-panel">
         <header className="fight-heading">
           <span>{t('fight.title')}</span>
@@ -147,15 +183,25 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
           </div>}
           {complete && <div className={`fight-outcome fight-outcome-${outcome}`}>{t(`fight.${outcome}`)}</div>}
         </div>
-        <div className="fight-log" aria-live="polite" aria-atomic="true">
+        {logOpen ? <div className="fight-history" id="playback-log" tabIndex={0} aria-label={t('report.fightLog')}>
+          <FightLog replay={replay} until={step} />
+        </div> : <div className="fight-log" aria-live="polite" aria-atomic="true">
           {lines.map((line, i) => <p key={`${step}-${i}`}>{line}</p>)}
-        </div>
+        </div>}
         <div className="sr-only">
           {[replay.hero, ...replay.monsters].map(who => <p key={who.key}>{names[who.key]}: {frame.fighters[who.key]!.hp}/{who.maxHp}. {Object.keys(frame.fighters[who.key]!.statuses).map(status => t(`fight.status.${status as 'burning' | 'poisoned' | 'paralyzed' | 'frightened'}`, { name: names[who.key]! })).join(' ')}</p>)}
         </div>
-        <button ref={skip} type="button" className={`btn ${complete ? 'btn-primary' : ''}`} onClick={finish}>
-          {complete ? t('report.dismiss') : t('fight.skip')}
-        </button>
+        <div className="fight-actions">
+          {!complete && <button type="button" className="btn" data-fight-speed aria-pressed={speed === 2} aria-label={t('fight.title') + ' · ' + speed + '×'} onClick={() => {
+            const next = speed === 1 ? 2 : 1; setSpeed(next); saveSpeed(next);
+          }}>{speed}×</button>}
+          <button type="button" className="btn" data-fight-log aria-expanded={logOpen} aria-controls="playback-log" onClick={() => setLogOpen(value => !value)}>
+            {logOpen ? t('close') : t('report.fightLog')}
+          </button>
+          <button ref={skip} type="button" className={`btn ${complete ? 'btn-primary' : ''}`} data-fight-skip onClick={finish}>
+            {complete ? t('report.dismiss') : t('fight.skip')}
+          </button>
+        </div>
       </div>
     </div>, document.body,
   );
