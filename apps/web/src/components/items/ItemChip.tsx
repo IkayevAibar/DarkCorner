@@ -124,7 +124,7 @@ function BonusLines({ item, muted = false, visible = Infinity }: { item: ItemVie
 
 const casts = (hero: HeroView | null) => hero?.class === 'wizard' || hero?.class === 'cleric';
 /** The ability a weapon attack adds, as fights pick it: DEX for bows and Rogues, else STR. */
-const attackAbility = (gear: GearFactsView, hero: HeroView) => (gear.group === 'bow' || hero.class === 'rogue' ? 'dex' : 'str');
+const attackAbility = (gear: GearFactsView, hero: HeroView) => (gear.group === 'bow' || hero.class === 'rogue' || hero.class === 'ranger' ? 'dex' : 'str');
 const modifier = (score: number) => Math.floor((score - 10) / 2);
 /** What a piece's armor is worth to this Hero: body armor with as much DEX as it lets count. */
 const armorFor = (gear: GearFactsView, hero: HeroView) => {

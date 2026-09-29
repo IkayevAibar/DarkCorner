@@ -8,10 +8,12 @@ import {
 describe('art', () => {
   const served = (url: string) => existsSync(new URL(`../../../apps/web/public${url}`, import.meta.url));
 
-  it('offers two painted portraits for every Race and Class, then the hooded one', () => {
+  it('offers two painted portraits for every Race and Class (or the ones it borrows), then the hooded one', () => {
+    const painted: Partial<Record<(typeof CLASSES)[number], string>> = { barbarian: 'fighter', ranger: 'rogue' };
     for (const race of RACES) {
       for (const cls of CLASSES) {
-        expect(portraitsFor(race, cls).map((p) => p.id)).toEqual([`${race}-${cls}-1`, `${race}-${cls}-2`, 'hooded']);
+        const as = painted[cls] ?? cls;
+        expect(portraitsFor(race, cls).map((p) => p.id)).toEqual([`${race}-${as}-1`, `${race}-${as}-2`, 'hooded']);
       }
     }
   });

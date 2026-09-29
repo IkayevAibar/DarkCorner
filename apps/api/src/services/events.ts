@@ -4,7 +4,7 @@ import {
   ALTAR_TIERS, BLESSING_MS, BLESSINGS, type CheckResult, type ClassId, type EventKind, type Floor, type GearRoll, MERCHANT_BUYS_AT,
   MERCHANT_MARKUP, RACE_DEFS, type RaceId, SUFFIXES, type Tier, abilityModifier, baseById, buybackPrice, cacheContents,
   chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
-  pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
+  pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, TRAP_SHRUG, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
   RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
   banishDevil, bloodPrice, devilOffers, pryLid, HOARD_HANDFULS, HOARD_WAKE, SKULLS_SCREAM, doorsOf, grabHoard, listenToSkulls,
   takeChampionGear,
@@ -113,7 +113,9 @@ export async function enterEvent(tx: Tx, hero: HeroWithItems, season: Season, fl
   if (rogue) {
     out.notices.push(t('You spot the tripwire and disarm the trap.', 'Вы замечаете растяжку и обезвреживаете ловушку.'));
   } else if (trap.damage > 0) {
-    const hp = Math.max(1, hero.hp - trap.damage);
+    // Barbarians shrug off half of it.
+    const damage = hero.class === 'barbarian' ? Math.floor(trap.damage * TRAP_SHRUG) : trap.damage;
+    const hp = Math.max(1, hero.hp - damage);
     await tx.hero.update({ where: { id: hero.id }, data: { hp } });
     out.notices.push(t(`The trap springs: ${hero.hp - hp} damage.`, `Ловушка срабатывает: ${hero.hp - hp} урона.`));
     hero.hp = hp;

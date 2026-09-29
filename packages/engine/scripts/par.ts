@@ -9,7 +9,7 @@ import {
   heroCombat, pathsOf, rollGear, rollTier, startingHealth, tierRank,
 } from '../src/index.js';
 
-export const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric'] as const;
+export const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'] as const;
 const SLOTS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring', 'ring'] as const;
 const GROWTH = [4, 8, 12, 16, 19];
 
@@ -19,8 +19,10 @@ export const parLevel = (floor: number): number => Math.min(20, Math.max(1, Math
 /** Late in the Season: many more drops to pick from, and gold spent at the Forge. */
 export interface Gearing { draws: number; upgrade: number }
 
-/** Gear a Player would wear: usable, and for a Fighter a STR weapon rather than a dagger or a bow. */
-const suits = (cls: ClassId, b: GearBase) => canUse(cls, b) && !(cls === 'fighter' && (b.weapon === 'dagger' || b.weapon === 'bow'));
+/** Gear a Player would wear: usable, for a Fighter a STR weapon rather than a dagger or a bow, and for a Ranger a bow. */
+const suits = (cls: ClassId, b: GearBase) => canUse(cls, b)
+  && !(cls === 'fighter' && (b.weapon === 'dagger' || b.weapon === 'bow'))
+  && !(cls === 'ranger' && b.slot === 'main' && b.weapon !== 'bow');
 
 export function parHero(cls: ClassId, floor: number, level: number, pathIndex: number, seed: number, gearing?: Gearing): HeroCombat {
   const rng = createRng(`par-${cls}-${floor}-${level}-${pathIndex}-${seed}`);

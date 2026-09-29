@@ -27,7 +27,7 @@ describe('Paths', () => {
       expect(paths).toHaveLength(2);
       for (const p of paths) expect(p.features.map((f) => f.level)).toEqual([3, 9]);
     }
-    expect(PATHS).toHaveLength(8);
+    expect(PATHS).toHaveLength(12);
     expect(onPath({ path: 'war', level: 3 }, 'war')).toBe(true);
     expect(onPath({ path: 'war', level: 8 }, 'war', 9)).toBe(false);
     expect(onPath({ path: 'life', level: 20 }, 'war')).toBe(false);

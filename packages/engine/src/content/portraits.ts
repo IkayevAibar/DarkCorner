@@ -28,9 +28,15 @@ export function portraitById(id: string): PortraitDef | undefined {
   return PORTRAITS.find((p) => p.id === id);
 }
 
-/** Portraits offered for a Race and Class: the exact matches first, then the ones for anyone. */
+/** Classes not painted yet borrow a painted Class's portraits for the same Race until they are. */
+const STAND_INS: Partial<Record<ClassId, ClassId>> = { barbarian: 'fighter', ranger: 'rogue' };
+
+/** Portraits offered for a Race and Class: the exact matches (or borrowed ones) first, then the ones for anyone. */
 export function portraitsFor(race: RaceId, cls: ClassId): PortraitDef[] {
-  const exact = PORTRAITS.filter((p) => p.race === race && p.class === cls);
+  const painted = (c: ClassId) => PORTRAITS.filter((p) => p.race === race && p.class === c);
+  const exact = painted(cls);
+  const stand = STAND_INS[cls];
+  const borrowed = exact.length === 0 && stand ? painted(stand) : [];
   const anyone = PORTRAITS.filter((p) => p.race === null && p.class === null);
-  return [...exact, ...anyone];
+  return [...exact, ...borrowed, ...anyone];
 }

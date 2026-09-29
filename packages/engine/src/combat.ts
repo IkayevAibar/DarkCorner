@@ -15,7 +15,8 @@ import type { TalentId } from './content/talents.js';
 import { type Edge, rollD20, rollDice, sum } from './dice.js';
 import { type Rng, createRng } from './rng.js';
 import {
-  type RestUses, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice, proficiencyBonus, sneakDice, spellDice,
+  ARCHERY_BONUS, MARK_DICE, type RestUses, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice, proficiencyBonus, rageDamage, sneakDice,
+  spellDice,
 } from './levels.js';
 import { armorClass, gearFactor } from './stats.js';
 
@@ -260,10 +261,12 @@ export type FightEvent =
   | { type: 'burst'; actor: string; source: 'spell' | 'bomb'; targets: { key: string; damage: number; hp: number }[] }
   | { type: 'heal'; actor: string; ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal'; amount: number; hp: number }
   /**
-   * A Hero's Path at work: `survivor` heals `amount` to `hp`; `indomitable` keeps it
-   * standing at `hp` 1; `ward` is raised (`left`) or soaks `amount` of a hit (`left` after).
+   * A Hero's Class or Path at work: `survivor` heals `amount` to `hp`; `indomitable` and
+   * `relentless` keep it standing at `hp` 1; `ward` is raised (`left`) or soaks `amount`
+   * of a hit (`left` after); `rage` begins a Barbarian's Rage; `mark` puts a Ranger's
+   * Hunter's mark on the monster `target`.
    */
-  | { type: 'feature'; feature: 'survivor' | 'indomitable' | 'ward'; amount?: number; hp?: number; left?: number }
+  | { type: 'feature'; feature: 'survivor' | 'indomitable' | 'ward' | 'rage' | 'mark' | 'relentless'; amount?: number; hp?: number; left?: number; target?: string }
   /**
    * A monster's power at work. `amount` is gold stolen (thief), health restored
    * (mend, drain) or damage dealt (breath, explode, wail); `hp` is the target's health after it.
@@ -394,12 +397,23 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   /** Rogue Uncanny dodge (from level 3, v0): the first hit each round deals half damage. */
   const dodges = hero.class === 'rogue' && hero.level >= UNCANNY_DODGE_LEVEL;
   let dodgeReady = dodges;
+  /** Barbarian: in a Rage for the rest of the fight. */
+  let raging = false;
+  /** Bear-heart, Relentless: the CON save that keeps a raging Hero up grows harder each time. */
+  let relentlessDc = 10;
+  /** Ranger: the monster under the Hunter's mark. */
+  let marked: string | null = null;
+  /** Hunter, Colossus slayer: once per turn. */
+  let slewThisTurn = false;
   const cls = CLASS_DEFS[hero.class];
   const rerollOnes = RACE_DEFS[hero.race].rerollOnes;
   const mod = (a: Ability) => abilityModifier(hero.scores[a]);
   const prof = proficiencyBonus(hero.level);
   const caster = hero.class === 'wizard' || hero.class === 'cleric';
-  const attackAbility: Ability = caster ? cls.primary : hero.weapon?.base.weapon === 'bow' || hero.class === 'rogue' ? 'dex' : 'str';
+  const attackAbility: Ability = caster ? cls.primary
+    : hero.weapon?.base.weapon === 'bow' || hero.class === 'rogue' || hero.class === 'ranger' ? 'dex' : 'str';
+  /** Ranger, Archery. */
+  const archery = hero.class === 'ranger' && hero.weapon?.base.weapon === 'bow' ? ARCHERY_BONUS : 0;
   const champion = path('champion') ? 1 : 0;
   const critFrom = Math.max(18 - champion, 20 - Math.floor(hero.critChance / 5) - champion);
 
@@ -417,18 +431,27 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   let escaped = false;
 
   const alive = () => mons.filter((mm) => mm.hp > 0 && !fled.has(mm.key));
+  /** The monster a Hunter's mark goes to: the one with the most health left. */
+  const toughest = () => alive().reduce<MonsterInstance | null>((a, b) => (a === null || b.hp > a.hp ? b : a), null);
+  /** A fight worth a Rage or a Hunter's mark: two or more monsters, an elite, a Mini-boss or the Boss. */
+  const hardFight = () => alive().length >= 2 || alive().some((mm) => mm.elite !== null || monsterById(mm.id).role === 'miniboss' || monsterById(mm.id).role === 'boss');
   const markDefeated = () => {
     for (const mm of mons) {
       if (mm.hp <= 0 && !defeated.includes(mm.key)) {
         defeated.push(mm.key);
         stolen.delete(mm.key);
         events.push({ type: 'defeated', key: mm.key });
+        // The Hunter's mark moves on to the next quarry.
+        if (marked === mm.key) {
+          marked = toughest()?.key ?? null;
+          if (marked) events.push({ type: 'feature', feature: 'mark', target: marked });
+        }
         // A sapper's bomb goes off as it falls.
         const blast = powerOf(mm, 'explode');
         if (blast && hero.hp > 0) {
           const full = Math.round(sum(rollDice(rng, blast.dice[0], blast.dice[1])) * mm.damageFactor * (fireproof ? 0.5 : 1));
           const saved = heroSave('dex', dcOf(mm, blast.dc));
-          const damage = Math.max(1, saved ? Math.floor(full / 2) : full);
+          const damage = soften(dodgeBlast(full, saved), false);
           const after = hurtHero(damage);
           events.push({ type: 'power', actor: mm.key, power: 'explode', target: 'hero', amount: damage, hp: hero.hp }, ...after);
         }
@@ -439,12 +462,21 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const heroSave = (ability: Ability, dc: number) => {
     const result = check(rng, {
       modifier: mod(ability) + (proficientSaves.has(ability) ? prof : 0), dc, rerollOnes,
-      edge: path('abjurer', PATH_MASTERY) ? 'advantage' : 'normal',
+      // Spell resistance, or a Barbarian's Danger sense against what it can see coming.
+      edge: path('abjurer', PATH_MASTERY) || (hero.class === 'barbarian' && ability === 'dex') ? 'advantage' : 'normal',
     });
     events.push({ type: 'save', ability, natural: result.roll.natural, total: result.total, dc, success: result.success });
     return result.success;
   };
   const dcOf = (mm: MonsterInstance, dc: number) => dc + Math.floor(mm.depth / 2);
+  /** A Rage takes its edge off every blow; a Bear-heart's Thick hide twice that, and the edge off every other harm too. */
+  const soften = (damage: number, blow: boolean): number => {
+    if (!raging || !(blow || path('bearheart'))) return damage;
+    return Math.max(1, damage - rageDamage(hero.level) * (blow && path('bearheart') ? 2 : 1));
+  };
+  /** A DEX save against breath or a blast: half on a success, or with Evasion none, and half on a failure. */
+  const dodgeBlast = (full: number, saved: boolean): number =>
+    path('stalker', PATH_MASTERY) ? (saved ? 0 : Math.floor(full / 2)) : Math.max(1, saved ? Math.floor(full / 2) : full);
   /**
    * Damage to the Hero: the Abjurer's ward soaks it first; Indomitable or Deathless
    * Mail may keep it standing. Returns the events to add after the blow itself.
@@ -462,6 +494,16 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       indomitable = false;
       hero.hp = 1;
       after.push({ type: 'feature', feature: 'indomitable', hp: 1 });
+    }
+    if (hero.hp === 0 && raging && path('bearheart', PATH_MASTERY)) {
+      const dc = relentlessDc;
+      relentlessDc += 5;
+      const save = check(rng, { modifier: mod('con') + (proficientSaves.has('con') ? prof : 0), dc, rerollOnes });
+      after.push({ type: 'save', ability: 'con', natural: save.roll.natural, total: save.total, dc, success: save.success });
+      if (save.success) {
+        hero.hp = 1;
+        after.push({ type: 'feature', feature: 'relentless', hp: 1 });
+      }
     }
     if (hero.hp === 0 && runPowers.deathless && hero.uniques.includes('deathless-mail')) {
       runPowers.deathless = false;
@@ -528,7 +570,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     const wail = powerOf(mm, 'wail')!;
     const full = Math.round(sum(rollDice(rng, wail.dice[0], wail.dice[1])) * mm.damageFactor);
     const saved = heroSave('wis', dcOf(mm, wail.dc));
-    const damage = Math.max(1, saved ? Math.floor(full / 2) : full);
+    const damage = soften(Math.max(1, saved ? Math.floor(full / 2) : full), false);
     const after = hurtHero(damage);
     events.push({ type: 'power', actor: mm.key, power: 'wail', target: 'hero', amount: damage, hp: hero.hp }, ...after);
   }
@@ -543,12 +585,15 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   const heroAttack = (at?: MonsterInstance) => {
     const targets = alive();
     if (targets.length === 0) return;
-    // A riposte answers its attacker; otherwise a thief running with gold, then whoever is closest to falling.
+    // A riposte answers its attacker; otherwise a thief running with gold, a Ranger's quarry, then whoever is closest to falling.
     const target = (at && at.hp > 0 ? at : null)
       ?? targets.find((mm) => (stolen.get(mm.key) ?? 0) > 0)
+      ?? targets.find((mm) => mm.key === marked)
       ?? targets.reduce((a, b) => (b.hp < a.hp ? b : a));
-    const roll = rollD20(rng, { edge: combine(stance.attackEdge, frightened > 0 ? 'disadvantage' : 'normal'), rerollOnes });
-    const total = roll.natural + prof + mod(attackAbility) + stance.toHit;
+    const ambush = currentRound === 1 && path('stalker');
+    const edge = combine(combine(stance.attackEdge, frightened > 0 ? 'disadvantage' : 'normal'), ambush ? 'advantage' : 'normal');
+    const roll = rollD20(rng, { edge, rerollOnes });
+    const total = roll.natural + prof + mod(attackAbility) + stance.toHit + archery;
     let crit = roll.natural >= critFrom;
     let hit = crit || (roll.natural !== 1 && total >= target.ac);
     const ember = !hit && caster && lastEmber;
@@ -595,6 +640,12 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       }
       if (path('war') && !struckThisTurn) damage += sum(rollDice(rng, crit ? 2 : 1, 8));
       struckThisTurn = true;
+      if (raging) damage += rageDamage(hero.level);
+      if (marked === target.key) damage += sum(rollDice(rng, crit ? MARK_DICE[0] * 2 : MARK_DICE[0], MARK_DICE[1]));
+      if (path('hunter') && !slewThisTurn && target.hp < target.maxHp) {
+        slewThisTurn = true;
+        damage += sum(rollDice(rng, crit ? 2 : 1, 8));
+      }
       damage *= 1 + hero.damagePct / 100;
       damage += heavyHitter;
       if (hero.uniques.includes('oathbreaker') && hero.hp < hero.maxHp / 2) damage *= 1.5;
@@ -622,6 +673,23 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
 
   const heroTurn = () => {
     struckThisTurn = false;
+    slewThisTurn = false;
+    // A Rage and a Hunter's mark cost no turn: when a fight turns hard (or a Barbarian is hurt), while uses last.
+    if (hero.class === 'barbarian' && !raging && uses.spells > 0 && (hardFight() || hero.hp < hero.maxHp / 2)) {
+      uses.spells--;
+      raging = true;
+      events.push({ type: 'feature', feature: 'rage' });
+      // Mindless rage burns fear away.
+      if (path('berserker', PATH_MASTERY) && frightened > 0) {
+        frightened = 0;
+        events.push({ type: 'expire', target: 'hero', status: 'frightened' });
+      }
+    }
+    if (hero.class === 'ranger' && marked === null && uses.spells > 0 && hardFight()) {
+      uses.spells--;
+      marked = toughest()?.key ?? null;
+      if (marked) events.push({ type: 'feature', feature: 'mark', target: marked });
+    }
     // Abjurer: the ward mends by the INT modifier each turn, never past where it started.
     if (wardMax > 0 && ward < wardMax) {
       ward = Math.min(wardMax, ward + Math.max(1, intMod));
@@ -670,7 +738,10 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       markDefeated();
       return;
     }
-    const attacks = attacksPerTurn(hero.class, hero.level, hero.path);
+    const attacks = attacksPerTurn(hero.class, hero.level, hero.path)
+      + (raging && path('berserker') ? 1 : 0)
+      + (path('hunter', PATH_MASTERY) ? 1 : 0)
+      + (currentRound === 1 && path('stalker') ? 1 : 0);
     for (let i = 0; i < attacks && alive().length > 0 && hero.hp > 0; i++) heroAttack();
   };
 
@@ -691,7 +762,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     let after: FightEvent[] = [];
     if (hit) {
       const [n, sides, plus] = mm.damage;
-      damage = Math.max(1, Math.round((sum(rollDice(rng, crit ? n * 2 : n, sides)) + plus) * mm.damageFactor));
+      damage = soften(Math.max(1, Math.round((sum(rollDice(rng, crit ? n * 2 : n, sides)) + plus) * mm.damageFactor)), true);
       if (dodgeReady) {
         dodgeReady = false;
         damage = Math.max(1, Math.floor(damage / 2));
@@ -729,7 +800,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
       events.push({ type: 'status', target: 'hero', status: 'burning', turns: burn.turns });
     }
     const paralyze = powerOf(mm, 'paralyze');
-    if (paralyze && held === 0 && !heroSave('con', dcOf(mm, paralyze.dc))) {
+    if (paralyze && held === 0 && !(raging && path('berserker', PATH_MASTERY)) && !heroSave('con', dcOf(mm, paralyze.dc))) {
       held = 1;
       events.push({ type: 'status', target: 'hero', status: 'paralyzed', turns: 1 });
     }
@@ -766,7 +837,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
         breathReady.delete(mm.key);
         const full = Math.round(sum(rollDice(rng, breath.dice[0], breath.dice[1])) * mm.damageFactor * (fireproof ? 0.5 : 1));
         const saved = heroSave('dex', dcOf(mm, breath.dc));
-        const damage = Math.max(1, saved ? Math.floor(full / 2) : full);
+        const damage = soften(dodgeBlast(full, saved), false);
         const after = hurtHero(damage);
         events.push({ type: 'power', actor: mm.key, power: 'breath', target: 'hero', amount: damage, hp: hero.hp }, ...after);
         return;
@@ -782,7 +853,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     if (fire && fire.turns > 0) {
       fire.turns--;
       const rolled = sum(rollDice(rng, fire.dice[0], fire.dice[1]));
-      const damage = key === 'hero' && fireproof ? Math.max(1, Math.floor(rolled / 2)) : rolled;
+      const damage = key === 'hero' ? soften(fireproof ? Math.max(1, Math.floor(rolled / 2)) : rolled, false) : rolled;
       if (key === 'hero') {
         const after = hurtHero(damage);
         events.push({ type: 'tick', target: 'hero', damage, hp: hero.hp }, ...after);
@@ -798,7 +869,7 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
     }
     if (key === 'hero' && poisoned.turns > 0) {
       poisoned.turns--;
-      const damage = sum(rollDice(rng, poisoned.dice[0], poisoned.dice[1]));
+      const damage = soften(sum(rollDice(rng, poisoned.dice[0], poisoned.dice[1])), false);
       const after = hurtHero(damage);
       events.push({ type: 'tick', target: 'hero', damage, hp: hero.hp, status: 'poisoned' }, ...after);
       if (hero.hp <= 0) return false;

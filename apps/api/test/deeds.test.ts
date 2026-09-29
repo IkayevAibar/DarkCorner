@@ -71,7 +71,7 @@ describe('Deeds and Titles', () => {
     await prisma.hero.updateMany({ data: { deedCounts: { rooms: 499 } } });
     const before = (await hero()).gold;
     const moved = await act('/api/labyrinth/move', { to: beside('empty') });
-    expect(moved.deeds).toEqual([{ id: 'pathfinder', title: { en: 'Pathfinder', ru: 'Следопыт' }, gold: 500 }]);
+    expect(moved.deeds).toEqual([{ id: 'pathfinder', title: { en: 'Pathfinder', ru: 'Первопроходец' }, gold: 500 }]);
     expect((await hero()).gold).toBe(before + 500);
     const line = await prisma.feedEvent.findFirstOrThrow({ where: { kind: 'deed' } });
     expect(line.data).toMatchObject({ hero: 'Garrick', deed: 'pathfinder' });
@@ -89,7 +89,7 @@ describe('Deeds and Titles', () => {
     expect(online[0]!.title?.en).toBe('Pathfinder');
     const boards = rankingsViewSchema.parse((await get('/api/tavern/rankings')).json()).boards;
     const deeds = boards.find((b) => b.kind === 'deeds')!;
-    expect(deeds.rows[0]).toMatchObject({ hero: 'Garrick', value: 1, title: { en: 'Pathfinder', ru: 'Следопыт' } });
+    expect(deeds.rows[0]).toMatchObject({ hero: 'Garrick', value: 1, title: { en: 'Pathfinder', ru: 'Первопроходец' } });
 
     // And it can be taken off again; a Deed is only ever paid once.
     expect(heroResponseSchema.parse((await post('/api/heroes/title', { deed: null })).json()).hero.title).toBeNull();

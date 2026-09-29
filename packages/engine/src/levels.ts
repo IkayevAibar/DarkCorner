@@ -26,21 +26,47 @@ export const proficiencyBonus = (level: number): number => 2 + Math.floor((level
 
 /** Uses that come back on a long rest (a Camp, or the City). */
 export interface RestUses {
+  /** The Class's power a rest brings back: a Wizard's Bursts of fire, a Barbarian's Rages, a Ranger's Hunter's marks. */
   spells: number;
+  /** A Cleric's Cure wounds. */
   heals: number;
 }
 
 export function restUses(cls: ClassId, level: number, path: PathId | null = null): RestUses {
   const hero = { path, level };
   return {
-    spells: cls === 'wizard' ? 1 + Math.floor(level / 4) + (onPath(hero, 'evoker', PATH_MASTERY) ? 1 : 0) : 0,
+    spells: cls === 'wizard' ? 1 + Math.floor(level / 4) + (onPath(hero, 'evoker', PATH_MASTERY) ? 1 : 0)
+      : cls === 'barbarian' ? rages(level) : cls === 'ranger' ? marks(level) : 0,
     heals: cls === 'cleric' ? 1 + Math.floor(level / 3) + (onPath(hero, 'life', PATH_MASTERY) ? 1 : 0) : 0,
   };
 }
 
-/** Weapon attacks a turn: Fighters gain one at 5, 11 and 20; a master of War gets two. */
+/** A Barbarian's Rages a rest (SRD): 2, then 3 at level 3, 4 at 6, 5 at 12 and 6 at 17. */
+export const rages = (level: number): number => (level >= 17 ? 6 : level >= 12 ? 5 : level >= 6 ? 4 : level >= 3 ? 3 : 2);
+
+/**
+ * Rage's edge (SRD numbers): +2 damage on every hit, and 2 less from every blow that
+ * lands (the SRD halves it, which here made Barbarians far too hard to kill); 3 from
+ * level 9, 4 from 16.
+ */
+export const rageDamage = (level: number): number => (level >= 16 ? 4 : level >= 9 ? 3 : 2);
+
+/** A Ranger's Hunter's marks a rest: 2, and one more at 5, 9, 13 and 17 (v0). */
+export const marks = (level: number): number => 2 + Math.floor((level - 1) / 4);
+
+/** Hunter's mark: this many d6 more on every hit against the marked monster (SRD). */
+export const MARK_DICE: [number, number] = [1, 6];
+
+/** A Ranger's Archery: to hit with a bow (SRD Fighting Style). */
+export const ARCHERY_BONUS = 2;
+
+/**
+ * Weapon attacks a turn: Fighters gain one at 5, 11 and 20; Barbarians and Rangers
+ * one at 5; a master of War gets two.
+ */
 export const attacksPerTurn = (cls: ClassId, level: number, path: PathId | null): number => (cls === 'fighter'
   ? 1 + (level >= 5 ? 1 : 0) + (level >= 11 ? 1 : 0) + (level >= 20 ? 1 : 0)
+  : cls === 'barbarian' || cls === 'ranger' ? 1 + (level >= 5 ? 1 : 0)
   : onPath({ path, level }, 'war', PATH_MASTERY) ? 2 : 1);
 
 /** A Wizard's or Cleric's attack spell: one die more at 5, 11 and 17. */
@@ -115,6 +141,13 @@ export function levelGains(hero: LevelingHero): Text[] {
   if (cls === 'cleric') {
     if (cureDice(to) > cureDice(from)) gains.push(change('Cure wounds', '«Лечение ран»', `${cureDice(from)}d8`, `${cureDice(to)}d8`));
     if (uses[1].heals > uses[0].heals) gains.push(change('Cure wounds a rest', '«Лечений ран» за отдых', uses[0].heals, uses[1].heals));
+  }
+  if (cls === 'barbarian') {
+    if (uses[1].spells > uses[0].spells) gains.push(change('Rages a rest', 'Ярость, раз за отдых', uses[0].spells, uses[1].spells));
+    if (rageDamage(to) > rageDamage(from)) gains.push(change('Rage damage on every hit', 'Урон в ярости, к каждому удару', `+${rageDamage(from)}`, `+${rageDamage(to)}`));
+  }
+  if (cls === 'ranger' && uses[1].spells > uses[0].spells) {
+    gains.push(change('Hunter’s marks a rest', 'Метка охотника, раз за отдых', uses[0].spells, uses[1].spells));
   }
   if (cls === 'rogue') {
     if (sneakDice(to) > sneakDice(from)) gains.push(change('Sneak attack', 'Скрытая атака', `${sneakDice(from)}d6`, `${sneakDice(to)}d6`));

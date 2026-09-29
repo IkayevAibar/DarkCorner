@@ -171,6 +171,21 @@ const SCENARIOS: Record<string, Scenario> = {
     level: 5, floor: 4, kind: 'fight', health: 1, potions: 1,
     want: (r) => r.outcome === 'victory' && has(r, (e) => e.type === 'power' && e.power === 'wail'),
   },
+  'barbarian-rage': {
+    hero: { name: 'Hrolf', race: 'dwarf', class: 'barbarian', portrait: '/art/portraits/dwarf-fighter-1.webp', banner: BANNER_COLORS[7] },
+    level: 5, floor: 4, kind: 'fight', health: 1, potions: 1,
+    want: (r, m) => r.outcome === 'victory' && m.length >= 3 && r.events.length <= 40 && has(r, (e) => e.type === 'feature' && e.feature === 'rage'),
+  },
+  'ranger-mark-moves': {
+    hero: { name: 'Tamsin', race: 'elf', class: 'ranger', portrait: '/art/portraits/elf-rogue-1.webp', banner: BANNER_COLORS[5] },
+    level: 5, floor: 4, kind: 'fight', health: 1, potions: 1,
+    want: (r) => r.outcome === 'victory' && r.events.length <= 40 && r.events.filter((e) => e.type === 'feature' && e.feature === 'mark').length >= 2,
+  },
+  'bearheart-relentless': {
+    hero: { name: 'Hrolf', race: 'dwarf', class: 'barbarian', portrait: '/art/portraits/dwarf-fighter-1.webp', banner: BANNER_COLORS[7] },
+    level: 9, floor: 6, kind: 'miniboss', health: 0.5, potions: 0, path: 'bearheart',
+    want: (r) => r.outcome === 'victory' && r.events.length <= 60 && has(r, (e) => e.type === 'feature' && e.feature === 'relentless'),
+  },
 };
 
 function combatant(m: MonsterInstance): Combatant {

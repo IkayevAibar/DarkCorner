@@ -2,13 +2,15 @@ import { abilityModifier } from './abilities.js';
 import type { ClassId } from './content/classes.js';
 import { PATH_DEFS, PATH_LEVEL, PATH_MASTERY, type PathId, onPath } from './content/paths.js';
 import { type Text, text } from './content/text.js';
-import { MAX_LEVEL, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice, restUses, sneakDice, spellDice } from './levels.js';
+import {
+  ARCHERY_BONUS, MARK_DICE, MAX_LEVEL, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice, rageDamage, restUses, sneakDice, spellDice,
+} from './levels.js';
 
 // A Hero's class features as the belt on the Labyrinth screen shows them: what
 // each does now, in numbers read from the rules the fights use, how many uses
 // are left, and what it becomes later (docs/design.md → Classes).
 
-export type FeatureIcon = 'flame' | 'shield' | 'bolt' | 'heart' | 'wind' | 'swords' | 'sword' | 'dodge' | 'escape' | 'skull' | 'path';
+export type FeatureIcon = 'flame' | 'shield' | 'bolt' | 'heart' | 'wind' | 'swords' | 'sword' | 'dodge' | 'escape' | 'skull' | 'path' | 'rage' | 'target' | 'arrow';
 
 export interface Feature {
   id: string;
@@ -55,6 +57,20 @@ function attackSpell(hero: FeatureHero, ability: 'int' | 'wis'): Feature {
   };
 }
 
+/** Fighters, Barbarians and Rangers: more attacks a turn as they grow. */
+function extraAttack(hero: FeatureHero): Feature {
+  const attacks = attacksPerTurn(hero.class, hero.level, hero.path);
+  const more = nextGrowth(hero.level, (l) => attacksPerTurn(hero.class, l, hero.path));
+  return {
+    id: 'extra-attack', icon: 'swords', name: text('Extra attack', 'Дополнительная атака'), kind: attacks > 1 ? 'passive' : 'locked', uses: null,
+    now: attacks > 1 ? text(`${attacks} attacks a turn.`, `${attacks} атаки за ход.`) : text('One attack a turn for now.', 'Пока одна атака за ход.'),
+    next: more ? atLevel(`${more.value} attacks a turn`, `${more.value} атаки за ход`, more.at) : null,
+  };
+}
+
+/** When a Rage or a Hunter's mark comes out, in the same words for both. */
+const HARD_FIGHT = text('against two or more monsters, an elite, a Mini-boss or the Boss', 'против двух и более монстров, элиты, мини-босса или босса');
+
 function pathFeature(hero: FeatureHero): Feature {
   if (!hero.path) {
     return {
@@ -82,17 +98,49 @@ export function heroFeatures(hero: FeatureHero): Feature[] {
   const out: Feature[] = [];
 
   if (hero.class === 'fighter') {
-    const attacks = attacksPerTurn('fighter', level, path);
-    const more = nextGrowth(level, (l) => attacksPerTurn('fighter', l, path));
     out.push({
       id: 'second-wind', icon: 'wind', name: text('Second wind', 'Второе дыхание'), kind: 'fight', uses: null,
       now: text(`Once a fight, below 45% health: heals 1d10 + ${level}.`, `Раз за бой, когда здоровья меньше 45%: лечит 1d10 + ${level}.`),
       next: text('Heals 1 more with every level.', 'С каждым уровнем лечит на 1 больше.'),
+    }, extraAttack(hero));
+  }
+
+  if (hero.class === 'barbarian') {
+    const bonus = rageDamage(level);
+    const moreDamage = nextGrowth(level, rageDamage);
+    const moreUses = nextGrowth(level, (l) => restUses('barbarian', l, path).spells);
+    out.push({
+      id: 'rage', icon: 'rage', name: text('Rage', 'Ярость'), kind: 'rest', uses: { left: hero.spellUses, of: uses.spells },
+      now: text(
+        `Flares up ${HARD_FIGHT.en}, or below half health: +${bonus} damage on every hit you land, and ${bonus} less from every blow that lands on you, for the rest of the fight.`,
+        `Вспыхивает ${HARD_FIGHT.ru} или когда здоровья меньше половины: +${bonus} к урону каждого вашего удара и на ${bonus} меньше от каждого удара по вам — до конца боя.`,
+      ),
+      next: joinNext([
+        moreDamage ? atLevel(`+${moreDamage.value} damage`, `+${moreDamage.value} к урону`, moreDamage.at) : null,
+        moreUses ? atLevel(`${moreUses.value} a rest`, `${moreUses.value} за отдых`, moreUses.at) : null,
+      ]),
     }, {
-      id: 'extra-attack', icon: 'swords', name: text('Extra attack', 'Дополнительная атака'), kind: attacks > 1 ? 'passive' : 'locked', uses: null,
-      now: attacks > 1 ? text(`${attacks} attacks a turn.`, `${attacks} атаки за ход.`) : text('One attack a turn for now.', 'Пока одна атака за ход.'),
-      next: more ? atLevel(`${more.value} attacks a turn`, `${more.value} атаки за ход`, more.at) : null,
-    });
+      id: 'danger-sense', icon: 'dodge', name: text('Danger sense', 'Чутьё на опасность'), kind: 'passive', uses: null,
+      now: text('Advantage on DEX saving throws, against breath and blasts.', 'Преимущество на спасброски ЛОВ — от дыхания и взрывов.'),
+      next: null,
+    }, extraAttack(hero));
+  }
+
+  if (hero.class === 'ranger') {
+    const moreUses = nextGrowth(level, (l) => restUses('ranger', l, path).spells);
+    const [n, sides] = MARK_DICE;
+    out.push({
+      id: 'hunters-mark', icon: 'target', name: text('Hunter’s mark', 'Метка охотника'), kind: 'rest', uses: { left: hero.spellUses, of: uses.spells },
+      now: text(
+        `${HARD_FIGHT.en[0]!.toUpperCase()}${HARD_FIGHT.en.slice(1)}: marks the toughest and shoots it first, and every hit on it deals +${n}d${sides}. When it falls, the mark moves on.`,
+        `${HARD_FIGHT.ru[0]!.toUpperCase()}${HARD_FIGHT.ru.slice(1)}: метит самого крепкого и бьёт его первым делом, и каждое попадание по нему наносит +${n}d${sides}. Когда он падёт, метка переходит дальше.`,
+      ),
+      next: moreUses ? atLevel(`${moreUses.value} a rest`, `${moreUses.value} за отдых`, moreUses.at) : null,
+    }, {
+      id: 'archery', icon: 'arrow', name: text('Archery', 'Стрельба из лука'), kind: 'passive', uses: null,
+      now: text(`+${ARCHERY_BONUS} to hit with a bow.`, `+${ARCHERY_BONUS} к попаданию из лука.`),
+      next: null,
+    }, extraAttack(hero));
   }
 
   if (hero.class === 'rogue') {

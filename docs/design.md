@@ -94,36 +94,40 @@ This list exists so the Human's extra Talent has something to choose from in Sea
 
 ### Classes
 
-Season 0 starts with the classic party of four. Each later Season adds two Classes.
+Season 0 started with the classic party of four; the Barbarian and the Ranger joined mid-Season. Later Seasons add more.
 
 | Class | Hit die | In fights | In the Labyrinth |
 |---|---|---|---|
-| Fighter | d10 | Most health, heavy armor, extra attacks. Second wind heals once per fight. | Smashes cracked walls to open shortcuts other Classes can't use. |
+| Fighter | d10 | Heavy armor, extra attacks. Second wind heals once per fight. | Smashes cracked walls to open shortcuts that only Fighters and Barbarians can use. |
 | Rogue | d8 | Critical hits, strikes first. A full Sneak attack (half its level in d6) on the first hit of a fight, and a smaller one (a sixth of its level) on its first hit of each later round. | Picks locks, disarms traps, spots lying Clues, has the best odds on Sneaking and Escape rolls. |
 | Wizard | d6 | Big spell damage but fragile. Limited spells per rest. **Shield:** the first blow of every fight that would hit is turned aside *(v0)*. | Senses traps and curses. Identifies Items for free. |
 | Cleric | d8 | Heals itself. Its spells are deadly to undead. | Rolls with advantage at Shrines. |
+| Barbarian | d12 | **Rage** *(v0)*, a few times a rest (2, then 3 at level 3, 4 at 6, 5 at 12, 6 at 17): when a fight turns hard (two or more monsters, an elite, a Mini-boss or the Boss) or once below half health, it Rages for the rest of the fight: +2 damage on every hit it lands and 2 less from every blow that lands on it (never below 1); 3 from level 9, 4 from 16. The SRD halves the blows instead, which made Barbarians far too hard to kill here. **Danger sense:** advantage on DEX saves (breath, blasts). Two attacks from level 5. | Smashes cracked walls like a Fighter, and takes half damage from traps. |
+| Ranger | d10 | **Hunter's mark** *(v0)*, a few times a rest (2, and one more at 5, 9, 13 and 17): in a hard fight it marks the monster with the most health and attacks it first, and every hit on it deals +1d6; when it falls, the mark moves on to the next. **Archery:** +2 to hit with a bow. Attacks with DEX. Two attacks from level 5. | Reads the tracks: always knows when a Clue lies. |
 
-Planned order (it can change): Season 1 Barbarian and Ranger, Season 2 Paladin and Warlock, Season 3 Bard and Sorcerer, then Druid and Monk.
+Planned order (it can change): Season 1 Paladin and Warlock, Season 2 Bard and Sorcerer, then Druid and Monk. Until their own portraits are painted, Barbarians borrow the Fighter's portraits and Rangers the Rogue's, for the same Race.
 
 ### Proficiencies
 
 Weapons and armor come in types. Each Class can use some of the types, and the types overlap, so every drop has more than one possible buyer. Head, hands, feet, amulet and ring Items can be worn by every Class.
 
-| Type | Fighter | Rogue | Wizard | Cleric |
-|---|:-:|:-:|:-:|:-:|
-| Heavy weapons (greatswords, greataxes, mauls) | ✓ | | | |
-| Blades (longswords, sabers, rapiers) | ✓ | ✓ | | |
-| Daggers | ✓ | ✓ | ✓ | |
-| Bows and crossbows | ✓ | ✓ | | |
-| Maces and hammers | ✓ | | | ✓ |
-| Staves and wands | | | ✓ | ✓ |
-| Shields | ✓ | | | ✓ |
-| Orbs (off-hand) | | | ✓ | |
-| Holy symbols (off-hand) | | | | ✓ |
-| Heavy armor | ✓ | | | |
-| Medium armor | ✓ | | | ✓ |
-| Light armor | ✓ | ✓ | | ✓ |
-| Robes | | | ✓ | ✓ |
+| Type | Fighter | Rogue | Wizard | Cleric | Barbarian | Ranger |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+| Heavy weapons (greatswords, greataxes, mauls) | ✓ | | | | ✓ | |
+| Blades (longswords, sabers, rapiers) | ✓ | ✓ | | | ✓ | ✓ |
+| Daggers | ✓ | ✓ | ✓ | | | ✓ |
+| Bows and crossbows | ✓ | ✓ | | | | ✓ |
+| Maces and hammers | ✓ | | | ✓ | ✓ | |
+| Staves and wands | | | ✓ | ✓ | | |
+| Shields | ✓ | | | ✓ | ✓ | ✓ |
+| Orbs (off-hand) | | | ✓ | | | |
+| Holy symbols (off-hand) | | | | ✓ | | |
+| Heavy armor | ✓ | | | | | |
+| Medium armor | ✓ | | | ✓ | ✓ | ✓ |
+| Light armor | ✓ | ✓ | | ✓ | ✓ | ✓ |
+| Robes | | | ✓ | ✓ | | |
+
+Starter kits: Fighter longsword, shield and chain mail; Rogue rapier, shortbow and leather; Wizard staff, orb and robes; Cleric mace, shield and breastplate; Barbarian greataxe and scale mail; Ranger longbow, shield and studded leather.
 
 Robes are woven with wards: Armor Class 13 + the full DEX modifier *(v0)*, like the SRD's Mage armor, so a caster's body armor grows with Quality and Upgrades too.
 
@@ -153,8 +157,12 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
   | Wizard | Abjurer | Each fight starts behind a ward of 4 × level + INT modifier that takes damage first and mends by the INT modifier each turn | Advantage on every saving throw |
   | Cleric | Life | Cure wounds and potions heal 50% more | One more Cure wounds per rest; the first in each fight doesn't cost the turn |
   | Cleric | War | The first hit each turn deals +1d8 | Two attacks each turn |
+  | Barbarian | Berserker | While raging, one more attack each turn | While raging, fear and paralysis can't take hold (a Rage also ends fear) |
+  | Barbarian | Bear-heart | While raging, blows lose twice the Rage's edge, and breath, blasts, wails, fire and poison lose it too | While raging, a blow that would drop the Hero calls for a CON save (DC 10, then 5 higher each time): on a success it stays up with 1 health |
+  | Ranger | Hunter | Once a turn, +1d8 on a hit against a monster that is already hurt | One more attack each turn |
+  | Ranger | Stalker | In each fight's first round, one more attack, and every attack that round with advantage | Evasion: a DEX save against breath or a blast takes no damage on a success, and half on a failure |
 
-  Each Class has one Path built for the Boss and one for the long road: Thief, Abjurer and Life trade damage for gold, safety and healing.
+  Each Class has one Path built for the Boss and one for the long road: Thief, Abjurer, Life and Bear-heart trade damage for gold, safety and healing.
 - **Growth (levels 4, 8, 12, 16, 19):** +2 to one ability score, +1 to two (never above 20), or one of three Talents offered. The three are drawn from the Talents the Hero doesn't have yet, and stay the same however often the Player looks.
 - **Talents learned by growing** *(v0)*, on top of the origin Talents:
 
@@ -379,7 +387,7 @@ The City's old Well opens onto a different stretch of the deep every day (midnig
 
 - **Six Rooms, the same for everyone:** the day's seed decides who waits in each Room and which Boons are offered. The first Room comes from the Hero's own Floor: its deepest, or half its level rounded up, whichever is deeper. The Rooms go deeper two by two (+0, +0, +1, +1, +2, +2 Floors, never past Floor 10), and the sixth holds a guardian: that Floor's Mini-boss, or two Drakes (one an elite) in the Dragon's lair.
 - **Nothing is lost:** the Hero goes down at full health with the Well's own 2 Healing potions and its abilities fresh. Its real health, Bag and Items stay as they are; the Delve keeps its own health, potions and ability uses from Room to Room. The fights use the Hero's gear and Stance, and the day's Omen.
-- **Boons:** after each Room won, the Player takes one of two Boons before the next: Mend (40% of full health), Draught (one more potion), Second breath (spells and healing prayers back, and 15% health), or one that lasts the rest of the Delve: Whetstone (+15% damage), Ward (+2 AC), Keen eye (+10% critical chance), Leech (10% life steal).
+- **Boons:** after each Room won, the Player takes one of two Boons before the next: Mend (40% of full health), Draught (one more potion), Second breath (what a rest brings back: spells, healing prayers, Rages, Hunter's marks; and 15% health), or one that lasts the rest of the Delve: Whetstone (+15% damage), Ward (+2 AC), Keen eye (+10% critical chance), Leech (10% life steal).
 - **Stop or go on:** before each Room the Player sees who waits there and the Threat in each Stance, and can stop and bank. The score is 100 points a Room won, plus the health left in percent when the Player stops or wins all six. An Escape roll ends the Delve with the Rooms' points only; falling keeps half of them.
 - **Pay:** gold for every Room won (10 × (the Delve's Floor + 1) each), into the City purse. Winning all six counts toward the Well-diver Deed.
 - **The board:** the Well shows the day's finished Delves, best first (ties go to whoever finished first), and yesterday's best three. At midnight UTC, Delves still under way stop and bank, and the day's first three win a Gold, a Silver and an Iron Chest, taken at the Well. The podium goes in the Feed and on Discord, and the three hear it as a Notification.
@@ -429,7 +437,7 @@ Small goals give each session a reason to go down today *(v0)*.
 
 - **Clues:** every Door carries a Clue about the Room behind it, such as "growling behind the door", "a faint golden glow" or "the smell of sulfur". About 80% of Clues are true and 20% lie *(v0)*.
 - **Spotting lies:** Rogues and Elves make a WIS Check (DC 13 *(v0)*) to mark a lying Clue as suspicious, and Elves roll it with advantage.
-- **Special doors:** cracked walls, which only a Fighter can smash through; locked Doors, which need a Key or a Rogue; and secret Doors (see Hidden rooms).
+- **Special doors:** cracked walls, which only a Fighter or a Barbarian can smash through; locked Doors, which need a Key or a Rogue; and secret Doors (see Hidden rooms).
 - **The Map:** each Player's Map shows every Room and Door their Hero has seen this Season. Everything else stays dark. Maps can't be shared in Season 0. (An idea for later: sell copies of your Map on the Market.)
 
 ### Room types

@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-classes',
+    date: '2026-09-30',
+    title: t('Two new Classes: Barbarian and Ranger', 'Два новых класса: варвар и следопыт'),
+    items: [
+      t('The Barbarian has the most health of all. In a hard fight it Rages: harder hits, and every blow on it lands lighter. It smashes cracked walls and shrugs off half of every trap. Paths: Berserker and Bear-heart.',
+        'У варвара больше всех здоровья. В тяжёлом бою варвар впадает в ярость: бьёт сильнее и меньше страдает от ударов. Проламывает треснувшие стены и получает от ловушек лишь половину урона. Пути: берсерк и медвежье сердце.'),
+      t('The Ranger shoots true (+2 with a bow) and marks the toughest monster of a hard fight: every hit on it deals more. It always knows when a Clue lies. Paths: Hunter and Stalker.',
+        'Следопыт метко стреляет (+2 из лука) и в тяжёлом бою помечает самого крепкого монстра: каждое попадание по нему сильнее. Всегда знает, когда подсказка лжёт. Пути: охотник и ловчий.'),
+      t('Try one with a new Hero, or Retire yours to start over. Their own portraits are being painted; for now they borrow the Fighter’s and the Rogue’s.',
+        'Попробуйте нового героя или отправьте своего на покой, чтобы начать заново. Собственные портреты для них ещё рисуются, пока они носят портреты воина и плута.'),
+    ],
+  },
+  {
     id: '2026-09-30-delve',
     date: '2026-09-30',
     title: t('The Daily Delve', 'Спуск дня'),

@@ -1,7 +1,7 @@
 import type { Hero, HeroFloor, Player, Season } from '@prisma/client';
 import { type Direction, type EventAction, type Exit, type FaceAction, type Facing, KIT_BASES, type LabyrinthResult, type LabyrinthView, type Stance } from '@dark/shared';
 import {
-  BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
+  BAG_SLOTS, type ClassId, type Door, breaksWalls, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
   PATH_MASTERY, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
   threatOf, tierRank, baseById, heroFeatures, itemAbout, CAMP_REST_MS, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById,
@@ -184,14 +184,15 @@ function spotsSecret(hero: HeroWithItems, floor: Floor, door: Door, seen: Readon
 }
 
 function canPass(door: Door, hero: HeroWithItems): boolean {
-  if (door.kind === 'cracked') return hero.class === 'fighter';
+  if (door.kind === 'cracked') return breaksWalls(hero.class as ClassId);
   if (door.kind === 'locked') return hero.class === 'rogue' || stackIn(hero, 'key-iron') !== null;
   return true;
 }
 
-/** Rogues and Elves (with advantage) may see through a lying Clue; the result is stable per Door. */
+/** Rangers always know a lying Clue; Rogues and Elves (with advantage) may see through one. Stable per Door. */
 function seesThrough(hero: Hero, floor: number, door: Door, from: number): boolean {
   const race = RACE_DEFS[hero.race as RaceId];
+  if (hero.class === 'ranger') return true;
   if (hero.class !== 'rogue' && !race.clueAdvantage) return false;
   const rng = createRng(`${hero.id}:clue:${floor}:${door.a}-${door.b}:${from}`);
   return check(rng, {
@@ -288,7 +289,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
   const seen = new Set(hf?.seen ?? []);
 
   const exits: Exit[] = doorsOf(floor, room.id)
-    .filter(({ door }) => door.kind !== 'cracked' || hero.class === 'fighter')
+    .filter(({ door }) => door.kind !== 'cracked' || breaksWalls(hero.class as ClassId))
     .filter(({ door }) => door.kind !== 'secret' || spotsSecret(hero, floor, door, seen, now))
     .map(({ door, to, clue }) => {
       // The Hollow Crown: Clues never lie to its wearer.
@@ -308,12 +309,12 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     });
 
   // The Map: every Room stood in, plus the unknown Rooms next to them (the edge of the
-  // fog), and the Doors of the Rooms stood in. Only Fighters see cracked walls.
+  // fog), and the Doors of the Rooms stood in. Only Fighters and Barbarians see cracked walls.
   const known = new Set(seen);
   const doors = new Map<string, { a: number; b: number; kind: Door['kind'] }>();
   for (const id of seen) {
     for (const { door, to } of doorsOf(floor, id)) {
-      if (door.kind === 'cracked' && hero.class !== 'fighter') continue;
+      if (door.kind === 'cracked' && !breaksWalls(hero.class as ClassId)) continue;
       if (door.kind === 'secret' && !spotsSecret(hero, floor, door, seen, now)) continue;
       known.add(to);
       doors.set(`${door.a}-${door.b}`, { a: door.a, b: door.b, kind: door.kind });

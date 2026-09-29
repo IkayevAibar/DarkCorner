@@ -17,7 +17,7 @@ Two pieces:
 The data is `LabyrinthView['map']` from `@dark/shared` (`packages/shared/src/labyrinth.ts`):
 
 - `rooms[]`: `id`, grid `x`/`y`, `type` (null until the Hero has stood there), `visited`, and `cleared` (the Hero beat that Room's monsters or took its treasure in the last 24 hours).
-- `doors[]`: `a`–`b` Room ids and `kind`: `open`; `locked` (needs a Rogue or an Iron key); `cracked` (a wall only Fighters can break; other Classes never receive these); `secret` (a hidden Door this Hero has spotted; the Room behind it is a `hidden` room with a hoard).
+- `doors[]`: `a`–`b` Room ids and `kind`: `open`; `locked` (needs a Rogue or an Iron key); `cracked` (a wall only Fighters and Barbarians can break; other Classes never receive these); `secret` (a hidden Door this Hero has spotted; the Room behind it is a `hidden` room with a hoard).
 - The Floor's `width` × `height` (10 × 10, and 6 × 6 for the Dragon's lair on Floor 10).
 - Rooms can also appear on the Map without being walked: the Riddling statue reveals a hidden room, and the lair's Whispering skulls reveal the way to the Dragon's chamber.
 

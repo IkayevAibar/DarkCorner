@@ -17,7 +17,7 @@ import {
 
 const stance = (process.argv[2] ?? 'steady') as StanceId;
 if (!STANCES.includes(stance)) throw new Error(`unknown Stance "${stance}": use ${STANCES.join(', ')}`);
-const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric'] as const;
+const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'] as const;
 
 type Gear = 'starter' | 'decent' | 'endgame';
 

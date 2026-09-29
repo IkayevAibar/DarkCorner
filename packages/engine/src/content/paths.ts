@@ -6,7 +6,7 @@ import { type Text, text } from './text.js';
  * it at level 9 (docs/design.md → Growing: Paths and Talents, v0). Retiring is
  * the only way to try the other one in the same Season.
  */
-export const PATHS = ['champion', 'guardian', 'thief', 'assassin', 'evoker', 'abjurer', 'life', 'war'] as const;
+export const PATHS = ['champion', 'guardian', 'thief', 'assassin', 'evoker', 'abjurer', 'life', 'war', 'berserker', 'bearheart', 'hunter', 'stalker'] as const;
 export type PathId = (typeof PATHS)[number];
 
 /** The level a Path is chosen at, and the level its second feature comes. */
@@ -147,6 +147,64 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
     features: [
       feature(3, text('Divine strike', 'Божественный удар'), text('Your first hit each turn deals +1d8.', 'Первое попадание за ход наносит +1d8.')),
       feature(9, text('Extra attack', 'Дополнительная атака'), text('Attack twice each turn.', 'Две атаки за ход.')),
+    ],
+  },
+  berserker: {
+    id: 'berserker',
+    class: 'barbarian',
+    name: text('Berserker', 'Берсерк'),
+    blurb: text('Rage with nothing held back.', 'Ярость, в которой нет удержу.'),
+    features: [
+      feature(3, text('Frenzy', 'Бешенство'), text('While raging, attack once more each turn.', 'В ярости — на одну атаку за ход больше.')),
+      feature(9, text('Mindless rage', 'Слепая ярость'), text(
+        'While raging, fear and paralysis can’t take hold of you.',
+        'В ярости вас не берут ни страх, ни паралич.',
+      )),
+    ],
+  },
+  bearheart: {
+    id: 'bearheart',
+    class: 'barbarian',
+    name: text('Bear-heart', 'Медвежье сердце'),
+    blurb: text('Too stubborn to fall.', 'Упрямство, которое не даёт упасть.'),
+    features: [
+      feature(3, text('Thick hide', 'Толстая шкура'), text(
+        'While raging, blows lose twice the Rage’s edge, and every other harm loses it too: breath, blasts, wails, fire and poison.',
+        'В ярости удары по вам слабеют вдвое сильнее, а любой другой урон тоже слабеет: дыхание, взрывы, вопли, огонь и яд.',
+      )),
+      feature(9, text('Relentless', 'Неудержимость'), text(
+        'While raging, a blow that would drop you calls for a CON save (DC 10, then 5 higher each time): on a success you stay up with 1 health.',
+        'В ярости удар, который свалил бы с ног, требует спасброска ТЕЛ (СЛ 10, затем каждый раз на 5 выше): при успехе остаётся 1 здоровья.',
+      )),
+    ],
+  },
+  hunter: {
+    id: 'hunter',
+    class: 'ranger',
+    name: text('Hunter', 'Охотник'),
+    blurb: text('Brings down the big ones, and the many.', 'Валит крупную дичь и целые стаи.'),
+    features: [
+      feature(3, text('Colossus slayer', 'Убийца великанов'), text(
+        'Once a turn, a hit on a monster that is already hurt deals +1d8.',
+        'Раз за ход попадание по уже раненому монстру наносит +1d8.',
+      )),
+      feature(9, text('Volley', 'Залп'), text('One more attack each turn.', 'На одну атаку за ход больше.')),
+    ],
+  },
+  stalker: {
+    id: 'stalker',
+    class: 'ranger',
+    name: text('Stalker', 'Ловчий'),
+    blurb: text('Strikes first, and is never where the blow lands.', 'Бьёт раньше всех и уходит из-под удара.'),
+    features: [
+      feature(3, text('Ambush', 'Засада'), text(
+        'In each fight’s first round, attack once more, with advantage.',
+        'В первом раунде каждого боя — на одну атаку больше, и с преимуществом.',
+      )),
+      feature(9, text('Evasion', 'Увёртливость'), text(
+        'A DEX save against breath or a blast takes no damage on a success, and half on a failure.',
+        'Спасбросок ЛОВ от дыхания или взрыва: при успехе урона нет, при провале — половина.',
+      )),
     ],
   },
 };

@@ -46,7 +46,7 @@ const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
 const { resetDatabase, devLogin } = await import('../test/helpers.js');
 const { runDueJobs } = await import('../src/services/scheduler.js');
-const { CLASS_DEFS, CLUES, RIDDLES, TIERS, baseById, canUse, isGear } = await import('@dark/engine');
+const { CLASS_DEFS, CLUES, RIDDLES, TIERS, baseById, breaksWalls, canUse, isGear } = await import('@dark/engine');
 /** What a Door says when a Waypoint is behind it (it can lie, as Clues do). */
 const WAYPOINT_CLUES = new Set((CLUES.waypoint as { en: string }[]).map((c) => c.en));
 
@@ -320,7 +320,7 @@ function nextStep(bot: Bot, view: LabyrinthView, goal: (id: number) => boolean):
   const link = (a: number, b: number) => passable.set(a, [...(passable.get(a) ?? []), b]);
   for (const d of map.doors) {
     if (d.kind === 'locked' && bot.cls !== 'rogue') continue;
-    if (d.kind === 'cracked' && bot.cls !== 'fighter') continue;
+    if (d.kind === 'cracked' && !breaksWalls(bot.cls)) continue;
     link(d.a, d.b);
     link(d.b, d.a);
   }
@@ -556,6 +556,7 @@ async function session(bot: Bot) {
 const CLASSES: [ClassId, string, string][] = [
   ['fighter', 'human', 'human-fighter-1'], ['rogue', 'halfling', 'halfling-rogue-1'],
   ['wizard', 'elf', 'elf-wizard-1'], ['cleric', 'dwarf', 'dwarf-cleric-1'],
+  ['barbarian', 'dwarf', 'dwarf-fighter-1'], ['ranger', 'elf', 'elf-rogue-1'],
 ];
 const bots: Bot[] = [];
 for (const [cls, race, portrait] of CLASSES) {

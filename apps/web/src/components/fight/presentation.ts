@@ -35,8 +35,10 @@ export function sound(event: FightEventView): void {
     case 'rise': play('equip'); break;
     case 'save': play('die'); break;
     case 'feature':
-      if (event.feature === 'indomitable') play('equip', { rate: 0.8 });
+      if (event.feature === 'indomitable' || event.feature === 'relentless') play('equip', { rate: 0.8 });
       else if (event.feature === 'ward') play('crit', { rate: 1.4, volume: 0.4 });
+      else if (event.feature === 'rage') play('crit', { rate: 0.55, volume: 0.9 });
+      else if (event.feature === 'mark') play('equip', { rate: 1.4, volume: 0.6 });
       break;
     case 'tick': play('hit', { rate: 1.3, volume: 0.5 }); break;
     case 'fled': play('step'); play('step', { delay: 180 }); break;
@@ -114,6 +116,9 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
     case 'feature':
       if (e.feature === 'survivor') return t('fight.feature.survivor', { name: n('hero'), n: e.amount ?? 0 });
       if (e.feature === 'indomitable') return t('fight.feature.indomitable', { name: n('hero') });
+      if (e.feature === 'relentless') return t('fight.feature.relentless', { name: n('hero') });
+      if (e.feature === 'rage') return t('fight.feature.rage', { name: n('hero') });
+      if (e.feature === 'mark') return t('fight.feature.mark', { name: n('hero'), target: n(e.target ?? '') });
       return e.amount === undefined
         ? t('fight.feature.wardUp', { name: n('hero'), n: e.left ?? 0 })
         : t('fight.feature.ward', { n: e.amount, left: e.left ?? 0 });

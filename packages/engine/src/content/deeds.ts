@@ -40,7 +40,7 @@ export const DEEDS: DeedDef[] = [
   deed('too-tough-to-die', 'saved', 5, 300, text('Too tough to die', 'Не по зубам смерти'), text('Go down in 5 fights, and live through each.', 'Пять раз упадите в бою и выживите.')),
   deed('fortunes-favourite', 'rose', 1, 200, text('Fortune’s favourite', 'Баловень судьбы'), text('Stand back up on a natural 20 death save.', 'Поднимитесь на ноги, выбросив 20 на спасброске от смерти.')),
   deed('deep-delver', 'depth', 10, 1000, text('Deep delver', 'Покоритель глубин'), text('Reach Floor 10.', 'Доберитесь до 10-го этажа.')),
-  deed('pathfinder', 'rooms', 500, 500, text('Pathfinder', 'Следопыт'), text('Walk into 500 Rooms for the first time.', 'Войдите в 500 новых комнат.')),
+  deed('pathfinder', 'rooms', 500, 500, text('Pathfinder', 'Первопроходец'), text('Walk into 500 Rooms for the first time.', 'Войдите в 500 новых комнат.')),
   deed('keeper-of-secrets', 'hidden', 5, 300, text('Keeper of secrets', 'Хранитель тайн'), text('Plunder 5 hidden rooms.', 'Разграбьте 5 потайных комнат.')),
   deed('curious-soul', 'events', 50, 300, text('Curious soul', 'Любопытная душа'), text('See 50 Event rooms through.', 'Пройдите 50 комнат с событиями.')),
   deed('riddle-master', 'riddles', 10, 300, text('Riddle master', 'Знаток загадок'), text('Answer 10 riddles right.', 'Отгадайте 10 загадок.')),

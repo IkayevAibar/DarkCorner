@@ -78,7 +78,10 @@ export const BOONS: Record<BoonId, BoonDef> = {
   draught: { id: 'draught', name: text('Draught', 'Зелье'), about: text('One more Healing potion for this Delve.', 'Ещё одно лечебное зелье на этот спуск.') },
   breath: {
     id: 'breath', name: text('Second breath', 'Второе дыхание'),
-    about: text('Spells and healing prayers come back, and 15% of full health.', 'Заклинания и лечебные молитвы восстанавливаются, и ещё 15% здоровья.'),
+    about: text(
+      'What a rest brings back comes back (spells, healing prayers, Rages, Hunter’s marks), and 15% of full health.',
+      'Возвращается всё, что даёт отдых (заклинания, лечебные молитвы, ярость, метки охотника), и ещё 15% здоровья.',
+    ),
   },
   whetstone: { id: 'whetstone', name: text('Whetstone', 'Точильный камень'), about: text('+15% damage for the rest of the Delve.', '+15% урона до конца спуска.') },
   ward: { id: 'ward', name: text('Ward', 'Оберег'), about: text('+2 AC for the rest of the Delve.', '+2 к КД до конца спуска.') },

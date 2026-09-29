@@ -18,9 +18,13 @@ const PICKS: Record<ClassId, { race: RaceId; talents: TalentId[]; banner: string
   rogue: { race: 'halfling', talents: ['alert'], banner: '#3f7a4a', fallbackName: 'Pip' },
   wizard: { race: 'elf', talents: ['tough'], banner: '#3b5fa8', fallbackName: 'Ilyra' },
   cleric: { race: 'dwarf', talents: ['lucky-charm'], banner: '#b08a2e', fallbackName: 'Borin' },
+  barbarian: { race: 'dwarf', talents: ['tough'], banner: '#c2682b', fallbackName: 'Hrolf' },
+  ranger: { race: 'elf', talents: ['alert'], banner: '#2f7f86', fallbackName: 'Tamsin' },
 };
-const CLASSES: ClassId[] = ['fighter', 'rogue', 'wizard', 'cleric'];
-const portraitOf = (cls: ClassId) => `${PICKS[cls].race}-${cls}-1`;
+const CLASSES: ClassId[] = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'];
+/** Barbarians and Rangers wear a Fighter's and a Rogue's portrait until their own are painted (engine: portraitsFor). */
+const PAINTED_AS: Partial<Record<ClassId, ClassId>> = { barbarian: 'fighter', ranger: 'rogue' };
+const portraitOf = (cls: ClassId) => `${PICKS[cls].race}-${PAINTED_AS[cls] ?? cls}-1`;
 
 /** A Discord name made fit for a Hero ("nova_star.99" becomes "nova star 99"): letters, digits, spaces, hyphens and apostrophes, 2–20 of them. */
 function heroName(from: string | undefined, cls: ClassId): string {
@@ -36,7 +40,7 @@ async function bestSet(primary: AbilityId): Promise<number> {
   return draft.sets.reduce((best, set, i) => (score(set) > score(draft.sets[best]!) ? i : best), 0);
 }
 
-/** Four Classes to pick from, each with its portrait and what it's good at. */
+/** Six Classes to pick from, each with its portrait and what it's good at. */
 export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onCustom: () => void }) {
   const { t, locale } = useI18n();
   const text = (value: LocalizedText) => value[locale];
@@ -57,7 +61,7 @@ export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onC
         <span className="sub-heading">{t('quick.title')}</span>
         <p className="m-0 text-sm">{t('quick.body')}</p>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {CLASSES.map((cls) => {
           const def = classes.find((c) => c.id === cls);
           return (
@@ -92,7 +96,7 @@ function Begin({ cls, onCreated, onCustom }: { cls: ClassId; onCreated: () => vo
   const pick = PICKS[cls];
   const [name, setName] = useState(() => heroName(session.state === 'signedIn' ? session.player.name : undefined, cls));
   const { busy, error, run } = useAction();
-  const primary: Record<ClassId, AbilityId> = { fighter: 'str', rogue: 'dex', wizard: 'int', cleric: 'wis' };
+  const primary: Record<ClassId, AbilityId> = { fighter: 'str', rogue: 'dex', wizard: 'int', cleric: 'wis', barbarian: 'str', ranger: 'dex' };
   const valid = /^[\p{L}\p{N}' -]{2,20}$/u.test(name.trim());
 
   const begin = async () => {

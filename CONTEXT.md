@@ -333,6 +333,14 @@ _Avoid_: dungeon run, daily run, challenge
 A gift taken between the Rooms of a Delve, one of two on offer: health back, a potion, or an edge that lasts the rest of the Delve.
 _Avoid_: buff, perk, Blessing (a Blessing is bought at the Temple)
 
+**Rage** (ярость):
+A Barbarian's fury in a hard fight: harder hits, and blows hurt it less, until the fight ends. A few a rest.
+_Avoid_: berserk (that's a Path), fury
+
+**Hunter's mark** (метка охотника):
+A Ranger's mark on the toughest monster of a hard fight: the Ranger attacks it first, every hit on it deals more, and the mark moves on when it falls. A few a rest.
+_Avoid_: target, quarry
+
 **Broadcast**:
 A post the game sends to the friends' Discord channel about a big moment.
 _Avoid_: announcement, notification

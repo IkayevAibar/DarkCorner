@@ -85,10 +85,13 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     type: z.literal('heal'), actor: z.string(), ability: z.enum(['second-wind', 'cure-wounds', 'potion', 'life-steal']),
     amount: z.number().int(), hp: z.number().int(),
   }),
-  /** A Hero's Path at work: Survivor heals, Indomitable stands at 1, an Abjurer's ward rises (`left`) or soaks `amount`. */
+  /**
+   * A Hero's Class or Path at work: Survivor heals, Indomitable and Relentless stand at 1, an Abjurer's
+   * ward rises (`left`) or soaks `amount`, a Barbarian's Rage begins, a Ranger's Hunter's mark goes on `target`.
+   */
   z.object({
-    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward']),
-    amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(),
+    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless']),
+    amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(), target: z.string().optional(),
   }),
   /** A monster's power at work: `amount` is gold stolen, health restored or damage dealt; `hp` the target's health after. */
   z.object({
@@ -343,7 +346,7 @@ export const graveViewSchema = z.object({
 /** One class feature on the belt: what it does now, uses left, and what it becomes (engine features.ts). */
 export const featureViewSchema = z.object({
   id: z.string(),
-  icon: z.enum(['flame', 'shield', 'bolt', 'heart', 'wind', 'swords', 'sword', 'dodge', 'escape', 'skull', 'path']),
+  icon: z.enum(['flame', 'shield', 'bolt', 'heart', 'wind', 'swords', 'sword', 'dodge', 'escape', 'skull', 'path', 'rage', 'target', 'arrow']),
   name: localizedTextSchema,
   /** rest: uses that come back after a rest; fight: once each fight; passive: always on; locked: comes at a later level. */
   kind: z.enum(['rest', 'fight', 'passive', 'locked']),

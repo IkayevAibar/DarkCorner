@@ -49,3 +49,26 @@ For every image in this chat: a hero portrait for a round game token in a dark f
 | `halfling-wizard-2.png` | A halfling Wizard woman: a messy bun with a pencil through it, ink-stained fingers, a patched robe, faint blue light reflected on her cheeks. |
 | `halfling-cleric-1.png` | A halfling Cleric man: gentle old eyes, a bald head, a brown friar's hood, a wooden holy symbol, a soft half smile. |
 | `halfling-cleric-2.png` | A halfling Cleric woman: rosy cheeks, curly grey hair, a white apron over mail, a small sun symbol, a determined look. |
+
+## Batch 2: Barbarians and Rangers (16 prompts)
+
+The Barbarian and the Ranger joined mid-Season 0. Until these are in, they borrow the Fighter's and the Rogue's portraits for the same Race (engine `portraitsFor`). Use the same style block as above, in a new chat if the old one has drifted. Once the files are in `art/portraits/`, Claude adds `barbarian` and `ranger` to `CLASSES_PAINTED` in `packages/engine/src/content/portraits.ts`.
+
+| File | Prompt |
+|---|---|
+| `human-barbarian-1.png` | A human Barbarian man: wild black hair and a braided beard, a wolf pelt over bare scarred shoulders, blue-grey war paint across the eyes, a greataxe haft over one shoulder, a snarl. |
+| `human-barbarian-2.png` | A human Barbarian woman in her thirties: a shaved head with one long braid, a bear-fur mantle, a bone necklace, a fresh cut on the cheek, eyes burning with fury. |
+| `human-ranger-1.png` | A human Ranger man: a weathered face, a short beard, a mossy green hood, a longbow string across the chest, quiet watchful eyes. |
+| `human-ranger-2.png` | A human Ranger woman: windswept brown hair, a leather hood lined with fur, a quiver strap, a hawk feather tied in her hair, a steady aim in her gaze. |
+| `elf-barbarian-1.png` | An elf Barbarian woman: white hair in wild locks, pointed ears with bone rings, ritual scars on the cheekbones, a stag-antler pauldron, a fierce, feral stare. |
+| `elf-barbarian-2.png` | An elf Barbarian man: long copper hair knotted with feathers, red war paint across the mouth, a lynx pelt on the shoulders, bared teeth. |
+| `elf-ranger-1.png` | An elf Ranger man: a lean face, silver hair tied back, a dark leaf-patterned cloak, an arrow held between two fingers near the chin, calm eyes. |
+| `elf-ranger-2.png` | An elf Ranger woman: a deep hood of moss green, pale eyes, a thin braid over one shoulder, a longbow's curve behind her head. |
+| `dwarf-barbarian-1.png` | A dwarf Barbarian man: a wild red beard with iron clasps, a bare chest under a boar-hide mantle, a head wound bandaged with cloth, roaring. |
+| `dwarf-barbarian-2.png` | A dwarf Barbarian woman: thick black braids, war paint in white stripes, a bearskin hood with the bear's jaws above her brow, a maul handle over the shoulder. |
+| `dwarf-ranger-1.png` | A dwarf Ranger man: a grey beard tucked into a scarf, a wide-brimmed leather hat, a crossbow over the shoulder, a pipe, sharp squinting eyes. |
+| `dwarf-ranger-2.png` | A dwarf Ranger woman: auburn braids under a fur cap, a quiver of short arrows, a raven feather in the cap, a patient, hunter's look. |
+| `halfling-barbarian-1.png` | A halfling Barbarian man: curly black hair full of burrs, a badger pelt as a hood, a gap-toothed battle grin, a hand axe raised beside the face. |
+| `halfling-barbarian-2.png` | A halfling Barbarian woman: wild blond curls, freckles under smeared red war paint, a fox-fur collar, a tiny notched greataxe blade behind her head. |
+| `halfling-ranger-1.png` | A halfling Ranger woman: a green hooded cloak, a round freckled face, a sling and a short bow, a sparrow perched on her shoulder. |
+| `halfling-ranger-2.png` | A halfling Ranger man: a brown felt hood, a trimmed moustache, a quiver of fletched arrows, keen eyes looking just past the viewer. |

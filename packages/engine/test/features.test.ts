@@ -44,7 +44,7 @@ describe('the belt’s class features', () => {
   });
 
   it('writes every feature in both languages', () => {
-    for (const cls of ['fighter', 'rogue', 'wizard', 'cleric'] as const) {
+    for (const cls of ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'] as const) {
       for (const f of heroFeatures(hero({ class: cls, level: 7, path: null }))) {
         expect(f.name.ru && f.now.ru, `${cls} ${f.id}`).toBeTruthy();
         if (f.next) expect(f.next.ru, `${cls} ${f.id}`).toBeTruthy();
