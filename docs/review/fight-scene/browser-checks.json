@@ -28,7 +28,7 @@
     {
       "name": "rise-on-20",
       "locale": "en",
-      "outcome": "Barely alive"
+      "outcome": "You died"
     },
     {
       "name": "dead",
@@ -111,6 +111,26 @@
       "outcome": "Victory"
     },
     {
+      "name": "mummy-fear-fades",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "shaman-mends",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "hag-drains",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
+      "name": "devil-rages",
+      "locale": "en",
+      "outcome": "Victory"
+    },
+    {
       "name": "banshee-wail",
       "locale": "en",
       "outcome": "Victory"
@@ -153,7 +173,7 @@
     {
       "name": "rise-on-20",
       "locale": "ru",
-      "outcome": "Едва живы"
+      "outcome": "Вы погибли"
     },
     {
       "name": "dead",
@@ -232,6 +252,26 @@
     },
     {
       "name": "bat-swarm-bomb",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "mummy-fear-fades",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "shaman-mends",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "hag-drains",
+      "locale": "ru",
+      "outcome": "Победа"
+    },
+    {
+      "name": "devil-rages",
       "locale": "ru",
       "outcome": "Победа"
     },

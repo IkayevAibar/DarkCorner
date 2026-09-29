@@ -1,57 +1,41 @@
-# Fight scene review
+# Fight scene review evidence
 
-Implements [task 03](../../tasks/codex-03-fight-scene.md) on `codex/fight-scene`, based on `7d23a7d`.
-
-`FightScene` replaces the DOM playback in the Labyrinth and Sandbox. The React dialog owns timing, translated narration, dice, keyboard focus and completion. Immutable replay snapshots own recorded health/status values. The dynamically imported Pixi stage owns tokens and transient effects, and releases its renderer, ticker, filters and observer on close. Shared art stays in Pixi's asset cache for subsequent fights.
+This branch is an evidence archive only. **Never merge `codex/fight-scene-evidence`.** Implementation is [PR 6](https://github.com/IkayevAibar/DarkCorner/pull/6), commit `7820154`, rebased on main `6c365da`. No files in this directory are present in the implementation branch's commits.
 
 ## Recordings
 
-375 × 812 browser viewport, English, normal motion. The clips seek past earlier events, then play the featured section at normal speed. Recording is 25 fps and is not a performance measurement. Sound was muted during capture.
+Updated captures: 375 × 812, English, normal motion. Clips seek past earlier events and play the featured section at normal speed. Silent 25 fps recordings are visual evidence, not performance measurements.
 
 - [Wizard burst](wizard-burst.webm)
 - [Death saves](survived-death-saves.webm)
 - [Sapper blast](sapper-blast.webm)
 - [Dragon breath](dragon.webm)
 
-![Death save](death-save-die.png)
+![Larger Dragon breath and labels](dragon-breath.png)
 ![Labyrinth integration](labyrinth-fight.png)
+![Russian Dragon result](dragon-ru.png)
 
 ## Validation
 
-- `npm run test -w @dark/web`: 8 passing tests covering schema compatibility, coverage of event/power variants, authoritative HP, mend/drain targeting, rerolls/rise, status ticks, escape and recorded dice.
-- `npm run typecheck`: passes across all workspaces. The existing local Prisma client first needed regeneration with `npm run postinstall -w @dark/api`; no schema/database changes were made.
-- `npm run build`: passes across all workspaces.
-- `scripts/check-fights.cjs`: all 23 real replays and two supplemental visual examples complete at 375 px in English/normal motion and Russian/reduced motion. See [browser-checks.json](browser-checks.json).
-- Browser checks also cover repeated opening/closing, focus trapping/restoration, Escape, Skip before the graphics import resolves, and HTML fallback when WebGL is unavailable.
-- The real Labyrinth React screen passes Fight → playback → Continue → report → Room with stubbed API responses, including a turned Room map. A live server fight was not exercised.
-- Screenshots were inspected for phone layout, readable labels, the oversized Dragon, elite colors and missing-token fallback.
+- `npm run test -w @dark/web`: 12 passing tests. All 27 real engine replays and two supplemental visual examples parse, preserve recorded health and cover every event variant. All monster powers have real fixtures. All four statuses wait for `expire`; the real Mummy fixture verifies fear ends mid-fight.
+- `npm run typecheck` and `npm run build`: pass across all workspaces. Local Prisma client regenerated; no schema or database changes.
+- `scripts/check-fights.cjs`: 58 fixture/locale combinations at 375 px (English/normal and Russian/reduced motion), repeated opening/closing, focus restoration, Escape, Skip during graphics import, and fallback without WebGL. See [browser-checks.json](browser-checks.json).
+- Production Labyrinth screen: Fight → replay → report → Room passes with stubbed API responses, including current Deeds fields.
+- Owner separately verified a real Labyrinth fight, Wizard burst, death saves and Dragon at 375 px in Russian before the review changes.
+- Screenshots inspected for layout and larger labels. Dragon breath now fills a wider cone with an impact ring. Reduced motion omits camera shake and moving particles.
+- Physical phone 60 fps remains unmeasured; browser checks use desktop Chrome with SwiftShader.
 
-### Initial bundle
+## Loading
 
-Vite build output, kB (decimal):
+Pixi's chunk preloads on Labyrinth entry; its canvas is created only while a fight is open. Patch-note contents load with the News screen. Current build: main JS 430.55 kB / 143.68 kB gzip; stage 331.61 kB / 105.83 kB gzip. These totals include main's newer content and are not a comparison against the old base.
 
-| Initial asset | Before | After | Before gzip | After gzip |
-| --- | ---: | ---: | ---: | ---: |
-| Main JavaScript | 430.59 | 422.39 | 144.28 | 141.17 |
-| Main CSS | 45.58 | 44.41 | 9.90 | 9.78 |
+## Reproduce
 
-Pixi and its renderer load only when a fight opens. The stage chunk is 331.00 kB / 105.61 kB gzip; renderer support chunks are also deferred. Patch-note contents now load with the News screen, keeping the initial bundle below the baseline despite new translated fight labels.
-
-## Remaining acceptance checks
-
-- **Physical mid-range phone:** 60 fps is not verified. Automated runs use headless desktop Chrome with SwiftShader; viewport emulation is not a substitute for a phone GPU. Effects are bounded, resolution is capped at 2×, and the private ticker stops when idle. Review on an actual phone before calling this criterion complete.
-- **Fear expiry contract request for Claude:** `status` provides a duration, but no round/turn-boundary or status-expired event. The engine decrements fear at round end; multiattacks, reactions, skipped turns and pre-round powers prevent reliable reconstruction from attacks. This implementation retains the recorded fear mark until defeat/end. Burning/poison ticks and paralysis's `held` events can expire their marks correctly. Please add a server-emitted status-expiry event (with owner approval for `packages/shared`) and its fixture; the frontend can then remove fear at the authoritative event. No combat rules are simulated in the browser.
-- A live server fight should supplement the stubbed-API integration check before release.
-
-## Reproduce browser checks
-
-Start the web dev server on port 5187. Install Playwright/Chrome in the test environment, or point `PLAYWRIGHT_MODULE` at an existing Playwright installation. For recordings, install its FFmpeg support with `playwright install ffmpeg`.
-
-From `apps/web`:
+Run the implementation branch's web dev server on port 5187, with Playwright and Chrome available. From `apps/web`:
 
 ```sh
 node scripts/check-fights.cjs
 node scripts/check-fights.cjs --record
 ```
 
-`FIGHT_BASE_URL` and `FIGHT_OUTPUT` override the server URL and output directory. Authentication and Labyrinth endpoints are stubbed only inside these browser contexts.
+`PLAYWRIGHT_MODULE` can point to an installed Playwright runtime. `FIGHT_BASE_URL` overrides the server URL. Output defaults to the OS temporary directory; set `FIGHT_OUTPUT` to an evidence checkout to save it there. Recordings require Playwright's FFmpeg support. Do not add generated media to the implementation branch.
