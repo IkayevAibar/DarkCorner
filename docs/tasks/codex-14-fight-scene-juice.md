@@ -13,6 +13,7 @@ The owner's verdict on the live fight scene (task 03): "very simple". It shows e
 
 - `strike`: how it lands its blows. `slash`, `pierce`, `blunt`, `shoot` (bows and the goblin archer), `bite`, `claw`, `touch` (wraiths, banshees). The Hero's comes from its main weapon; a spell attack is still the attack's `kind: 'spell'`.
 - `kin`: a monster's kin (`beast`, `goblinoid`, `undead`, `demon`, `dragonkin`, `humanoid`); null for the Hero.
+- `class`: the Hero's Class (`fighter`, `rogue`, `wizard`, `cleric`), so spells can look like the one who cast them; null for monsters.
 
 The 27 fixtures carry both. Every strike and kin appears in them except a Hero's `shoot`; make a hand-written example for a bow.
 

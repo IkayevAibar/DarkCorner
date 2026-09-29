@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { classIdSchema } from './classes.js';
 import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 import { omenViewSchema, seasonStatusSchema } from './season.js';
 
@@ -55,6 +56,8 @@ export const combatantSchema = z.object({
   strike: z.enum(STRIKE_IDS),
   /** A monster's kin (undead crumble, demons burn…); null for the Hero. */
   kin: z.enum(MONSTER_KINS).nullable(),
+  /** The Hero's Class (a Cleric's spells come down as light, a Wizard's fly as bolts); null for monsters. */
+  class: classIdSchema.nullable(),
   /** A monster's powers, elite ones included; empty for a Hero. */
   powers: z.array(monsterPowerSchema),
 });

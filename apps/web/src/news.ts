@@ -1,10 +1,11 @@
 import type { LocalizedText } from '@dark/shared';
-import { LATEST_NEWS_ID } from './newsState';
 
 /**
  * What's new: the game's patch notes, newest first. Each release adds an entry at
  * the top with a new id; the top bar marks it until the Player has seen it.
- * Update LATEST_NEWS_ID in newsState.ts and give the previous entry its literal id.
+ * Every entry has its own literal id; point LATEST_NEWS_ID in newsState.ts at the newest
+ * (news.test.ts checks). Nothing else changes when an entry is added, so two branches
+ * that each add one meet as a plain conflict at the top, never a silent mix-up.
  */
 export interface NewsEntry {
   id: string;
@@ -18,7 +19,7 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
-    id: LATEST_NEWS_ID,
+    id: '2026-09-30-camps',
     date: '2026-09-30',
     title: t('Camps give a full rest', 'Лагерь — это полный отдых'),
     items: [

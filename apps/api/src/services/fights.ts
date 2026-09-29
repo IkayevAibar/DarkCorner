@@ -98,7 +98,7 @@ export function combatant(key: string, m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
   return {
     key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
-    elite: m.elite, powers: m.powers.map((p) => p.id), strike: monsterStrike(def), kin: def.kin,
+    elite: m.elite, powers: m.powers.map((p) => p.id), strike: monsterStrike(def), kin: def.kin, class: null,
   };
 }
 
@@ -192,7 +192,7 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     map: floor.rooms[roomId]!.map,
     hero: {
       key: 'hero', name: { en: hero.name, ru: hero.name }, art: portraitUrlOf(hero), hp: combat.hp, maxHp: combat.maxHp, ac: combat.ac,
-      boss: false, banner: hero.banner, elite: null, powers: [], strike: weaponStrike(combat.weapon?.base), kin: null,
+      boss: false, banner: hero.banner, elite: null, powers: [], strike: weaponStrike(combat.weapon?.base), kin: null, class: hero.class as ClassId,
     },
     monsters: monsters.map((m) => combatant(m.key, m)),
     events: result.events,
