@@ -11,6 +11,7 @@ const clips = [
   ['wizard-fireball', 'wizard-burst', e => e.type === 'burst', 8],
   ['wizard-bolt', 'wizard-burst', e => e.type === 'attack' && e.kind === 'spell', 5],
   ['cleric-heal', 'cleric-heals', e => e.type === 'heal' && e.ability === 'cure-wounds', 7],
+  ['cleric-radiance', 'cleric-heals', e => e.type === 'attack' && e.kind === 'spell', 7],
   ['undead-crumble', 'miniboss-bone-knight', e => e.type === 'defeated', 6],
   ['demon-embers', 'cleric-heals', e => e.type === 'defeated', 4],
   ['down-rise', 'rise-on-20', e => e.type === 'down', 13],
@@ -21,7 +22,7 @@ const clips = [
   fs.mkdirSync(output, { recursive: true });
   const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--enable-unsafe-swiftshader'] });
   try {
-    for (const [name, fixture, matches, seconds] of clips) {
+    for (const [name, fixture, matches, seconds] of clips.filter(([name]) => !process.env.FIGHT_CLIP || name === process.env.FIGHT_CLIP)) {
       const context = await browser.newContext({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 1,
         recordVideo: process.argv.includes('--record') ? { dir: path.join(output, 'raw'), size: { width: 375, height: 812 } } : undefined });
       const page = await context.newPage();
@@ -40,7 +41,7 @@ const clips = [
       while (Number(await page.locator('[data-fight-step]').getAttribute('data-fight-step')) < index + 1) {
         await page.clock.fastForward(3000);
       }
-      await page.clock.runFor(name === 'wizard-bolt' || name === 'archer-arrows' ? 190 : 350);
+      await page.clock.runFor(name === 'cleric-radiance' ? 460 : name === 'wizard-bolt' || name === 'archer-arrows' ? 190 : 350);
       await page.screenshot({ path: path.join(output, `${name}.png`) });
       if (process.argv.includes('--record')) { await page.clock.resume(); await new Promise(resolve => setTimeout(resolve, seconds * 1000)); }
       const video = page.video(); await context.close();

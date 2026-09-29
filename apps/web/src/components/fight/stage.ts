@@ -172,14 +172,16 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         if (time - trailAt >= 25) { trailAt = time; spray(px, py, { color, count: kind === 'arrow' ? 1 : 3, size: kind === 'fireball' ? 20 : 7, speed: 8, gravity: 0, life: 260 }); }
       });
     };
-    const radiant = (token: TokenView, at = cue.contact) => {
+    const radiant = (target: { x: number; y: number }, at = cue.contact, descending = false) => {
       const g = new Graphics();
       clip(g, Math.max(0, at - 150), 600, p => {
         g.clear(); const width = Math.sin(p * Math.PI) * 32;
-        g.poly([token.x - width, 0, token.x + width, 0, token.x + 6, token.y, token.x - 6, token.y]).fill({ color: 0xffe8a0, alpha: (1 - p) * .55 });
-        g.moveTo(token.x, 0).lineTo(token.x, token.y).stroke({ color: 0xfff6d4, width: 5, alpha: 1 - p });
+        const y = target.y * (descending ? Math.min(1, Math.max(0, (time - at + 150) / 150)) ** 2 : 1);
+        g.poly([target.x - width, 0, target.x + width, 0, target.x + 6, y, target.x - 6, y]).fill({ color: 0xffe8a0, alpha: (1 - p) * .55 });
+        g.moveTo(target.x, 0).lineTo(target.x, y).stroke({ color: 0xfff6d4, width: 5, alpha: 1 - p });
+        if (descending) g.circle(target.x, y, 9).fill({ color: 0xfff9dc, alpha: 1 - p });
       });
-      ring(token.x, token.y, 0xffe8a0, 90, at);
+      ring(target.x, target.y, 0xffe8a0, 90, at);
     };
     const swing = (a: TokenView, b: TokenView, hit: boolean) => {
       const strike = a.who.strike, dx = b.x - a.x, dy = b.y - a.y, d = Math.max(1, Math.hypot(dx, dy));
@@ -243,7 +245,8 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       if (!event) return;
       const a = cue.actor ? get(cue.actor) : undefined, b = cue.targets[0] ? get(cue.targets[0]) : undefined;
       if (reduced) {
-        cue.targets.forEach(key => { const token = get(key); if (token) ring(token.x, token.y, 0xddbc87, token.radius + 10, 0, 220); });
+        const color = event.type === 'attack' && event.kind === 'spell' ? a?.who.class === 'cleric' ? 0xffe8a0 : 0x9bd8ff : 0xddbc87;
+        cue.targets.forEach(key => { const token = get(key); if (token) ring(token.x, token.y, color, token.radius + 10, 0, 220); });
         if (event.type === 'attack' && b) number(b, event.hit ? '−' + event.damage : miss, event.crit ? 0xffd876 : 0xe5d3be, 0);
         if (event.type === 'heal' && a) number(a, '+' + event.amount, 0xa4d59a, 0);
         if (event.type === 'down') death(get('hero')!);
@@ -255,11 +258,14 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         case 'attack':
           if (a && b) {
             if (event.kind === 'spell') {
-              // Combatant still lacks Class; keep the existing bolt until the shared contract can distinguish Cleric attacks.
-              projectile(a, b.x + (event.hit ? 0 : b.radius + 45), b.y, 'bolt');
+              const x = b.x + (event.hit ? 0 : b.radius + 45), holy = a.who.class === 'cleric';
+              if (holy) radiant({ x, y: b.y }, cue.contact, true);
+              else projectile(a, x, b.y, 'bolt');
               if (event.hit) {
-                ring(b.x, b.y, 0x9bd8ff, 85);
-                clip(undefined, cue.contact, 2, () => once('spell-impact', cue.contact, () => spray(b.x, b.y, { color: 0xbbe7ff, count: 24, speed: 135, gravity: 0, size: 12 })));
+                if (!holy) ring(b.x, b.y, 0x9bd8ff, 85);
+                clip(undefined, cue.contact, 2, () => once('spell-impact', cue.contact, () => spray(b.x, b.y,
+                  { color: holy ? 0xffe8a0 : 0xbbe7ff, count: 24, speed: holy ? 85 : 135, up: holy ? 80 : 0,
+                    gravity: 0, size: holy ? 8 : 12, shape: holy ? 'chip' : 'soft' })));
               }
             }
             else swing(a, b, event.hit);
