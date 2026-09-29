@@ -150,6 +150,31 @@ describe('the Labyrinth', () => {
     expect((await hero()).campSince).not.toBeNull();
   });
 
+  it('gives a full rest after four hours in a Camp: health, abilities, Stamina and both short rests', async () => {
+    const camp = floor1.rooms.find((r) => r.type === 'camp')!.id;
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.hero.updateMany({
+      data: {
+        room: camp, prevRoom: camp, hp: 1, stamina: 0, staminaAt: new Date(), shortRests: 0, shortRestsAt: new Date(), spellUses: 0, healUses: 0,
+        campSince: new Date(Date.now() - 3 * 3_600_000),
+      },
+    });
+    // Three hours in: not yet, and the Camp says when.
+    const waiting = labyrinthResultSchema.parse((await get('/api/labyrinth')).json());
+    expect(waiting.view.hero.hp).toBe(1);
+    expect(waiting.view.room?.restedAt).not.toBeNull();
+    expect(waiting.notices).toHaveLength(0);
+
+    await prisma.hero.updateMany({ data: { campSince: new Date(Date.now() - 4 * 3_600_000 - 1000) } });
+    const rested = labyrinthResultSchema.parse((await get('/api/labyrinth')).json());
+    expect(rested.view.hero.hp).toBe(rested.view.hero.maxHp);
+    expect(rested.view.hero.stamina).toBe(20);
+    expect(rested.view.hero.shortRests).toMatchObject({ left: 2, of: 2 });
+    expect(rested.notices[0]?.en).toMatch(/^A full rest in the Camp/);
+    // The next rest starts from now.
+    expect(new Date(rested.view.room!.restedAt!).getTime()).toBeGreaterThan(Date.now() + 3.9 * 3_600_000);
+  });
+
   it('sneaks past on a good roll, and is ambushed on a bad one', async () => {
     await act('/api/labyrinth/enter', { floor: 1 });
     // Nimble, light-footed and lucky with 1s: all but sure to get by.

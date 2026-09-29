@@ -393,16 +393,24 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
 }
 
 /**
- * Waiting heals. Four hours in a Camp is a long rest: full health and every use back
- * (and the clock starts again). Anywhere else in the Labyrinth health comes back
- * slowly, hour by hour, so a Hero left at death's door can still walk out.
+ * Waiting heals. Four hours in a Camp is a long rest, a full one: health, every use,
+ * Stamina and both short rests (and the clock starts again). Anywhere else in the
+ * Labyrinth health comes back slowly, hour by hour, so a Hero left at death's door
+ * can still walk out.
  */
-async function restIfDue(tx: Tx, hero: HeroWithItems, now: Date): Promise<void> {
+async function restIfDue(tx: Tx, hero: HeroWithItems, now: Date, out?: Outcome): Promise<void> {
   if (hero.campSince && now.getTime() - hero.campSince.getTime() >= REST_MS) {
     const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
-    const rested = { hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals, campSince: now, hpAt: now };
+    const rested = {
+      hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals, campSince: now, hpAt: now,
+      stamina: STAMINA_MAX, staminaAt: now, shortRests: SHORT_RESTS, shortRestsAt: now,
+    };
     await tx.hero.update({ where: { id: hero.id }, data: rested });
     Object.assign(hero, rested);
+    out?.notices.push(t(
+      'A full rest in the Camp: health, abilities, Stamina and both short rests are back.',
+      'Полный отдых в лагере: здоровье, способности, выносливость и оба коротких отдыха восстановлены.',
+    ));
     return;
   }
   if (hero.location !== 'LABYRINTH') return;
@@ -418,14 +426,15 @@ async function restIfDue(tx: Tx, hero: HeroWithItems, now: Date): Promise<void> 
 
 export async function labyrinthState(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
+  const outcome = emptyOutcome();
   const hero = await prisma.$transaction(async (tx) => {
     const h = await loadHero(tx, player, season.id);
     const now = new Date();
-    await restIfDue(tx, h, now);
+    await restIfDue(tx, h, now, outcome);
     if (h.location === 'LABYRINTH' && h.floor !== null) await stillFacing(tx, h, season, floorOf(labyrinthFor(season), h.floor), now);
     return h;
   });
-  return respond(hero.id, season, emptyOutcome());
+  return respond(hero.id, season, outcome);
 }
 
 /** From the City into the Labyrinth: at the entrance of Floor 1, or at a Waypoint already reached. */
@@ -483,7 +492,7 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
     const { floor, room: from } = whereIs(hero, lab);
-    await restIfDue(tx, hero, now);
+    await restIfDue(tx, hero, now, outcome);
     if (await stillFacing(tx, hero, season, floor, now)) {
       throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
     }
@@ -563,7 +572,10 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
       }
       break;
     case 'camp':
-      out.notices.push(t('A safe Camp. Wait here four hours and you will be fully rested.', 'Безопасный лагерь. Подождите здесь четыре часа — и вы полностью отдохнёте.'));
+      out.notices.push(t(
+        'A safe Camp. Wait here four hours for a full rest: health, abilities, Stamina and both short rests.',
+        'Безопасный лагерь. Подождите здесь четыре часа ради полного отдыха: здоровье, способности, выносливость и оба коротких отдыха.',
+      ));
       break;
     case 'hidden':
       if (!isCleared(hf, roomId, now, HOARD_MS)) {
@@ -829,7 +841,7 @@ export async function shortRest(player: Player): Promise<LabyrinthResult> {
   const heroId = await prisma.$transaction(async (tx) => {
     const hero = await loadHero(tx, player, season.id);
     const { floor } = whereIs(hero, lab);
-    await restIfDue(tx, hero, now);
+    await restIfDue(tx, hero, now, outcome);
     if (await stillFacing(tx, hero, season, floor, now)) throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
     if (hero.shortRests < 1) throw ApiError.conflict('no_short_rests', 'No short rests left on this Run');
     const full = fullHealth(hero);

@@ -47,6 +47,7 @@ export function Labyrinth() {
     try {
       const result = await api.labyrinth();
       setView(result.view);
+      if (hasNews(result)) setReport(result);
       setStatus('ready');
     } catch (e) {
       setStatus(e instanceof ApiRequestError && e.body?.error === 'no_hero' ? 'noHero' : 'failed');
@@ -254,10 +255,24 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
   const facingCard = facing !== null && !aside;
   const eventCard = !facing && event !== null && (eventOpen ? !aside : peek);
 
-  const move = (to: number) => {
+  /** The Door the Player chose while a Camp's rest was under way, waiting for a yes. */
+  const [leaving, setLeaving] = useState<number | null>(null);
+  const hero = view.hero;
+  const resting = room.type === 'camp' && room.restedAt !== null && new Date(room.restedAt).getTime() > now
+    && (hero.hp < hero.maxHp || hero.stamina < hero.staminaMax || hero.shortRests.left < hero.shortRests.of);
+  const go = (to: number) => {
     setPopup(null);
+    setLeaving(null);
     play(exits.find((e) => e.to === to)?.kind === 'open' ? 'door' : 'creak');
     void act(() => api.moveTo(to));
+  };
+  const move = (to: number) => {
+    if (resting) {
+      setPopup(null);
+      setLeaving(to);
+      return;
+    }
+    go(to);
   };
   const walk = (call: () => Promise<LabyrinthResult>) => {
     play('step');
@@ -267,7 +282,6 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
   const canLeave = (floor.number === 1 && room.type === 'landing') || (room.type === 'waypoint' && view.waypoints.includes(floor.number));
   const canAscend = floor.number > 1 && room.type === 'landing';
   const label = floor.number === 1 && room.type === 'landing' ? t('room.entrance') : t(`room.${room.type}`);
-  const hero = view.hero;
 
   return (
     <>
@@ -394,6 +408,18 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         </CenterModal>
       )}
       {popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
+      {leaving !== null && room.restedAt && (
+        <CenterModal label={t('camp.leave.title')} onClose={() => setLeaving(null)} head={<span className="sub-heading">{t('camp.leave.title')}</span>}>
+          <p className="m-0 text-[15px] leading-snug">
+            {t('camp.leave.body', {
+              time: formatClock(locale, room.restedAt),
+              left: formatDuration(t, new Date(room.restedAt).getTime() - now),
+            })}
+          </p>
+          <button type="button" className="btn btn-primary" onClick={() => setLeaving(null)}>{t('camp.leave.stay')}</button>
+          <button type="button" className="btn" disabled={busy} onClick={() => go(leaving)}>{t('camp.leave.go')}</button>
+        </CenterModal>
+      )}
     </>
   );
 }

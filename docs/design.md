@@ -411,7 +411,7 @@ Small goals give each session a reason to go down today *(v0)*.
 - **Moving:** each Move is instant. A Move into a Room the Hero has never stood in costs 1 Stamina. Walking back through Rooms it knows is free, and so are stairs to a landing or stairs it knows. A known Room costs 1 again when something new waits there today: monsters back, a Treasure or hoard not taken, or an event not done (a Merchant never counts). Otherwise a known Floor could be farmed without Stamina. The Door says which way is free.
 - **Stamina:** up to 20, and 1 point refills every 24 minutes, so an empty bar is full again after 8 hours *(v0)*. A Player who checks in 2–3 times a day reaches about 40–60 Rooms that cost Stamina, plus what short rests and Lodging add.
 - **Only Moves cost Stamina.** City actions, Waypoints and Town Portals are free.
-- **Short rests** *(v0)*: a Run starts with 2. Each gives back half of full health and half of full Stamina (10), anywhere monsters don't block the way. They come back when a Run starts, but no sooner than 8 hours after they last came back, so stepping out at the gate and straight back in can't refill them. Lodging at the Tavern brings them back too.
+- **Short rests** *(v0)*: a Run starts with 2. Each gives back half of full health and half of full Stamina (10), anywhere monsters don't block the way. They come back when a Run starts, but no sooner than 8 hours after they last came back, so stepping out at the gate and straight back in can't refill them. Lodging at the Tavern and a long rest in a Camp bring them back too.
 
 ### Doors, clues and the map
 
@@ -492,7 +492,7 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
 - **Waiting:** when the Player stops playing, their Hero stays in the Room where it is.
 - **Monsters never attack a waiting Hero.**
 - **From Season 1 (PvP):** a waiting Hero outside a Camp can be attacked by other Players, and it reacts according to its Stance. Heroes in Camps are always safe.
-- **Long rest:** a Hero that waits at least 4 hours in a Camp *(v0)* comes back with full health and all its abilities.
+- **Long rest:** a Hero that waits at least 4 hours in a Camp *(v0)* gets a full rest: full health, all its abilities, full Stamina and both short rests back. Leaving the Camp before then loses it (coming back starts the 4 hours over), so the game asks before the Hero walks out while the rest still has something to give.
 
 ## Death
 

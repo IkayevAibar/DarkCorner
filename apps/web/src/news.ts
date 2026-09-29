@@ -19,6 +19,25 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 export const NEWS: NewsEntry[] = [
   {
     id: LATEST_NEWS_ID,
+    date: '2026-09-30',
+    title: t('Camps give a full rest', 'Лагерь — это полный отдых'),
+    items: [
+      t(
+        'Four hours in a Camp now bring back everything: health, abilities, full Stamina and both short rests.',
+        'Четыре часа в лагере теперь возвращают всё: здоровье, способности, полную выносливость и оба коротких отдыха.',
+      ),
+      t(
+        'Walking out of a Camp before the rest is done asks first, so a stray tap doesn’t cost you the rest.',
+        'Если уйти из лагеря до конца отдыха, игра сначала переспросит, чтобы случайное нажатие не лишило вас отдыха.',
+      ),
+      t(
+        'After any fight, the Fight log shows every blow, line by line.',
+        'После любого боя журнал боя показывает каждый удар, строку за строкой.',
+      ),
+    ],
+  },
+  {
+    id: '2026-09-29-fight-scene',
     date: '2026-09-29',
     title: t('Fights come alive', 'Бои оживают'),
     items: [
