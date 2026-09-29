@@ -1,0 +1,30 @@
+{
+  "results": [
+    "en/no-preference/iron",
+    "en/no-preference/silver",
+    "en/no-preference/gold",
+    "en/no-preference/rare",
+    "en/no-preference/radiant",
+    "en/no-preference/relic",
+    "en/reduce/iron",
+    "en/reduce/silver",
+    "en/reduce/gold",
+    "en/reduce/rare",
+    "en/reduce/radiant",
+    "en/reduce/relic",
+    "ru/no-preference/iron",
+    "ru/no-preference/silver",
+    "ru/no-preference/gold",
+    "ru/no-preference/rare",
+    "ru/no-preference/radiant",
+    "ru/no-preference/relic",
+    "ru/reduce/iron",
+    "ru/reduce/silver",
+    "ru/reduce/gold",
+    "ru/reduce/rare",
+    "ru/reduce/radiant",
+    "ru/reduce/relic"
+  ],
+  "errors": [],
+  "integration": "Loot, Heroes, Labyrinth, sound preference passed"
+}
