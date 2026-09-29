@@ -1,0 +1,727 @@
+{
+  "results": [
+    {
+      "name": "goblins-victory-crit",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "rogue-pack",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "wizard-burst",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "cleric-heals",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "survived-death-saves",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Barely alive"
+    },
+    {
+      "name": "rise-on-20",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "You died"
+    },
+    {
+      "name": "dead",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "You died"
+    },
+    {
+      "name": "miniboss-bone-knight",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "dragon",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "You died"
+    },
+    {
+      "name": "ambush-after-sneak",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "fire-bomb",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "wary-escape",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "cutpurse-runs",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "You died"
+    },
+    {
+      "name": "ghoul-paralyzes",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "hellhound-breath-burn",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "abjurer-ward",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "champion-survivor",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "guardian-indomitable",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "gilded-elite",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "sapper-blast",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "spider-poison",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "bat-swarm-bomb",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "mummy-fear-fades",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "shaman-mends",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "hag-drains",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "devil-rages",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "banshee-wail",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "visual-lucky-reroll",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "visual-elite-powers-fallback",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "visual-hero-bow",
+      "locale": "en",
+      "reducedMotion": "reduce",
+      "outcome": "Victory"
+    },
+    {
+      "name": "goblins-victory-crit",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "rogue-pack",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "wizard-burst",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "cleric-heals",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "survived-death-saves",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Barely alive"
+    },
+    {
+      "name": "rise-on-20",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "You died"
+    },
+    {
+      "name": "dead",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "You died"
+    },
+    {
+      "name": "miniboss-bone-knight",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "dragon",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "You died"
+    },
+    {
+      "name": "ambush-after-sneak",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "fire-bomb",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "wary-escape",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "cutpurse-runs",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "You died"
+    },
+    {
+      "name": "ghoul-paralyzes",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "hellhound-breath-burn",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "abjurer-ward",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "champion-survivor",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "guardian-indomitable",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "gilded-elite",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "sapper-blast",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "spider-poison",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "bat-swarm-bomb",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "mummy-fear-fades",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "shaman-mends",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "hag-drains",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "devil-rages",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "banshee-wail",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "visual-lucky-reroll",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "visual-elite-powers-fallback",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Escaped"
+    },
+    {
+      "name": "visual-hero-bow",
+      "locale": "en",
+      "reducedMotion": "no-preference",
+      "outcome": "Victory"
+    },
+    {
+      "name": "goblins-victory-crit",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "rogue-pack",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "wizard-burst",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "cleric-heals",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "survived-death-saves",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Едва живы"
+    },
+    {
+      "name": "rise-on-20",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "dead",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "miniboss-bone-knight",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "dragon",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "ambush-after-sneak",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "fire-bomb",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "wary-escape",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "cutpurse-runs",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "ghoul-paralyzes",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "hellhound-breath-burn",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "abjurer-ward",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "champion-survivor",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "guardian-indomitable",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "gilded-elite",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "sapper-blast",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "spider-poison",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "bat-swarm-bomb",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "mummy-fear-fades",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "shaman-mends",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "hag-drains",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "devil-rages",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "banshee-wail",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "visual-lucky-reroll",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "visual-elite-powers-fallback",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "visual-hero-bow",
+      "locale": "ru",
+      "reducedMotion": "reduce",
+      "outcome": "Победа"
+    },
+    {
+      "name": "goblins-victory-crit",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "rogue-pack",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "wizard-burst",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "cleric-heals",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "survived-death-saves",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Едва живы"
+    },
+    {
+      "name": "rise-on-20",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "dead",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "miniboss-bone-knight",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "dragon",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "ambush-after-sneak",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "fire-bomb",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "wary-escape",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "cutpurse-runs",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Вы погибли"
+    },
+    {
+      "name": "ghoul-paralyzes",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "hellhound-breath-burn",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "abjurer-ward",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "champion-survivor",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "guardian-indomitable",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "gilded-elite",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "sapper-blast",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "spider-poison",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "bat-swarm-bomb",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "mummy-fear-fades",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "shaman-mends",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "hag-drains",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "devil-rages",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "banshee-wail",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    },
+    {
+      "name": "visual-lucky-reroll",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "visual-elite-powers-fallback",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Вы сбежали"
+    },
+    {
+      "name": "visual-hero-bow",
+      "locale": "ru",
+      "reducedMotion": "no-preference",
+      "outcome": "Победа"
+    }
+  ],
+  "errors": [],
+  "lifecycle": "passed",
+  "fallback": "passed"
+}

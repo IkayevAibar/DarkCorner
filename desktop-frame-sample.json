@@ -1,0 +1,9 @@
+{
+  "environment": "Headless desktop Chrome, 375px, software WebGL. Not a physical phone measurement.",
+  "frames": 3600,
+  "median": 4.199999999999818,
+  "p95": 4.300000000000182,
+  "max": 30.09999995231624,
+  "maxParticles": 160,
+  "renderedFrames": 913
+}
