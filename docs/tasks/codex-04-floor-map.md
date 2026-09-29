@@ -44,6 +44,16 @@ The mini-map is new: `apps/web/src/components/map/MiniMap.tsx`, taking the same 
 - Doors read by kind: a locked Door shows a lock, a cracked wall its cracks, a secret Door a faint dashed line.
 - The mini-map is small (about 88–110 px) and must not hide the Room's monsters or its Door arrows; semi-transparent until touched is fine.
 - SVG or Canvas is fine. PixiJS is not needed here.
+- A small legend (a "?" corner on the full Map) names each mark, so the marks can stay pictures.
+
+## Motion
+
+The mini-map is on screen for every Move, so it carries the motion. Keep each effect short (under 400 ms) and skip them all under `prefers-reduced-motion`.
+
+- **Walking:** when `current` changes to a neighbouring Room, the token slides along the Door instead of jumping. When it changes to a far Room (a Waypoint, the Town Portal, a new Floor), it fades out and back in.
+- **Fog lifting:** Rooms that are new since the last render (first seen, or first visited) peel out of the fog. The Whispering skulls can reveal a whole path at once; let it unroll Room by Room from the Hero toward the Dragon.
+- **Doors:** a newly spotted secret Door draws itself in. Locked Doors stay locked (every pass costs a non-Rogue an Iron key), so their lock stays drawn.
+- The full Map can reuse the same effects, but it must be complete and readable the moment it opens.
 
 ## Where it goes
 
