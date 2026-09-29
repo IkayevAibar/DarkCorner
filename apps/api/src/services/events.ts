@@ -6,7 +6,8 @@ import {
   chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
   pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
   RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
-  banishDevil, bloodPrice, devilOffers, pryLid,
+  banishDevil, bloodPrice, devilOffers, pryLid, HOARD_HANDFULS, HOARD_WAKE, SKULLS_SCREAM, doorsOf, grabHoard, listenToSkulls,
+  takeChampionGear,
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
@@ -162,6 +163,8 @@ export async function eventView(tx: Tx, hero: HeroWithItems, season: Season, flo
         right: done ? today.right : null,
       };
     }
+    case 'spilled-hoard':
+      return { kind, done, risks: HOARD_HANDFULS.map((handfuls) => ({ handfuls, percent: Math.round(HOARD_WAKE[handfuls] * 100) })) };
     case 'bargain': {
       const offers = devilOffers(createRng(seed), floor.number);
       const full = fullHealth(hero);
@@ -186,6 +189,26 @@ function bagGear(hero: HeroWithItems, itemId: string): Item {
 }
 
 const nameOf = (item: Item): LocalizedText => (item.identified ? itemName(item) : baseById(item.base).name);
+
+/** The Rooms on the shortest way over ordinary Doors from one Room to the first `goal` accepts, both ends included. */
+function wayTo(floor: Floor, from: number, goal: (room: number) => boolean): number[] {
+  const prev = new Map<number, number>([[from, from]]);
+  const queue = [from];
+  while (queue.length > 0) {
+    const cur = queue.shift()!;
+    if (goal(cur)) {
+      const way = [cur];
+      for (let r = cur; r !== from; r = prev.get(r)!) way.unshift(prev.get(r)!);
+      return way;
+    }
+    for (const { door, to } of doorsOf(floor, cur)) {
+      if (door.kind !== 'open' || prev.has(to)) continue;
+      prev.set(to, cur);
+      queue.push(to);
+    }
+  }
+  return [];
+}
 
 export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, room: number, action: EventAction, now: Date, out: Outcome): Promise<void> {
   const kind = floor.rooms[room]!.event;
@@ -619,6 +642,93 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[offers.tier, 1]], source: 'bargain' }, out);
         out.notices.push(t(`The devil drinks ${price} health and hands over its gift.`, `Дьявол выпивает ${price} здоровья и отдаёт свой дар.`));
       }
+      return;
+    }
+
+    case 'whispering-skulls': {
+      if (action.action !== 'listen') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      // Keen Elven ears catch more of the whispers.
+      const skulls = await withLuck(tx, hero, t('Wisdom among the whispers', 'Мудрость среди шёпота'), () => listenToSkulls(rng, {
+        modifier: mod(hero.wis), advantage: hero.race === 'elf', rerollOnes: race(hero).rerollOnes, floor: floor.number,
+      }), out);
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      await logRoll(tx, hero, rollSeed, { event: kind, success: skulls.check.success });
+      if (!skulls.check.success) {
+        const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(fullHealth(hero) * SKULLS_SCREAM)));
+        await tx.hero.update({ where: { id: hero.id }, data: { hp: hero.hp - lost } });
+        hero.hp -= lost;
+        out.notices.push(t(`The whispers rise to a scream: ${lost} damage.`, `Шёпот переходит в крик: ${lost} урона.`));
+        return;
+      }
+      const xp = await boostedXp(tx, hero, season, skulls.xp);
+      const levelUp = gainXp(hero, xp);
+      await tx.hero.update({ where: { id: hero.id }, data: levelUp.data });
+      Object.assign(hero, levelUp.data);
+      out.xp += xp;
+      out.levelUp = levelUp.newLevel ?? out.levelUp;
+      // They tell the way to the Dragon: every Room on it goes on the Map.
+      const known = await heroFloor(tx, hero.id, floor.number);
+      const fresh = wayTo(floor, room, (r) => floor.rooms[r]!.type === 'boss').filter((r) => !known.seen.includes(r));
+      if (fresh.length > 0) await tx.heroFloor.update({ where: { id: known.id }, data: { seen: { push: fresh } } });
+      out.notices.push(fresh.length > 0
+        ? t('The dead whisper the way to the Dragon’s chamber. Your Map shows it now.', 'Мёртвые нашёптывают путь к логову дракона. Теперь он на вашей карте.')
+        : t('The dead whisper the way to the Dragon’s chamber, and you know it already.', 'Мёртвые нашёптывают путь к логову дракона — он вам уже известен.'));
+      return;
+    }
+
+    case 'spilled-hoard': {
+      if (action.action !== 'grab') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      const grab = grabHoard(rng, floor.number, action.handfuls);
+      await logRoll(tx, hero, rollSeed, { event: kind, handfuls: action.handfuls, ...grab });
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      if (grab.noticed) {
+        const drake = action.handfuls === 3;
+        out.notices.push(drake
+          ? t('The coins clatter, and a drake’s head rises out of the hoard.', 'Монеты звенят, и из клада поднимается голова дрейка.')
+          : t('The coins clatter, and kobolds come running.', 'Монеты звенят, и сбегаются кобольды.'));
+        const monsters = drake
+          ? [instantiate(monsterById('drake'), floor.number, 'm0')]
+          : Array.from({ length: action.handfuls + 1 }, (_, i) => instantiate(monsterById('kobold'), floor.number, `m${i}`));
+        const result = await fight(tx, hero, season, floor, room, 'fight', out, { monsters, clears: false, surprise: 'hero' });
+        if (result !== 'victory') return;
+      }
+      const gold = withGoldFind(hero, grab.gold);
+      await earnCarried(tx, hero, gold);
+      out.gold += gold;
+      out.notices.push(t('The Dragon’s gold, still warm.', 'Драконье золото, ещё тёплое.'));
+      return;
+    }
+
+    case 'fallen-champion': {
+      if (action.action === 'bury') {
+        const { seed: rollSeed, rng } = seeded();
+        const b = BLESSINGS[rng.pick(BLESSING_IDS)];
+        await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+        await logRoll(tx, hero, rollSeed, { event: kind, buried: true, blessing: b.id });
+        await tx.hero.update({ where: { id: hero.id }, data: { blessing: b.id, blessingUntil: new Date(now.getTime() + BLESSING_MS) } });
+        out.notices.push(t(
+          `You lay the champion to rest, and feel them watching over you: ${b.name.en}. ${b.description.en}`,
+          `Вы предаёте чемпиона земле и чувствуете, что он теперь хранит вас: ${b.name.ru}. ${b.description.ru}`,
+        ));
+        return;
+      }
+      if (action.action !== 'take') throw wrong();
+      const { seed: rollSeed, rng } = seeded();
+      const gear = takeChampionGear(rng);
+      await logRoll(tx, hero, rollSeed, { event: kind, ...gear });
+      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
+      if (gear.shade) {
+        out.notices.push(t('As the gear comes free, the champion’s bones stand up in their armor to take it back!', 'Едва снаряжение поддаётся, кости чемпиона встают в своих доспехах, чтобы забрать его!'));
+        // A knight of the crypts, as strong as the deepest crypt holds.
+        const result = await fight(tx, hero, season, floor, room, 'fight', out, {
+          monsters: [instantiate(monsterById('bone-knight'), 6, 'm0')], clears: false, surprise: 'hero',
+        });
+        if (result !== 'victory') return;
+      }
+      await dropGear(tx, hero, season, { floor: floor.number, count: 1, odds: [[gear.tier, 1]], source: 'fallen-champion' }, out);
+      out.notices.push(t('The champion’s gear is yours now.', 'Снаряжение чемпиона теперь ваше.'));
       return;
     }
 

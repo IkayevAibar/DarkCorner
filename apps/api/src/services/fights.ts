@@ -40,7 +40,11 @@ export interface Outcome {
   depth: number;
   /** Set when the action ended the Run: the gold it ended with, banked or left in a Grave. */
   runEnd: { gold: number } | null;
+  /** Deeds finished by the action, shown apart from the other lines. */
+  deeds: DoneDeed[];
 }
+
+export interface DoneDeed { id: string; title: LocalizedText; gold: number }
 
 /** A Check rolled on screen (traps, Shrines, locks). */
 export interface CheckOutcome {
@@ -56,7 +60,7 @@ export interface CheckOutcome {
 }
 
 export const emptyOutcome = (): Outcome => ({
-  fight: null, loot: [], gold: 0, xp: 0, levelUp: null, died: false, notices: [], checks: [], duel: null, explored: 0, depth: 0, runEnd: null,
+  fight: null, loot: [], gold: 0, xp: 0, levelUp: null, died: false, notices: [], checks: [], duel: null, explored: 0, depth: 0, runEnd: null, deeds: [],
 });
 
 // ─── What one Hero knows of a Floor ───────────────────────────────────────

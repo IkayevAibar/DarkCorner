@@ -71,7 +71,7 @@ describe('Deeds and Titles', () => {
     await prisma.hero.updateMany({ data: { deedCounts: { rooms: 499 } } });
     const before = (await hero()).gold;
     const moved = await act('/api/labyrinth/move', { to: beside('empty') });
-    expect(moved.notices.map((n) => n.en)).toContain('Deed done: Pathfinder. +500 gold, and a Title to wear.');
+    expect(moved.deeds).toEqual([{ id: 'pathfinder', title: { en: 'Pathfinder', ru: 'Следопыт' }, gold: 500 }]);
     expect((await hero()).gold).toBe(before + 500);
     const line = await prisma.feedEvent.findFirstOrThrow({ where: { kind: 'deed' } });
     expect(line.data).toMatchObject({ hero: 'Garrick', deed: 'pathfinder' });
@@ -101,7 +101,7 @@ describe('Deeds and Titles', () => {
     await act('/api/labyrinth/enter', { floor: 1 });
     await prisma.hero.updateMany({ data: { bestFloor: 10 } });
     const moved = await act('/api/labyrinth/move', { to: beside('empty') });
-    expect(moved.notices.map((n) => n.en)).toContain('Deed done: Deep delver. +1000 gold, and a Title to wear.');
+    expect(moved.deeds.map((d) => d.id)).toEqual(['deep-delver']);
     expect((await myHero()).deeds.find((d) => d.id === 'deep-delver')).toMatchObject({ progress: 10, target: 10 });
   });
 

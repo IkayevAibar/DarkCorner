@@ -367,6 +367,10 @@ async function eventAction(bot: Bot, view: LabyrinthView): Promise<boolean> {
         if (view.hero.hp - e.goldPrice > view.hero.maxHp * 0.5) return { action: 'bargain', offer: 'gold' };
         return null;
       }
+      case 'whispering-skulls': return view.hero.hp > view.hero.maxHp * 0.5 ? { action: 'listen' } : null;
+      // Greed grows with health: three handfuls only at full strength.
+      case 'spilled-hoard': return { action: 'grab', handfuls: view.hero.hp >= view.hero.maxHp ? 3 : view.hero.hp > view.hero.maxHp * 0.6 ? 2 : 1 };
+      case 'fallen-champion': return { action: view.hero.hp > view.hero.maxHp * 0.7 ? 'take' : 'bury' };
       case 'riddle': {
         // A thinking player knows most of these; the rest is a guess.
         const truth = RIDDLES.find((r) => r.question.en === e.question.en)!.answer.en;

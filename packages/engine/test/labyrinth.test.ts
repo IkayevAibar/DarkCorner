@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CRYPT_EVENT_KINDS, DEEP_EVENT_SHARE, DEPTH_EVENT_KINDS, FIRST_EVENT_KINDS, FLOOR_COUNT, type Floor, WARREN_EVENT_KINDS, WARREN_EVENT_SHARE,
+  CRYPT_EVENT_KINDS, DEEP_EVENT_SHARE, DEPTH_EVENT_KINDS, FIRST_EVENT_KINDS, FLOOR_COUNT, type Floor, LAIR_EVENT_KINDS, LAIR_EVENT_SHARE,
+  WARREN_EVENT_KINDS, WARREN_EVENT_SHARE,
   doorsOf, generateLabyrinth,
 } from '../src/index.js';
 
@@ -101,6 +102,7 @@ describe('generateLabyrinth', () => {
       warrens: { kinds: WARREN_EVENT_KINDS, share: WARREN_EVENT_SHARE },
       crypts: { kinds: CRYPT_EVENT_KINDS, share: DEEP_EVENT_SHARE },
       depths: { kinds: DEPTH_EVENT_KINDS, share: DEEP_EVENT_SHARE },
+      lair: { kinds: LAIR_EVENT_KINDS, share: LAIR_EVENT_SHARE },
     };
     const counts: Record<string, { events: number; later: number }> = {};
     for (let i = 0; i < 20; i++) {

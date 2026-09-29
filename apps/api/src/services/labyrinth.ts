@@ -388,6 +388,7 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
     checks: outcome.checks,
     duel: outcome.duel,
     run,
+    deeds: outcome.deeds,
   };
 }
 

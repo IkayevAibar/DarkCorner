@@ -18,7 +18,7 @@ export const NEWS: NewsEntry[] = [
   {
     id: '2026-09-29-deeds',
     date: '2026-09-29',
-    title: t('Deeds and Titles', 'Подвиги и титулы'),
+    title: t('Deeds and Titles, and the Dragon’s lair stirs', 'Подвиги и титулы, а логово дракона оживает'),
     items: [
       t(
         'Deeds: 21 feats to work toward all Season, from defeating 100 goblins to slaying the Dragon. Each one pays gold the moment it’s done. See them on your Hero’s page.',
@@ -31,6 +31,10 @@ export const NEWS: NewsEntry[] = [
       t(
         'Deeds count from today; the deepest Floor counts from your Hero’s own record.',
         'Подвиги считаются с сегодняшнего дня; самый глубокий этаж засчитывается по рекорду героя.',
+      ),
+      t(
+        'Three new events in the Dragon’s lair (Floor 10): whispering skulls that can show the way to the Dragon, a spill of its hoard (how many handfuls do you dare?), and a fallen champion to rob or to bury.',
+        'Три новых события в логове дракона (этаж 10): шепчущие черепа, что могут указать путь к дракону, рассыпанный клад (сколько горстей рискнёте взять?) и павший чемпион, которого можно обобрать или похоронить.',
       ),
       t(
         'Every monster now has its painted token, including the five new ones in the crypts and depths.',

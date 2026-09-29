@@ -3,7 +3,7 @@ import {
   ALTAR_SUCCESS, LOCKPICK_DC, SHRINE_DC, cacheContents, createRng, goblinDice, merchantWares, nextTier, offerAtAltar,
   pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones, RIDDLES, statueRiddle,
   cookpotDc, cutWeb, tasteStew, webDc, BARGAIN_GOLD_PRICE, BARGAIN_ITEM_PRICE, banishDc, banishDevil, bloodPrice, devilOffers,
-  pryLid, sarcophagusDc,
+  pryLid, sarcophagusDc, CHAMPION_ODDS, HOARD_WAKE, grabHoard, listenToSkulls, skullsDc, takeChampionGear,
 } from '../src/index.js';
 
 const plain = { modifier: 0, advantage: false, rerollOnes: false };
@@ -198,6 +198,42 @@ describe('the newer Event rooms', () => {
       expect(r.gold).toBeLessThanOrEqual(300);
       expect(r.check.dc).toBe(14);
     }
+  });
+});
+
+describe('the Dragon’s lair', () => {
+  it('the Whispering skulls are a WIS Check against 16 on Floor 10 that teaches 500 XP', () => {
+    expect(skullsDc(10)).toBe(16);
+    for (let i = 0; i < 200; i++) {
+      const r = listenToSkulls(createRng(`skulls-${i}`), { ...plain, modifier: 3, floor: 10 });
+      expect(r.check.dc).toBe(16);
+      expect(r.xp).toBe(r.check.success ? 500 : 0);
+    }
+  });
+
+  it('the Spilled hoard pays more per handful, and gets noticed more often the more is taken', () => {
+    for (const handfuls of [1, 2, 3] as const) {
+      let noticed = 0;
+      for (let i = 0; i < 2000; i++) {
+        const r = grabHoard(createRng(`hoard-${handfuls}-${i}`), 10, handfuls);
+        expect(r.gold).toBeGreaterThanOrEqual(330 * handfuls);
+        expect(r.gold).toBeLessThanOrEqual(660 * handfuls);
+        if (r.noticed) noticed++;
+      }
+      expect(Math.abs(noticed / 2000 - HOARD_WAKE[handfuls])).toBeLessThan(0.04);
+    }
+  });
+
+  it('the Fallen champion’s gear is Epic or better, and its shade rises about half the time', () => {
+    let shades = 0;
+    for (let i = 0; i < 2000; i++) {
+      const r = takeChampionGear(createRng(`champion-${i}`));
+      expect(tierRank(r.tier)).toBeGreaterThanOrEqual(tierRank('epic'));
+      expect(CHAMPION_ODDS.some(([tier]) => tier === r.tier)).toBe(true);
+      if (r.shade) shades++;
+    }
+    expect(shades / 2000).toBeGreaterThan(0.45);
+    expect(shades / 2000).toBeLessThan(0.55);
   });
 });
 

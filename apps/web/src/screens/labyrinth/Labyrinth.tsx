@@ -125,7 +125,7 @@ export function Labyrinth() {
 
 const hasNews = (r: LabyrinthResult) =>
   r.fight !== null || r.loot.length > 0 || r.gold > 0 || r.xp > 0 || r.levelUp !== null || r.died || r.notices.length > 0
-  || r.checks.length > 0 || r.duel !== null || r.run !== null;
+  || r.checks.length > 0 || r.duel !== null || r.run !== null || r.deeds.length > 0;
 
 /** Drinks one Healing potion from the Bag, then shows the Labyrinth again. */
 async function drinkPotion(): Promise<LabyrinthResult> {
@@ -927,6 +927,7 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
     if (best >= 0) playTier(TIERS[best]!);
     else if (result.gold > 0 && !result.fight) play('coins');
     if (result.levelUp !== null) play('chips', { delay: 260 });
+    if (result.deeds.length > 0) play('chips', { delay: 420 });
     if (result.died && !result.fight) play('grave');
   }, [result]);
 
@@ -971,6 +972,13 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
           <p key={i} className="m-0 text-[15px]">{text(line)}</p>
         ))}
         {result.run && <RunCard run={result.run} />}
+        {result.deeds.map((d) => (
+          <NavLink key={d.id} to="/heroes" className="grid gap-0.5 rounded-[2px] border border-gold/70 bg-[rgb(224_184_106/0.08)] p-2.5 text-center no-underline">
+            <span className="sub-heading">{t('report.deed')}</span>
+            <span className="font-head text-lg font-extrabold text-gold">{text(d.title)}</span>
+            <span className="text-sm">{t('report.deedReward', { n: d.gold })}</span>
+          </NavLink>
+        ))}
         <button type="button" className="btn btn-primary mt-1" onClick={onClose}>{t('report.dismiss')}</button>
       </div>
     </CenterModal>

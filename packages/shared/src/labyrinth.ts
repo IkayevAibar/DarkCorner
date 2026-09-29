@@ -215,6 +215,7 @@ export const mapDoorSchema = z.object({ a: z.number().int(), b: z.number().int()
 export const EVENT_KINDS = [
   'three-chests', 'shrine', 'gambler', 'merchant', 'trapped-corridor', 'cursed-altar', 'locked-cache', 'lockpicking',
   'fountain', 'prisoner', 'library', 'bone-pile', 'riddle', 'cookpot', 'webbed-body', 'sarcophagus', 'bargain',
+  'whispering-skulls', 'spilled-hoard', 'fallen-champion',
 ] as const;
 export const eventKindSchema = z.enum(EVENT_KINDS);
 export type EventKindId = z.infer<typeof eventKindSchema>;
@@ -272,6 +273,10 @@ export const eventViewSchema = z.discriminatedUnion('kind', [
     tier: tierSchema,
     itemPrice: z.number().int(),
   }),
+  z.object({ kind: z.literal('whispering-skulls'), done: z.boolean() }),
+  /** The Dragon's spilled hoard: how likely the kin are to notice, per number of handfuls. */
+  z.object({ kind: z.literal('spilled-hoard'), done: z.boolean(), risks: z.array(z.object({ handfuls: z.number().int(), percent: z.number().int() })) }),
+  z.object({ kind: z.literal('fallen-champion'), done: z.boolean() }),
 ]);
 export type EventView = z.infer<typeof eventViewSchema>;
 
@@ -296,6 +301,10 @@ export const eventActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('pry') }),
   z.object({ action: z.literal('bargain'), offer: z.enum(['gold', 'item']) }),
   z.object({ action: z.literal('banish') }),
+  z.object({ action: z.literal('listen') }),
+  z.object({ action: z.literal('grab'), handfuls: z.union([z.literal(1), z.literal(2), z.literal(3)]) }),
+  z.object({ action: z.literal('take') }),
+  z.object({ action: z.literal('bury') }),
 ]);
 export type EventAction = z.infer<typeof eventActionSchema>;
 
@@ -442,6 +451,8 @@ export const labyrinthResultSchema = z.object({
   duel: z.object({ hero: z.number().int(), goblin: z.number().int(), win: z.boolean() }).nullable(),
   /** Set when this action ended the Run. */
   run: runSummarySchema.nullable(),
+  /** Deeds this action finished: each paid its gold and earned its Title. */
+  deeds: z.array(z.object({ id: z.string(), title: localizedTextSchema, gold: z.number().int() })),
 });
 export type LabyrinthResult = z.infer<typeof labyrinthResultSchema>;
 

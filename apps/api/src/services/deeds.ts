@@ -2,6 +2,7 @@ import type { Hero, Prisma } from '@prisma/client';
 import type { DeedView, LocalizedText } from '@dark/shared';
 import { DEEDS, type DeedCounts, deedById, newlyEarned, tallyDeeds } from '@dark/engine';
 import { feed } from './feed.js';
+import type { DoneDeed } from './fights.js';
 import type { Tx } from './ledger.js';
 
 // Deeds and Titles (docs/design.md → Deeds and Titles). The counts live on the Hero
@@ -17,7 +18,9 @@ const doneOf = (hero: Pick<Hero, 'deeds'>) => ({ ...((hero.deeds ?? {}) as Recor
  * finishes. The deepest Floor always counts from the Hero's own record, so a Hero
  * deep before Deeds existed gets its due on the next count.
  */
-export async function countDeeds(tx: Tx, hero: Hero, add: DeedCounts, out: { notices: LocalizedText[] } | null, max: DeedCounts = {}): Promise<void> {
+export async function countDeeds(
+  tx: Tx, hero: Hero, add: DeedCounts, out: { notices: LocalizedText[]; deeds?: DoneDeed[] } | null, max: DeedCounts = {},
+): Promise<void> {
   if (!Object.values(add).some((n) => n) && Object.keys(max).length === 0) return;
   const counts = tallyDeeds(countsOf(hero), add, { ...max, depth: Math.max(max.depth ?? 0, hero.bestFloor) });
   const done = doneOf(hero);
@@ -38,7 +41,9 @@ export async function countDeeds(tx: Tx, hero: Hero, add: DeedCounts, out: { not
   if (fresh.length === 0) return;
   const season = await tx.season.findUniqueOrThrow({ where: { id: hero.seasonId } });
   for (const d of fresh) {
-    out?.notices.push(t(
+    // A Labyrinth result shows Deeds apart; anywhere else they're a line like any other.
+    if (out?.deeds) out.deeds.push({ id: d.id, title: d.title, gold: d.gold });
+    else out?.notices.push(t(
       `Deed done: ${d.title.en}. +${d.gold} gold, and a Title to wear.`,
       `Подвиг совершён: «${d.title.ru}». +${d.gold} золота и титул, который можно носить.`,
     ));

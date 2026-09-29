@@ -29,6 +29,10 @@ const ACTION_SOUND: Partial<Record<EventAction['action'], Sound>> = {
   pry: 'latch',
   bargain: 'coins',
   banish: 'page',
+  listen: 'page',
+  grab: 'coins',
+  take: 'latch',
+  bury: 'page',
 };
 
 const ALTAR_TIERS = ['common', 'uncommon', 'rare'];
@@ -235,6 +239,32 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
             </button>
           </div>
           <button type="button" className="btn" disabled={busy} onClick={() => void send({ action: 'banish' })}>{t('event.bargain.banish')}</button>
+        </div>
+      )}
+
+      {event.kind === 'whispering-skulls' && !event.done && (
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'listen' })}>{t('event.whispering-skulls.listen')}</button>
+      )}
+
+      {event.kind === 'spilled-hoard' && !event.done && (
+        <div className="grid grid-cols-3 gap-2">
+          {event.risks.map((r) => {
+            const handfuls = r.handfuls as 1 | 2 | 3;
+            return (
+              <button key={handfuls} type="button" className="btn grid justify-items-center gap-0.5 p-2" disabled={busy} onClick={() => void send({ action: 'grab', handfuls })}>
+                <span className="font-head text-xl text-[#f1c75b]">{handfuls}</span>
+                <span className="text-xs font-normal">{t(`event.spilled-hoard.grab.${handfuls}`)}</span>
+                <span className="text-xs font-normal text-tier-mythic">{t('event.spilled-hoard.risk', { n: r.percent })}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {event.kind === 'fallen-champion' && !event.done && (
+        <div className="grid gap-2">
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'take' })}>{t('event.fallen-champion.take')}</button>
+          <button type="button" className="btn" disabled={busy} onClick={() => void send({ action: 'bury' })}>{t('event.fallen-champion.bury')}</button>
         </div>
       )}
     </section>

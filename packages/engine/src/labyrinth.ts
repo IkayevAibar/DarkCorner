@@ -1,5 +1,5 @@
 import {
-  CRYPT_EVENT_KINDS, DEPTH_EVENT_KINDS, FIRST_EVENT_KINDS, WARREN_EVENT_KINDS, type EventKind, FLOOR_COUNT, type RoomType, THEMES, type ThemeId, cluesFor, floorSize, themeOf,
+  CRYPT_EVENT_KINDS, DEPTH_EVENT_KINDS, FIRST_EVENT_KINDS, LAIR_EVENT_KINDS, WARREN_EVENT_KINDS, type EventKind, FLOOR_COUNT, type RoomType, THEMES, type ThemeId, cluesFor, floorSize, themeOf,
 } from './content/floors.js';
 import type { Text } from './content/text.js';
 import { type Rng, createRng } from './rng.js';
@@ -69,15 +69,20 @@ export function generateLabyrinth(seed: string): Labyrinth {
   return { seed, floors };
 }
 
-/** A quarter of the goblin warrens' event Rooms hold one of the kinds added later, and a fifth of the crypts' and the depths' (v0). */
+/**
+ * A quarter of the goblin warrens' event Rooms hold one of the kinds added later, a fifth
+ * of the crypts' and the depths', and half of the lair's few (v0).
+ */
 export const WARREN_EVENT_SHARE = 0.25;
 export const DEEP_EVENT_SHARE = 0.2;
+export const LAIR_EVENT_SHARE = 0.5;
 
 /** Event kinds added after Season 0 began, per theme: the share of event Rooms they take, and the name of their seed. */
 const LATER_EVENTS: Partial<Record<ThemeId, { kinds: readonly EventKind[]; share: number; seed: string }>> = {
   warrens: { kinds: WARREN_EVENT_KINDS, share: WARREN_EVENT_SHARE, seed: 'warren-events' },
   crypts: { kinds: CRYPT_EVENT_KINDS, share: DEEP_EVENT_SHARE, seed: 'deep-events' },
   depths: { kinds: DEPTH_EVENT_KINDS, share: DEEP_EVENT_SHARE, seed: 'deep-events' },
+  lair: { kinds: LAIR_EVENT_KINDS, share: LAIR_EVENT_SHARE, seed: 'lair-events' },
 };
 
 /**

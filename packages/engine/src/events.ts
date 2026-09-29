@@ -264,6 +264,42 @@ export function banishDevil(rng: Rng, o: CheckOptions & { floor: number }): { ch
   return { check: result, xp: result.success ? BANISH_XP * o.floor : 0 };
 }
 
+// ─── Whispering skulls (the lair) ─────────────────────────────────────────
+
+export const skullsDc = (floor: number): number => 11 + Math.ceil(floor / 2);
+/** Listening well teaches this much XP per Floor number; badly, the screams burn this share of full health (v0). */
+export const SKULLS_XP = 50;
+export const SKULLS_SCREAM = 0.15;
+
+/** Listening to those who came for the Dragon before: a WIS Check. Success shows the way to its chamber. */
+export function listenToSkulls(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; xp: number } {
+  const result = roll(rng, skullsDc(o.floor), o);
+  return { check: result, xp: result.success ? SKULLS_XP * o.floor : 0 };
+}
+
+// ─── Spilled hoard (the lair) ─────────────────────────────────────────────
+
+/** Handfuls a Hero may grab, and the chance the Dragon's kin notice after that many (v0). */
+export const HOARD_HANDFULS = [1, 2, 3] as const;
+export const HOARD_WAKE: Record<(typeof HOARD_HANDFULS)[number], number> = { 1: 0.2, 2: 0.45, 3: 0.7 };
+
+/** Pushing one's luck: every handful is gold, and makes the kin likelier to notice. */
+export function grabHoard(rng: Rng, floor: number, handfuls: (typeof HOARD_HANDFULS)[number]): { gold: number; noticed: boolean } {
+  let gold = 0;
+  for (let i = 0; i < handfuls; i++) gold += rng.int(30, 60) * (floor + 1);
+  return { gold, noticed: rng.chance(HOARD_WAKE[handfuls]) };
+}
+
+// ─── Fallen champion (the lair) ───────────────────────────────────────────
+
+/** The champion's gear is Epic or better; taking it wakes the champion's shade half the time (v0). */
+export const CHAMPION_ODDS: [Tier, number][] = [['epic', 70], ['legendary', 25], ['mythic', 5]];
+export const CHAMPION_SHADE = 0.5;
+
+export function takeChampionGear(rng: Rng): { tier: Tier; shade: boolean } {
+  return { tier: rollTier(rng, CHAMPION_ODDS), shade: rng.chance(CHAMPION_SHADE) };
+}
+
 // ─── Riddling statue ──────────────────────────────────────────────────────
 
 /** A right answer teaches this much XP per Floor number; a wrong one burns this share of full health (v0). */
