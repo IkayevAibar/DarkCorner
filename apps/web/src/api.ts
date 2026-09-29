@@ -3,7 +3,7 @@ import type {
   CreateHeroRequest, GrowRequest, HallView, LodgingView, RankingsView, LevelUpRequest, LevelUpResponse, PathIdView, RollLogView, TavernView,
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
-  SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult,
+  SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -36,6 +36,11 @@ export const api = {
   logout: () => request<LogoutResponse>('POST', '/auth/logout'),
   me: () => request<MeResponse>('GET', '/api/me'),
   updateMe: (body: UpdateMeRequest) => request<MeResponse>('PATCH', '/api/me', body),
+  push: () => request<PushView>('GET', '/api/push'),
+  pushSubscribe: (body: PushSubscribeRequest) => request<PushView>('POST', '/api/push/subscribe', body),
+  pushUnsubscribe: (endpoint: string) => request<PushView>('POST', '/api/push/unsubscribe', { endpoint }),
+  pushPrefs: (off: PushKind[]) => request<PushView>('PUT', '/api/push/prefs', { off }),
+  pushTest: (endpoint: string) => request<{ sent: boolean }>('POST', '/api/push/test', { endpoint }),
   adminPlayers: () => request<AdminPlayersResponse>('GET', '/api/admin/players'),
   setGate: (open: boolean) => request<AdminPlayersResponse>('POST', '/api/admin/gate', { open }),
   decidePlayer: (id: string, decision: AdminPlayerDecision['decision']) =>

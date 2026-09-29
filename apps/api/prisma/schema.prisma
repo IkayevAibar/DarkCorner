@@ -33,14 +33,36 @@ model Player {
   bannedAt   DateTime?
   /// Updated at most once a minute, for "who's online" in the Tavern.
   lastSeenAt DateTime?
+  /// Kinds of push notification the Player turned off (docs/design.md → Notifications).
+  pushOff    String[]  @default([])
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
   feedEvents FeedEvent[]
+  pushSubs   PushSubscription[]
   rolls      RollLog[]
   heroes     Hero[]
   drafts     HeroDraft[]
   listings   Listing[]
+}
+
+/// A phone or browser that gets the Player's push notifications.
+model PushSubscription {
+  id        String    @id @default(cuid())
+  playerId  String
+  /// The push service's URL for this device; unique across Players.
+  endpoint  String    @unique
+  p256dh    String
+  auth      String
+  /// The device's IANA time zone, for its quiet night hours.
+  timeZone  String?
+  createdAt DateTime  @default(now())
+  /// The last notification the push service accepted.
+  usedAt    DateTime?
+
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@index([playerId])
 }
 
 enum SeasonStatus {
@@ -148,6 +170,9 @@ model Hero {
   deeds        Json      @default("{}")
   /// The Title the Player chose to wear: a done Deed's id.
   title        String?
+  /// Push notifications already sent: when Stamina came full, and which Camp rest.
+  staminaPushAt DateTime?
+  campPushAt    DateTime?
 
   // Luck
   /// The Bad-luck meter: at 120 the next Item that drops is Legendary or better.

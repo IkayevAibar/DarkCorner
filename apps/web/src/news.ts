@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-notifications',
+    date: '2026-09-30',
+    title: t('Notifications on your phone', 'Уведомления на телефон'),
+    items: [
+      t('Turn them on in the Account sheet (your avatar, top right) to hear when your Stamina is full, a Camp rest is done, something of yours sells on the Market, or the Boss gate opens.',
+        'Включите их в меню аккаунта (аватар справа вверху). Придёт сигнал, когда выносливость восстановлена, отдых в лагере окончен, ваш предмет купили на рынке или открылись врата босса.'),
+      t('Each kind can be switched off, and nothing arrives between 23:00 and 08:00 your time.',
+        'Каждый вид можно отключить, а с 23:00 до 08:00 по вашему времени ничего не приходит.'),
+      t('On an iPhone, put Dark Corner on your Home Screen first, open it from there, then turn notifications on.',
+        'На iPhone сначала добавьте «Тёмный уголок» на экран «Домой», откройте его оттуда и тогда включите уведомления.'),
+    ],
+  },
+  {
     id: '2026-09-30-juice',
     date: '2026-09-30',
     title: t('Feel every blow', 'Почувствуйте каждый удар'),

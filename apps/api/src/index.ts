@@ -1,6 +1,7 @@
 import { buildApp } from './app.js';
 import { prisma } from './db.js';
 import { env } from './env.js';
+import { startPushSweep } from './services/push.js';
 import { startScheduler } from './services/scheduler.js';
 
 const app = await buildApp();
@@ -19,6 +20,7 @@ process.on('SIGINT', () => void shutdown('SIGINT'));
 
 try {
   await app.listen({ port: env.API_PORT, host: env.API_HOST });
+  await startPushSweep();
   stopScheduler = startScheduler(app.log);
 } catch (error) {
   app.log.error({ err: error }, 'failed to start');

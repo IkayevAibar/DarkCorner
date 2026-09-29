@@ -329,6 +329,10 @@ _Avoid_: chat, log, news
 A post the game sends to the friends' Discord channel about a big moment.
 _Avoid_: announcement, notification
 
+**Notification** (уведомление):
+A push message to one Player's phone or browser about their own Hero or the Season (full Stamina, a finished Camp rest, a Market sale, the Boss gate). Not a Broadcast, which goes to everyone on Discord.
+_Avoid_: alert, ping, оповещение
+
 **Lodging** (ночлег):
 A bed for the night at the Tavern, bought with City gold: full Stamina and the short rests back. One night a day, and each costs more than the one before.
 _Avoid_: inn, sleep, rest (alone)

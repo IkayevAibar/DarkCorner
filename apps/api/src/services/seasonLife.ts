@@ -15,6 +15,7 @@ import type { Tx } from './ledger.js';
 import { lockSeason, relicsFound } from './relics.js';
 import { onJob, schedule } from './scheduler.js';
 import { nextOmenAt, omenView } from './omens.js';
+import { notifyAll } from './push.js';
 import { currentSeason } from './seasons.js';
 
 // The Season's life (docs/design.md → Seasons): an admin starts it, jobs open the
@@ -188,6 +189,13 @@ onJob('boss-gate', async (payload) => {
     await broadcast(tx, {
       en: '🔥 The Boss gate is open! The Ancient Dragon waits on Floor 10.',
       ru: '🔥 Врата босса открыты! Древний дракон ждёт на 10-м этаже.',
+    });
+    await notifyAll(tx, {
+      kind: 'gate',
+      title: { en: 'The Boss gate is open', ru: 'Врата босса открыты' },
+      body: { en: 'The Ancient Dragon waits on Floor 10.', ru: 'Древний дракон ждёт на 10-м этаже.' },
+      url: '/labyrinth',
+      tag: 'gate',
     });
   });
 });

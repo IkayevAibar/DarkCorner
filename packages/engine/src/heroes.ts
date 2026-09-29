@@ -7,6 +7,8 @@ import { createRng } from './rng.js';
 export const STAMINA_MAX = 20;
 /** One Stamina point comes back every 24 minutes: an empty bar refills in 8 hours (v0). */
 export const STAMINA_REFILL_MS = 24 * 60 * 1000;
+/** Four hours in a Camp is a full rest: health, abilities, Stamina and short rests (docs/design.md → Moving and stamina). */
+export const CAMP_REST_MS = 4 * 60 * 60 * 1000;
 
 export const BANNER_COLORS = ['#9e2a2a', '#3b5fa8', '#3f7a4a', '#b08a2e', '#6b3f8f', '#2f7f86', '#8a8a8a', '#c2682b'] as const;
 

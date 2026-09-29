@@ -50,6 +50,9 @@ services:
       ADMIN_DISCORD_IDS: ${ADMIN_DISCORD_IDS:-}
       DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
       SERVER_TIMEZONE: ${SERVER_TIMEZONE:-Asia/Almaty}
+      # Optional: without them the API makes a push-notification key pair once and keeps it in the database.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
     ports:
       - "127.0.0.1:${API_HOST_PORT:-4002}:4100"
     healthcheck:

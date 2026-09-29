@@ -44,6 +44,13 @@ const schema = z.object({
 
   DISCORD_WEBHOOK_URL: z.preprocess(blankToUndefined, z.string().url().optional()),
 
+  /**
+   * Push notifications' key pair (web-push generate-vapid-keys). Optional: without
+   * them the API makes a pair once and keeps it in the database.
+   */
+  VAPID_PUBLIC_KEY: z.preprocess(blankToUndefined, z.string().optional()),
+  VAPID_PRIVATE_KEY: z.preprocess(blankToUndefined, z.string().optional()),
+
   /** The game clock: Boss gates, Vault openings and "tonight at 21:00" use this zone. */
   SERVER_TIMEZONE: z
     .preprocess(blankToUndefined, z.string().default('Asia/Almaty'))

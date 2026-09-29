@@ -1,14 +1,16 @@
 import type { Item, Listing, Player, Prisma } from '@prisma/client';
 import type { Listing as ListingView, MarketView } from '@dark/shared';
-import { MARKET_DAYS, MARKET_MAX_PRICE, MARKET_TAX, marketPayout } from '@dark/engine';
+import { MARKET_DAYS, MARKET_MAX_PRICE, MARKET_TAX, marketPayout, uniqueById } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { feed } from './feed.js';
+import { TIER_NAMES, baseName } from './feedLine.js';
 import { toHeroView } from './heroes.js';
 import { toItemView } from './items.js';
 import { type Tx, freePlace, lockHero, ownItem, requireCity, spendGold } from './ledger.js';
 import { currentSeason } from './seasons.js';
 import { omenOf } from './omens.js';
+import { notify } from './push.js';
 
 /** A Player may have this many Items on the Market at once (v0). */
 export const MAX_LISTINGS = 20;
@@ -105,6 +107,19 @@ export async function buyListing(player: Player, listingId: string): Promise<Mar
     if (seller) await tx.hero.update({ where: { id: seller.id }, data: { gold: { increment: payout } } });
     await feed(tx, season, buyer, 'market-sale', {
       seller: listing.sellerName, price: listing.price, tier: listing.item.tier, base: listing.item.base, uniqueId: listing.item.uniqueId,
+    });
+    const base = baseName(listing.item.base);
+    const item = listing.item.uniqueId ? uniqueById(listing.item.uniqueId).name : { en: base.en.toLowerCase(), ru: base.ru };
+    const tier = TIER_NAMES[listing.item.tier]!;
+    await notify(tx, listing.sellerId, {
+      kind: 'market',
+      title: { en: 'Sold on the Market', ru: 'Продано на рынке' },
+      body: {
+        en: `${buyer.name} bought your ${tier.en} ${item.en} for ${listing.price} gold. ${payout} gold is yours.`,
+        ru: `${item.ru} (ранг: ${tier.ru}) — покупатель ${buyer.name}, цена ${listing.price} золота. Ваша доля: ${payout}.`,
+      },
+      url: '/city',
+      tag: `sale-${listing.id}`,
     });
   });
   return marketView(player);

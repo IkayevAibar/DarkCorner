@@ -644,6 +644,17 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 
   Ordinary Legendaries are not Broadcast, to avoid spam.
 
+### Notifications *(v0)*
+
+A Player can turn on push notifications for each phone or browser in the Account sheet. They go to that device even when the game is closed:
+
+- **Stamina is full:** once each time a Hero's bar fills. Nothing is sent if the Player has been on the site since it filled.
+- **A Camp rest is done:** four hours in a Camp, when the rest gives something back (health, abilities, Stamina or short rests). It also covers the Stamina it filled.
+- **Something sells on the Market:** the Item, the buyer, the price and the seller's share.
+- **The Boss gate opens.**
+
+Each kind can be turned off. Nothing arrives between 23:00 and 08:00 on the device's own clock; what comes due at night arrives in the morning. On an iPhone, notifications only work once the game is on the Home Screen.
+
 ### Rankings
 
 The Tavern's Rankings show the current Season's records, one board each, with a podium for the first three, the rest of the top ten under it, and the Player's own place when it is lower. Equal values share a place. Each Hero shows with the Title it wears.

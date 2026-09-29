@@ -11,6 +11,7 @@ import { heroRoutes } from './routes/heroes.js';
 import { itemRoutes } from './routes/items.js';
 import { labyrinthRoutes } from './routes/labyrinth.js';
 import { meRoutes } from './routes/me.js';
+import { pushRoutes } from './routes/push.js';
 import { tavernRoutes } from './routes/tavern.js';
 import './services/jobs.js';
 
@@ -72,6 +73,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(labyrinthRoutes);
   await app.register(cityRoutes);
   await app.register(tavernRoutes);
+  await app.register(pushRoutes);
 
   return app;
 }

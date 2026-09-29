@@ -4,7 +4,7 @@ import {
   BAG_SLOTS, type ClassId, type Door, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
   PATH_MASTERY, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
-  threatOf, tierRank, baseById, heroFeatures, itemAbout, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById,
+  threatOf, tierRank, baseById, heroFeatures, itemAbout, CAMP_REST_MS, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -29,7 +29,6 @@ import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
 
 const HOUR_MS = 60 * 60 * 1000;
-const REST_MS = 4 * HOUR_MS;
 /** Clues: a WIS Check against this sees through a lie (v0). */
 const CLUE_DC = 13;
 /** Secret Doors: a WIS Check against this spots one, a new try each day (v0). */
@@ -354,7 +353,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       event: room.event,
       map: room.map,
       cleared: isCleared(hf, room.id, now),
-      restedAt: room.type === 'camp' && hero.campSince ? new Date(hero.campSince.getTime() + REST_MS).toISOString() : null,
+      restedAt: room.type === 'camp' && hero.campSince ? new Date(hero.campSince.getTime() + CAMP_REST_MS).toISOString() : null,
       eventView: room.type === 'event' ? await eventView(tx, hero, season, floor, room.id, now) : null,
       vault: room.type === 'vault' ? await vaultView(tx, season, floor.number, room.id, now) : null,
       facing: waiting ? facingView(hero, season, floor, room.id, waiting, now) : null,
@@ -399,7 +398,7 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
  * can still walk out.
  */
 async function restIfDue(tx: Tx, hero: HeroWithItems, now: Date, out?: Outcome): Promise<void> {
-  if (hero.campSince && now.getTime() - hero.campSince.getTime() >= REST_MS) {
+  if (hero.campSince && now.getTime() - hero.campSince.getTime() >= CAMP_REST_MS) {
     const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
     const rested = {
       hp: fullHealth(hero), spellUses: uses.spells, healUses: uses.heals, campSince: now, hpAt: now,

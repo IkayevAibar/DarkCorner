@@ -57,6 +57,10 @@ The API polls the `Job` table every 30 seconds (`apps/api/src/services/scheduler
 
 A one-way webhook posts Broadcasts to the friends' channel (`DISCORD_WEBHOOK_URL`), in Russian and English. `broadcast()` queues a job inside the transaction of the thing it announces, so a Broadcast only goes out if that really happened, and a Discord outage never fails a Player's action. Without a webhook, Broadcasts are skipped. There is no bot in Season 0.
 
+## Push notifications
+
+Web Push with VAPID (`apps/api/src/services/push.ts`, the `web-push` library to encrypt and sign; `fetch` sends). The key pair comes from `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` when set, otherwise the API makes one once and keeps it in the `Setting` table (key `vapid`); changing it cuts off every device. Each device is a `PushSubscription` row; a push service answering 404 or 410 deletes it. Things that happen (a Market sale, the Boss gate) call `notify()`/`notifyAll()`, which queue a `push` job inside their transaction. Things that come due with time (full Stamina, a finished Camp rest) are found by the `push-sweep` job, which reschedules itself every 5 minutes (`startPushSweep()` makes sure one waits when the API starts) and marks what it told on the Hero (`staminaPushAt`, `campPushAt`). Quiet hours (23:00–08:00) use each device's time zone. The web's `public/sw.js` only shows notifications and opens the game on a tap; it caches nothing.
+
 ## Live data
 
 There are no websockets in Season 0. The web checks the Feed and "who's online" (`GET /api/tavern`) every 15–30 seconds. Players are online if they made a request in the last 10 minutes (`Player.lastSeenAt`, written at most once a minute).
@@ -79,4 +83,4 @@ There are no websockets in Season 0. The web checks the Feed and "who's online" 
 
 ## Environment variables
 
-Listed with comments in `apps/api/.env.example`: `DATABASE_URL`, `SESSION_SECRET`, `API_PORT`, `API_HOST`, `PUBLIC_WEB_URL`, `SSO_SECRET`, `ACCOUNT_ORIGIN`, `ADMIN_DISCORD_IDS`, `DISCORD_WEBHOOK_URL`, `SERVER_TIMEZONE`.
+Listed with comments in `apps/api/.env.example`: `DATABASE_URL`, `SESSION_SECRET`, `API_PORT`, `API_HOST`, `PUBLIC_WEB_URL`, `SSO_SECRET`, `ACCOUNT_ORIGIN`, `ADMIN_DISCORD_IDS`, `DISCORD_WEBHOOK_URL`, `SERVER_TIMEZONE`, and the optional `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`.
