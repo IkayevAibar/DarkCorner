@@ -4,8 +4,9 @@ import type { Frame, Status } from './replay';
 import type { Cue } from './choreography';
 import { ParticlePool, type Spray } from './particles';
 import { ClassEffects } from './classEffects';
+import { tokenPlaces } from './layout';
 
-const SIZE = 600, HERO_Y = 446;
+const SIZE = 600;
 const ELITE: Record<Elite, number> = { gilded: 0xc9a24a, frenzied: 0xbd3c35, armored: 0x8aa6b2, vampiric: 0x9563b8, swift: 0x57b7ae };
 const STATUS: Record<Status, number> = { burning: 0xef8638, poisoned: 0x9bc954, paralyzed: 0x9cd6e7, frightened: 0xa480c7 };
 interface TokenView {
@@ -44,7 +45,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       preference: ['webgl'], autoStart: false, sharedTicker: false });
     initialized = true;
     if (signal.aborted) throw new DOMException('Fight closed', 'AbortError');
-    const fighters = [replay.hero, ...replay.monsters];
+    const fighters = [replay.hero, ...(replay.ally ? [replay.ally] : []), ...replay.monsters];
     const textures = new Map<string, Texture>();
     await Promise.all([...new Set([map.src, ...fighters.flatMap(f => f.art ? [f.art] : [])])].map(async url => {
       try { textures.set(url, await Assets.load<Texture>(url)); } catch { /* Preserve the painted initial fallback. */ }
@@ -85,18 +86,17 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       const flash = new Graphics().circle(0, 0, radius - 2).fill(0xffffff); flash.alpha = 0; art.addChild(flash);
       const marks = new Graphics(), hp = new Graphics(), health = text('', 23), label = text(names[who.key] ?? who.key, 23);
       health.anchor.set(.5); health.position.set(0, radius + 21); label.anchor.set(.5, 0); label.position.set(0, radius + 38);
-      label.style.wordWrap = true; label.style.wordWrapWidth = who.key === 'hero' ? 280 : SIZE / (Math.min(4, count) + .6) - 16;
+      label.style.wordWrap = true; label.style.wordWrapWidth = who.key === 'hero' || who.key === 'ally' ? (replay.ally ? 200 : 280) : SIZE / (Math.min(4, count) + .6) - 16;
       label.style.breakWords = true; label.style.lineHeight = 26;
       const plate = new Graphics().roundRect(-label.width / 2 - 6, radius + 35, label.width + 12, label.height + 6, 4).fill({ color: 0x080605, alpha: .86 });
       root.addChild(marks, hp, plate, health, label); world.addChild(root);
       tokens.set(who.key, { root, art, hp, marks, halo, aura, flash, x, y, radius, who, health, shownHp: NaN });
     };
-    replay.monsters.forEach((who, i) => {
-      const columns = count > 4 ? 3 : Math.max(1, count), row = Math.floor(i / columns), inRow = Math.min(columns, count - row * columns);
-      makeToken(who, 300 + ((i % columns) - (inRow - 1) / 2) * (SIZE / (columns + .6)),
-        count === 1 && who.boss ? 166 : 133 + row * 128, who.boss && count === 1 ? 188 : count <= 2 ? 108 : count <= 4 ? 84 : 68);
-    });
-    makeToken(replay.hero, 300, HERO_Y, 104);
+    const places = tokenPlaces(replay);
+    for (const who of [...replay.monsters, replay.hero, ...(replay.ally ? [replay.ally] : [])]) {
+      const place = places[who.key]!;
+      makeToken(who, place.x, place.y, place.diameter);
+    }
     const fx = new Container(); pool = new ParticlePool(); world.addChild(fx, pool.layer);
     const vignetteTexture = (red: boolean) => {
       const canvas = document.createElement('canvas'); canvas.width = canvas.height = 256;
@@ -132,7 +132,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       clip(label, at, reduced ? 220 : 650, p => { label.position.set(token.x, token.y - 14 - (reduced ? 0 : p * 42)); label.alpha = Math.min(1, (1 - p) * 3); });
     };
     const impact = (from: TokenView, token: TokenView, damage: number, crit = false, at = cue.contact) => {
-      const muted = current?.raging === true && token.who.key === 'hero' && event?.type === 'attack';
+      const muted = current?.fighters[token.who.key]?.raging === true && event?.type === 'attack';
       impacts.push({ from, token, damage, crit, muted, at, fired: false });
       number(token, '−' + damage, muted ? 0xc3a38c : crit ? 0xffd876 : 0xffb5a1, at, muted ? 25 : crit ? 42 : 31);
       if (crit && !muted) ring(token.x, token.y, 0xffd876, 125, at, 800);
@@ -185,6 +185,17 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         if (descending) g.circle(target.x, y, 9).fill({ color: 0xfff9dc, alpha: 1 - p });
       });
       ring(target.x, target.y, 0xffe8a0, 90, at);
+    };
+    const mend = (healer: TokenView, partner: TokenView) => {
+      const g = new Graphics();
+      clip(g, 0, cue.contact + 1, p => {
+        const x = healer.x + (partner.x - healer.x) * p;
+        const y = healer.y + (partner.y - healer.y) * p - Math.sin(p * Math.PI) * 75;
+        g.clear().moveTo(healer.x, healer.y).quadraticCurveTo((healer.x + x) / 2, y - 35, x, y)
+          .stroke({ color: 0xffe8a0, width: 7, alpha: .35 })
+          .circle(x, y, 16).fill({ color: 0xffe8a0, alpha: .3 }).circle(x, y, 6).fill(0xfff6d4);
+        healer.halo.circle(0, 0, healer.radius + 10).stroke({ color: 0xffe8a0, width: 3, alpha: 1 - p });
+      });
     };
     const swing = (a: TokenView, b: TokenView, hit: boolean) => {
       const strike = a.who.strike, dx = b.x - a.x, dy = b.y - a.y, d = Math.max(1, Math.hypot(dx, dy));
@@ -249,14 +260,15 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       const a = cue.actor ? get(cue.actor) : undefined, b = cue.targets[0] ? get(cue.targets[0]) : undefined;
       if (reduced) {
         if (event.type === 'feature' && ['rage', 'mark', 'relentless'].includes(event.feature)) return;
+        if (event.type === 'revive' && event.success && b) number(b, '+' + event.hp, 0xffdc82, 0);
         const color = event.type === 'attack' && event.kind === 'spell' ? a?.who.class === 'cleric' ? 0xffe8a0 : 0x9bd8ff : 0xddbc87;
-        cue.targets.forEach(key => { const token = get(key); if (token) ring(token.x, token.y, color, token.radius + 10, 0, 220); });
+        (event.type === 'blocked' && !replay.ally ? [] : cue.targets).forEach(key => { const token = get(key); if (token) ring(token.x, token.y, color, token.radius + 10, 0, 220); });
         if (event.type === 'attack' && b) {
-          const muted = event.hit && event.target === 'hero' && current?.raging;
+          const muted = event.hit && current?.fighters[event.target]?.raging;
           number(b, event.hit ? '−' + event.damage : miss, muted ? 0xc3a38c : event.crit ? 0xffd876 : 0xe5d3be, 0, muted ? 25 : 31);
         }
-        if (event.type === 'heal' && a) number(a, '+' + event.amount, 0xa4d59a, 0);
-        if (event.type === 'down') death(get('hero')!);
+        if (event.type === 'heal' && b) number(b, '+' + event.amount, 0xa4d59a, 0);
+        if (event.type === 'down' && b) death(b);
         if (event.type === 'defeated' && get(event.key)) death(get(event.key)!);
         return;
       }
@@ -290,15 +302,29 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
           }
           break;
         case 'heal': {
-          if (!a) break;
+          if (!b) break;
           const colors = { 'second-wind': 0xd2c092, 'cure-wounds': 0xa4d59a, potion: 0xdf789a, 'life-steal': 0xbe75b9 };
-          heal(a, event.amount, colors[event.ability]); if (event.ability === 'cure-wounds') radiant(a); break;
+          if (event.by && a) mend(a, b);
+          heal(b, event.amount, colors[event.ability]); if (event.ability === 'cure-wounds') radiant(b); break;
         }
-        case 'blocked': ring(300, HERO_Y, event.by === 'shield' ? 0x94dcf4 : 0xe4c986, 100, 0); break;
+        case 'blocked': if (b) ring(b.x, b.y, event.by === 'shield' ? 0x94dcf4 : 0xe4c986, 100, 0); break;
         case 'feature': {
           if (event.feature === 'rage' || event.feature === 'mark' || event.feature === 'relentless') break;
-          const token = get('hero')!;
-          heal(token, event.amount, event.feature === 'ward' ? 0x8ad2e8 : 0xb8d894); break;
+          if (!a) break;
+          if (event.feature === 'help' && b) { mend(a, b); ring(b.x, b.y, 0xaee6df, b.radius + 30); break; }
+          if (event.feature === 'guard' || event.feature === 'dodge') {
+            const guard = event.feature === 'guard', g = new Graphics();
+            clip(g, 0, 1000, p => {
+              const travel = Math.sin(p * Math.PI);
+              a.root.x = a.x + (guard && b ? b.x - a.x : -45) * travel * .65;
+              a.root.y = a.y - travel * (guard ? 100 : 12);
+              g.position.copyFrom(a.root.position); g.clear();
+              if (guard) g.poly([-32, -18, 0, -30, 32, -18, 24, 20, 0, 39, -24, 20]).stroke({ color: 0xbde1ee, width: 5, alpha: travel });
+              else for (let i = 0; i < 3; i++) g.arc(0, 0, a.radius + 10 + i * 9, -.8, 1.3).stroke({ color: 0xc5e5df, width: 3, alpha: travel * .7 });
+            });
+            break;
+          }
+          heal(a, event.amount, event.feature === 'ward' ? 0x8ad2e8 : 0xb8d894); break;
         }
         case 'power': {
           if (!a) break;
@@ -342,12 +368,19 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         case 'tick': if (b) { number(b, '−' + event.damage, event.status ? STATUS.poisoned : STATUS.burning, 0); ring(b.x, b.y, event.status ? STATUS.poisoned : STATUS.burning, b.radius, 0); } break;
         case 'held': if (b) ring(b.x, b.y, STATUS.paralyzed, b.radius + 8, 0); break;
         case 'defeated': if (get(event.key)) death(get(event.key)!); break;
-        case 'down': death(get('hero')!); break;
-        case 'rise': heal(get('hero')!, event.hp, 0xffdc82); radiant(get('hero')!, 0); ring(300, HERO_Y, 0xffdf89, 180, 0, 1100); break;
+        case 'down': if (b) death(b); break;
+        case 'revive':
+          if (a && b) {
+            mend(a, b);
+            if (event.success) { heal(b, event.hp, 0xffdc82); radiant(b); }
+            else number(b, miss, 0xc7c1b4);
+          }
+          break;
+        case 'rise': if (b) { heal(b, event.hp, 0xffdc82); radiant(b, 0); ring(b.x, b.y, 0xffdf89, 180, 0, 1100); } break;
         case 'fled': {
           const token = get(event.key); if (token) clip(undefined, 0, 650, p => { token.root.alpha = 1 - p; token.root.x = token.x + (token.x < 300 ? -400 : 400) * p * p; }); break;
         }
-        case 'escape': if (event.success) { const token = get('hero')!; clip(undefined, 0, 850, p => { token.root.y = token.y + 200 * p; token.root.alpha = 1 - p; }); } break;
+        case 'escape': if (event.success && a) { const token = a; clip(undefined, 0, 850, p => { token.root.y = token.y + 200 * p; token.root.alpha = 1 - p; }); } break;
         case 'surprise': ring(300, 300, 0xc9533f, 280, 0); break;
         default: break;
       }
@@ -373,8 +406,9 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       const ended = event?.type === 'end';
       let cameraStrength = 0, cameraZoom = 0;
       for (const [key, token] of tokens) {
-        const state = current.fighters[key]; if (!state) continue;
-        const active = cue.actor === key && !state.fallen && !state.fled && !ended;
+        const raising = event?.type === 'revive' || (event?.type === 'heal' && event.by);
+        const state = (raising && time < cue.contact ? previous?.fighters[key] : current.fighters[key]) ?? current.fighters[key]; if (!state) continue;
+        const active = cue.actor === key && (replay.ally || !event || !['save', 'escape', 'reroll', 'rise'].includes(event.type)) && !state.fallen && !state.fled && !ended;
         token.root.position.set(token.x, token.y); token.root.alpha = state.fled ? 0 : state.fallen ? .35 : 1;
         token.art.position.set(0, state.fallen ? 20 : active && !reduced ? -6 : 0);
         token.art.rotation = state.fallen ? .25 : 0;
@@ -393,9 +427,9 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         if (elite) token.halo.circle(0, 0, token.radius + 8).stroke({ color: elite, width: 7, alpha: .3 });
         if (active) token.halo.circle(0, -3, token.radius + 8).stroke({ color: 0xf8d28b, width: 9, alpha: .15 })
           .circle(0, -3, token.radius + 7).stroke({ color: 0xf8d28b, width: 2, alpha: .9 });
-        if (key === 'hero' && current.ward > 0) token.halo.circle(0, 0, token.radius + 13).stroke({ color: 0x8ad2e8, width: 3, alpha: .65 });
+        if (state.ward > 0) token.halo.circle(0, 0, token.radius + 13).stroke({ color: 0x8ad2e8, width: 3, alpha: .65 });
         token.aura.clear();
-        if (cue.targets.includes(key) && !ended && !state.fallen) {
+        if (cue.targets.includes(key) && (replay.ally || event?.type !== 'blocked') && !ended && !state.fallen) {
           const r = token.radius + 15;
           for (const side of [-1, 1]) token.aura.moveTo(side * r, -r * .45).lineTo(side * r, -r * .7).lineTo(side * r * .7, -r)
             .moveTo(side * r, r * .45).lineTo(side * r, r * .7).lineTo(side * r * .7, r).stroke({ color: 0xdf997b, width: 3, alpha: .8 });
@@ -464,14 +498,15 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       camera.scale.set(1 + cameraZoom);
       const hero = current.fighters.hero!, low = hero.hp > 0 && hero.hp < replay.hero.maxHp / 4;
       danger.alpha = low ? .3 + (!reduced && !ended ? Math.max(0, Math.sin(worldTime / 220)) ** 10 * .35 : 0) : 0;
-      if (hero.fallen && !ended) {
+      if (hero.fallen && (!replay.ally || current.fighters.ally!.fallen) && !ended) {
         drain.greyscale(event?.type === 'down' && !reduced ? Math.min(1, time / 550) : 1, false); world.filters = [drain];
       } else world.filters = [];
       app.render();
       if (import.meta.env.DEV) {
         host.dataset.particles = String(pool!.active); host.dataset.sceneTime = String(Math.round(time));
         host.dataset.renderedFrames = String(++renderedFrames);
-        host.dataset.raging = String(current.raging); host.dataset.marked = current.marked ?? '';
+        host.dataset.raging = String(hero.raging); host.dataset.marked = hero.marked ?? '';
+        host.dataset.fighters = JSON.stringify(current.fighters);
       }
     };
     const resize = () => {
