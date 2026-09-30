@@ -1,0 +1,27 @@
+{
+  "base": "b8b99b8",
+  "before": [
+    {
+      "file": "baseline.js",
+      "bytes": 455277,
+      "gzip": 151449
+    },
+    {
+      "file": "baseline.css",
+      "bytes": 45785,
+      "gzip": 10063
+    }
+  ],
+  "now": [
+    {
+      "file": "/assets/index-t5XdBvtg.js",
+      "bytes": 455274,
+      "gzip": 151448
+    },
+    {
+      "file": "/assets/index-DAc-Xr1Y.css",
+      "bytes": 45785,
+      "gzip": 10063
+    }
+  ]
+}

@@ -1,0 +1,661 @@
+{
+  "results": [
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 64
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 64
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "en",
+      "reduced": true,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "en",
+      "reduced": true,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "en",
+      "reduced": true,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "en",
+      "reduced": true,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "en",
+      "reduced": true,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "en",
+      "reduced": true,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 375,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 375,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 375,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "en",
+      "reduced": false,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "en",
+      "reduced": false,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "en",
+      "reduced": false,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "en",
+      "reduced": false,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "en",
+      "reduced": false,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "en",
+      "reduced": false,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 60
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": false,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 62
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 1,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 1,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 1,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "barbarian-rage",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 2,
+      "events": 16,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 2,
+      "events": 21,
+      "effects": [
+        "mark"
+      ],
+      "peakParticles": 0
+    },
+    {
+      "name": "bearheart-relentless",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "speed": 2,
+      "events": 40,
+      "effects": [
+        "rage",
+        "rage-swing",
+        "rage-shrug",
+        "relentless"
+      ],
+      "peakParticles": 0
+    }
+  ],
+  "errors": []
+}
