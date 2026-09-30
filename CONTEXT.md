@@ -369,6 +369,17 @@ _Avoid_: party, group
 The other Hero of a Duo.
 _Avoid_: teammate, buddy
 
+**Manual fight** (бой по ходам):
+A fight in a Room played turn by turn, the Player choosing what its Hero does at each of its turns.
+_Avoid_: tactical mode, manual mode
+
+**Auto** (авто):
+A Hero fighting on its own, the AI choosing for it: from the doorway, or from any turn of a Manual fight.
+_Avoid_: autoplay, bot
+
+**Dodge** (уклонение), **Help** (помощь), **Guard** (прикрытие), **Pull up** (поднять):
+Choices for a Hero's turn: blows at it have disadvantage until its next turn; its partner's next attack has advantage; blows meant for its partner come to it; a fallen partner stands up.
+
 **Guild**:
 A small, permanent group of Players.
 _Avoid_: clan, faction

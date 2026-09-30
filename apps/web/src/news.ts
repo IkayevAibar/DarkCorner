@@ -19,16 +19,27 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-manual-fights',
+    date: '2026-09-30',
+    title: t('Fight your own way', 'Сражайтесь по-своему'),
+    items: [
+      t('Fights in Rooms are now played turn by turn. On your Hero’s turn, choose: tap a monster to attack it, cast Burst of fire or Cure wounds, drink a potion, Dodge, or try to escape. A Barbarian’s Rage and a Ranger’s Hunter’s mark come when you say.',
+        'Бои в комнатах теперь идут по ходам. В ход героя выбирайте сами: нажмите на монстра, чтобы атаковать, используйте «Огненный взрыв» или «Лечение ран», выпейте зелье, уклоняйтесь или попробуйте бежать. Ярость варвара и метка охотника — когда скажете.'),
+      t('In a hurry? Auto in the doorway fights the whole fight at once, as before, and Auto in a fight hands the rest to your Hero.',
+        'Торопитесь? «Авто» у двери проводит весь бой сразу, как раньше, а «Авто» в бою отдаёт остаток боя герою.'),
+    ],
+  },
+  {
     id: '2026-09-30-duos',
     date: '2026-09-30',
     title: t('Duos: the Labyrinth with a friend', 'Дуэты: лабиринт вдвоём'),
     items: [
       t('When a friend is online in the City, invite them from the Duo card in the City. Enter together, and either of you can lead: every Move, fight and Retreat takes you both.',
         'Когда друг в сети и в городе, позовите его с карточки «Дуэт» в городе. Входите вместе, и вести может любой из вас: каждый шаг, бой и отступление — на двоих.'),
-      t('A Duo meets more monsters and fights them side by side. Each Hero pays its own Stamina, gets the full XP and rolls its own gold and loot.',
-        'Дуэту попадается больше монстров, и вы бьётесь с ними плечом к плечу. Каждый герой платит своей выносливостью, получает весь опыт и свои золото и добычу.'),
-      t('A Cleric heals whichever of you is hurt worst, and if one of you falls, the other hauls them up when the fight is won. The Dragon is still faced alone.',
-        'Жрец лечит героя, у которого меньше здоровья, а если герой рухнет без сил, после победы напарник поставит его на ноги. С драконом по-прежнему бьются в одиночку.'),
+      t('A Duo meets tougher, bigger groups and fights them side by side, each of you choosing for your own Hero. Help your partner to advantage, Guard them from blows, and pull them up when they fall.',
+        'Дуэту попадаются группы больше и крепче, и вы бьётесь плечом к плечу, каждый выбирает за своего героя. Помогайте напарнику атаковать с преимуществом, прикрывайте его от ударов и поднимайте, если он упадёт.'),
+      t('Each Hero pays its own Stamina and rolls its own gold and loot. A turn left for 30 seconds goes to the AI. The Dragon is still faced alone.',
+        'Каждый герой платит своей выносливостью и получает свои золото и добычу. Ход, оставленный на 30 секунд, делает ИИ. С драконом по-прежнему бьются в одиночку.'),
     ],
   },
   {

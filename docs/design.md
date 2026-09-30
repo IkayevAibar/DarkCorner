@@ -234,7 +234,7 @@ The rules are a light version of the D&D System Reference Document (SRD 5.2).
 
 - **Checks:** roll a d20, add the ability modifier (plus proficiency when it applies), and compare the total with a difficulty. Advantage means roll two d20s and keep the higher. Disadvantage means keep the lower.
 - **Natural 20 and natural 1:** on an attack, a natural 20 is a critical hit (damage dice doubled) and a natural 1 always misses. On a Check, a natural 20 gives the best outcome and a natural 1 the worst.
-- **How fights work:** when a Hero enters a fight Room, the server works out the whole fight at once and the screen plays it back. The fight uses initiative (d20 + DEX), attack rolls against Armor Class, and damage dice. Tokens move and strike on the Room's battle map. In Season 0, where a token stands is only for show.
+- **How fights work:** a fight in a Room is played turn by turn: at each of its Hero's turns the Player chooses what it does (Manual fights, below), or hands it to the AI with Auto. The server rolls every die. The fight uses initiative (d20 + DEX), attack rolls against Armor Class, and damage dice. Tokens move and strike on the Room's battle map. In Season 0, where a token stands is only for show.
 - **Dice shown on screen:**
   - ability rolls when creating a Hero
   - critical hits and natural 1s
@@ -245,10 +245,28 @@ The rules are a light version of the D&D System Reference Document (SRD 5.2).
 - **Before a fight:** see below.
 - **Abilities:** some work once per fight. Others have a few uses per rest, and those come back after a long rest at a Camp or on returning to the City.
 - **Health:** damage carries over from Room to Room. Heroes heal with potions, Shrines, Cleric spells, a long rest at a Camp, or fully in the City. Waiting anywhere in the Labyrinth also heals, slowly: a twentieth of full health an hour *(v0)*, so a Hero left near death overnight can still walk out.
-- **Healing potions** *(v0)*: 2d4 + 2 plus a tenth of the Hero's full health, so they still matter deep down. In a fight a Hero drinks one below 30% health, at most 3 per fight.
+- **Healing potions** *(v0)*: 2d4 + 2 plus a tenth of the Hero's full health, so they still matter deep down. At most 3 per fight; a Hero on Auto drinks one below 30% health.
 - **Monsters:** they come in groups, and deeper Floors have stronger ones. Each kind has a power of its own (see Monsters below).
 - **Saving throws:** some powers call for a save: a d20 plus the ability modifier, plus proficiency in the Class's two saves (Fighter STR and CON, Rogue DEX and INT, Wizard INT and WIS, Cleric WIS and CHA). The DC is set by the power, +1 for every two Floors deeper into its theme.
 - **Weapons wound differently:** slashing (swords, axes), piercing (rapiers, daggers, bows) or blunt (maces, hammers, mauls, staves). It matters against some monsters.
+
+### Manual fights *(v0)*
+
+Every fight in a Room (monsters in the doorway, Mini-bosses, the Dragon) is played turn by turn. The monsters act on their own; when it is the Hero's turn, the fight waits for its Player.
+
+- **The Hero's turn:** one of these, as its Class, uses and the fight allow:
+  - **Attack:** tap a monster, or let the Hero hit the weakest. Every attack the Hero has that turn goes at it (the next one if it falls).
+  - **Burst of fire** (Wizard): every monster, one use. **Cure wounds** (Cleric): itself or its partner, one use. **Second wind** (Fighter): once a fight.
+  - **A Healing potion:** at most 3 a fight.
+  - **Dodge:** until its next turn, blows at it have disadvantage.
+  - **Escape:** an Escape roll (alone only).
+  - In a Duo: **Help**, **Guard** and **Pull up** (Duos, below).
+- **Free, before the action:** a Barbarian can start its Rage, and a Ranger put its Hunter's mark on a monster.
+- **A second action:** Preserve life's free Cure wounds and a Thief's Fast hands potion give the turn another choice.
+- **Auto:** the Hero fights the rest on its own, the way it always has: the same AI plays fights in events and the Daily Delve. From the doorway, **Auto** fights the whole fight at once. On Auto, a Hero's Stance also decides when it tries to escape; played by hand, Escape is the Player's call.
+- **The dice:** the server rolls every one. It keeps each fight's seed and the choices made, and plays it again from the start to where it stands, so a fight looks the same to everyone and can't be rolled over.
+- **While a fight goes on** nothing else happens: no Moves, rests, Bag changes, or leaving a Duo. A fight left waiting waits: the Hero is still in it next time.
+- **Not yet by hand** *(v0)*: fights inside events and the Daily Delve play on their own.
 
 ### Monsters
 
@@ -702,9 +720,14 @@ Two friends walk the Labyrinth together, while both are online.
 - **Forming:** the City's Duo card lists the Heroes whose Players are online and in the City, and not in a Duo. An invite lasts 10 minutes and also comes as a Notification; one invite out at a time. Accepting makes the two Heroes a Duo, and each is the other's **Partner**.
 - **Going in:** either Player enters, and both Heroes go: at Floor 1, or at a Waypoint both have woken. A Town Portal takes one Hero, so a Duo can't step back through one.
 - **Either Player leads:** every Move, fight, Sneak and Retreat takes the Duo. Each Hero pays its own Stamina: a Room is free for a Hero only when it has stood there and nothing new waits there for either Hero. A Door either Hero can get through lets both through (a Rogue picks the lock; otherwise one Iron key goes, the leader's first). Cracked walls either Hero could break, and secret Doors either spots, show to both.
-- **Monsters:** a Duo meets the Room's usual group and 60% as many again from the same Floor, rounded up *(v0)*. A Mini-boss has 35% more health *(v0)*. The pair meets the same group all day. Monsters either Hero hasn't beaten today wait for both, and the Threat shown is rated with the partner in the fight.
-- **Fights:** one fight, side by side. Both Heroes roll initiative, monsters pick a standing Hero to attack, and a breath or a blast hits both (each saves). A Cleric's Cure wounds mends whichever Hero is hurt worst. Nobody runs: a Wary Hero never tries to escape. A Hero that goes down and stabilizes is hauled up by its partner if the Duo wins, and shares the win.
-- **Rewards:** each Hero gets the fight's full XP and rolls its own gold and drops, and each finds its own Treasure, event, Vault and hidden hoard in a Room.
+- **Monsters:** a Duo meets two of the Floor's groups, each monster with 30% more health and hitting 20% harder on Floors 1–6, and 15% more health from Floor 7 *(v0)*: with both played by the AI, a Duo wins and dies about as often as a Hero alone. A Mini-boss has 35% more health again *(v0)*. The pair meets the same group all day. Monsters either Hero hasn't beaten today wait for both, and the Threat shown is rated with the partner in the fight.
+- **Fights:** one fight, side by side, played turn by turn: each Player chooses for its own Hero on its turns (Manual fights). A turn left 30 seconds goes to the AI *(v0)*, and a Player who is no longer online hands its Hero to the AI for the rest. Both Heroes roll initiative; a monster picks a standing Hero to attack, and a breath or a blast hits both (each saves). Nobody runs.
+- **Teamwork:**
+  - **Help:** the partner's next attack has advantage.
+  - **Guard:** until the Guard's next turn, blows meant for the partner come to it instead.
+  - **A fallen partner** stays down and makes a death save on each of its turns, until it is stable, dead, or back up. **Pull up** stands it with a quarter of its health on a WIS check against 10 *(v0)*, Clerics adding their proficiency; a Cleric's Cure wounds raises it too. Still down when the Duo wins, it is hauled up and shares the win.
+  - **Together:** a Rogue gets its full Sneak attack on a monster its partner went for this round, and a Hunter's mark counts for both Heroes.
+- **Rewards:** each Hero takes 65% of the fight's XP and of its gold *(v0)*, rolls its own drops, and finds its own Treasure, event, Vault and hidden hoard in a Room.
 - **Sneaking:** a group Check: each Hero rolls, and one success takes both past. A Smoke bomb covers both. Past a Mini-boss only if both could Sneak past it alone.
 - **Home:** leaving by a Waypoint or the entrance takes both home, still a Duo. Each Hero's Run is its own.
 - **The Boss** is faced alone: a Duo can't go into the lair *(v0)*.
