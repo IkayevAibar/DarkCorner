@@ -79,6 +79,8 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
     }
     case 'gate-open':
       return { tier: null, text: { en: 'The Boss gate is open', ru: 'Врата босса открыты' } };
+    case 'announcement':
+      return { tier: null, text: { en: `📣 ${String(d.en ?? '')}`, ru: `📣 ${String(d.ru ?? '')}` } };
     case 'delve-cleared':
       return { tier: 'rare', text: { en: `${hero} won all six Rooms of the Daily Delve: ${d.score} points`, ru: `${hero} проходит все шесть комнат спуска дня (очки: ${d.score})` } };
     case 'delve-podium': {

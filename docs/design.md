@@ -178,6 +178,23 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
 
   Tough learned late counts for every level the Hero already has.
 
+### First steps *(v0)*
+
+A new Hero's first hour gets a short list of goals, shown on the City screen and at the Labyrinth's gate, each with a small reward that also helps with the next one:
+
+| Goal | Reward |
+|---|---|
+| Win a fight | 2 Healing potions |
+| Bring gold home (leave the Labyrinth carrying some) | An Iron Chest and an Iron key |
+| Open a Chest | 2 Scrolls of Identify |
+| Reach level 2 | A Town Portal scroll |
+| Wake a Waypoint | 150 gold |
+| Choose your Path | 200 gold |
+| Reach Floor 3 | A Silver Chest and a Silver key |
+| Go down the Well (the Daily Delve) | 100 gold |
+
+The goals read what the living Hero has done (its Deed counts, level, Waypoints, deepest Floor and the Player's Delves), in any order. The Player claims each reward by hand, once a Season: a new Hero after Retiring finds the rewards already taken. The card goes once every reward is claimed.
+
 ### Deeds and Titles *(v0)*
 
 A **Deed** is a feat a Hero works toward all Season. The moment one is done, its gold goes to the Hero's gold in the City, the Feed says so, and the Hero earns its **Title**. The Player may wear one earned Title after the Hero's name, or none; others see it in the Tavern and on the Rankings. Each Deed is done once per Hero. Counting started with Deeds themselves, except the deepest Floor, which counts from the Hero's own record.
@@ -661,6 +678,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - the Boss weakens
   - a Season starts or ends
   - someone new signs in and waits at the gate, and when an admin lets them in (nothing else tells either of them)
+  - an admin posts an announcement (the admin page's Announce tab), which also goes into the Feed and, for Players who want news, out as a Notification
 
   Ordinary Legendaries are not Broadcast, to avoid spam.
 

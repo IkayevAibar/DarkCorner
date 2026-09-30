@@ -341,6 +341,10 @@ _Avoid_: berserk (that's a Path), fury
 A Ranger's mark on the toughest monster of a hard fight: the Ranger attacks it first, every hit on it deals more, and the mark moves on when it falls. A few a rest.
 _Avoid_: target, quarry
 
+**First steps** (первые шаги):
+A new Hero's short list of first goals (win a fight, bring gold home, open a Chest…), each with a small reward the Player claims once a Season.
+_Avoid_: tutorial, quests, achievements (those are Deeds)
+
 **Broadcast**:
 A post the game sends to the friends' Discord channel about a big moment.
 _Avoid_: announcement, notification

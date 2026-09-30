@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-first-steps',
+    date: '2026-09-30',
+    title: t('First steps', 'Первые шаги'),
+    items: [
+      t('New to the Labyrinth? The City now shows your next goal and its reward: win a fight, bring gold home, open a Chest, and so on. Each reward helps with the next.',
+        'Впервые в лабиринте? В городе теперь видна следующая цель и награда за неё: выиграть бой, принести золото домой, открыть сундук и так далее. Каждая награда помогает со следующей целью.'),
+      t('Already further along? Open the list: the rewards for everything you have done are waiting.',
+        'Уже продвинулись дальше? Откройте список: награды за всё сделанное ждут вас.'),
+    ],
+  },
+  {
     id: '2026-09-30-map',
     date: '2026-09-30',
     title: t('Ink your way through the Labyrinth', 'Чернилами по лабиринту'),

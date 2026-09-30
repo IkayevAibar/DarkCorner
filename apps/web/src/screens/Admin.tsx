@@ -14,17 +14,17 @@ const STATUS_STYLE: Record<AdminPlayer['status'], string> = {
   banned: 'text-tier-mythic border-tier-mythic/60',
 };
 
-type Tab = 'players' | 'season' | 'grant' | 'rolls';
+type Tab = 'players' | 'season' | 'grant' | 'rolls' | 'announce';
 
-/** Admin tools (docs/plan-season-0.md, week 5): Players, the Season, grants for testing, the roll log. */
+/** Admin tools (docs/plan-season-0.md, week 5): Players, the Season, grants for testing, the roll log, announcements. */
 export function Admin() {
   const { t } = useI18n();
   const [tab, setTab] = useState<Tab>('players');
   return (
     <section className="grid gap-3">
       <h1 className="sub-heading m-0">{t('admin.title')}</h1>
-      <div className="grid grid-cols-4 gap-1.5">
-        {(['players', 'season', 'grant', 'rolls'] as const).map((id) => (
+      <div className="flex flex-wrap gap-1.5">
+        {(['players', 'season', 'grant', 'rolls', 'announce'] as const).map((id) => (
           <button key={id} type="button" className={`btn btn-small ${tab === id ? 'btn-primary' : ''}`} onClick={() => setTab(id)}>
             {t(`admin.tab.${id}`)}
           </button>
@@ -34,6 +34,7 @@ export function Admin() {
       {tab === 'season' && <SeasonPanel />}
       {tab === 'grant' && <GrantPanel />}
       {tab === 'rolls' && <RollLog />}
+      {tab === 'announce' && <AnnouncePanel />}
     </section>
   );
 }
@@ -250,6 +251,41 @@ function GrantPanel() {
       )}
       <button type="button" className="btn btn-primary" disabled={busy || !playerId || (!gold && !base)} onClick={submit}>{t('admin.grant.go')}</button>
       {done && <p className="m-0 text-sm text-tier-uncommon">{t('admin.grant.done')}</p>}
+      {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+    </div>
+  );
+}
+
+/** A message from the owner to everyone: Discord, the Tavern's Feed, and phones that want news. */
+function AnnouncePanel() {
+  const { t } = useI18n();
+  const { busy, error, run } = useAction();
+  const [en, setEn] = useState('');
+  const [ru, setRu] = useState('');
+  const [push, setPush] = useState(true);
+  const [sent, setSent] = useState<{ discord: boolean; notified: number } | null>(null);
+  const send = () => void run(async () => {
+    setSent(await api.adminAnnounce({ en: en.trim(), ru: ru.trim(), push }));
+    setEn('');
+    setRu('');
+  });
+  return (
+    <div className="panel grid gap-3 p-3">
+      <p className="m-0 text-sm text-muted">{t('admin.announce.hint')}</p>
+      <label className="grid gap-1 text-sm">
+        <span className="text-muted">{t('admin.announce.en')}</span>
+        <textarea className="field min-h-24" maxLength={1200} value={en} onChange={(e) => setEn(e.target.value)} />
+      </label>
+      <label className="grid gap-1 text-sm">
+        <span className="text-muted">{t('admin.announce.ru')}</span>
+        <textarea className="field min-h-24" maxLength={1200} value={ru} onChange={(e) => setRu(e.target.value)} />
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" checked={push} onChange={(e) => setPush(e.target.checked)} />
+        {t('admin.announce.push')}
+      </label>
+      <button type="button" className="btn btn-primary" disabled={busy || !en.trim() || !ru.trim()} onClick={send}>{t('admin.announce.go')}</button>
+      {sent && <p className="m-0 text-sm text-tier-uncommon">{t(sent.discord ? 'admin.announce.done' : 'admin.announce.noDiscord', { n: sent.notified })}</p>}
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
     </div>
   );

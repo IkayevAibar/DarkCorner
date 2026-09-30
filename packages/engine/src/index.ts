@@ -31,3 +31,4 @@ export * from './content/strikes.js';
 export * from './levels.js';
 export * from './features.js';
 export * from './delve.js';
+export * from './content/steps.js';

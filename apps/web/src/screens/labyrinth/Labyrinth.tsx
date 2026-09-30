@@ -24,6 +24,7 @@ import { THREAT_TONE, ThreatChip } from '../../components/ThreatChip';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
 import { FightLog } from './FightLog';
 import { FloorMap } from './FloorMap';
+import { FirstSteps } from '../../components/FirstSteps';
 import { MiniMap } from '../../components/map/MiniMap';
 import { roomArt } from './roomArt';
 import { TierBurst } from '../../components/loot/TierBurst';
@@ -192,6 +193,7 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
       </section>
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
       {view.bestFloor === 0 && <FirstRunTips />}
+      <FirstSteps />
 
       {popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
     </>

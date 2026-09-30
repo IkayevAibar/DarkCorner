@@ -126,13 +126,14 @@ export async function notify(tx: Tx, playerId: string, message: PushMessage, at 
   if (listening > 0) await schedule(tx, 'push', at, { playerId, message: message as unknown as Record<string, unknown> });
 }
 
-/** The same notification for every Player who has a device and wants this kind. */
-export async function notifyAll(tx: Tx, message: PushMessage, at = new Date()): Promise<void> {
+/** The same notification for every Player who has a device and wants this kind; returns how many. */
+export async function notifyAll(tx: Tx, message: PushMessage, at = new Date()): Promise<number> {
   const players = await tx.player.findMany({
     where: { pushSubs: { some: {} }, NOT: { pushOff: { has: message.kind } } },
     select: { id: true },
   });
   for (const p of players) await schedule(tx, 'push', at, { playerId: p.id, message: message as unknown as Record<string, unknown> });
+  return players.length;
 }
 
 onJob('push', async (payload) => {

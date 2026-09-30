@@ -13,6 +13,7 @@ import { labyrinthRoutes } from './routes/labyrinth.js';
 import { meRoutes } from './routes/me.js';
 import { pushRoutes } from './routes/push.js';
 import { delveRoutes } from './routes/delve.js';
+import { stepsRoutes } from './routes/steps.js';
 import { tavernRoutes } from './routes/tavern.js';
 import './services/jobs.js';
 
@@ -76,6 +77,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(tavernRoutes);
   await app.register(pushRoutes);
   await app.register(delveRoutes);
+  await app.register(stepsRoutes);
 
   return app;
 }

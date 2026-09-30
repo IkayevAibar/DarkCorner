@@ -35,6 +35,8 @@ model Player {
   lastSeenAt DateTime?
   /// Kinds of push notification the Player turned off (docs/design.md → Notifications).
   pushOff    String[]  @default([])
+  /// First steps claimed, by Season: { [seasonId]: { [stepId]: when } } (docs/design.md → First steps).
+  steps      Json      @default("{}")
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 

@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import {
   type AdminPlayersResponse, type AdminSeasonView, type RollLogView, adminGateSchema, adminGrantSchema, adminPlayerDecisionSchema,
   adminSeasonActionSchema,
+  type AdminAnnounceResult, adminAnnounceSchema,
 } from '@dark/shared';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -11,6 +12,7 @@ import { broadcast } from '../services/broadcast.js';
 import { letIn, letInAll, toAdminPlayer } from '../services/players.js';
 import { gateOpen, setGate } from '../services/settings.js';
 import { announceVault, discardSeason, endSeason, openGateNow, startSeason } from '../services/seasonLife.js';
+import { announce } from '../services/steps.js';
 import { runDueJobs } from '../services/scheduler.js';
 import { currentSeason } from '../services/seasons.js';
 
@@ -77,6 +79,8 @@ export async function adminRoutes(app: FastifyInstance) {
     await runDueJobs();
     return adminSeasonView();
   });
+
+  app.post('/api/admin/announce', guard, async (request): Promise<AdminAnnounceResult> => announce(adminAnnounceSchema.parse(request.body)));
 
   app.post('/api/admin/grant', guard, async (request) => {
     await grant(adminGrantSchema.parse(request.body));
