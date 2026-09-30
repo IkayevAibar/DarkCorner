@@ -1,15 +1,18 @@
 /**
- * Duos with par Heroes (scripts/par.ts): a pair against Duo Rooms beside each of them
- * alone in ordinary Rooms, Floor by Floor. Target (docs/design.md → Duos): a pair wins
- * about as often as a Hero alone, and dies less, and each Hero earns more XP a fight.
+ * Duos with Starter-kit Heroes: a pair against Duo Rooms beside each of them alone in
+ * ordinary Rooms, Floor by Floor, both played by the AI. Target (docs/design.md → Duos):
+ * a pair wins and dies about as often as a Hero alone, and each Hero earns a little more XP.
  * Run: npm run balance:duo -w @dark/engine
  */
 import {
   CLASS_DEFS, type ClassId, DUO, type HeroCombat, createRng, duoEncounter, heroCombat, restUses, simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
-const extra = process.argv[2];
-if (extra) DUO.extra = Number(extra);
+// Try other tuning: npm run balance:duo -w @dark/engine -- <extra> <hp> <damage>
+const [extra, hp, damage] = process.argv.slice(2).map(Number);
+if (extra) DUO.extra = extra;
+if (hp) DUO.hp = hp;
+if (damage) DUO.damage = damage;
 
 /** A level-N Hero of a Class in its Starter kit (as balance:fights): where fights are close. */
 function starter(cls: ClassId, level: number): HeroCombat {
@@ -27,7 +30,7 @@ const PAIRS: [ClassId, ClassId][] = [['fighter', 'wizard'], ['rogue', 'cleric'],
 const pct = (x: number) => `${Math.round(100 * x)}%`.padStart(4);
 const side = (h: HeroCombat) => ({ hero: h, uses: restUses(h.class, h.level, h.path), potions: 3, runPowers: { deathless: false, lucky: false }, stance: 'steady' as const });
 
-console.log('Starter kits, level = Floor, Steady, 3 potions each. Solo: each Hero alone in an ordinary Room. Duo: the pair in a Duo Room (XP is per Hero).');
+console.log(`Starter kits, level = Floor, Steady, 3 potions each. Solo: each Hero alone in an ordinary Room. Duo: the pair in a Duo Room (extra ${DUO.extra}, health ×${DUO.hp}/${DUO.deepHp}, damage ×${DUO.damage}/${DUO.deepDamage} before/from Floor ${DUO.deepFrom}, XP per Hero at a ${DUO.share} share).`);
 for (const [a, b] of PAIRS) {
   console.log(`${a} + ${b}`);
   for (let floor = 1; floor <= 9; floor++) {
@@ -45,7 +48,7 @@ for (const [a, b] of PAIRS) {
       const monsters = duoEncounter(createRng(`dm:${floor}:${i}`), floor, 'fight');
       const r = simulateFight(createRng(`duo:${floor}:${i}`), { ...side(ha), monsters, ally: side(hb) });
       for (const o of [r.outcome, r.ally!.outcome]) {
-        if (o === 'victory') { duoWin++; duoXp += r.xp; }
+        if (o === 'victory') { duoWin++; duoXp += r.xp * DUO.share; }
         if (o === 'dead') duoDead++;
       }
     }

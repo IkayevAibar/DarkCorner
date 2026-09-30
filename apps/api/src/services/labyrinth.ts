@@ -310,6 +310,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     portal: portalOf(hero, now),
     bestFloor: hero.bestFloor,
     duo: partner ? partnerView(partner, now) : null,
+    fight: null,
   };
 
   if (hero.location === 'CITY' || hero.floor === null || hero.room === null) {

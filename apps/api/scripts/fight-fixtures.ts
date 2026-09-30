@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { type Combatant, type FightReplay, fightReplaySchema } from '@dark/shared';
 import {
   BANNER_COLORS, CLASS_DEFS, type ClassId, type FightInput, type FightResult, type MonsterInstance, type PathId, type RaceId, type StanceId, THEMES, createRng,
-  duoEncounter, fireBomb, forAlly, heroCombat, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth, themeOf, weaponStrike,
+  type HeroAction, type HeroChoice, type HeroKey, type TurnOptions, duoEncounter, fireBomb, forAlly, heroCombat, playFight, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth, themeOf, weaponStrike,
 } from '@dark/engine';
 
 interface Who { name: string; race: RaceId; class: ClassId; portrait: string; banner: string }
@@ -19,6 +19,8 @@ interface Scenario {
   hero: Who;
   /** A Duo partner fighting alongside (key 'ally'); the monsters are a Duo's. */
   ally?: { hero: Who; level: number; health: number; potions: number; stance?: StanceId };
+  /** Both Heroes played by hand, as in a manual fight: the choice for each turn. */
+  policy?: (turn: TurnOptions) => HeroAction;
   level: number;
   floor: number;
   kind: 'fight' | 'miniboss' | 'boss';
@@ -193,11 +195,23 @@ const SCENARIOS: Record<string, Scenario> = {
       && has(r, (e) => e.type === 'attack' && e.actor === 'ally' && e.hit) && has(r, (e) => e.type === 'attack' && e.target === 'ally')
       && has(r, (e) => e.type === 'heal' && e.ability === 'cure-wounds' && e.by === 'ally' && e.actor === 'hero'),
   },
-  'duo-hauled-up': {
+  'duo-pulled-up': {
     hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] },
     ally: { hero: { name: 'Hrolf', race: 'dwarf', class: 'barbarian', portrait: '/art/portraits/dwarf-fighter-1.webp', banner: BANNER_COLORS[7] }, level: 4, health: 1, potions: 1 },
     level: 3, floor: 4, kind: 'fight', health: 0.5, potions: 0,
-    want: (r) => r.outcome === 'victory' && r.events.length <= 60 && has(r, (e) => e.type === 'down' && !e.actor) && !has(r, (e) => e.type === 'rise'),
+    want: (r) => r.outcome === 'victory' && r.events.length <= 60 && has(r, (e) => e.type === 'down' && !e.actor)
+      && has(r, (e) => e.type === 'death-save' && !e.actor) && has(r, (e) => e.type === 'revive' && e.success),
+  },
+  'duo-teamwork': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.webp', banner: BANNER_COLORS[0] },
+    ally: { hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] }, level: 4, health: 1, potions: 1 },
+    level: 4, floor: 3, kind: 'fight', health: 1, potions: 1,
+    // Played by hand: the Fighter Guards, then Helps; the Wizard opens with a burst, then Dodges once.
+    policy: (turn) => turn.hero === 'hero'
+      ? { kind: turn.round === 1 && turn.actions.includes('guard') ? 'guard' : turn.round === 2 && turn.actions.includes('help') ? 'help' : 'attack' }
+      : { kind: turn.round === 1 && turn.actions.includes('burst') ? 'burst' : turn.round === 2 ? 'dodge' : 'attack' },
+    want: (r) => r.outcome === 'victory' && r.events.length <= 60
+      && ['guard', 'help', 'dodge'].every((f) => has(r, (e) => e.type === 'feature' && e.feature === f)),
   },
   'bearheart-relentless': {
     hero: { name: 'Hrolf', race: 'dwarf', class: 'barbarian', portrait: '/art/portraits/dwarf-fighter-1.webp', banner: BANNER_COLORS[7] },
@@ -230,6 +244,17 @@ const drawn = (key: 'hero' | 'ally', who: Who, h: ReturnType<typeof makeHero>): 
   powers: [], strike: weaponStrike(h.weapon?.base), kin: null, class: who.class,
 });
 
+/** A fight played by hand to its end, the way the server does it: each pause asks `policy`. */
+function byHand(seed: string, input: FightInput, policy: (turn: TurnOptions) => HeroAction): FightResult {
+  const manual: HeroKey[] = input.ally ? ['hero', 'ally'] : ['hero'];
+  const choices: HeroChoice[] = [];
+  for (;;) {
+    const r = playFight(createRng(seed), input, { manual, choices });
+    if (!('paused' in r)) return r;
+    choices.push({ hero: r.turn.hero, action: policy(r.turn) });
+  }
+}
+
 /** A Duo fight as the partner's Player sees it: the same fight, the two Heroes trading places. */
 const partnerSides: Record<string, FightReplay> = {};
 
@@ -239,14 +264,15 @@ function run(name: string, s: Scenario): FightReplay {
   for (let i = 0; i < 60_000; i++) {
     const spawn = createRng(`${name}:spawn:${i}`);
     const monsters = ally && s.kind !== 'boss' ? duoEncounter(spawn, s.floor, s.kind) : spawnEncounter(spawn, s.floor, s.kind);
-    const result = simulateFight(createRng(`${name}:fight:${i}`), {
+    const input: FightInput = {
       hero: { ...hero }, monsters, uses: restUses(s.hero.class, s.level, s.path ?? null), potions: s.potions, runPowers: { deathless: false, lucky: false },
       stance: s.stance ?? 'bold', surprise: s.surprise ?? null, bomb: s.bomb ? fireBomb(s.floor) : null, gold: s.gold ?? 0,
       ally: ally && s.ally ? {
         hero: { ...ally }, uses: restUses(s.ally.hero.class, s.ally.level, null), potions: s.ally.potions, runPowers: { deathless: false, lucky: false },
         stance: s.ally.stance ?? 'bold',
       } : null,
-    });
+    };
+    const result = s.policy ? byHand(`${name}:fight:${i}`, input, s.policy) : simulateFight(createRng(`${name}:fight:${i}`), input);
     if (!s.want(result, monsters)) continue;
     const map = THEMES[themeOf(s.floor)].maps[0];
     if (ally && s.ally && result.ally) {

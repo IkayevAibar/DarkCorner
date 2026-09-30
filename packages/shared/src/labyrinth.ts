@@ -95,7 +95,7 @@ export const fightEventSchema = z.discriminatedUnion('type', [
    * ward rises (`left`) or soaks `amount`, a Barbarian's Rage begins, a Ranger's Hunter's mark goes on `target`.
    */
   z.object({
-    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless']),
+    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless', 'dodge', 'help', 'guard']),
     amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(), target: z.string().optional(),
     actor: who,
   }),
@@ -129,6 +129,11 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('reroll'), natural: z.number().int(), actor: who }),
   /** An Escape roll the Hero's Stance made it try, badly hurt. */
   z.object({ type: z.literal('escape'), natural: z.number().int(), total: z.number().int(), dc: z.number().int(), success: z.boolean(), actor: who }),
+  /** A Hero pulls its fallen Duo partner (`target`) up: a WIS check against `dc`; on a success it stands with `hp`. */
+  z.object({
+    type: z.literal('revive'), target: z.string(), natural: z.number().int(), total: z.number().int(), dc: z.number().int(), success: z.boolean(),
+    hp: z.number().int(), actor: who,
+  }),
   z.object({ type: z.literal('end'), outcome: fightOutcomeSchema }),
 ]);
 export type FightEventView = z.infer<typeof fightEventSchema>;
@@ -145,6 +150,68 @@ export const fightReplaySchema = z.object({
   outcome: fightOutcomeSchema,
 });
 export type FightReplay = z.infer<typeof fightReplaySchema>;
+
+// ─── Manual fights (docs/design.md → Manual fights) ──────────────────────
+
+/** What a Hero can do with its turn. */
+export const HERO_ACTIONS = ['attack', 'burst', 'cure', 'second-wind', 'potion', 'escape', 'dodge', 'help', 'guard', 'revive'] as const;
+export const heroActionKindSchema = z.enum(HERO_ACTIONS);
+export type HeroActionKind = z.infer<typeof heroActionKindSchema>;
+
+/**
+ * POST /api/labyrinth/fight — the Player's choice for its Hero's turn. `target`: the
+ * monster to attack (the Hero picks when left out) or the Hero to cure ('hero', 'ally',
+ * from this Player's side). `rage` and `mark` cost no turn and come first. 'auto' hands
+ * the Hero to the AI for the rest of the fight.
+ */
+export const heroActionSchema = z.object({
+  kind: z.union([heroActionKindSchema, z.literal('auto')]),
+  target: z.string().max(10).optional(),
+  rage: z.boolean().optional(),
+  mark: z.string().max(10).optional(),
+});
+export type HeroActionView = z.infer<typeof heroActionSchema>;
+export const fightActionRequestSchema = z.object({ action: heroActionSchema });
+
+/** A Hero's turn: whose it is (from this Player's side), and what it can do. */
+export const turnOptionsSchema = z.object({
+  hero: z.enum(['hero', 'ally']),
+  round: z.number().int(),
+  /** A second action in the same turn: after Preserve life's free Cure wounds, or a Thief's Fast hands. */
+  continuing: z.boolean(),
+  actions: z.array(heroActionKindSchema),
+  /** Monsters it can attack or mark. */
+  targets: z.array(z.string()),
+  /** Heroes its Cure wounds can reach, a fallen partner too. */
+  cure: z.array(z.enum(['hero', 'ally'])),
+  /** It can start a Rage, or place a Hunter's mark, before acting. */
+  rage: z.boolean(),
+  mark: z.boolean(),
+  /** Attacks an 'attack' makes this turn. */
+  attacks: z.number().int(),
+  spells: z.number().int(),
+  heals: z.number().int(),
+  /** Healing potions it can still drink this fight. */
+  potions: z.number().int(),
+});
+export type TurnOptionsView = z.infer<typeof turnOptionsSchema>;
+
+/** A fight being played turn by turn, as this Player sees it: everything so far, and whose turn it is. */
+export const liveFightSchema = z.object({
+  map: z.string(),
+  hero: combatantSchema,
+  ally: combatantSchema.nullable(),
+  monsters: z.array(combatantSchema),
+  events: z.array(fightEventSchema),
+  turn: turnOptionsSchema,
+  /** It is this Player's turn to choose. */
+  mine: z.boolean(),
+  /** In a Duo, when the AI takes the waiting Hero's turn; null alone. */
+  deadline: z.string().nullable(),
+  /** This Player's Hero fights on its own for the rest of the fight. */
+  auto: z.boolean(),
+});
+export type LiveFight = z.infer<typeof liveFightSchema>;
 
 // ─── Before a fight: Stance, Threat, Sneaking ─────────────────────────────
 
@@ -192,8 +259,8 @@ export type Facing = z.infer<typeof facingSchema>;
 
 /** POST /api/labyrinth/face — what the Hero does about the monsters it faces. */
 export const faceActionSchema = z.discriminatedUnion('action', [
-  /** `bomb`: throw a Fire bomb first. */
-  z.object({ action: z.literal('fight'), bomb: z.boolean().default(false) }),
+  /** `bomb`: throw a Fire bomb first. `auto`: the Hero fights on its own, as before manual fights; otherwise the fight waits for each turn. */
+  z.object({ action: z.literal('fight'), bomb: z.boolean().default(false), auto: z.boolean().default(false) }),
   /** `smoke`: a Smoke bomb makes it sure. */
   z.object({ action: z.literal('sneak'), smoke: z.boolean().default(false) }),
   z.object({ action: z.literal('retreat') }),
@@ -456,6 +523,8 @@ export const labyrinthViewSchema = z.object({
   graves: z.array(graveViewSchema),
   /** The Duo this Hero is in (docs/design.md → Duos), or null alone. */
   duo: duoPartnerSchema.nullable().default(null),
+  /** A fight being played turn by turn: nothing else happens until it ends. */
+  fight: liveFightSchema.nullable().default(null),
 });
 export type LabyrinthView = z.infer<typeof labyrinthViewSchema>;
 

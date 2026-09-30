@@ -52,19 +52,6 @@ describe('Duo fights', () => {
     expect(mended).toBeGreaterThan(0);
   });
 
-  it('haul a fallen partner up when the Duo wins', () => {
-    let hauled = 0;
-    for (let i = 0; i < 400 && hauled < 3; i++) {
-      const r = simulateFight(createRng(`haul-${i}`), duoFight(starter('barbarian', 5), starter('wizard', 2), 4, `haul-${i}`));
-      const fell = r.events.some((e) => e.type === 'down' && e.actor === 'ally') && !r.events.some((e) => e.type === 'rise' && e.actor === 'ally');
-      if (!fell || r.outcome !== 'victory' || r.ally!.outcome === 'dead') continue;
-      expect(r.ally!.outcome).toBe('victory');
-      expect(r.ally!.hp).toBe(1);
-      hauled++;
-    }
-    expect(hauled).toBeGreaterThan(0);
-  });
-
   it('meet more monsters than a Hero alone would', () => {
     for (let i = 0; i < 30; i++) {
       const solo = spawnEncounter(createRng(`size-${i}`), 4, 'fight');

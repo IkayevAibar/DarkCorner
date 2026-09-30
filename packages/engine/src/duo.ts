@@ -3,14 +3,16 @@ import type { OmenDef } from './content/omens.js';
 import type { Rng } from './rng.js';
 
 // Duos (docs/design.md → Duos): two Heroes walking the same Rooms and fighting
-// side by side. Their monsters are the Room's usual group and about half again
-// as many more, so a pair still meets a real fight, and each Hero is paid in full.
+// side by side. Their monsters are two groups, hardier than usual, so a pair meets
+// as real a fight as one Hero alone, and each Hero takes a share of what it pays.
 
 /**
- * Tuning (v0): how many of a second group join a Duo's Room, as a share of it, and how
- * much more health a Mini-boss has against two Heroes. An object, so balance:duo can try others.
+ * Tuning (v0), so a Duo fight is about as dangerous as one alone (balance:duo, which can
+ * try others): how much of a second group joins (1: all of it); the health and damage
+ * of every monster that meets a Duo, lighter from Floor `deepFrom` on; a Mini-boss's
+ * extra health; and the share of a fight's XP and gold each Hero takes.
  */
-export const DUO = { extra: 0.6, bossHp: 1.35 };
+export const DUO = { extra: 1, hp: 1.3, damage: 1.2, deepHp: 1.15, deepDamage: 1, deepFrom: 7, bossHp: 1.35, share: 0.65 };
 
 /**
  * Who waits for a Duo in a Room: the solo group, plus part of a second one from
@@ -26,7 +28,12 @@ export function duoEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss'
     const hp = Math.round(leader.maxHp * DUO.bossHp);
     base[0] = { ...leader, hp, maxHp: hp };
   }
-  return [...base, ...extra];
+  // Monsters that meet two Heroes are hardier and hit harder.
+  const deep = floor >= DUO.deepFrom;
+  return [...base, ...extra].map((mm) => {
+    const hp = Math.round(mm.maxHp * (deep ? DUO.deepHp : DUO.hp));
+    return { ...mm, hp, maxHp: hp, damageFactor: mm.damageFactor * (deep ? DUO.deepDamage : DUO.damage) };
+  });
 }
 
 const swap = (key: string): string => (key === 'hero' ? 'ally' : key === 'ally' ? 'hero' : key);

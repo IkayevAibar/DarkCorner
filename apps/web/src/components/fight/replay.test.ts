@@ -4,8 +4,8 @@ import { FIGHTS, EXTRA_FIGHTS, REAL_FIGHTS } from '../../screens/sandbox/fightEx
 import { advance, dieFor, framesFor, initialFrame } from './replay';
 
 describe('recorded fight playback', () => {
-  it('accepts all 34 engine replays and supplemental examples without mutating them', () => {
-    expect(Object.keys(REAL_FIGHTS)).toHaveLength(34);
+  it('accepts all 36 engine replays and supplemental examples without mutating them', () => {
+    expect(Object.keys(REAL_FIGHTS)).toHaveLength(36);
     for (const replay of Object.values(FIGHTS)) {
       fightReplaySchema.parse(replay);
       const before = JSON.stringify(replay);
@@ -20,7 +20,7 @@ describe('recorded fight playback', () => {
     const events = Object.values(FIGHTS).flatMap(f => f.events);
     expect(new Set(events.map(e => e.type))).toEqual(new Set([
       'initiative', 'surprise', 'attack', 'blocked', 'burst', 'heal', 'feature', 'power', 'save',
-      'status', 'expire', 'tick', 'held', 'fled', 'defeated', 'down', 'death-save', 'rise', 'reroll', 'escape', 'end',
+      'status', 'expire', 'tick', 'held', 'fled', 'defeated', 'down', 'death-save', 'rise', 'reroll', 'escape', 'revive', 'end',
     ]));
     expect(new Set(Object.values(REAL_FIGHTS).flatMap(f => f.events).flatMap(e => e.type === 'power' ? [e.power] : []))).toEqual(new Set([
       'thief', 'mend', 'drain', 'breath', 'undying', 'enrage', 'frighten', 'explode', 'wail',

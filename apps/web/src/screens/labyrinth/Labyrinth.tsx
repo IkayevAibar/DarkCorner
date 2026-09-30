@@ -794,11 +794,11 @@ function FacingCard({ facing, view, busy, act, onAside, onFoe }: {
       </div>
 
       <div className="grid gap-2">
-        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => choose(() => {}, () => api.face({ action: 'fight', bomb: false }))}>
+        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => choose(() => {}, () => api.face({ action: 'fight', bomb: false, auto: true }))}>
           {t('facing.fight')}
         </button>
         {fire > 0 && (
-          <button type="button" className="btn" disabled={busy} onClick={() => choose(() => play('latch'), () => api.face({ action: 'fight', bomb: true }))}>
+          <button type="button" className="btn" disabled={busy} onClick={() => choose(() => play('latch'), () => api.face({ action: 'fight', bomb: true, auto: true }))}>
             {t('facing.bomb', { n: fire })}
           </button>
         )}

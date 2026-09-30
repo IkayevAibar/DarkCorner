@@ -130,10 +130,14 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
       if (e.feature === 'relentless') return t('fight.feature.relentless', { name: self });
       if (e.feature === 'rage') return t('fight.feature.rage', { name: self });
       if (e.feature === 'mark') return t('fight.feature.mark', { name: self, target: n(e.target ?? '') });
+      if (e.feature === 'dodge') return t('fight.feature.dodge', { name: self });
+      if (e.feature === 'help') return t('fight.feature.help', { name: self, target: n(e.target ?? '') });
+      if (e.feature === 'guard') return t('fight.feature.guard', { name: self, target: n(e.target ?? '') });
       return e.amount === undefined
         ? t('fight.feature.wardUp', { name: self, n: e.left ?? 0 })
         : t('fight.feature.ward', { n: e.amount, left: e.left ?? 0 });
     case 'fled': return t('fight.fled', { name: n(e.key) });
+    case 'revive': return t(e.success ? 'fight.revive.yes' : 'fight.revive.no', { actor: self, target: n(e.target), d: e.natural, t: e.total, dc: e.dc, n: e.hp });
     case 'end': return null;
   }
 }
