@@ -25,6 +25,7 @@ export const NEWS: NewsEntry[] = [
     items: [
       t('Your Floor map now has inked Room symbols, locks, cracked walls and secret Doors. Revealed Rooms show what awaits, and a small legend explains every mark.', 'На карте этажа появились рисованные обозначения комнат, замки, треснувшие стены и тайные двери. Открытые на карте комнаты показывают, что ждёт впереди, а условные обозначения объясняют каждый знак.'),
       t('Tap an exit on the Map or use the larger Door buttons below it. Free Moves have a quiet marker.', 'Нажмите на выход на карте или на крупную кнопку двери под ней. Бесплатные шаги отмечены небольшим знаком.'),
+      t('A small live map now sits in the corner of every Room, and your token walks it with you. Tap it to open the full Map.', 'В углу каждой комнаты теперь есть маленькая живая карта, и ваш знак шагает по ней вместе с вами. Нажмите на неё, чтобы открыть карту этажа.'),
     ],
   },
   {

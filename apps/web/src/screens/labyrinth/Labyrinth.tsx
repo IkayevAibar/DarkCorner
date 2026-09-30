@@ -24,6 +24,7 @@ import { THREAT_TONE, ThreatChip } from '../../components/ThreatChip';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
 import { FightLog } from './FightLog';
 import { FloorMap } from './FloorMap';
+import { MiniMap } from '../../components/map/MiniMap';
 import { roomArt } from './roomArt';
 import { TierBurst } from '../../components/loot/TierBurst';
 
@@ -307,6 +308,12 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         {facing && (
           <div className="absolute top-[70px] right-3">
             <ThreatChip threat={facing.threat[hero.stance]} />
+          </div>
+        )}
+        {/* The corner above the belt: clear of every Door arrow, the monsters and the Hero. */}
+        {view.map && (
+          <div className="absolute right-3 bottom-[66px]">
+            <MiniMap key={floor.number} map={view.map} current={room.id} banner={hero.banner} exits={exits} onOpen={() => setPopup('map')} />
           </div>
         )}
       </Stage>
