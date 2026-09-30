@@ -1,0 +1,64 @@
+import { type FightEvent, type FightOutcome, type MonsterInstance, spawnEncounter } from './combat.js';
+import type { OmenDef } from './content/omens.js';
+import type { Rng } from './rng.js';
+
+// Duos (docs/design.md → Duos): two Heroes walking the same Rooms and fighting
+// side by side. Their monsters are the Room's usual group and about half again
+// as many more, so a pair still meets a real fight, and each Hero is paid in full.
+
+/**
+ * Tuning (v0): how many of a second group join a Duo's Room, as a share of it, and how
+ * much more health a Mini-boss has against two Heroes. An object, so balance:duo can try others.
+ */
+export const DUO = { extra: 0.6, bossHp: 1.35 };
+
+/**
+ * Who waits for a Duo in a Room: the solo group, plus part of a second one from
+ * the same Floor; a Mini-boss comes tougher and with one more of its kind at its side.
+ */
+export function duoEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss', weakening = 0, omen: OmenDef | null = null): MonsterInstance[] {
+  const base = spawnEncounter(rng, floor, kind, weakening, omen);
+  const second = spawnEncounter(rng, floor, 'fight', 0, omen);
+  const take = Math.max(1, Math.ceil(second.length * DUO.extra));
+  const extra = second.slice(0, take).map((mm, i) => ({ ...mm, key: `m${base.length + i}` }));
+  if (kind === 'miniboss') {
+    const leader = base[0]!;
+    const hp = Math.round(leader.maxHp * DUO.bossHp);
+    base[0] = { ...leader, hp, maxHp: hp };
+  }
+  return [...base, ...extra];
+}
+
+const swap = (key: string): string => (key === 'hero' ? 'ally' : key === 'ally' ? 'hero' : key);
+
+/** An event's implicit subject (the Hero when no `actor` is given), seen from the other side. */
+function swapImplicit<E extends { actor?: string }>(e: E): E {
+  const { actor, ...rest } = e;
+  const now = swap(actor ?? 'hero');
+  return (now === 'hero' ? rest : { ...rest, actor: now }) as E;
+}
+
+/**
+ * The same fight as the partner sees it: "hero" is always the one watching. Every
+ * Hero key trades places, and the end is the partner's own.
+ */
+export function forAlly(events: FightEvent[], allyOutcome: FightOutcome): FightEvent[] {
+  return events.map((e): FightEvent => {
+    switch (e.type) {
+      case 'initiative': return { ...e, order: e.order.map(swap) };
+      case 'attack': return { ...e, actor: swap(e.actor), target: swap(e.target) };
+      case 'blocked': {
+        const { target, ...rest } = e;
+        const now = swap(target ?? 'hero');
+        return now === 'hero' ? rest : { ...rest, target: now };
+      }
+      case 'burst': return { ...e, actor: swap(e.actor) };
+      case 'heal': return { ...e, actor: swap(e.actor), ...(e.by ? { by: swap(e.by) } : {}) };
+      case 'power': return e.target ? { ...e, target: swap(e.target) } : e;
+      case 'status': case 'tick': case 'held': case 'expire': return { ...e, target: swap(e.target) };
+      case 'feature': case 'save': case 'down': case 'death-save': case 'rise': case 'reroll': case 'escape': return swapImplicit(e);
+      case 'end': return { ...e, outcome: allyOutcome };
+      default: return e;
+    }
+  });
+}

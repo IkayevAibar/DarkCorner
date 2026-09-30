@@ -12,6 +12,7 @@
     "balance:fights": "tsx scripts/fight-balance.ts",
     "balance:par": "tsx scripts/par-balance.ts",
     "balance:delve": "tsx scripts/delve-balance.ts",
+    "balance:duo": "tsx scripts/duo-balance.ts",
     "balance:season": "tsx scripts/season-balance.ts"
   },
   "devDependencies": {
