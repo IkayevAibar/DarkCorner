@@ -429,7 +429,7 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
   } else if (THREAT_RANK[threat] <= 2 || (threat === 'dangerous' && full && (hero.bombs.fire > 0 || (dragon && stance !== 'bold')))) {
     const bomb = hero.bombs.fire > 0 && THREAT_RANK[threat] >= 2;
     bot.doing = `fight ${threat} (${stance}${bomb ? ', bomb' : ''}) vs ${names}`;
-    const r = await act(bot, '/api/labyrinth/face', { action: 'fight', bomb }, view);
+    const r = await act(bot, '/api/labyrinth/face', { action: 'fight', bomb, auto: true }, view);
     if (boss) bot.stats.minibosses++;
     if (boss && r?.fight?.outcome === 'victory') bot.stats.minibossWins++;
     if (dragon) bot.stats.dragon.push(`day ${today()} lv${hero.level} ${threat}: ${r?.fight?.outcome ?? 'no fight'}`);
@@ -438,7 +438,11 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
     bot.stats.sneaks++;
     bot.doing = `sneak (${Math.round(odds * 100)}%) past ${threat} ${names}`;
     const r = await act(bot, '/api/labyrinth/face', { action: 'sneak', smoke: false }, view);
-    if (r?.fight) bot.stats.caught++;
+    // Caught: the ambush is a fight played turn by turn, and the bot hands it to the AI.
+    if (r?.view.fight) {
+      bot.stats.caught++;
+      await act(bot, '/api/labyrinth/fight', { action: { kind: 'auto' } });
+    }
   } else {
     bot.stats.retreats++;
     bot.avoid.add(`${floor}:${view.room!.id}`);
