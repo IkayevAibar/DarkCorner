@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { TavernPreview } from './sandbox/TavernPreview';
 import { CityPreview } from './sandbox/CityPreview';
 import { LootPreview } from './sandbox/LootPreview';
 import { MapPreview } from './sandbox/MapPreview';
@@ -21,6 +22,7 @@ export function Sandbox() {
       <h1 className="sub-heading m-0">{t('sandbox.title')}</h1>
       <p className="m-0 text-muted">{t('sandbox.body')}</p>
 
+      <TavernPreview />
       <CityPreview />
       <LootPreview />
       <MapPreview />
