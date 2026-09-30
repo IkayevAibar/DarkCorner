@@ -1,6 +1,6 @@
 # Codex task 08: the Tavern and the Hall of Fame
 
-**Branch:** `codex/tavern`, based on `main` once `claude/tavern-brief` is merged (it adds faces to the online list).
+**Branch:** `codex/tavern`, based on `main` once `claude/steps-tavern` is merged (it adds faces to the online list).
 **Owner of the area:** Codex (see [AGENTS.md](../../AGENTS.md)).
 
 ## Goal
