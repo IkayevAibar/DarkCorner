@@ -1,0 +1,41 @@
+{
+  "receipts": [
+    {
+      "key": "solo",
+      "status": 200,
+      "action": {
+        "action": {
+          "kind": "attack",
+          "target": "m0"
+        }
+      },
+      "events": 4,
+      "outcome": "victory"
+    },
+    {
+      "key": "b",
+      "status": 200,
+      "action": {
+        "action": {
+          "kind": "attack",
+          "target": "m0"
+        }
+      },
+      "events": 4,
+      "outcome": null
+    },
+    {
+      "key": "a",
+      "status": 200,
+      "action": {
+        "action": {
+          "kind": "attack",
+          "target": "m1"
+        }
+      },
+      "events": 7,
+      "outcome": "victory"
+    }
+  ],
+  "errors": []
+}

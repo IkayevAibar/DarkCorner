@@ -1,0 +1,365 @@
+{
+  "results": [
+    {
+      "id": "wizard-burst",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 4,
+      "events": 18,
+      "peak": 105
+    },
+    {
+      "id": "cleric-heals",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 8,
+      "events": 32,
+      "peak": 49
+    },
+    {
+      "id": "barbarian-rage",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 6,
+      "events": 16,
+      "peak": 60
+    },
+    {
+      "id": "ranger-mark-moves",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 8,
+      "events": 21,
+      "peak": 59
+    },
+    {
+      "id": "duo-side-by-side",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 14,
+      "events": 48,
+      "peak": 59
+    },
+    {
+      "id": "duo-side-by-side-partner",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 14,
+      "events": 48,
+      "peak": 59
+    },
+    {
+      "id": "duo-pulled-up",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 12,
+      "events": 46,
+      "peak": 123
+    },
+    {
+      "id": "duo-pulled-up-partner",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 11,
+      "events": 46,
+      "peak": 125
+    },
+    {
+      "id": "duo-teamwork",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 5,
+      "events": 22,
+      "peak": 110
+    },
+    {
+      "id": "duo-teamwork-partner",
+      "width": 375,
+      "locale": "en",
+      "reduced": false,
+      "turns": 6,
+      "events": 22,
+      "peak": 110
+    },
+    {
+      "id": "wizard-burst",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 4,
+      "events": 18,
+      "peak": 105
+    },
+    {
+      "id": "cleric-heals",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 8,
+      "events": 32,
+      "peak": 49
+    },
+    {
+      "id": "barbarian-rage",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 6,
+      "events": 16,
+      "peak": 60
+    },
+    {
+      "id": "ranger-mark-moves",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 8,
+      "events": 21,
+      "peak": 59
+    },
+    {
+      "id": "duo-side-by-side",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 14,
+      "events": 48,
+      "peak": 59
+    },
+    {
+      "id": "duo-side-by-side-partner",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 14,
+      "events": 48,
+      "peak": 59
+    },
+    {
+      "id": "duo-pulled-up",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 12,
+      "events": 46,
+      "peak": 123
+    },
+    {
+      "id": "duo-pulled-up-partner",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 11,
+      "events": 46,
+      "peak": 125
+    },
+    {
+      "id": "duo-teamwork",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 5,
+      "events": 22,
+      "peak": 110
+    },
+    {
+      "id": "duo-teamwork-partner",
+      "width": 375,
+      "locale": "ru",
+      "reduced": false,
+      "turns": 6,
+      "events": 22,
+      "peak": 110
+    },
+    {
+      "id": "wizard-burst",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 4,
+      "events": 18,
+      "peak": 0
+    },
+    {
+      "id": "cleric-heals",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 8,
+      "events": 32,
+      "peak": 0
+    },
+    {
+      "id": "barbarian-rage",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 6,
+      "events": 16,
+      "peak": 0
+    },
+    {
+      "id": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 8,
+      "events": 21,
+      "peak": 0
+    },
+    {
+      "id": "duo-side-by-side",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 14,
+      "events": 48,
+      "peak": 0
+    },
+    {
+      "id": "duo-side-by-side-partner",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 14,
+      "events": 48,
+      "peak": 0
+    },
+    {
+      "id": "duo-pulled-up",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 12,
+      "events": 46,
+      "peak": 0
+    },
+    {
+      "id": "duo-pulled-up-partner",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 11,
+      "events": 46,
+      "peak": 0
+    },
+    {
+      "id": "duo-teamwork",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 5,
+      "events": 22,
+      "peak": 0
+    },
+    {
+      "id": "duo-teamwork-partner",
+      "width": 1280,
+      "locale": "en",
+      "reduced": true,
+      "turns": 6,
+      "events": 22,
+      "peak": 0
+    },
+    {
+      "id": "wizard-burst",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 4,
+      "events": 18,
+      "peak": 0
+    },
+    {
+      "id": "cleric-heals",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 8,
+      "events": 32,
+      "peak": 0
+    },
+    {
+      "id": "barbarian-rage",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 6,
+      "events": 16,
+      "peak": 0
+    },
+    {
+      "id": "ranger-mark-moves",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 8,
+      "events": 21,
+      "peak": 0
+    },
+    {
+      "id": "duo-side-by-side",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 14,
+      "events": 48,
+      "peak": 0
+    },
+    {
+      "id": "duo-side-by-side-partner",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 14,
+      "events": 48,
+      "peak": 0
+    },
+    {
+      "id": "duo-pulled-up",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 12,
+      "events": 46,
+      "peak": 0
+    },
+    {
+      "id": "duo-pulled-up-partner",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 11,
+      "events": 46,
+      "peak": 0
+    },
+    {
+      "id": "duo-teamwork",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 5,
+      "events": 22,
+      "peak": 0
+    },
+    {
+      "id": "duo-teamwork-partner",
+      "width": 1280,
+      "locale": "ru",
+      "reduced": true,
+      "turns": 6,
+      "events": 22,
+      "peak": 0
+    }
+  ],
+  "errors": []
+}

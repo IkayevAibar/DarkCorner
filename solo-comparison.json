@@ -1,0 +1,847 @@
+{
+  "frames": 168,
+  "worstPixels": 107,
+  "maxChannelDelta": 10,
+  "differences": [
+    {
+      "file": "barbarian-rage-0.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "barbarian-rage-1.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "barbarian-rage-10.png",
+      "changed": 9,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-11.png",
+      "changed": 4,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-12.png",
+      "changed": 9,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-13.png",
+      "changed": 6,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-14.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "barbarian-rage-15.png",
+      "changed": 6,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-16.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "barbarian-rage-2.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "barbarian-rage-3.png",
+      "changed": 41,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-4.png",
+      "changed": 1,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-5.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "barbarian-rage-6.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "barbarian-rage-7.png",
+      "changed": 13,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-8.png",
+      "changed": 7,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "barbarian-rage-9.png",
+      "changed": 3,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-0.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-1.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-10.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-11.png",
+      "changed": 8,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-12.png",
+      "changed": 48,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-13.png",
+      "changed": 11,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-14.png",
+      "changed": 24,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "bearheart-relentless-15.png",
+      "changed": 52,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-16.png",
+      "changed": 43,
+      "maxChannelDelta": 10
+    },
+    {
+      "file": "bearheart-relentless-17.png",
+      "changed": 106,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "bearheart-relentless-18.png",
+      "changed": 47,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-19.png",
+      "changed": 8,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-2.png",
+      "changed": 38,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-20.png",
+      "changed": 7,
+      "maxChannelDelta": 3
+    },
+    {
+      "file": "bearheart-relentless-21.png",
+      "changed": 19,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "bearheart-relentless-22.png",
+      "changed": 14,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "bearheart-relentless-23.png",
+      "changed": 60,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-24.png",
+      "changed": 50,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "bearheart-relentless-25.png",
+      "changed": 36,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "bearheart-relentless-26.png",
+      "changed": 44,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "bearheart-relentless-27.png",
+      "changed": 42,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "bearheart-relentless-28.png",
+      "changed": 60,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-29.png",
+      "changed": 33,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "bearheart-relentless-3.png",
+      "changed": 1,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-30.png",
+      "changed": 15,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-31.png",
+      "changed": 28,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "bearheart-relentless-32.png",
+      "changed": 22,
+      "maxChannelDelta": 5
+    },
+    {
+      "file": "bearheart-relentless-33.png",
+      "changed": 27,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-34.png",
+      "changed": 15,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-35.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-36.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-37.png",
+      "changed": 107,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "bearheart-relentless-38.png",
+      "changed": 9,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "bearheart-relentless-39.png",
+      "changed": 11,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-4.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-40.png",
+      "changed": 40,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "bearheart-relentless-5.png",
+      "changed": 3,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-6.png",
+      "changed": 6,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "bearheart-relentless-7.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-8.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "bearheart-relentless-9.png",
+      "changed": 41,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-0.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "cleric-heals-1.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "cleric-heals-10.png",
+      "changed": 80,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-11.png",
+      "changed": 65,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-12.png",
+      "changed": 11,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-13.png",
+      "changed": 11,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-14.png",
+      "changed": 20,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-15.png",
+      "changed": 43,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-16.png",
+      "changed": 10,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-17.png",
+      "changed": 21,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-18.png",
+      "changed": 40,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-19.png",
+      "changed": 21,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-2.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "cleric-heals-20.png",
+      "changed": 27,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-21.png",
+      "changed": 16,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-22.png",
+      "changed": 17,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-23.png",
+      "changed": 34,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-24.png",
+      "changed": 36,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-25.png",
+      "changed": 8,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-26.png",
+      "changed": 43,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-27.png",
+      "changed": 30,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-28.png",
+      "changed": 19,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-29.png",
+      "changed": 8,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-3.png",
+      "changed": 20,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-30.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "cleric-heals-31.png",
+      "changed": 1,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-32.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "cleric-heals-4.png",
+      "changed": 4,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-5.png",
+      "changed": 6,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-6.png",
+      "changed": 23,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-7.png",
+      "changed": 61,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-8.png",
+      "changed": 12,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "cleric-heals-9.png",
+      "changed": 33,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-0.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-1.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-10.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-11.png",
+      "changed": 2,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-12.png",
+      "changed": 68,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-13.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-14.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-15.png",
+      "changed": 1,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-16.png",
+      "changed": 4,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-17.png",
+      "changed": 4,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-18.png",
+      "changed": 14,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-19.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-2.png",
+      "changed": 4,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-20.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-21.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-3.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-4.png",
+      "changed": 3,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-5.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-6.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-7.png",
+      "changed": 29,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "ranger-mark-moves-8.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "ranger-mark-moves-9.png",
+      "changed": 6,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "rise-on-20-0.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-1.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-10.png",
+      "changed": 8,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "rise-on-20-11.png",
+      "changed": 11,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "rise-on-20-12.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-13.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-14.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-15.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-16.png",
+      "changed": 53,
+      "maxChannelDelta": 10
+    },
+    {
+      "file": "rise-on-20-17.png",
+      "changed": 12,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "rise-on-20-18.png",
+      "changed": 78,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "rise-on-20-19.png",
+      "changed": 62,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "rise-on-20-2.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-20.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-21.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-22.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-23.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-24.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-3.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-4.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-5.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-6.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "rise-on-20-7.png",
+      "changed": 1,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "rise-on-20-8.png",
+      "changed": 23,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "rise-on-20-9.png",
+      "changed": 3,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "survived-death-saves-0.png",
+      "changed": 1,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "survived-death-saves-1.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "survived-death-saves-10.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "survived-death-saves-2.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "survived-death-saves-3.png",
+      "changed": 106,
+      "maxChannelDelta": 2
+    },
+    {
+      "file": "survived-death-saves-4.png",
+      "changed": 21,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "survived-death-saves-5.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "survived-death-saves-6.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "survived-death-saves-7.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "survived-death-saves-8.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "survived-death-saves-9.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "wizard-burst-0.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "wizard-burst-1.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "wizard-burst-10.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "wizard-burst-11.png",
+      "changed": 17,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-12.png",
+      "changed": 8,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-13.png",
+      "changed": 3,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-14.png",
+      "changed": 14,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-15.png",
+      "changed": 14,
+      "maxChannelDelta": 3
+    },
+    {
+      "file": "wizard-burst-16.png",
+      "changed": 40,
+      "maxChannelDelta": 10
+    },
+    {
+      "file": "wizard-burst-17.png",
+      "changed": 15,
+      "maxChannelDelta": 4
+    },
+    {
+      "file": "wizard-burst-18.png",
+      "changed": 10,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-2.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "wizard-burst-3.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "wizard-burst-4.png",
+      "changed": 8,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-5.png",
+      "changed": 7,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-6.png",
+      "changed": 7,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-7.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    },
+    {
+      "file": "wizard-burst-8.png",
+      "changed": 3,
+      "maxChannelDelta": 1
+    },
+    {
+      "file": "wizard-burst-9.png",
+      "changed": 0,
+      "maxChannelDelta": 0
+    }
+  ]
+}
