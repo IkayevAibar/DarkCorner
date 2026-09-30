@@ -66,8 +66,7 @@ export function Labyrinth() {
     place.current = at;
     const wasLive = live.current;
     live.current = result.view.fight !== null;
-    // Until the fight scene draws a partner (docs/tasks/codex-16-duo-fight.md), a Duo fight's end shows on the board too.
-    if (result.fight && (wasLive || result.fight.ally)) {
+    if (result.fight && wasLive) {
       setEnding(result);
       return;
     }

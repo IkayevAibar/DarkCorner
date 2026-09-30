@@ -7,22 +7,23 @@ export interface FighterState {
   fled: boolean;
   enraged: boolean;
   statuses: Partial<Record<Status, number>>;
-}
-export interface Frame {
-  fighters: Record<string, FighterState>;
   saves: { successes: number; failures: number } | null;
   ward: number;
   raging: boolean;
   marked: string | null;
+}
+export interface Frame {
+  fighters: Record<string, FighterState>;
   order: string[];
 }
 
 export function initialFrame(replay: FightReplay): Frame {
   return {
-    fighters: Object.fromEntries([replay.hero, ...replay.monsters].map(who => [who.key, {
+    fighters: Object.fromEntries([replay.hero, ...(replay.ally ? [replay.ally] : []), ...replay.monsters].map(who => [who.key, {
       hp: who.hp, fallen: false, fled: false, enraged: false, statuses: {},
+      saves: null, ward: 0, raging: false, marked: null,
     }])),
-    saves: null, ward: 0, raging: false, marked: null, order: [],
+    order: [],
   };
 }
 
@@ -35,17 +36,22 @@ export function advance(frame: Frame, event: FightEventView): Frame {
     ])),
   };
   const who = (key: string) => next.fighters[key];
+  const actor = who('actor' in event && event.actor ? event.actor : 'hero');
   const hp = (key: string, value: number) => { const f = who(key); if (f) f.hp = value; };
   switch (event.type) {
     case 'initiative': next.order = [...event.order]; break;
     case 'attack': hp(event.target, event.targetHp); break;
     case 'burst': for (const hit of event.targets) hp(hit.key, hit.hp); break;
-    case 'heal': hp(event.actor, event.hp); break;
+    case 'heal':
+      hp(event.actor, event.hp);
+      if (event.by && event.hp > 0 && actor) { actor.fallen = false; actor.saves = null; }
+      break;
     case 'feature':
-      if (event.hp !== undefined) hp('hero', event.hp);
-      if (event.feature === 'ward') next.ward = event.left ?? next.ward;
-      if (event.feature === 'rage') next.raging = true;
-      if (event.feature === 'mark' && event.target && who(event.target)) next.marked = event.target;
+      if (!actor) break;
+      if (event.hp !== undefined) actor.hp = event.hp;
+      if (event.feature === 'ward') actor.ward = event.left ?? actor.ward;
+      if (event.feature === 'rage') actor.raging = true;
+      if (event.feature === 'mark' && event.target && who(event.target)) actor.marked = event.target;
       break;
     case 'power':
       if (event.hp !== undefined) hp(
@@ -58,27 +64,29 @@ export function advance(frame: Frame, event: FightEventView): Frame {
     case 'expire': if (who(event.target)) delete who(event.target)!.statuses[event.status]; break;
     case 'tick': hp(event.target, event.hp); break;
     case 'fled': if (who(event.key)) who(event.key)!.fled = true; break;
-    case 'escape': if (event.success && who('hero')) who('hero')!.fled = true; break;
+    case 'escape': if (event.success && actor) actor.fled = true; break;
     case 'defeated':
       if (who(event.key)) { who(event.key)!.fallen = true; who(event.key)!.statuses = {}; }
       break;
     case 'down':
-      hp('hero', 0);
-      if (who('hero')) {
-        who('hero')!.fallen = true;
-        who('hero')!.statuses = {};
+      if (actor) {
+        actor.hp = 0;
+        actor.fallen = true;
+        actor.statuses = {};
+        actor.saves = { successes: 0, failures: 0 };
       }
-      next.saves = { successes: 0, failures: 0 };
       break;
-    case 'death-save': next.saves = { successes: event.successes, failures: event.failures }; break;
+    case 'death-save': if (actor) actor.saves = { successes: event.successes, failures: event.failures }; break;
     case 'rise':
-      hp('hero', event.hp);
-      if (who('hero')) who('hero')!.fallen = false;
-      next.saves = null;
+      if (actor) { actor.hp = event.hp; actor.fallen = false; actor.saves = null; }
+      break;
+    case 'revive':
+      if (event.success && who(event.target)) {
+        Object.assign(who(event.target)!, { hp: event.hp, fallen: false, saves: null });
+      }
       break;
     case 'end':
-      for (const f of Object.values(next.fighters)) f.statuses = {};
-      next.raging = false; next.marked = null;
+      for (const f of Object.values(next.fighters)) { f.statuses = {}; f.raging = false; f.marked = null; }
       break;
     default: break;
   }
@@ -101,7 +109,7 @@ export function duration(event: FightEventView | null, reduced: boolean): number
     case 'save': case 'escape': return 1150;
     case 'attack': return event.crit || event.natural === 1 ? 1050 : 720;
     case 'power': return ['breath', 'explode', 'wail'].includes(event.power) ? 1500 : 850;
-    case 'down': case 'rise': return 1200;
+    case 'down': case 'rise': case 'revive': return 1200;
     case 'burst': return 1150;
     case 'defeated': return 500;
     case 'expire': return 500;

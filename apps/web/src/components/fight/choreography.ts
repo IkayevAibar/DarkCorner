@@ -17,17 +17,21 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
   if ('actor' in event) cue.actor = event.actor ?? null;
   if ('target' in event && event.target) cue.targets = [event.target];
   if (event.type === 'burst') cue.targets = event.targets.map(hit => hit.key);
-  if (event.type === 'heal') cue.targets = [event.actor];
+  if (event.type === 'heal') { cue.actor = event.by ?? event.actor; cue.targets = [event.actor]; }
+  if (['down', 'death-save', 'rise', 'reroll', 'save', 'feature', 'escape', 'revive'].includes(event.type)) {
+    cue.actor = 'actor' in event ? event.actor ?? 'hero' : 'hero';
+  }
+  if (event.type === 'blocked') cue.targets = [event.target ?? 'hero'];
+  if (event.type === 'down' || event.type === 'rise') cue.targets = [event.actor ?? 'hero'];
   if (event.type === 'held') cue.actor = event.target;
   if (event.type === 'feature') {
-    cue.actor = 'hero';
-    cue.targets = event.feature === 'mark' ? (event.target ? [event.target] : []) : ['hero'];
+    cue.actor = event.actor ?? 'hero';
+    cue.targets = ['mark', 'help', 'guard'].includes(event.feature) ? (event.target ? [event.target] : []) : [cue.actor];
   }
-  if (event.type === 'rise' || event.type === 'down') cue.targets = ['hero'];
   if (reduced) return cue;
   switch (event.type) {
     case 'attack': {
-      const actor = event.actor === 'hero' ? replay.hero : replay.monsters.find(m => m.key === event.actor);
+      const actor = event.actor === 'hero' ? replay.hero : event.actor === 'ally' ? replay.ally : replay.monsters.find(m => m.key === event.actor);
       const ranged = event.kind === 'spell' || actor?.strike === 'shoot';
       cue.contact = ranged ? 400 : 260;
       cue.length = event.crit ? 1100 : ranged ? 900 : 800;
@@ -35,11 +39,13 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
       break;
     }
     case 'burst': cue.contact = 480; cue.length = 1400; cue.hold = 65; break;
-    case 'heal': cue.contact = 160; cue.length = 900; break;
+    case 'heal': cue.contact = event.by ? 420 : 160; cue.length = 900; break;
+    case 'revive': cue.contact = 500; cue.length = 1400; break;
     case 'feature':
       if (event.feature === 'rage') { cue.contact = 180; cue.length = 1100; cue.hold = 65; }
       if (event.feature === 'mark') { cue.contact = 420; cue.length = 850; }
       if (event.feature === 'relentless') { cue.contact = 400; cue.length = 1100; cue.hold = 65; }
+      if (['help', 'guard', 'dodge'].includes(event.feature)) { cue.contact = 320; cue.length = 1000; }
       break;
     case 'power':
       cue.contact = event.power === 'breath' ? 300 : 180;

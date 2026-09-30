@@ -15,7 +15,7 @@ const clamp = (n: number) => Math.max(0, Math.min(1, n));
 export class ClassEffects {
   private readonly ink = new Graphics();
   private emitted = false;
-  private emberAt = 0;
+  private emberAt: Record<string, number> = {};
   private frame: Frame | null = null;
   private before: Frame | null = null;
   private event: FightEventView | null = null;
@@ -34,12 +34,18 @@ export class ClassEffects {
   /** Called after lunges and impacts, so the aura and reticle follow the painted tokens. Returns camera weight. */
   draw(time: number, worldTime: number): number {
     this.ink.clear();
-    const frame = this.frame, event = this.event, cue = this.cue, hero = this.tokens.get('hero');
+    return Math.max(...['hero', 'ally'].map(key => this.drawHero(key, time, worldTime)));
+  }
+
+  private drawHero(key: string, time: number, worldTime: number): number {
+    const frame = this.frame, event = this.event, cue = this.cue, hero = this.tokens.get(key);
     if (!frame || !cue || !hero || event?.type === 'end') return 0;
-    const active = frame.raging && !frame.fighters.hero?.fallen && !frame.fighters.hero?.fled;
+    const state = frame.fighters[key];
+    if (!state) return 0;
+    const active = state.raging && !state.fallen && !state.fled;
     const age = time - cue.contact;
     if (active) {
-      const strike = event?.type === 'attack' && event.actor === 'hero';
+      const strike = event?.type === 'attack' && event.actor === key;
       const pulse = !this.calm && strike ? Math.max(0, 1 - Math.abs(age) / 320) : 0;
       const r = hero.radius + 8 + pulse * 11;
       hero.halo.circle(0, 0, r + 5).stroke({ color: EMBER, width: 18 + pulse * 8, alpha: .14 + pulse * .16 })
@@ -51,16 +57,16 @@ export class ClassEffects {
         hero.halo.arc(0, 0, r + 4 + flicker * 4, angle, angle + .16 + flicker * .2)
           .stroke({ color: FIRE, width: 2, alpha: .3 + flicker * .4 });
       }
-      if (!this.calm && worldTime >= this.emberAt) {
-        this.emberAt = worldTime + 110;
+      if (!this.calm && worldTime >= (this.emberAt[key] ?? 0)) {
+        this.emberAt[key] = worldTime + 110;
         this.spray(hero.root.x, hero.root.y + hero.radius * .6,
           { color: EMBER, count: 2, speed: 45, up: 90, gravity: -25, size: 7, life: 700, shape: 'chip', tag: 'rage' });
       }
     }
-    this.mark(time, worldTime);
+    this.mark(key, time, worldTime);
     if (this.calm) return 0;
 
-    if (event?.type === 'attack' && event.hit && event.target === frame.marked && age >= 0) {
+    if (event?.type === 'attack' && event.hit && (event.actor === 'hero' || event.actor === 'ally') && event.target === state.marked && age >= 0) {
       const target = this.tokens.get(event.target);
       if (target) {
         if (!this.emitted) { this.emitted = true; this.spray(target.root.x, target.root.y, { color: MARK, count: 9, shape: 'chip', speed: 160, gravity: 0, size: 7, life: 400 }); }
@@ -70,7 +76,7 @@ export class ClassEffects {
             .lineTo(target.root.x + Math.cos(a) * r, target.root.y + Math.sin(a) * r).stroke({ color: MARK, width: 3, alpha: 1 - p }); }
       }
     }
-    if (event?.type !== 'feature') return 0;
+    if (event?.type !== 'feature' || cue.actor !== key) return 0;
     if (event.feature === 'relentless' && time < cue.contact) {
       const p = clamp(time / cue.contact);
       hero.art.rotation = -.32 * Math.sin(p * Math.PI);
@@ -102,12 +108,13 @@ export class ClassEffects {
     return 0;
   }
 
-  private mark(time: number, worldTime: number) {
-    const frame = this.frame!, cue = this.cue!;
+  private mark(key: string, time: number, worldTime: number) {
+    const frame = this.frame!.fighters[key]!, cue = this.cue!;
     const target = frame.marked ? this.tokens.get(frame.marked) : undefined;
     if (!target) return;
-    const moving = this.event?.type === 'feature' && this.event.feature === 'mark';
-    const old = moving && this.before?.marked ? this.tokens.get(this.before.marked) : undefined;
+    const moving = this.event?.type === 'feature' && this.event.feature === 'mark' && cue.actor === key;
+    const oldKey = this.before?.fighters[key]?.marked;
+    const old = moving && oldKey ? this.tokens.get(oldKey) : undefined;
     const p = this.calm || !moving ? 1 : clamp(time / Math.max(1, cue.contact));
     const smooth = p * p * (3 - 2 * p);
     const x = old ? old.root.x + (target.root.x - old.root.x) * smooth : target.root.x;

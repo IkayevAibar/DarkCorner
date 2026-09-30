@@ -50,10 +50,10 @@ describe('recorded fight playback', () => {
   it('retains counters during a reroll and restores a fallen Hero only on rise', () => {
     const frames = framesFor(EXTRA_FIGHTS['visual-lucky-reroll']!);
     expect(frames[1]!.fighters.hero).toMatchObject({ hp: 0, fallen: true });
-    expect(frames[3]!.saves).toEqual({ successes: 0, failures: 2 });
+    expect(frames[3]!.fighters.hero!.saves).toEqual({ successes: 0, failures: 2 });
     expect(frames[4]!.fighters.hero!.fallen).toBe(true);
     expect(frames[5]!.fighters.hero).toMatchObject({ hp: 1, fallen: false });
-    expect(frames[5]!.saves).toBeNull();
+    expect(frames[5]!.fighters.hero!.saves).toBeNull();
     expect(frames.at(-1)!.fighters.hero!.fled).toBe(true);
   });
 

@@ -42,6 +42,7 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
   const names = useMemo(() => displayNames(replay, value => value[locale]), [replay, locale]);
   const frames = useMemo(() => framesFor(replay), [replay]);
   const frame = frames[step]!;
+  const heroes = [replay.hero, ...(replay.ally ? [replay.ally] : [])];
   const event = step ? replay.events[step - 1]! : null;
   const complete = step === replay.events.length;
   const paused = logOpen || hidden;
@@ -156,14 +157,14 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
           <span>{t('fight.title')}</span>
           <span className="fight-progress" aria-hidden="true">{Math.min(step, replay.events.length)} / {replay.events.length}</span>
         </header>
-        <div className="fight-board">
+        <div className={`fight-board ${replay.ally ? 'fight-duo' : ''}`}>
           <div ref={host} className="fight-canvas" />
           {!ready && <div className="fight-loading" role="status">{t('loading')}</div>}
           {fallback && <div className="fight-fallback">
             <img {...map} className="fight-fallback-map" alt="" />
-            {[...replay.monsters, replay.hero].map(who => {
+            {[...replay.monsters, ...heroes].map(who => {
               const state = frame.fighters[who.key]!;
-              return <div key={who.key} className={who.key === 'hero' ? 'fight-fallback-hero' : ''} style={{ opacity: state.fled ? 0 : 1 }}>
+              return <div key={who.key} className={heroes.includes(who) ? `fight-fallback-${who.key}` : ''} style={{ opacity: state.fled ? 0 : 1 }}>
                 <Token art={who.art} label={names[who.key]!} ring={who.banner ?? (who.boss ? BOSS_RING : MONSTER_RING)} size={who.boss && replay.monsters.length === 1 ? 100 : 58} fallen={state.fallen} />
                 <span>{names[who.key]} · {state.hp}/{who.maxHp}</span>
               </div>;
@@ -174,12 +175,19 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
             <div key={step} className={`fight-die ${dramatic ? 'fight-die-large' : ''} ${reduced ? '' : 'fight-die-motion'} ${die === 20 ? 'fight-die-crit' : die === 1 ? 'fight-die-fumble' : ''}`} role="img" aria-label={`d20: ${die}`}>
               <svg viewBox="0 0 100 110" aria-hidden="true"><path d="M50 3 96 28 96 80 50 107 4 80 4 28Z" /><path className="fight-die-lines" d="M50 3 25 36 4 28M25 36 75 36 50 3M75 36 96 28M25 36 19 76 4 80M19 76 81 76 96 80M75 36 81 76M19 76 50 107 81 76M25 36 50 83 75 36" /></svg>
               <strong>{die}</strong>
-              {dramatic && <span className="fight-die-label">{t('fight.deathSaveTitle')}</span>}
+              {dramatic && <span className="fight-die-label">{t('fight.deathSaveTitle')}{replay.ally && <b>{names[cue.actor ?? 'hero']}</b>}</span>}
             </div>
           )}
-          {frame.saves && <div className="fight-saves" aria-label={t('fight.saveCount', { s: frame.saves.successes, f: frame.saves.failures })}>
-            <span className="fight-save-success">{'●'.repeat(frame.saves.successes)}{'○'.repeat(3 - frame.saves.successes)}</span>
-            <span className="fight-save-failure">{'●'.repeat(frame.saves.failures)}{'○'.repeat(3 - frame.saves.failures)}</span>
+          {heroes.some(who => frame.fighters[who.key]!.saves) && <div className="fight-saves">
+            {heroes.map(who => {
+              const saves = frame.fighters[who.key]!.saves;
+              return saves && <div key={who.key} className="fight-save-counter" data-saves-for={who.key}
+                aria-label={`${names[who.key]} · ${t('fight.saveCount', { s: saves.successes, f: saves.failures })}`}>
+                {replay.ally && <b>{names[who.key]}</b>}
+                <span className="fight-save-success">{'●'.repeat(saves.successes)}{'○'.repeat(3 - saves.successes)}</span>
+                <span className="fight-save-failure">{'●'.repeat(saves.failures)}{'○'.repeat(3 - saves.failures)}</span>
+              </div>;
+            })}
           </div>}
           {complete && <div className={`fight-outcome fight-outcome-${outcome}`}>{t(`fight.${outcome}`)}</div>}
         </div>
@@ -189,7 +197,7 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
           {lines.map((line, i) => <p key={`${step}-${i}`}>{line}</p>)}
         </div>}
         <div className="sr-only">
-          {[replay.hero, ...replay.monsters].map(who => <p key={who.key}>{names[who.key]}: {frame.fighters[who.key]!.hp}/{who.maxHp}. {Object.keys(frame.fighters[who.key]!.statuses).map(status => t(`fight.status.${status as 'burning' | 'poisoned' | 'paralyzed' | 'frightened'}`, { name: names[who.key]! })).join(' ')}</p>)}
+          {[...heroes, ...replay.monsters].map(who => <p key={who.key}>{names[who.key]}: {frame.fighters[who.key]!.hp}/{who.maxHp}. {Object.keys(frame.fighters[who.key]!.statuses).map(status => t(`fight.status.${status as 'burning' | 'poisoned' | 'paralyzed' | 'frightened'}`, { name: names[who.key]! })).join(' ')}</p>)}
         </div>
         <div className="fight-actions">
           {!complete && <button type="button" className="btn" data-fight-speed aria-pressed={speed === 2} aria-label={t('fight.title') + ' · ' + speed + '×'} onClick={() => {

@@ -19,6 +19,12 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-turns',
+    date: '2026-09-30',
+    title: t('Your next move, on the battle map', 'Ваш следующий ход — на карте боя'),
+    items: [t('Manual fights now play on the Room map. Tap a monster to attack, choose your next action, and watch both Heroes fight, Guard and pull each other up in a Duo.', 'Бой по ходам теперь разыгрывается на карте комнаты. Нажмите на монстра для атаки, выберите действие и смотрите, как герои дуэта сражаются, прикрывают и поднимают друг друга.')],
+  },
+  {
     id: '2026-09-30-manual-fights',
     date: '2026-09-30',
     title: t('Fight your own way', 'Сражайтесь по-своему'),
