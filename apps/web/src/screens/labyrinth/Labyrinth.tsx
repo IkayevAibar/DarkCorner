@@ -24,6 +24,7 @@ import { EliteBadge } from '../../components/EliteBadge';
 import { THREAT_TONE, ThreatChip } from '../../components/ThreatChip';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
 import { FightLog } from './FightLog';
+import { LiveFightPanel, endedBoard, liveBoard } from './LiveFight';
 import { FloorMap } from './FloorMap';
 import { FirstSteps } from '../../components/FirstSteps';
 import { MiniMap } from '../../components/map/MiniMap';
@@ -44,22 +45,33 @@ export function Labyrinth() {
   const [error, setError] = useState<string | null>(null);
   /** A result whose fight is being played back; its view shows once the fight is over. */
   const [playing, setPlaying] = useState<LabyrinthResult | null>(null);
+  /** The end of a fight played turn by turn: its last blows show on the board, then the report. */
+  const [ending, setEnding] = useState<LabyrinthResult | null>(null);
   const [report, setReport] = useState<LabyrinthResult | null>(null);
 
   useEffect(() => { void preloadFightScene().catch(() => { /* Playback can retry or show its fallback. */ }); }, []);
 
   /** Where the Hero stands, to hear a Duo partner lead it on. */
   const place = useRef<string | null>(null);
+  /** A fight played turn by turn is on screen. */
+  const live = useRef(false);
   /**
-   * Shows a result: a fight plays first. A Duo fight shows as its log in the report
-   * until the fight scene draws a partner (docs/tasks/codex-16-duo-fight.md). News
-   * that comes while a report is open joins it rather than hiding it.
+   * Shows a result. A fight played turn by turn stays on its board, and its end shows
+   * the last blows there before the report; a fight fought on its own at once plays in
+   * the fight scene. News that comes while a report is open joins it rather than hiding it.
    */
   const present = useCallback((result: LabyrinthResult, polled = false) => {
     const at = result.view.floor && result.view.room ? `${result.view.floor.number}:${result.view.room.id}` : null;
-    if (polled && place.current !== null && at !== place.current) play('door', { rate: 0.9 });
+    if (polled && place.current !== null && at !== place.current && !live.current) play('door', { rate: 0.9 });
     place.current = at;
-    if (result.fight && !result.fight.ally) {
+    const wasLive = live.current;
+    live.current = result.view.fight !== null;
+    // Until the fight scene draws a partner (docs/tasks/codex-16-duo-fight.md), a Duo fight's end shows on the board too.
+    if (result.fight && (wasLive || result.fight.ally)) {
+      setEnding(result);
+      return;
+    }
+    if (result.fight) {
       setPlaying(result);
       return;
     }
@@ -82,16 +94,20 @@ export function Labyrinth() {
 
   // Stamina ticks back and Camps finish resting on the server's clock: look again then.
   const refresh = () => {
-    if (!busy && !playing) void load();
+    if (!busy && !playing && !ending) void load();
   };
   useAt(view?.hero.staminaNextAt, refresh);
   useAt(view?.room?.restedAt, refresh);
-  // In a Duo either Player can lead, so look every few seconds for what the other did.
+  // In a Duo either Player can lead, so look every few seconds for what the other did;
+  // in a Duo fight, more often, for the partner's turns (and a turn that ran out).
   const inDuo = view?.duo != null;
+  const duoFight = inDuo && view?.fight != null;
   const poll = useCallback(async () => {
-    if (inDuo && !busy && !playing) await load(true);
-  }, [inDuo, busy, playing, load]);
-  useRefresh(poll, 4_000);
+    if (inDuo && !busy && !playing && !ending) await load(true);
+  }, [inDuo, busy, playing, ending, load]);
+  useRefresh(poll, duoFight ? 2_000 : 4_000);
+  // A Duo turn's deadline: look again as it passes.
+  useAt(duoFight && !view?.fight?.mine ? view?.fight?.deadline : null, refresh);
 
   const act: Act = async (call) => {
     setBusy(true);
@@ -114,6 +130,12 @@ export function Labyrinth() {
     setReport(playing);
     setPlaying(null);
   };
+  const endingOver = useCallback(() => {
+    if (!ending) return;
+    setView(ending.view);
+    setReport(ending);
+    setEnding(null);
+  }, [ending]);
 
   if (status === 'loading') return <p className="text-center text-muted">{t('loading')}</p>;
   if (status === 'noHero') {
@@ -136,8 +158,19 @@ export function Labyrinth() {
   return (
     <div className="grid gap-3">
       {report && <Report result={report} onClose={() => setReport(null)} />}
-      {view.location === 'city' ? (
+      {view.location === 'city' && !ending ? (
         <Gate view={view} busy={busy} error={error} act={act} onDuo={() => void load()} />
+      ) : view.fight || ending ? (
+        <>
+          <LiveFightPanel
+            fight={ending?.fight ? endedBoard(ending.fight) : liveBoard(view.fight!)}
+            at={view.floor && view.room ? { floor: view.floor.number, room: view.room.id } : undefined}
+            busy={busy}
+            onChoose={(action) => void act(() => api.fightAction(action))}
+            onDone={endingOver}
+          />
+          {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
+        </>
       ) : (
         <Inside view={view} busy={busy} error={error} act={act} />
       )}
@@ -794,11 +827,18 @@ function FacingCard({ facing, view, busy, act, onAside, onFoe }: {
       </div>
 
       <div className="grid gap-2">
-        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => choose(() => {}, () => api.face({ action: 'fight', bomb: false, auto: true }))}>
-          {t('facing.fight')}
-        </button>
+        <div className="grid grid-cols-[1fr_auto] gap-2">
+          <button type="button" className="btn btn-primary grid gap-0.5" disabled={busy} onClick={() => choose(() => {}, () => api.face({ action: 'fight', bomb: false, auto: false }))}>
+            <span>{t('facing.fight')}</span>
+            <span className="text-xs font-normal opacity-80">{t('facing.fightHint')}</span>
+          </button>
+          <button type="button" className="btn grid gap-0.5" disabled={busy} onClick={() => choose(() => {}, () => api.face({ action: 'fight', bomb: false, auto: true }))}>
+            <span>{t('facing.auto')}</span>
+            <span className="text-xs font-normal opacity-80">{t('facing.autoHint')}</span>
+          </button>
+        </div>
         {fire > 0 && (
-          <button type="button" className="btn" disabled={busy} onClick={() => choose(() => play('latch'), () => api.face({ action: 'fight', bomb: true, auto: true }))}>
+          <button type="button" className="btn" disabled={busy} onClick={() => choose(() => play('latch'), () => api.face({ action: 'fight', bomb: true, auto: false }))}>
             {t('facing.bomb', { n: fire })}
           </button>
         )}
@@ -1120,12 +1160,7 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
             <span className="text-sm">{t('report.deedReward', { n: d.gold })}</span>
           </NavLink>
         ))}
-        {result.fight?.ally && (
-          <div className="max-h-[38vh] overflow-y-auto rounded-[2px] border border-line/60 bg-black/20 p-2">
-            <FightLog replay={result.fight} />
-          </div>
-        )}
-        {result.fight && !result.fight.ally && (
+        {result.fight && (
           <button
             type="button"
             className="btn"

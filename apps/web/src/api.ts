@@ -4,7 +4,7 @@ import type {
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
-  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState,
+  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -89,6 +89,7 @@ export const api = {
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
   eventAction: (action: EventAction) => request<LabyrinthResult>('POST', '/api/labyrinth/event', action),
   face: (action: FaceAction) => request<LabyrinthResult>('POST', '/api/labyrinth/face', action),
+  fightAction: (action: HeroActionView) => request<LabyrinthResult>('POST', '/api/labyrinth/fight', { action }),
   setStance: (stance: Stance) => request<LabyrinthResult>('POST', '/api/labyrinth/stance', { stance }),
 
   identify: (id: string) => request<IdentifyResult>('POST', `/api/items/${encodeURIComponent(id)}/identify`),

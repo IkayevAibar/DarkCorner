@@ -11,8 +11,11 @@ function tone(e: FightEventView): string {
   return '';
 }
 
-/** Shared report/playback log; an event limit keeps a paused replay from revealing future lines. */
-export function FightLog({ replay, until = replay.events.length }: { replay: FightReplay; until?: number }) {
+/**
+ * Shared report/playback log; an event limit keeps a paused replay from revealing future lines.
+ * `ongoing`: a fight still being played turn by turn, with no outcome yet to show.
+ */
+export function FightLog({ replay, until = replay.events.length, ongoing = false }: { replay: FightReplay; until?: number; ongoing?: boolean }) {
   const { t, locale } = useI18n();
   const names = displayNames(replay, (value) => value[locale]);
   const lines = replay.events.slice(0, until).flatMap((e) => {
@@ -27,7 +30,7 @@ export function FightLog({ replay, until = replay.events.length }: { replay: Fig
           <span>{line}</span>
         </li>
       ))}
-      {until >= replay.events.length && <li className="mt-1 border-t border-line/60 pt-2 text-center font-head text-lg font-extrabold">{t(`fight.${replay.outcome}`)}</li>}
+      {!ongoing && until >= replay.events.length && <li className="mt-1 border-t border-line/60 pt-2 text-center font-head text-lg font-extrabold">{t(`fight.${replay.outcome}`)}</li>}
     </ol>
   );
 }
