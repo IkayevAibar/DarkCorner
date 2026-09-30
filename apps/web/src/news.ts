@@ -28,6 +28,15 @@ export const NEWS: NewsEntry[] = [
     ],
   },
   {
+    id: '2026-09-30-fury',
+    date: '2026-09-30',
+    title: t('Fury and focus', 'Ярость и меткость'),
+    items: [
+      t('The Barbarian’s Rage erupts in a roar of embers. Its aura surges with every swing, incoming blows feel lighter, and Relentless answers a lethal blow with a red flare.', 'Ярость варвара вспыхивает с рёвом и россыпью углей. Ореол разгорается при каждом взмахе, входящие удары ощущаются слабее, а неудержимость отвечает на смертельный удар красной вспышкой.'),
+      t('The Ranger’s Hunter’s mark circles its quarry and flies to the next monster when the first one falls. Reduced motion keeps both the aura and the mark still.', 'Метка охотника кружит над добычей следопыта и перелетает к следующему монстру, когда первый падёт. При уменьшении движения ореол и метка остаются неподвижными.'),
+    ],
+  },
+  {
     id: '2026-09-30-classes',
     date: '2026-09-30',
     title: t('Two new Classes: Barbarian and Ranger', 'Два новых класса: варвар и следопыт'),

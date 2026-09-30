@@ -6,6 +6,7 @@ import type { FightReplay } from '@dark/shared';
 import { useI18n } from '../i18n';
 import { FightScene } from '../components/fight/FightScene';
 import { FIGHTS } from './sandbox/fightExamples';
+import { FightLog } from './labyrinth/FightLog';
 
 /**
  * Codex builds visual components here against @dark/shared types with fake
@@ -14,6 +15,7 @@ import { FIGHTS } from './sandbox/fightExamples';
 export function Sandbox() {
   const { t } = useI18n();
   const [fight, setFight] = useState<FightReplay | null>(null);
+  const [report, setReport] = useState<FightReplay | null>(null);
   return (
     <section className="grid gap-3">
       <h1 className="sub-heading m-0">{t('sandbox.title')}</h1>
@@ -30,7 +32,10 @@ export function Sandbox() {
           </button>
         ))}
       </div>
-      {fight && <FightScene replay={fight} onDone={() => setFight(null)} />}
+      {fight && <FightScene replay={fight} onDone={() => { setReport(fight); setFight(null); }} />}
+      {report && <details className="panel p-4" open data-fight-report>
+        <summary>{t('report.fightLog')}</summary><FightLog replay={report} />
+      </details>}
     </section>
   );
 }

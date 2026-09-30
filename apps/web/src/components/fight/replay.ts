@@ -12,6 +12,8 @@ export interface Frame {
   fighters: Record<string, FighterState>;
   saves: { successes: number; failures: number } | null;
   ward: number;
+  raging: boolean;
+  marked: string | null;
   order: string[];
 }
 
@@ -20,7 +22,7 @@ export function initialFrame(replay: FightReplay): Frame {
     fighters: Object.fromEntries([replay.hero, ...replay.monsters].map(who => [who.key, {
       hp: who.hp, fallen: false, fled: false, enraged: false, statuses: {},
     }])),
-    saves: null, ward: 0, order: [],
+    saves: null, ward: 0, raging: false, marked: null, order: [],
   };
 }
 
@@ -42,6 +44,8 @@ export function advance(frame: Frame, event: FightEventView): Frame {
     case 'feature':
       if (event.hp !== undefined) hp('hero', event.hp);
       if (event.feature === 'ward') next.ward = event.left ?? next.ward;
+      if (event.feature === 'rage') next.raging = true;
+      if (event.feature === 'mark' && event.target && who(event.target)) next.marked = event.target;
       break;
     case 'power':
       if (event.hp !== undefined) hp(
@@ -72,7 +76,10 @@ export function advance(frame: Frame, event: FightEventView): Frame {
       if (who('hero')) who('hero')!.fallen = false;
       next.saves = null;
       break;
-    case 'end': for (const f of Object.values(next.fighters)) f.statuses = {}; break;
+    case 'end':
+      for (const f of Object.values(next.fighters)) f.statuses = {};
+      next.raging = false; next.marked = null;
+      break;
     default: break;
   }
   return next;

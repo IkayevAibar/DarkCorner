@@ -35,7 +35,8 @@ export function sound(event: FightEventView): void {
     case 'rise': play('equip'); break;
     case 'save': play('die'); break;
     case 'feature':
-      if (event.feature === 'indomitable' || event.feature === 'relentless') play('equip', { rate: 0.8 });
+      if (event.feature === 'indomitable') play('equip', { rate: 0.8 });
+      else if (event.feature === 'relentless') { play('crit', { rate: 0.65, volume: 0.7 }); play('equip', { rate: 0.8, delay: 90 }); }
       else if (event.feature === 'ward') play('crit', { rate: 1.4, volume: 0.4 });
       else if (event.feature === 'rage') play('crit', { rate: 0.55, volume: 0.9 });
       else if (event.feature === 'mark') play('equip', { rate: 1.4, volume: 0.6 });
