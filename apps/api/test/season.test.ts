@@ -78,7 +78,7 @@ describe('the Season', () => {
         data: { location: 'LABYRINTH', floor: boss.floor, room: boss.from, prevRoom: boss.from, facing: false, hp: 1, stance: 'bold', stamina: 20, staminaAt: new Date() },
       });
       await post(admin, '/api/labyrinth/move', { to: boss.room });
-      died = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/face', { action: 'fight' })).json()).died;
+      died = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/face', { action: 'fight', auto: true })).json()).died;
     }
     expect(died).toBe(true);
     const grave = await prisma.grave.findFirstOrThrow();
@@ -168,7 +168,7 @@ describe('the Season', () => {
     const facing = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/move', { to: boss.room })).json());
     expect(facing.view.room?.facing).toMatchObject({ kind: 'boss', sneak: null });
     expect((await post(admin, '/api/labyrinth/face', { action: 'sneak' })).json().error).toBe('no_sneaking');
-    const won = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/face', { action: 'fight' })).json());
+    const won = labyrinthResultSchema.parse((await post(admin, '/api/labyrinth/face', { action: 'fight', auto: true })).json());
     expect(won.fight?.outcome).toBe('victory');
     expect(won.loot.length).toBeGreaterThanOrEqual(3);
 
@@ -185,7 +185,7 @@ describe('the Season', () => {
     const { cookie, hero } = await makeHero('Second');
     await champion(hero.id, boss.floor, boss.from);
     await post(cookie, '/api/labyrinth/move', { to: boss.room });
-    await post(cookie, '/api/labyrinth/face', { action: 'fight' });
+    await post(cookie, '/api/labyrinth/face', { action: 'fight', auto: true });
     const podium = (await get(cookie, '/api/tavern')).json().season.podium;
     expect(podium.map((p: { hero: string; place: number }) => [p.place, p.hero])).toEqual([[1, 'Admira'], [2, 'Second']]);
 

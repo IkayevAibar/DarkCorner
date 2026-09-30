@@ -5,7 +5,7 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { type Outcome, emptyOutcome, t } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
-import type { HeroWithItems, Tx } from './ledger.js';
+import { type HeroWithItems, type Tx, noFight } from './ledger.js';
 import { notify } from './push.js';
 import { currentSeason } from './seasons.js';
 
@@ -136,6 +136,8 @@ export async function endDuo(tx: Tx, hero: Hero, partner: Hero, tell: { en: stri
  */
 export async function activePartner(tx: Tx, hero: HeroWithItems, partner: PartnerRow | null, now: Date, out: Outcome, looks = false): Promise<PartnerRow | null> {
   if (!partner) return null;
+  // A fight played turn by turn keeps its Duo: a Player away just loses turns to the AI.
+  if (await tx.fight.count({ where: { OR: [{ heroId: hero.id }, { partnerId: hero.id }] } }) > 0) return partner;
   const apart = partner.location !== hero.location || partner.floor !== hero.floor || partner.room !== hero.room;
   if (apart) {
     await endDuo(tx, hero, partner, { en: `You and ${hero.name} are apart now: the Duo is over.`, ru: `Вы с героем ${hero.name} разлучены: дуэт распался.` });
@@ -260,6 +262,7 @@ export async function leaveDuo(player: Player): Promise<DuoState> {
   const now = new Date();
   return prisma.$transaction(async (tx) => {
     const { hero, partner } = await loadActors(tx, player, season.id);
+    await noFight(tx, hero.id);
     if (partner) await endDuo(tx, hero, partner, { en: `${hero.name} left the Duo: you go on alone.`, ru: `${hero.name} покидает дуэт: дальше вы одни.` });
     return stateOf(tx, hero, season.id, now);
   });

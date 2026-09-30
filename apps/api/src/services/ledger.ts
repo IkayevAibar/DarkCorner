@@ -11,7 +11,11 @@ export type Tx = Prisma.TransactionClient;
 export type HeroWithItems = Hero & { items: Item[] };
 type Place = 'BAG' | 'STORAGE';
 
-/** The Player's living Hero, locked until the transaction ends, with its Items. */
+/**
+ * The Player's living Hero, locked until the transaction ends, with its Items. A Hero in
+ * a fight played turn by turn can do nothing else until it ends (its Items and health are
+ * the fight's).
+ */
 export async function lockHero(tx: Tx, player: Pick<Player, 'id'>, seasonId: string): Promise<HeroWithItems> {
   const row = await tx.hero.findFirst({ where: { playerId: player.id, seasonId, retiredAt: null }, select: { id: true } });
   if (!row) throw ApiError.conflict('no_hero', 'Create a Hero first');
@@ -19,7 +23,15 @@ export async function lockHero(tx: Tx, player: Pick<Player, 'id'>, seasonId: str
   const hero = await tx.hero.findUniqueOrThrow({ where: { id: row.id }, include: { items: true } });
   // Retired between the lookup and the lock.
   if (hero.retiredAt) throw ApiError.conflict('no_hero', 'Create a Hero first');
+  await noFight(tx, hero.id);
   return hero;
+}
+
+/** Refuses anything but the fight while one is being played turn by turn. */
+export async function noFight(tx: Tx, heroId: string): Promise<void> {
+  if (await tx.fight.count({ where: { OR: [{ heroId }, { partnerId: heroId }] } }) > 0) {
+    throw ApiError.conflict('in_fight', 'Finish the fight first');
+  }
 }
 
 export function requireCity(hero: Hero): void {

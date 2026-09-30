@@ -34,7 +34,7 @@ const refill = async () => prisma.hero.updateMany({ data: { stamina: 20, stamina
 /** A Move, and a fight with whatever stops the Hero in the doorway. */
 async function walkIn(to: number) {
   const moved = await act('/api/labyrinth/move', { to });
-  return moved.view.room?.facing ? act('/api/labyrinth/face', { action: 'fight' }) : moved;
+  return moved.view.room?.facing ? act('/api/labyrinth/face', { action: 'fight', auto: true }) : moved;
 }
 /** Puts the test Hero's Bag in order: `base` × `quantity`. */
 async function give(base: string, quantity: number) {
@@ -103,7 +103,7 @@ describe('the Labyrinth', () => {
 
     // Sturdy enough that the fight can't end the test in the City.
     await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999 } });
-    const fought = await act('/api/labyrinth/face', { action: 'fight' });
+    const fought = await act('/api/labyrinth/face', { action: 'fight', auto: true });
     expect(fought.fight).not.toBeNull();
     expect(fought.fight!.monsters.map((m) => m.key)).toEqual(facing.monsters.map((m) => m.key));
     expect(fought.fight!.events.at(-1)).toEqual({ type: 'end', outcome: fought.fight!.outcome });
@@ -185,11 +185,13 @@ describe('the Labyrinth', () => {
       await act('/api/labyrinth/move', { to: fightNextToLanding });
       const r = await act('/api/labyrinth/face', { action: 'sneak' });
       expect(r.checks).toHaveLength(1);
-      slipped = r.fight === null;
+      slipped = r.fight === null && r.view.fight === null;
       if (slipped) {
         expect(r.view.room).toMatchObject({ id: fightNextToLanding, facing: null, cleared: false });
         expect(r.checks[0]!.success).toBe(true);
       } else {
+        // Spotted: the fight is on, played turn by turn; the Hero fights it out on its own.
+        if (r.view.fight) await act('/api/labyrinth/fight', { action: { kind: 'auto' } });
         await refill();
         await act('/api/labyrinth/move', { to: floor1.landing });
       }
@@ -209,10 +211,12 @@ describe('the Labyrinth', () => {
       await prisma.heroFloor.updateMany({ data: { cleared: {} } });
       await act('/api/labyrinth/move', { to: fightNextToLanding });
       const r = await act('/api/labyrinth/face', { action: 'sneak' });
-      if (r.fight) {
+      const fight = r.view.fight ?? r.fight;
+      if (fight) {
         ambushed = true;
         expect(r.checks[0]!.success).toBe(false);
-        expect(r.fight.events[1]).toEqual({ type: 'surprise', side: 'hero' });
+        expect(fight.events[1]).toEqual({ type: 'surprise', side: 'hero' });
+        if (r.view.fight) await act('/api/labyrinth/fight', { action: { kind: 'auto' } });
       }
     }
     expect(ambushed).toBe(true);
@@ -226,7 +230,7 @@ describe('the Labyrinth', () => {
     expect((await post('/api/labyrinth/face', { action: 'fight', bomb: true })).json().error).toBe('no_bomb');
     await give('bomb-fire', 2);
     await give('bomb-smoke', 1);
-    const bombed = await act('/api/labyrinth/face', { action: 'fight', bomb: true });
+    const bombed = await act('/api/labyrinth/face', { action: 'fight', bomb: true, auto: true });
     expect(bombed.fight!.events[1]).toMatchObject({ type: 'burst', actor: 'hero', source: 'bomb' });
     expect(bombed.view.hero.bombs).toEqual({ fire: 1, smoke: 1 });
 
@@ -348,7 +352,7 @@ describe('the Labyrinth', () => {
     expect(there.view.graves).toHaveLength(1);
     // The monsters that killed the Hero guard its Grave.
     expect((await post(`/api/labyrinth/graves/${grave.id}/loot`)).json().error).toBe('facing');
-    await act('/api/labyrinth/face', { action: 'fight' });
+    await act('/api/labyrinth/face', { action: 'fight', auto: true });
     const looted = await act(`/api/labyrinth/graves/${grave.id}/loot`);
     expect(looted.loot.length).toBeGreaterThan(0);
     // Taking back your own things is no news.

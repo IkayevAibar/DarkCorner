@@ -67,7 +67,7 @@ describe('Tavern bounties', () => {
     await prisma.hero.updateMany({ data: { maxHp: 999, hp: 999, str: 30 } });
     const goldBefore = (await hero()).gold;
     await act('/api/labyrinth/move', { to: fightRoom });
-    const won = await act('/api/labyrinth/face', { action: 'fight' });
+    const won = await act('/api/labyrinth/face', { action: 'fight', auto: true });
     expect(won.fight?.outcome).toBe('victory');
     expect(won.notices.some((n) => n.en.startsWith('Bounty done'))).toBe(true);
 
@@ -123,7 +123,7 @@ describe('the Hunt', () => {
     await prisma.hunt.update({ where: { id: hunt.id }, data: { kin, total: hunt.target - 1 } });
     await prisma.huntHunter.create({ data: { huntId: hunt.id, heroId: h.id, heroName: h.name, count: 20 } });
 
-    const won = await act('/api/labyrinth/face', { action: 'fight' });
+    const won = await act('/api/labyrinth/face', { action: 'fight', auto: true });
     expect(won.fight?.outcome).toBe('victory');
     expect(won.notices.some((n) => n.en.includes('you led it'))).toBe(true);
     const after = (await bounties()).hunt!;

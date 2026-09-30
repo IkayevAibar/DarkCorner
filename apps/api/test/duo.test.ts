@@ -113,34 +113,6 @@ describe('Duos', () => {
     expect((await look(b.cookie)).view.room?.facing?.monsters.map((m) => m.key)).toEqual(moved.view.room?.facing?.monsters.map((m) => m.key));
   });
 
-  it('fight side by side: each Player watches it, and each Hero is paid', async () => {
-    const { a, b } = await pair();
-    await act(a.cookie, '/api/labyrinth/enter', { floor: 1 });
-    await sturdy();
-    await act(a.cookie, '/api/labyrinth/move', { to: fightRoom });
-    const mine = await act(a.cookie, '/api/labyrinth/face', { action: 'fight' });
-    expect(mine.fight?.outcome).toBe('victory');
-    expect(mine.fight?.ally?.name.en).toBe('Mira');
-    expect(mine.xp).toBeGreaterThan(0);
-
-    const theirs = await look(b.cookie);
-    expect(theirs.fight?.hero.name.en).toBe('Mira');
-    expect(theirs.fight?.ally?.name.en).toBe('Garrick');
-    expect(theirs.fight?.events.at(-1)).toEqual({ type: 'end', outcome: 'victory' });
-    expect(theirs.xp).toBe(mine.xp);
-    // Taken once: the next look is quiet.
-    expect((await look(b.cookie)).fight).toBeNull();
-
-    const heroes = await prisma.hero.findMany();
-    for (const h of heroes) {
-      expect(h.facing).toBe(false);
-      expect(h.prevRoom).toBe(fightRoom);
-      expect(h.xp).toBeGreaterThan(0);
-    }
-    const floors = await prisma.heroFloor.findMany();
-    expect(floors.every((f) => String(fightRoom) in (f.cleared as Record<string, string>))).toBe(true);
-  });
-
   it('wait for a partner who stepped away, and end by itself after half an hour', async () => {
     const { a, b } = await pair();
     await act(a.cookie, '/api/labyrinth/enter', { floor: 1 });

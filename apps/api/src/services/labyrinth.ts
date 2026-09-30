@@ -1,9 +1,12 @@
-import type { Hero, HeroFloor, Player, Season } from '@prisma/client';
-import { type Direction, type EventAction, type Exit, type FaceAction, type Facing, KIT_BASES, type LabyrinthResult, type LabyrinthView, type Stance } from '@dark/shared';
+import type { Fight, Hero, HeroFloor, Player, Season } from '@prisma/client';
+import {
+  type Direction, type EventAction, type Exit, type FaceAction, type Facing, type HeroActionView, KIT_BASES, type LabyrinthResult, type LabyrinthView,
+  type LiveFight, type Stance,
+} from '@dark/shared';
 import {
   BAG_SLOTS, type ClassId, type Door, breaksWalls, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
-  PATH_MASTERY, type MonsterInstance, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
+  PATH_MASTERY, type HeroKey, InvalidChoice, type MonsterInstance, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
   threatOf, tierRank, baseById, heroFeatures, itemAbout, CAMP_REST_MS, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -16,12 +19,13 @@ import { enterEvent, eventAction, eventView, withLuck } from './events.js';
 import { feed } from './feed.js';
 import { type PartnerRow, activePartner, addNews, endDuo, loadActors, mergeOutcomes, partnerView, takeNews } from './duo.js';
 import {
-  DAY_MS, type FightKind, type Outcome, combatOf, combatant, duoFight, duoInput, duoMonstersFor, emptyOutcome, fallBack, fight, fightInput, foeOf,
+  DAY_MS, type FightKind, type Outcome, combatOf, combatant, duoInput, duoMonstersFor, emptyOutcome, fallBack, fight, fightInput, foeOf,
   heroFloor, isCleared, markCleared, monstersFor, t,
 } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
-import { type HeroWithItems, type Tx, lockHero, stackTotal, takeStack } from './ledger.js';
+import { type HeroWithItems, type Tx, lockHero, noFight, stackTotal, takeStack } from './ledger.js';
+import { type FightStep, advance, choiceOf, fightHeroes, fightOf, isPaused, liveView, replayOf, startFight } from './liveFights.js';
 import { dropChest, dropGear, withGoldFind } from './loot.js';
 import { boostedXp, gainXp } from './progression.js';
 import { countDeeds } from './deeds.js';
@@ -371,7 +375,8 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     return { id, x: r.x, y: r.y, type: shown ? r.type : null, visited: seen.has(id), cleared: isCleared(hf, id, now) };
   });
 
-  const waiting = hero.facing ? await pairWaiting(tx, hero, together, season, floor, room.id, now) : null;
+  const live = await liveFightOf(tx, hero, floor);
+  const waiting = hero.facing && !live ? await pairWaiting(tx, hero, together, season, floor, room.id, now) : null;
 
   const graves = await tx.grave.findMany({
     where: { seasonId: season.id, floor: floor.number, room: room.id, expiresAt: { gt: now } },
@@ -396,7 +401,17 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     exits,
     map: { rooms, doors: [...doors.values()] },
     graves: graves.map((g) => ({ id: g.id, owner: g.ownerName, items: g.items.length, gold: g.gold, expiresAt: g.expiresAt.toISOString() })),
+    fight: live,
   };
+}
+
+/** The fight this Hero is in, as its Player sees it now; null when there is none. */
+async function liveFightOf(tx: Tx, hero: Hero, floor: Floor): Promise<LiveFight | null> {
+  const fight = await fightOf(tx, hero.id);
+  if (!fight || fight.floor !== floor.number) return null;
+  const r = replayOf(fight);
+  if (!isPaused(r)) return null;
+  return liveView(fight, r, await fightHeroes(tx, fight, false), fight.heroId === hero.id ? 'hero' : 'ally', floor);
 }
 
 async function vaultView(tx: Tx, season: Season, floor: number, room: number, now: Date) {
@@ -433,6 +448,24 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
 /** A Duo partner's side of an action: into its Run now, and waiting for its Player's next look. */
 async function tellPartner(tx: Tx, partner: Hero, out: Outcome, now: Date): Promise<void> {
   await addNews(tx, partner.id, out, await tallyRunIn(tx, partner.id, out, now));
+}
+
+/** A fight's step, delivered: what it brought the acting Hero into `out`, its partner's as news. */
+async function deliver(tx: Tx, step: FightStep, fight: Fight, actorId: string, out: Outcome, now: Date): Promise<void> {
+  if (!step.ended) return;
+  const led = fight.heroId === actorId;
+  const mine = led ? step.ended.hero : step.ended.ally;
+  const theirs = led ? step.ended.ally : step.ended.hero;
+  if (mine) Object.assign(out, mergeOutcomes(out, mine));
+  const otherId = led ? fight.partnerId : fight.heroId;
+  if (theirs && otherId) await tellPartner(tx, { id: otherId } as Hero, theirs, now);
+}
+
+/** A Room fight begins, played turn by turn: it runs to the first choice, or to its end. */
+async function fightLive(tx: Tx, hero: HeroWithItems, partner: HeroWithItems | null, season: Season, floor: Floor, roomId: number, kind: FightKind,
+  opts: { surprise?: 'hero'; bomb?: boolean; threat?: ThreatId | null; auto?: boolean }, out: Outcome, now: Date): Promise<void> {
+  const fight = await startFight(tx, hero, partner, season, floor, roomId, kind, opts, now);
+  await deliver(tx, await advance(tx, fight, await fightHeroes(tx, fight), season, floor, now), fight, hero.id, out, now);
 }
 
 /** The acting Hero and, in a Duo, its partner, ready to go with it (see activePartner). */
@@ -479,6 +512,12 @@ export async function labyrinthState(player: Player): Promise<LabyrinthResult> {
   const hero = await prisma.$transaction(async (tx) => {
     const now = new Date();
     const { hero: h, partner } = await actors(tx, player, season, now, outcome, true);
+    const fight = await fightOf(tx, h.id);
+    if (fight) {
+      const floor = floorOf(labyrinthFor(season), fight.floor);
+      await deliver(tx, await advance(tx, fight, await fightHeroes(tx, fight), season, floor, now), fight, h.id, outcome, now);
+      return h;
+    }
     await restIfDue(tx, h, now, outcome);
     if (h.location === 'LABYRINTH' && h.floor !== null) await stillFacing(tx, h, partner, season, floorOf(labyrinthFor(season), h.floor), now);
     return h;
@@ -561,6 +600,7 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
 
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
+    await noFight(tx, hero.id);
     const { floor, room: from } = whereIs(hero, lab);
     await restIfDue(tx, hero, now, outcome);
     if (partner) await restIfDue(tx, partner, now, partnerOut);
@@ -718,6 +758,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
   const partnerOut = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
+    await noFight(tx, hero.id);
     const { floor, room } = whereIs(hero, lab);
     const kind = await stillFacing(tx, hero, partner, season, floor, now);
     if (!kind) throw ApiError.conflict('not_facing', 'There is nothing here to face');
@@ -750,7 +791,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
         return hero.id;
       }
       outcome.notices.push(t('They spot you! The monsters strike first.', 'Вас заметили! Монстры бьют первыми.'));
-      await fightHere(tx, hero, season, floor, room, kind, outcome, { surprise: 'hero' });
+      await fightLive(tx, hero, null, season, floor, room, kind, { surprise: 'hero' }, outcome, now);
       return hero.id;
     }
 
@@ -758,7 +799,9 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
     // The Threat the Player was shown, for bounties that ask for a hard fight.
     const { monsters, spawnSeed } = monstersFor(season, hero, floor, room, kind, now);
     const threat = threatOf(fightOdds(`${spawnSeed}:threat:${hero.stance}`, fightInput(hero, combatOf(hero), monsters, { escapeBonus: omenOf(season, now)?.sneak ?? 0 })));
-    await fightHere(tx, hero, season, floor, room, kind, outcome, { bomb: action.bomb, threat });
+    // Auto: the Hero fights it out on its own at once, as before manual fights.
+    if (action.auto) await fightHere(tx, hero, season, floor, room, kind, outcome, { bomb: action.bomb, threat });
+    else await fightLive(tx, hero, null, season, floor, room, kind, { bomb: action.bomb, threat }, outcome, now);
     return hero.id;
   });
   return respond(heroId, season, outcome);
@@ -812,7 +855,7 @@ async function faceTogether(tx: Tx, hero: HeroWithItems, partner: PartnerRow, se
       return;
     }
     for (const w of both) w.out.notices.push(t('The Duo is spotted! The monsters strike first.', 'Дуэт заметили! Монстры бьют первыми.'));
-    await fightTogether(tx, hero, partner, season, floor, room, kind, out, partnerOut, { surprise: 'hero' });
+    await fightLive(tx, hero, partner, season, floor, room, kind, { surprise: 'hero' }, out, now);
     return;
   }
 
@@ -820,18 +863,7 @@ async function faceTogether(tx: Tx, hero: HeroWithItems, partner: PartnerRow, se
   // The Threat the Player was shown, for bounties that ask for a hard fight.
   const { monsters, spawnSeed } = encounterFor(hero, partner, season, floor, room, kind, now);
   const threat = threatOf(fightOdds(`${spawnSeed}:threat:${hero.stance}`, threatInput(hero, partner, monsters, hero.stance as StanceId, omenOf(season, now)?.sneak ?? 0)));
-  await fightTogether(tx, hero, partner, season, floor, room, kind, out, partnerOut, { bomb: action.bomb, threat });
-}
-
-/** A Duo's fight; a death ends the Duo, and whoever still stands goes on alone. */
-async function fightTogether(tx: Tx, hero: HeroWithItems, partner: PartnerRow, season: Season, floor: Floor, roomId: number, kind: 'fight' | 'miniboss',
-  out: Outcome, partnerOut: Outcome, opts: { surprise?: 'hero'; bomb?: boolean; threat?: ThreatId }) {
-  const result = await duoFight(tx, hero, partner, season, floor, roomId, kind, out, partnerOut, opts);
-  if (result.hero !== 'dead' && result.partner !== 'dead') return;
-  await endDuo(tx, hero, partner, null);
-  const fell = (name: string) => t(`Death takes ${name}. The Duo is over: you go on alone.`, `Смерть забирает героя ${name}. Дуэт распался: дальше вы одни.`);
-  if (result.hero === 'dead' && result.partner !== 'dead') partnerOut.notices.push(fell(hero.name));
-  if (result.partner === 'dead' && result.hero !== 'dead') out.notices.push(fell(partner.name));
+  await fightLive(tx, hero, partner, season, floor, room, kind, { bomb: action.bomb, threat, auto: action.action === 'fight' && action.auto }, out, now);
 }
 
 /** A fight in the Room the Hero faces; beating the Boss pays out on its own terms. */
@@ -880,6 +912,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
   const partnerOut = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
+    await noFight(tx, hero.id);
     const { floor, room } = whereIs(hero, lab);
     if (floor.rooms[room]!.type !== 'stairs' || floor.number >= FLOOR_COUNT) {
       throw ApiError.conflict('no_stairs', 'There are no stairs down here');
@@ -948,6 +981,7 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
   const partnerOut = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
+    await noFight(tx, hero.id);
     const { floor, room: at } = whereIs(hero, lab);
     if (floor.number === 1 || at !== floor.landing) throw ApiError.conflict('no_stairs_up', 'There are no stairs up here');
     const above = floorOf(lab, floor.number - 1);
@@ -1003,6 +1037,7 @@ export async function leaveByWaypoint(player: Player): Promise<LabyrinthResult> 
   const partnerOut = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
+    await noFight(tx, hero.id);
     const { floor, room: at } = whereIs(hero, lab);
     const room = floor.rooms[at]!;
     const atEntrance = floor.number === 1 && room.type === 'landing';
@@ -1029,6 +1064,7 @@ export async function shortRest(player: Player): Promise<LabyrinthResult> {
   const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome, true);
+    await noFight(tx, hero.id);
     const { floor } = whereIs(hero, lab);
     await restIfDue(tx, hero, now, outcome);
     if (await stillFacing(tx, hero, partner, season, floor, now)) throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
@@ -1063,6 +1099,7 @@ export async function readPortal(player: Player): Promise<LabyrinthResult> {
   const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, new Date(), outcome, true);
+    await noFight(tx, hero.id);
     if (hero.location !== 'LABYRINTH' || hero.floor === null || hero.room === null) throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
     const scroll = stackIn(hero, 'scroll-portal');
     if (!scroll) throw ApiError.conflict('no_scroll', 'You have no Town Portal scroll');
@@ -1093,6 +1130,7 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
   const outcome = emptyOutcome();
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, new Date(), outcome, true);
+    await noFight(tx, hero.id);
     // Monsters in the Room guard its Graves: fight them, or Sneak past, first.
     if (hero.location === 'LABYRINTH' && hero.floor !== null
       && await stillFacing(tx, hero, partner, season, floorOf(labyrinthFor(season), hero.floor), new Date())) {
@@ -1127,6 +1165,40 @@ export async function lootGrave(player: Player, graveId: string): Promise<Labyri
       const tier = best && tierRank(best) >= tierRank('rare') ? best : null;
       await feed(tx, season, hero, 'grave-looted', { owner: grave.ownerName, floor: grave.floor, tier });
     }
+    return hero.id;
+  });
+  return respond(heroId, season, outcome);
+}
+
+/**
+ * A Player's choice for its Hero's turn in the fight it is in (docs/design.md → Manual
+ * fights). The fight first catches up (a Duo turn left too long goes to the AI); then,
+ * if it is this Hero's turn, the choice is played and the fight runs on to the next
+ * choice, or to its end, paying both Heroes.
+ */
+export async function actInFight(player: Player, action: HeroActionView): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const lab = labyrinthFor(season);
+  const now = new Date();
+  const outcome = emptyOutcome();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const { hero } = await loadActors(tx, player, season.id);
+    const fight = await fightOf(tx, hero.id);
+    if (!fight) throw ApiError.conflict('no_fight', 'There is no fight going on');
+    const heroes = await fightHeroes(tx, fight);
+    const floor = floorOf(lab, fight.floor);
+    const viewer: HeroKey = fight.heroId === hero.id ? 'hero' : 'ally';
+    let step = await advance(tx, fight, heroes, season, floor, now);
+    if (step.paused) {
+      if (step.paused.turn.hero !== viewer) throw ApiError.conflict('not_your_turn', 'Wait for your turn');
+      try {
+        step = await advance(tx, fight, heroes, season, floor, now, choiceOf(action, viewer));
+      } catch (e) {
+        if (e instanceof InvalidChoice) throw ApiError.badRequest('bad_action', e.message);
+        throw e;
+      }
+    }
+    await deliver(tx, step, fight, hero.id, outcome, now);
     return hero.id;
   });
   return respond(heroId, season, outcome);

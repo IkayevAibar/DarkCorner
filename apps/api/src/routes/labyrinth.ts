@@ -1,10 +1,10 @@
 import type { FastifyInstance } from 'fastify';
 import {
-  type LabyrinthResult, enterRequestSchema, eventActionSchema, faceActionSchema, moveRequestSchema, stanceRequestSchema,
+  type LabyrinthResult, enterRequestSchema, eventActionSchema, faceActionSchema, fightActionRequestSchema, moveRequestSchema, stanceRequestSchema,
 } from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import {
-  actInEvent, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal, setStance, shortRest,
+  actInEvent, actInFight, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal, setStance, shortRest,
 } from '../services/labyrinth.js';
 
 export async function labyrinthRoutes(app: FastifyInstance) {
@@ -24,6 +24,9 @@ export async function labyrinthRoutes(app: FastifyInstance) {
 
   app.post('/api/labyrinth/face', guard, async (request): Promise<LabyrinthResult> =>
     face(request.player!, faceActionSchema.parse(request.body)));
+  /** A choice for the Hero's turn in a fight played turn by turn. */
+  app.post('/api/labyrinth/fight', guard, async (request): Promise<LabyrinthResult> =>
+    actInFight(request.player!, fightActionRequestSchema.parse(request.body).action));
   app.post('/api/labyrinth/stance', guard, async (request): Promise<LabyrinthResult> =>
     setStance(request.player!, stanceRequestSchema.parse(request.body).stance));
   app.post('/api/labyrinth/descend', guard, async (request): Promise<LabyrinthResult> => descend(request.player!));

@@ -52,7 +52,7 @@ describe('Deeds and Titles', () => {
     await act('/api/labyrinth/move', { to: beside('empty') });
     await act('/api/labyrinth/move', { to: floor1.landing });
     const moved = await act('/api/labyrinth/move', { to: beside('fight') });
-    const won = moved.view.room?.facing ? await act('/api/labyrinth/face', { action: 'fight' }) : moved;
+    const won = moved.view.room?.facing ? await act('/api/labyrinth/face', { action: 'fight', auto: true }) : moved;
     expect(won.fight?.outcome).toBe('victory');
 
     const view = await myHero();

@@ -88,6 +88,33 @@ model Delve {
   @@index([seasonId, day])
 }
 
+/// A Room fight played turn by turn (docs/design.md → Manual fights). The dice come from
+/// `seed`: replaying `choices` over `input` brings it back to where it stands.
+model Fight {
+  id        String   @id @default(cuid())
+  seasonId  String
+  /// The Hero who started it: 'hero' in its events.
+  heroId    String   @unique
+  /// Its Duo partner, fighting alongside as 'ally'.
+  partnerId String?  @unique
+  floor     Int
+  room      Int
+  /// fight, miniboss or boss.
+  kind      String
+  seed      String
+  /// The fight's input as it stood when it began: both Heroes, the monsters, a bomb or a surprise.
+  input     Json
+  /// What paying out needs: the spawn seed, the Threat the Player saw, a bomb.
+  context   Json
+  /// The Heroes played by hand ('hero', 'ally'); a Player can hand its Hero to the AI.
+  manual    String[]
+  /// Every choice so far, in the order the fight asked for them.
+  choices   Json     @default("[]")
+  /// When the waiting Hero's turn began: in a Duo, the AI takes it 30 seconds later.
+  turnAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+}
+
 /// An invite to a Duo from one Hero to another, open for ten minutes.
 model DuoInvite {
   id        String   @id @default(cuid())
