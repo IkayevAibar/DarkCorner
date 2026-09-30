@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-map',
+    date: '2026-09-30',
+    title: t('Ink your way through the Labyrinth', 'Чернилами по лабиринту'),
+    items: [
+      t('Your Floor map now has inked Room symbols, locks, cracked walls and secret Doors. Revealed Rooms show what awaits, and a small legend explains every mark.', 'На карте этажа появились рисованные обозначения комнат, замки, треснувшие стены и тайные двери. Открытые на карте комнаты показывают, что ждёт впереди, а условные обозначения объясняют каждый знак.'),
+      t('Tap an exit on the Map or use the larger Door buttons below it. Free Moves have a quiet marker.', 'Нажмите на выход на карте или на крупную кнопку двери под ней. Бесплатные шаги отмечены небольшим знаком.'),
+    ],
+  },
+  {
     id: '2026-09-30-classes',
     date: '2026-09-30',
     title: t('Two new Classes: Barbarian and Ranger', 'Два новых класса: варвар и следопыт'),

@@ -1,0 +1,9 @@
+.map-preview { display: grid; gap: 14px; }
+.map-preview-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 24px; }
+.map-preview-card { padding: 12px; background: #1d1a15; border: 1px solid #51432d; min-width: 0; }
+.map-preview-card h3 { margin: 0 0 12px; font-family: var(--font-head); color: #d9bb7b; font-size: 18px; }
+.map-preview-stage { position: relative; height: 176px; margin-top: 14px; background: #1b1812 url('/art/rooms/crypt-1.webp') center / cover; border: 1px solid #4a402c; }
+.map-preview-stage .mini-map { position: absolute; top: 8px; right: 8px; }
+.map-preview-controls { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.map-preview-controls button { min-height: 44px; }
+
