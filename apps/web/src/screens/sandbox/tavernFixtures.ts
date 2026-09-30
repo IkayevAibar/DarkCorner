@@ -45,7 +45,7 @@ export function tavernFixtures(state: TavernState, now = Date.now()) {
       weakening: state === 'finale' ? .3 : 0, relicsLeft: state === 'quiet' ? 10 : state === 'finale' ? 2 : 7,
       podium: state === 'finale' ? ['Garrick','Mira','Ilyra'].map((hero,i) => ({ place:i+1,hero,player:['Ash','Wren','Moon'][i]!,at:at(-86400000+i*1200000) })) : [],
       omen: state === 'quiet' ? null : { id: 'still-air', name: t('Still air', 'Затишье'), description: t('The Labyrinth is quiet. Sneaking is easier today.', 'В Лабиринте тихо. Сегодня легче прокрасться.') } } };
-  const lodging: LodgingView = { price: 40, nights: 2, gold: 620, stamina: 7, staminaMax: 20, shortRests:{left:0,of:2}, inCity:true, availableAt:null };
+  const lodging: LodgingView = { price: 50, nights: 0, gold: 620, stamina: 7, staminaMax: 20, shortRests:{left:0,of:2}, inCity:true, availableAt:null };
   const bounties: BountiesView = {
     daily: [
       { id:'rooms',title:t('Walk through 8 new Rooms','Пройти 8 новых комнат'),progress:5,target:8,done:false,canSwap:false,reward:{gold:80,item:null} },
