@@ -1,0 +1,325 @@
+{
+  "results": [
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    },
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 375,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 375,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "no-preference",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 1280,
+      "lang": "en",
+      "reducedMotion": "reduce",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "no-preference",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "fresh",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "half",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "43",
+      "revealRooms": 1
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "full",
+      "minSize": 53.03125,
+      "movedFrom": "44",
+      "movedTo": "34",
+      "revealRooms": 0
+    },
+    {
+      "width": 1280,
+      "lang": "ru",
+      "reducedMotion": "reduce",
+      "fixture": "lair",
+      "minSize": 53.03125,
+      "movedFrom": "0",
+      "movedTo": "1",
+      "revealRooms": 9
+    }
+  ],
+  "errors": []
+}

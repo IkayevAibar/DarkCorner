@@ -1,0 +1,8 @@
+{
+  "source": "Real local API on isolated dark_corner_test database, no response stubs",
+  "from": 70,
+  "to": 60,
+  "seed": "map-test-3",
+  "current": 60,
+  "errors": []
+}
