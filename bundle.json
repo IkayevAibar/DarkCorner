@@ -1,0 +1,15 @@
+{
+  "js": {
+    "before": 475051,
+    "after": 475102,
+    "beforeGzip": 156961,
+    "afterGzip": 156958
+  },
+  "css": {
+    "before": 46650,
+    "after": 46481,
+    "beforeGzip": 10167,
+    "afterGzip": 10158
+  },
+  "totalDelta": -118
+}

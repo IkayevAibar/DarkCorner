@@ -1,0 +1,67 @@
+{
+  "results": [
+    {
+      "locale": "en",
+      "lodging": {
+        "beforeGold": 600,
+        "price": 50,
+        "afterGold": 550,
+        "stamina": 20,
+        "shortRests": {
+          "left": 2,
+          "of": 2
+        }
+      },
+      "swapped": {
+        "before": [
+          "cmuob4r9y000s8s3sx812p6ud",
+          "cmuob4ra1000u8s3svaef78vf",
+          "cmuob4ra4000w8s3stj1edxsd"
+        ],
+        "after": [
+          "cmuob4r9y000s8s3sx812p6ud",
+          "cmuob4ra1000u8s3svaef78vf",
+          "cmuob4ra4000w8s3stj1edxsd"
+        ],
+        "canSwap": [
+          false,
+          false,
+          false
+        ]
+      },
+      "rankings": 10
+    },
+    {
+      "locale": "ru",
+      "lodging": {
+        "beforeGold": 600,
+        "price": 50,
+        "afterGold": 550,
+        "stamina": 20,
+        "shortRests": {
+          "left": 2,
+          "of": 2
+        }
+      },
+      "swapped": {
+        "before": [
+          "cmuob5dib00118s3s0jq93jqp",
+          "cmuob5dif00138s3sfqe64urz",
+          "cmuob5dih00158s3s58i21b1r"
+        ],
+        "after": [
+          "cmuob5dib00118s3s0jq93jqp",
+          "cmuob5dif00138s3sfqe64urz",
+          "cmuob5dih00158s3s58i21b1r"
+        ],
+        "canSwap": [
+          false,
+          false,
+          false
+        ]
+      },
+      "rankings": 10
+    }
+  ],
+  "errors": []
+}

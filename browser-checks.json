@@ -1,0 +1,85 @@
+{
+  "results": [
+    {
+      "state": "quiet",
+      "width": 375,
+      "locale": "en"
+    },
+    {
+      "state": "busy",
+      "width": 375,
+      "locale": "en"
+    },
+    {
+      "state": "finale",
+      "width": 375,
+      "locale": "en"
+    },
+    {
+      "state": "hall",
+      "width": 375,
+      "locale": "en"
+    },
+    {
+      "state": "quiet",
+      "width": 375,
+      "locale": "ru"
+    },
+    {
+      "state": "busy",
+      "width": 375,
+      "locale": "ru"
+    },
+    {
+      "state": "finale",
+      "width": 375,
+      "locale": "ru"
+    },
+    {
+      "state": "hall",
+      "width": 375,
+      "locale": "ru"
+    },
+    {
+      "state": "quiet",
+      "width": 1280,
+      "locale": "en"
+    },
+    {
+      "state": "busy",
+      "width": 1280,
+      "locale": "en"
+    },
+    {
+      "state": "finale",
+      "width": 1280,
+      "locale": "en"
+    },
+    {
+      "state": "hall",
+      "width": 1280,
+      "locale": "en"
+    },
+    {
+      "state": "quiet",
+      "width": 1280,
+      "locale": "ru"
+    },
+    {
+      "state": "busy",
+      "width": 1280,
+      "locale": "ru"
+    },
+    {
+      "state": "finale",
+      "width": 1280,
+      "locale": "ru"
+    },
+    {
+      "state": "hall",
+      "width": 1280,
+      "locale": "ru"
+    }
+  ],
+  "errors": []
+}
