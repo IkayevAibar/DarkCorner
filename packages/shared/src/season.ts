@@ -52,6 +52,10 @@ export type FeedEntry = z.infer<typeof feedEntrySchema>;
 export const onlinePlayerSchema = z.object({
   name: z.string(),
   hero: z.string().nullable(),
+  /** The Hero's face as a token: null while the Player is still making one. */
+  portraitUrl: z.string().nullable(),
+  banner: z.string().nullable(),
+  level: z.number().int().nullable(),
   /** The Title the Hero wears. */
   title: localizedTextSchema.nullable(),
   /** "In the City", "Floor 4"… */

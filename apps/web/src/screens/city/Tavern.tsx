@@ -4,6 +4,7 @@ import { api, ApiRequestError } from '../../api';
 import { Building, Loading } from '../../components/Building';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { Meter } from '../../components/Meter';
+import { Token } from '../../components/Token';
 import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { describeError } from '../../errors';
@@ -44,8 +45,9 @@ export function Tavern() {
           <section className="grid gap-1.5">
             <span className="sub-heading">{t('tavern.online', { n: online.length })}</span>
             {online.length === 0 ? <p className="m-0 text-sm text-muted italic">{t('tavern.nobody')}</p> : online.map((o) => (
-              <div key={o.name} className="flex justify-between gap-3 text-sm">
-                <span className="truncate font-bold">
+              <div key={o.name} className="flex items-center gap-2.5 text-sm">
+                <Token art={o.portraitUrl} label={o.hero ?? o.name} ring={o.banner ?? '#4a4038'} size={32} />
+                <span className="min-w-0 flex-1 truncate font-bold">
                   {o.hero ?? o.name}
                   {o.title && <span className="font-normal text-gold italic"> · {text(o.title)}</span>}
                   <span className="font-normal text-muted"> ({o.name})</span>

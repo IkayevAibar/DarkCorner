@@ -3,6 +3,7 @@ import type { FeedEntry, HallView, LocalizedText, TavernView } from '@dark/share
 import { uniqueById } from '@dark/engine';
 import { prisma } from '../db.js';
 import { titleOf } from './deeds.js';
+import { portraitUrlOf } from './heroes.js';
 import { TIER_NAMES, baseName, feedLine } from './feedLine.js';
 import { seasonView } from './seasonLife.js';
 import { currentSeason } from './seasons.js';
@@ -29,7 +30,10 @@ export async function tavernView(now = new Date()): Promise<TavernView> {
       const where: LocalizedText = !hero ? { en: 'Creating a Hero', ru: 'Создаёт героя' }
         : hero.location === 'CITY' ? { en: 'In the City', ru: 'В городе' }
         : { en: `Floor ${hero.floor}`, ru: `Этаж ${hero.floor}` };
-      return { name: nameOf(p), hero: hero?.name ?? null, title: titleOf(hero), where };
+      return {
+        name: nameOf(p), hero: hero?.name ?? null, portraitUrl: hero ? portraitUrlOf(hero) : null, banner: hero?.banner ?? null, level: hero?.level ?? null,
+        title: titleOf(hero), where,
+      };
     }),
     season: await seasonView(season, now),
   };
