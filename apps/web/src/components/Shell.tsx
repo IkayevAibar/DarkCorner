@@ -22,7 +22,8 @@ const TABS: { to: string; icon: IconName; label: MessageKey }[] = [
 export function Shell() {
   const city = useMatch('/city');
   const sandbox = useMatch('/sandbox');
-  const wide = !!city || !!sandbox;
+  const tavern = useMatch('/city/tavern');
+  const wide = !!city || !!sandbox || !!tavern;
   return (
     <div className={`relative mx-auto min-h-dvh ${wide ? 'max-w-[920px]' : 'max-w-[560px]'} pb-[calc(var(--nav-h)+24px+env(safe-area-inset-bottom))]`}>
       <TopBar />

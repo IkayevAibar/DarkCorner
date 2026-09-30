@@ -19,6 +19,11 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-tavern', date: '2026-09-30',
+    title: t('A fire in the Tavern', 'Огонь в таверне'),
+    items: [t('Faces around the hearth, news on the board, Bounties pinned up and Lodging upstairs. The Hall of Fame keeps each Season in stone.', 'Лица у очага, новости на доске, задания на листках и ночлег наверху. Зал славы хранит каждый сезон в камне.')],
+  },
+  {
     id: '2026-09-30-turns',
     date: '2026-09-30',
     title: t('Your next move, on the battle map', 'Ваш следующий ход — на карте боя'),
