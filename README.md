@@ -4,6 +4,14 @@ Evidence only. This orphan branch must never be merged into main.
 
 The implementation is on `codex/floor-map`, based on main `c5456c1`.
 
+## Rebase onto main b8b99b8
+
+Implementation head is now `0e4c1d7`. Only the two news conflicts needed resolution: every entry retained its literal id, the Map entry remains newest, and `LATEST_NEWS_ID` matches. Map drawings and fixtures are unchanged from these screenshots.
+
+Typecheck, build, all 27 web tests and 209 engine tests pass. The API suite passed 135/136 initially: the unchanged Fallen champion test at `apps/api/test/lair.test.ts:89` expected one loot Item and got two. Its isolated rerun passed, as did the later full 136-test API run during Class-effects work.
+
+See `rebase-bundle.json` for the updated baseline. Combined initial JS + CSS shrinks from 501,062 to 501,004 bytes; gzip 161,512 → 161,494. The new lazy CSS reference adds 31 bytes to the initial JS manifest, while initial CSS drops 89 bytes. No new runtime dependency.
+
 ## Fixtures
 
 Each screenshot includes the full Floor map and its 104 px mini-map. The four fixtures were checked at 375 and 1280 px, in English and Russian, with ordinary and reduced motion (32 combinations). Fixed app navigation is hidden in fixture screenshots so it does not obscure the captured card.
