@@ -19,7 +19,11 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
   if (event.type === 'burst') cue.targets = event.targets.map(hit => hit.key);
   if (event.type === 'heal') cue.targets = [event.actor];
   if (event.type === 'held') cue.actor = event.target;
-  if (event.type === 'feature' || event.type === 'rise' || event.type === 'down') cue.targets = ['hero'];
+  if (event.type === 'feature') {
+    cue.actor = 'hero';
+    cue.targets = event.feature === 'mark' ? (event.target ? [event.target] : []) : ['hero'];
+  }
+  if (event.type === 'rise' || event.type === 'down') cue.targets = ['hero'];
   if (reduced) return cue;
   switch (event.type) {
     case 'attack': {
@@ -32,6 +36,11 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
     }
     case 'burst': cue.contact = 480; cue.length = 1400; cue.hold = 65; break;
     case 'heal': cue.contact = 160; cue.length = 900; break;
+    case 'feature':
+      if (event.feature === 'rage') { cue.contact = 180; cue.length = 1100; cue.hold = 65; }
+      if (event.feature === 'mark') { cue.contact = 420; cue.length = 850; }
+      if (event.feature === 'relentless') { cue.contact = 400; cue.length = 1100; cue.hold = 65; }
+      break;
     case 'power':
       cue.contact = event.power === 'breath' ? 300 : 180;
       if (event.power === 'breath' || event.power === 'explode' || event.power === 'wail') cue.hold = 65;

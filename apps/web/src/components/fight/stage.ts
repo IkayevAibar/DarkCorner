@@ -3,6 +3,7 @@ import type { Combatant, Elite, FightEventView, FightReplay } from '@dark/shared
 import type { Frame, Status } from './replay';
 import type { Cue } from './choreography';
 import { ParticlePool, type Spray } from './particles';
+import { ClassEffects } from './classEffects';
 
 const SIZE = 600, HERO_Y = 446;
 const ELITE: Record<Elite, number> = { gilded: 0xc9a24a, frenzied: 0xbd3c35, armored: 0x8aa6b2, vampiric: 0x9563b8, swift: 0x57b7ae };
@@ -22,7 +23,7 @@ interface Options {
   signal: AbortSignal; miss: string;
 }
 interface Clip { start: number; length: number; draw: (p: number) => void; node?: Container }
-interface Impact { token: TokenView; from: TokenView; at: number; damage: number; crit: boolean; fired: boolean }
+interface Impact { token: TokenView; from: TokenView; at: number; damage: number; crit: boolean; muted: boolean; fired: boolean }
 
 /** A single playback clock calls draw. Pixi's own ticker stays stopped, including on pause and at the result. */
 export async function createFightStage({ host, replay, names, map, signal, miss }: Options): Promise<FightStage> {
@@ -118,6 +119,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       if (node) fx.addChild(node); clips.push({ node, start, length, draw });
     };
     const spray = (x: number, y: number, options: Spray) => { if (!reduced) pool!.emit(x, y, worldTime, options); };
+    const classEffects = new ClassEffects(world, tokens, spray);
     const ring = (x: number, y: number, color: number, radius: number, at = cue.contact, length = 650) => {
       const g = new Graphics();
       clip(g, at, reduced ? 220 : length, p => {
@@ -125,14 +127,15 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
           .stroke({ color, width: reduced ? 2 : 7 * (1 - p) + 1, alpha: (1 - p) * .8 });
       });
     };
-    const number = (token: TokenView, value: string, color: number, at = cue.contact, big = false) => {
-      const label = text(value, big ? 42 : 31, color); label.anchor.set(.5);
+    const number = (token: TokenView, value: string, color: number, at = cue.contact, size = 31) => {
+      const label = text(value, size, color); label.anchor.set(.5);
       clip(label, at, reduced ? 220 : 650, p => { label.position.set(token.x, token.y - 14 - (reduced ? 0 : p * 42)); label.alpha = Math.min(1, (1 - p) * 3); });
     };
     const impact = (from: TokenView, token: TokenView, damage: number, crit = false, at = cue.contact) => {
-      impacts.push({ from, token, damage, crit, at, fired: false });
-      number(token, '−' + damage, crit ? 0xffd876 : 0xffb5a1, at, crit);
-      if (crit) ring(token.x, token.y, 0xffd876, 125, at, 800);
+      const muted = current?.raging === true && token.who.key === 'hero' && event?.type === 'attack';
+      impacts.push({ from, token, damage, crit, muted, at, fired: false });
+      number(token, '−' + damage, muted ? 0xc3a38c : crit ? 0xffd876 : 0xffb5a1, at, muted ? 25 : crit ? 42 : 31);
+      if (crit && !muted) ring(token.x, token.y, 0xffd876, 125, at, 800);
     };
     const fragments = (token: TokenView): Spray => {
       if (token.who.kin === 'undead') return { color: 0xd8cfac, count: 18, shape: 'chip', size: 9, speed: 120, gravity: 190 };
@@ -245,9 +248,13 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       if (!event) return;
       const a = cue.actor ? get(cue.actor) : undefined, b = cue.targets[0] ? get(cue.targets[0]) : undefined;
       if (reduced) {
+        if (event.type === 'feature' && ['rage', 'mark', 'relentless'].includes(event.feature)) return;
         const color = event.type === 'attack' && event.kind === 'spell' ? a?.who.class === 'cleric' ? 0xffe8a0 : 0x9bd8ff : 0xddbc87;
         cue.targets.forEach(key => { const token = get(key); if (token) ring(token.x, token.y, color, token.radius + 10, 0, 220); });
-        if (event.type === 'attack' && b) number(b, event.hit ? '−' + event.damage : miss, event.crit ? 0xffd876 : 0xe5d3be, 0);
+        if (event.type === 'attack' && b) {
+          const muted = event.hit && event.target === 'hero' && current?.raging;
+          number(b, event.hit ? '−' + event.damage : miss, muted ? 0xc3a38c : event.crit ? 0xffd876 : 0xe5d3be, 0, muted ? 25 : 31);
+        }
         if (event.type === 'heal' && a) number(a, '+' + event.amount, 0xa4d59a, 0);
         if (event.type === 'down') death(get('hero')!);
         if (event.type === 'defeated' && get(event.key)) death(get(event.key)!);
@@ -289,6 +296,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         }
         case 'blocked': ring(300, HERO_Y, event.by === 'shield' ? 0x94dcf4 : 0xe4c986, 100, 0); break;
         case 'feature': {
+          if (event.feature === 'rage' || event.feature === 'mark' || event.feature === 'relentless') break;
           const token = get('hero')!;
           heal(token, event.amount, event.feature === 'ward' ? 0x8ad2e8 : 0xb8d894); break;
         }
@@ -354,6 +362,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         token.shownHp = NaN;
         for (const status of Object.keys(STATUS) as Status[]) if (!frame.fighters[key]?.statuses[status]) pool!.clear(key + ':' + status);
       }
+      classEffects.show(frame, previous, next, timing, calm);
       prepare(); draw(0);
     };
     const draw = (at: number) => {
@@ -421,19 +430,20 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       }
       for (const hit of impacts) {
         const age = time - hit.at; if (age < 0) continue;
-        if (!hit.fired) { hit.fired = true; spray(hit.token.x, hit.token.y, { ...fragments(hit.token), count: hit.crit ? 32 : fragments(hit.token).count });
-          if (hit.crit) spray(hit.token.x, hit.token.y, { color: 0xffd570, count: 24, speed: 220, gravity: 0, shape: 'chip', size: 8 }); }
+        if (!hit.fired) { hit.fired = true; spray(hit.token.x, hit.token.y, { ...fragments(hit.token), count: hit.muted ? 5 : hit.crit ? 32 : fragments(hit.token).count });
+          if (hit.crit && !hit.muted) spray(hit.token.x, hit.token.y, { color: 0xffd570, count: 24, speed: 220, gravity: 0, shape: 'chip', size: 8 }); }
         if (age < 400) {
           const p = age / 400, share = Math.min(1, hit.damage / Math.max(1, hit.token.who.maxHp));
           const dx = hit.token.x - hit.from.x, dy = hit.token.y - hit.from.y, length = Math.max(1, Math.hypot(dx, dy));
-          const push = Math.sin(Math.PI * Math.min(1, p * 2)) * (5 + share * 17);
+          const push = Math.sin(Math.PI * Math.min(1, p * 2)) * (5 + share * 17) * (hit.muted ? .25 : 1);
           hit.token.root.x += dx / length * push; hit.token.root.y += dy / length * push;
-          hit.token.flash.tint = age < 80 ? 0xffffff : 0xe85842;
-          hit.token.flash.alpha = age < 80 ? .65 : Math.max(0, 1 - (age - 80) / 220) * .35;
-          cameraStrength = Math.max(cameraStrength, (2 + share * 10 + (hit.crit ? 2 : 0)) * (1 - p) ** 2);
-          if (hit.crit) cameraZoom = Math.max(cameraZoom, .045 * Math.sin(p * Math.PI));
+          hit.token.flash.tint = hit.muted ? 0xb58162 : age < 80 ? 0xffffff : 0xe85842;
+          hit.token.flash.alpha = (age < 80 ? .65 : Math.max(0, 1 - (age - 80) / 220) * .35) * (hit.muted ? .35 : 1);
+          cameraStrength = Math.max(cameraStrength, (2 + share * 10 + (hit.crit ? 2 : 0)) * (1 - p) ** 2 * (hit.muted ? .3 : 1));
+          if (hit.crit && !hit.muted) cameraZoom = Math.max(cameraZoom, .045 * Math.sin(p * Math.PI));
         }
       }
+      cameraStrength = Math.max(cameraStrength, classEffects.draw(time, worldTime));
       if (!reduced && !ended) {
         if (worldTime >= airAt) { airAt = worldTime + 170;
           const color = replay.map.startsWith('demons') ? 0xde743a : replay.map.startsWith('lair') ? 0xbbb2a6 : replay.map.startsWith('crypt') ? 0xbca784 : 0x8d8776;
@@ -461,6 +471,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       if (import.meta.env.DEV) {
         host.dataset.particles = String(pool!.active); host.dataset.sceneTime = String(Math.round(time));
         host.dataset.renderedFrames = String(++renderedFrames);
+        host.dataset.raging = String(current.raging); host.dataset.marked = current.marked ?? '';
       }
     };
     const resize = () => {
