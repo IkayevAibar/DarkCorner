@@ -86,8 +86,9 @@ describe('the Dragon’s lair', () => {
     const taken = await act({ action: 'take' });
     if (taken.fight) expect(taken.fight.monsters.map((m) => m.name.en)).toEqual(['Bone knight']);
     if (!taken.fight || taken.fight.outcome === 'victory') {
-      expect(taken.loot).toHaveLength(1);
-      expect(['epic', 'legendary', 'mythic']).toContain(taken.loot[0]!.tier);
+      // The champion's gear comes last; a won fight may drop an Item of its own before it.
+      expect(taken.loot.length).toBeGreaterThanOrEqual(1);
+      expect(['epic', 'legendary', 'mythic']).toContain(taken.loot.at(-1)!.tier);
     }
   });
 });

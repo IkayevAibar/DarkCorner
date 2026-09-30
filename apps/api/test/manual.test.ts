@@ -82,6 +82,9 @@ beforeEach(async () => {
   await prisma.season.create({ data: { number: 0, seed: SEED, status: 'ACTIVE', startsAt: new Date() } });
 });
 
+/** Each fight here takes a request or two a turn: room for a busy machine. */
+const SLOW = 30_000;
+
 describe('Fights played turn by turn', () => {
   it('wait for the Player at each of the Hero\'s turns, and nothing else happens meanwhile', async () => {
     const { cookie } = await makeHero('Garrick', true);
@@ -122,7 +125,7 @@ describe('Fights played turn by turn', () => {
     expect(await prisma.fight.count()).toBe(0);
     const log = await prisma.rollLog.findFirstOrThrow({ where: { kind: 'fight' } });
     expect(log.detail).toMatchObject({ outcome: 'victory', manual: ['hero'] });
-  });
+  }, SLOW);
 
   it('let the Hero fight on its own from any turn, or from the start', async () => {
     const { cookie } = await makeHero('Garrick', true);
@@ -141,7 +144,7 @@ describe('Fights played turn by turn', () => {
     const at = await act(cookie, '/api/labyrinth/face', { action: 'fight', auto: true });
     expect(at.fight?.outcome).toBe('victory');
     expect(await prisma.fight.count()).toBe(0);
-  });
+  }, SLOW);
 
   it('play a Duo fight turn by turn, each Player on its own Hero\'s turns', async () => {
     const a = await makeHero('Garrick', true);
@@ -174,7 +177,7 @@ describe('Fights played turn by turn', () => {
     expect(endA!.xp).toBe(endB!.xp);
     expect(await prisma.fight.count()).toBe(0);
     expect((await prisma.hero.findMany()).every((h) => !h.facing && h.room === fightRoom)).toBe(true);
-  });
+  }, SLOW);
 
   it('give a Duo turn left for 30 seconds to the AI', async () => {
     const a = await makeHero('Garrick', true);
@@ -198,5 +201,5 @@ describe('Fights played turn by turn', () => {
     } else {
       expect(seen.fight).not.toBeNull();
     }
-  });
+  }, SLOW);
 });

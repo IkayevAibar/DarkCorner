@@ -91,8 +91,8 @@ describe('the Daily Delve', () => {
     const { cookie, hero } = await makeHero('Pip', false);
     await prisma.hero.update({ where: { id: hero.id }, data: { maxHp: 1, hp: 1, str: 3, dex: 3, con: 3 } });
     await act(cookie, '/api/delve/start');
-    // One Room won by hand, then a fight the Hero can't survive.
-    await prisma.delve.updateMany({ data: { rooms: 1, potions: 0 } });
+    // One Room won by hand, then a fight the Hero can't survive: 1 health against the depths.
+    await prisma.delve.updateMany({ data: { rooms: 1, potions: 0, floor: 9 } });
     const run = await prisma.delve.findFirstOrThrow();
     const boon = delveOffer(delveSeed(SEED, run.day), 1)[0];
     const fell = await act(cookie, '/api/delve/fight', { boon });

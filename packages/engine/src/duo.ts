@@ -63,7 +63,10 @@ export function forAlly(events: FightEvent[], allyOutcome: FightOutcome): FightE
       case 'heal': return { ...e, actor: swap(e.actor), ...(e.by ? { by: swap(e.by) } : {}) };
       case 'power': return e.target ? { ...e, target: swap(e.target) } : e;
       case 'status': case 'tick': case 'held': case 'expire': return { ...e, target: swap(e.target) };
-      case 'feature': case 'save': case 'down': case 'death-save': case 'rise': case 'reroll': case 'escape': return swapImplicit(e);
+      // Help and Guard name the partner they are for; a Hunter's mark names a monster, which stays as it is.
+      case 'feature': return e.target ? { ...swapImplicit(e), target: swap(e.target) } : swapImplicit(e);
+      case 'revive': return { ...swapImplicit(e), target: swap(e.target) };
+      case 'save': case 'down': case 'death-save': case 'rise': case 'reroll': case 'escape': return swapImplicit(e);
       case 'end': return { ...e, outcome: allyOutcome };
       default: return e;
     }

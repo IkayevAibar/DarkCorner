@@ -9281,13 +9281,12 @@
    },
    {
     "type": "revive",
-    "target": "hero",
+    "target": "ally",
     "natural": 12,
     "total": 18,
     "dc": 10,
     "success": true,
-    "hp": 13,
-    "actor": "ally"
+    "hp": 13
    },
    {
     "type": "heal",
@@ -10252,13 +10251,12 @@
    },
    {
     "type": "revive",
-    "target": "hero",
+    "target": "ally",
     "natural": 7,
     "total": 8,
     "dc": 10,
     "success": false,
-    "hp": 0,
-    "actor": "ally"
+    "hp": 0
    },
    {
     "type": "attack",
@@ -10301,13 +10299,12 @@
    },
    {
     "type": "revive",
-    "target": "hero",
+    "target": "ally",
     "natural": 12,
     "total": 13,
     "dc": 10,
     "success": true,
-    "hp": 6,
-    "actor": "ally"
+    "hp": 6
    },
    {
     "type": "attack",
@@ -10389,13 +10386,12 @@
    },
    {
     "type": "revive",
-    "target": "hero",
+    "target": "ally",
     "natural": 19,
     "total": 20,
     "dc": 10,
     "success": true,
-    "hp": 6,
-    "actor": "ally"
+    "hp": 6
    },
    {
     "type": "attack",
@@ -10964,7 +10960,7 @@
    {
     "type": "feature",
     "feature": "guard",
-    "target": "ally",
+    "target": "hero",
     "actor": "ally"
    },
    {
@@ -11010,7 +11006,7 @@
    {
     "type": "feature",
     "feature": "help",
-    "target": "ally",
+    "target": "hero",
     "actor": "ally"
    },
    {

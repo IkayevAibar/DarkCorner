@@ -212,7 +212,9 @@ describe('Event rooms', () => {
     await prisma.item.create({ data: { heroId, seasonId, base: 'key-iron', place: 'BAG', quantity: 1, tier: 'common' } });
     const r = await act({ action: 'free' });
     expect(r.fight !== null || r.loot.length > 0).toBe(true);
-    expect(await prisma.item.count({ where: { base: 'key-iron' } })).toBe(0);
+    // The key is spent; a doppelganger fought and beaten may drop a new one.
+    const dropped = r.loot.filter((i) => i.base === 'key-iron').reduce((n, i) => n + i.quantity, 0);
+    expect(await prisma.item.count({ where: { base: 'key-iron' } })).toBe(dropped > 0 ? 1 : 0);
   });
 
   it('the Library teaches or bites, with an INT Check on screen', async () => {

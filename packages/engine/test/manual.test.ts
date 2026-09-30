@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type FightResult, type HeroAction, type HeroChoice, type HeroCombat, type HeroKey,
-  InvalidChoice, type PausedFight, type TurnOptions, createRng, duoEncounter, heroCombat, playFight, restUses, simulateFight, spawnEncounter,
+  InvalidChoice, type PausedFight, type TurnOptions, createRng, duoEncounter, forAlly, heroCombat, playFight, restUses, simulateFight, spawnEncounter,
   startingHealth,
 } from '../src/index.js';
 
@@ -115,6 +115,32 @@ describe('Manual fights', () => {
     expect(pulled).toBeGreaterThan(0);
     expect(acted).toBeGreaterThan(0);
     expect(saves).toBeGreaterThan(0);
+  });
+
+  it('show the partner a Guard, a Help and a pull-up from its own side', () => {
+    let checked = 0;
+    for (let i = 0; i < 300 && checked < 3; i++) {
+      const input = duo(starter('fighter', 3), starter('wizard', 2), 4, `sides-${i}`);
+      const policy = (turn: TurnOptions): HeroAction => ({
+        kind: turn.actions.includes('revive') ? 'revive' : turn.round === 1 ? 'guard' : turn.round === 2 ? 'help' : 'attack',
+      });
+      const { result } = drive(`sides-${i}`, input, ['hero'], policy);
+      if (!result.events.some((e) => e.type === 'revive')) continue;
+      checked++;
+      const theirs = forAlly(result.events, result.ally!.outcome);
+      // Whoever guards, helps or pulls up whom, the other side sees the two Heroes trade places.
+      const who = (key: string | undefined) => key ?? 'hero';
+      const other = (key: string) => (key === 'hero' ? 'ally' : 'hero');
+      result.events.forEach((e, j) => {
+        if ((e.type === 'feature' && (e.feature === 'guard' || e.feature === 'help')) || e.type === 'revive') {
+          const seen = theirs[j] as { actor?: string; target?: string };
+          expect(who(seen.actor)).toBe(other(who(e.actor)));
+          expect(seen.target).toBe(other(e.target!));
+        }
+      });
+      expect(forAlly(theirs, result.outcome)).toEqual(result.events);
+    }
+    expect(checked).toBeGreaterThan(0);
   });
 
   it('haul a partner still down when the Duo wins', () => {
