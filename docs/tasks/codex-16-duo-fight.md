@@ -32,7 +32,12 @@ The fight log already reads Duo fights (`describe()` names the partner, and Clau
 
 ## Fixtures
 
-Two real Duo fights are in `apps/web/src/screens/sandbox/fightFixtures.json` (32 in all; the other 30 are unchanged): `duo-side-by-side` (a Fighter and a Cleric against a Duo's bigger group, the Cleric mending the Fighter) and `duo-hauled-up` (the Wizard watching goes down, stabilizes, and its Barbarian partner wins). Showcase them on `/sandbox`, and add each one's other side with `forAlly(events, outcome)` so the scene is checked from both Players' screens.
+Two real Duo fights are in `apps/web/src/screens/sandbox/fightFixtures.json`, each followed by the same fight from the partner's screen (34 in all; the other 30 are unchanged):
+
+- `duo-side-by-side` and `duo-side-by-side-partner`: a Fighter and a Cleric against a Duo's bigger group, the Cleric mending the Fighter.
+- `duo-hauled-up` and `duo-hauled-up-partner`: the Wizard goes down and stabilizes, and its Barbarian partner wins the fight.
+
+Showcase all four on `/sandbox`, so the scene is checked from both Players' screens.
 
 ## Done when
 

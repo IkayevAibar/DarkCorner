@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { type Combatant, type FightReplay, fightReplaySchema } from '@dark/shared';
 import {
   BANNER_COLORS, CLASS_DEFS, type ClassId, type FightInput, type FightResult, type MonsterInstance, type PathId, type RaceId, type StanceId, THEMES, createRng,
-  duoEncounter, fireBomb, heroCombat, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth, themeOf, weaponStrike,
+  duoEncounter, fireBomb, forAlly, heroCombat, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth, themeOf, weaponStrike,
 } from '@dark/engine';
 
 interface Who { name: string; race: RaceId; class: ClassId; portrait: string; banner: string }
@@ -230,6 +230,9 @@ const drawn = (key: 'hero' | 'ally', who: Who, h: ReturnType<typeof makeHero>): 
   powers: [], strike: weaponStrike(h.weapon?.base), kin: null, class: who.class,
 });
 
+/** A Duo fight as the partner's Player sees it: the same fight, the two Heroes trading places. */
+const partnerSides: Record<string, FightReplay> = {};
+
 function run(name: string, s: Scenario): FightReplay {
   const hero = makeHero(s.hero, s.level, s.health, s.path ?? null);
   const ally = s.ally ? makeHero(s.ally.hero, s.ally.level, s.ally.health) : null;
@@ -245,8 +248,15 @@ function run(name: string, s: Scenario): FightReplay {
       } : null,
     });
     if (!s.want(result, monsters)) continue;
+    const map = THEMES[themeOf(s.floor)].maps[0];
+    if (ally && s.ally && result.ally) {
+      partnerSides[`${name}-partner`] = fightReplaySchema.parse({
+        map, hero: drawn('hero', s.ally.hero, ally), ally: drawn('ally', s.hero, hero), monsters: monsters.map(combatant),
+        events: forAlly(result.events, result.ally.outcome), outcome: result.ally.outcome,
+      });
+    }
     return fightReplaySchema.parse({
-      map: THEMES[themeOf(s.floor)].maps[0],
+      map,
       hero: drawn('hero', s.hero, hero),
       ally: ally && s.ally ? drawn('ally', s.ally.hero, ally) : null,
       monsters: monsters.map(combatant),
@@ -257,7 +267,12 @@ function run(name: string, s: Scenario): FightReplay {
   throw new Error(`no seed found for ${name}`);
 }
 
-const fixtures = Object.fromEntries(Object.entries(SCENARIOS).map(([name, s]) => [name, run(name, s)]));
+// A Duo fight is followed by its partner's side.
+const fixtures = Object.fromEntries(Object.entries(SCENARIOS).flatMap(([name, s]) => {
+  const replay = run(name, s);
+  const partner = partnerSides[`${name}-partner`];
+  return partner ? [[name, replay], [`${name}-partner`, partner]] : [[name, replay]];
+}));
 const out = fileURLToPath(new URL('../../web/src/screens/sandbox/fightFixtures.json', import.meta.url));
 writeFileSync(out, `${JSON.stringify(fixtures, null, 1)}\n`);
 for (const [name, f] of Object.entries(fixtures)) console.log(`${name.padEnd(22)} ${f.outcome.padEnd(8)} ${f.events.length} events, ${f.monsters.length} monster(s)`);
