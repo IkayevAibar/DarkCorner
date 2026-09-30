@@ -440,7 +440,9 @@ export async function retireHero(player: Player): Promise<void> {
       where: { heroId: active.id, place: { in: ['WORN', 'BAG'] } },
       data: { place: 'STORAGE', slot: null },
     });
-    await tx.hero.update({ where: { id: active.id }, data: { retiredAt: new Date() } });
+    await tx.hero.update({ where: { id: active.id }, data: { retiredAt: new Date(), partnerId: null } });
+    // Its Duo ends: the partner goes on alone.
+    await tx.hero.updateMany({ where: { partnerId: active.id }, data: { partnerId: null } });
   });
 }
 

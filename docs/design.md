@@ -33,7 +33,7 @@ Every feature serves at least one of these:
 
 - **Length:** a Season lasts about 4–6 weeks. It starts with a newly generated Labyrinth and ends with a Wipe.
 - **Boss gate:** opens on day 14 *(v0)*. Until then nobody can reach the Boss.
-- **Champion and Finale:** the first Player to defeat the Boss becomes Champion. From the Season that adds Duos onward, a Duo can win together and both become Champions. The victory starts the **Finale**: 72 hours in which others can still beat the Boss for 2nd and 3rd place, and make last trades and gambles. Every attempt at the Boss is a separate fight against a Boss at full health.
+- **Champion and Finale:** the first Player to defeat the Boss becomes Champion. Duos face the Boss alone for now; once a Duo can go in together (a later Season), it can win together and both become Champions. The victory starts the **Finale**: 72 hours in which others can still beat the Boss for 2nd and 3rd place, and make last trades and gambles. Every attempt at the Boss is a separate fight against a Boss at full health.
 - **Weakening:** from day 29 (week 5) *(v0)*, the Boss loses 10% of its health and damage every week, up to −40%. This stops a Season from dragging on.
 - **The podium** *(v0)*: each Player can take one place. Beating the Boss also pays its hoard (3 Items from Floor 10, a Gold Chest, 800–1,500 gold), and then its lair stays quiet for that Hero for a day.
 - **Before the start:** Players can create Heroes and use the City while a Season is planned; the Labyrinth opens when an admin starts the Season.
@@ -361,7 +361,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 
 | Building | When | What it does |
 |---|---|---|
-| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, the Rankings, and your bounties. Lodging: a bed for the night, for City gold, fills Stamina and brings back the short rests, one night a day (the day turns at midnight UTC). The first night costs 50 gold, and each night after costs half again as much as the one before, all Season *(v0)*. Later you can also find a Duo partner and play tavern games here. |
+| Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, the Rankings, and your bounties. Lodging: a bed for the night, for City gold, fills Stamina and brings back the short rests, one night a day (the day turns at midnight UTC). The first night costs 50 gold, and each night after costs half again as much as the one before, all Season *(v0)*. Later you can also play tavern games here. |
 | Shops | Season 0 | Sell Common and Uncommon gear, potions, scrolls (Identify, Town Portal, Protection) and Keys. Buy any Item at its Buyback price. |
 | Forge | Season 0 | Upgrade, Reforge, Salvage, and craft Keys and scrolls from Materials. |
 | Market | Season 0 | Players list Items at their own price, and anyone can buy at any time. |
@@ -690,9 +690,27 @@ A Player can turn on push notifications for each phone or browser in the Account
 - **A Camp rest is done:** four hours in a Camp, when the rest gives something back (health, abilities, Stamina or short rests). It also covers the Stamina it filled.
 - **Something sells on the Market:** the Item, the buyer, the price and the seller's share.
 - **A place in the Daily Delve's first three,** and the Chest that waits at the Well.
+- **An invite to a Duo.**
 - **The Boss gate opens.**
 
 Each kind can be turned off. Nothing arrives between 23:00 and 08:00 on the device's own clock; what comes due at night arrives in the morning. On an iPhone, notifications only work once the game is on the Home Screen.
+
+### Duos *(v0)*
+
+Two friends walk the Labyrinth together, while both are online.
+
+- **Forming:** the City's Duo card lists the Heroes whose Players are online and in the City, and not in a Duo. An invite lasts 10 minutes and also comes as a Notification; one invite out at a time. Accepting makes the two Heroes a Duo, and each is the other's **Partner**.
+- **Going in:** either Player enters, and both Heroes go: at Floor 1, or at a Waypoint both have woken. A Town Portal takes one Hero, so a Duo can't step back through one.
+- **Either Player leads:** every Move, fight, Sneak and Retreat takes the Duo. Each Hero pays its own Stamina: a Room is free for a Hero only when it has stood there and nothing new waits there for either Hero. A Door either Hero can get through lets both through (a Rogue picks the lock; otherwise one Iron key goes, the leader's first). Cracked walls either Hero could break, and secret Doors either spots, show to both.
+- **Monsters:** a Duo meets the Room's usual group and 60% as many again from the same Floor, rounded up *(v0)*. A Mini-boss has 35% more health *(v0)*. The pair meets the same group all day. Monsters either Hero hasn't beaten today wait for both, and the Threat shown is rated with the partner in the fight.
+- **Fights:** one fight, side by side. Both Heroes roll initiative, monsters pick a standing Hero to attack, and a breath or a blast hits both (each saves). A Cleric's Cure wounds mends whichever Hero is hurt worst. Nobody runs: a Wary Hero never tries to escape. A Hero that goes down and stabilizes is hauled up by its partner if the Duo wins, and shares the win.
+- **Rewards:** each Hero gets the fight's full XP and rolls its own gold and drops, and each finds its own Treasure, event, Vault and hidden hoard in a Room.
+- **Sneaking:** a group Check: each Hero rolls, and one success takes both past. A Smoke bomb covers both. Past a Mini-boss only if both could Sneak past it alone.
+- **Home:** leaving by a Waypoint or the entrance takes both home, still a Duo. Each Hero's Run is its own.
+- **The Boss** is faced alone: a Duo can't go into the lair *(v0)*.
+- **Away:** a Player not seen for 2 minutes is away, and the Duo waits: the other Player can't lead it until they're back, or leaves the Duo. After 30 minutes away the Duo ends by itself.
+- **Ending:** either Player can leave the Duo at any time. A death, or reading a Town Portal, also ends it. The other Hero goes on alone from where it stands.
+- **Seeing it:** while in a Duo the game looks every few seconds for what the partner did. The partner's fights, loot and notes come up on the next look.
 
 ### Rankings
 
@@ -722,7 +740,7 @@ A board leaves out anyone with nothing to show on it yet. The Rankings end with 
 
 ### Later Seasons
 
-- **Duos:** invite a friend and both Heroes do the same Run. Each gets its own loot rolls. Some Rooms and bosses are for Duos only. A Duo that defeats the Boss are co-Champions.
+- **More for Duos:** Rooms and bosses for Duos only, and the Boss faced together: a Duo that defeats it are co-Champions.
 - **Guilds:** up to 4–5 members, with shared storage. Guild members can't attack each other, and the Champion's Guild banner hangs in the Hall of Fame.
 - **Arena tournaments:** brackets with nothing to lose; the loser is simply knocked out.
 - **Tavern games:** coin flips, dice and shared gold pots, with a cut for the house.
@@ -779,10 +797,10 @@ A board leaves out anyone with nothing to show on it yet. The Rankings end with 
   - the Bad-luck meter
 - **Rooms:** the Season 0 event rooms, Vaults and their announcements, Mini-bosses, and the Dragon.
 - **The Season itself:** the timeline, the Wipe and the Hall of Fame.
-- **Social:** the Feed and Broadcasts.
+- **Social:** the Feed, Broadcasts and Duos.
 - **Everything else:** the admin page, Russian and English, sound effects, and the hub card.
 
-**Later Seasons:** PvP Encounters, Duos, Auctions, Academy, Training grounds, Houses, Arena, Guilds, tavern games, the shell game, Map copies, a Discord bot, music, and more Classes and Races.
+**Later Seasons:** PvP Encounters, Duo-only Rooms and the Boss for Duos, Auctions, Academy, Training grounds, Houses, Arena, Guilds, tavern games, the shell game, Map copies, a Discord bot, music, and more Classes and Races.
 
 **If we fall behind (proposal, to settle in the build plan):** cut in this order:
 1. the lockpicking minigame

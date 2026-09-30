@@ -10,11 +10,15 @@ import { fileURLToPath } from 'node:url';
 import { type Combatant, type FightReplay, fightReplaySchema } from '@dark/shared';
 import {
   BANNER_COLORS, CLASS_DEFS, type ClassId, type FightInput, type FightResult, type MonsterInstance, type PathId, type RaceId, type StanceId, THEMES, createRng,
-  fireBomb, heroCombat, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth, themeOf, weaponStrike,
+  duoEncounter, fireBomb, heroCombat, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth, themeOf, weaponStrike,
 } from '@dark/engine';
 
+interface Who { name: string; race: RaceId; class: ClassId; portrait: string; banner: string }
+
 interface Scenario {
-  hero: { name: string; race: RaceId; class: ClassId; portrait: string; banner: string };
+  hero: Who;
+  /** A Duo partner fighting alongside (key 'ally'); the monsters are a Duo's. */
+  ally?: { hero: Who; level: number; health: number; potions: number; stance?: StanceId };
   level: number;
   floor: number;
   kind: 'fight' | 'miniboss' | 'boss';
@@ -181,6 +185,20 @@ const SCENARIOS: Record<string, Scenario> = {
     level: 5, floor: 4, kind: 'fight', health: 1, potions: 1,
     want: (r) => r.outcome === 'victory' && r.events.length <= 40 && r.events.filter((e) => e.type === 'feature' && e.feature === 'mark').length >= 2,
   },
+  'duo-side-by-side': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.webp', banner: BANNER_COLORS[0] },
+    ally: { hero: { name: 'Borin', race: 'dwarf', class: 'cleric', portrait: '/art/portraits/dwarf-cleric-1.webp', banner: BANNER_COLORS[3] }, level: 5, health: 0.7, potions: 1 },
+    level: 5, floor: 4, kind: 'fight', health: 0.8, potions: 1,
+    want: (r) => r.outcome === 'victory' && r.events.length <= 60
+      && has(r, (e) => e.type === 'attack' && e.actor === 'ally' && e.hit) && has(r, (e) => e.type === 'attack' && e.target === 'ally')
+      && has(r, (e) => e.type === 'heal' && e.ability === 'cure-wounds' && e.by === 'ally' && e.actor === 'hero'),
+  },
+  'duo-hauled-up': {
+    hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] },
+    ally: { hero: { name: 'Hrolf', race: 'dwarf', class: 'barbarian', portrait: '/art/portraits/dwarf-fighter-1.webp', banner: BANNER_COLORS[7] }, level: 4, health: 1, potions: 1 },
+    level: 3, floor: 4, kind: 'fight', health: 0.5, potions: 0,
+    want: (r) => r.outcome === 'victory' && r.events.length <= 60 && has(r, (e) => e.type === 'down' && !e.actor) && !has(r, (e) => e.type === 'rise'),
+  },
   'bearheart-relentless': {
     hero: { name: 'Hrolf', race: 'dwarf', class: 'barbarian', portrait: '/art/portraits/dwarf-fighter-1.webp', banner: BANNER_COLORS[7] },
     level: 9, floor: 6, kind: 'miniboss', health: 0.5, potions: 0, path: 'bearheart',
@@ -196,28 +214,41 @@ function combatant(m: MonsterInstance): Combatant {
   };
 }
 
-function run(name: string, s: Scenario): FightReplay {
-  const primary = CLASS_DEFS[s.hero.class].primary;
+/** A Starter-kit Hero of a level, at a share of its health. */
+function makeHero(who: Who, level: number, health: number, path: PathId | null = null) {
+  const primary = CLASS_DEFS[who.class].primary;
   const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, [primary]: 16 };
-  const perLevel = Math.ceil(CLASS_DEFS[s.hero.class].hitDie / 2) + 1 + 2 + 2;
-  const maxHp = startingHealth(s.hero.class, s.hero.race, ['alert', 'tough'], scores.con) + (s.level - 1) * perLevel;
-  const worn = CLASS_DEFS[s.hero.class].starterKit.map((base) => ({ base, quality: 60, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }));
+  const perLevel = Math.ceil(CLASS_DEFS[who.class].hitDie / 2) + 1 + 2 + 2;
+  const maxHp = startingHealth(who.class, who.race, ['alert', 'tough'], scores.con) + (level - 1) * perLevel;
+  const worn = CLASS_DEFS[who.class].starterKit.map((base) => ({ base, quality: 60, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }));
+  const hp = Math.max(1, Math.round(maxHp * health));
+  return heroCombat({ name: who.name, class: who.class, race: who.race, level, talents: ['alert', 'tough'], path, scores, maxHp, hp, worn });
+}
 
+const drawn = (key: 'hero' | 'ally', who: Who, h: ReturnType<typeof makeHero>): Combatant => ({
+  key, name: { en: who.name, ru: who.name }, art: who.portrait, hp: h.hp, maxHp: h.maxHp, ac: h.ac, boss: false, banner: who.banner, elite: null,
+  powers: [], strike: weaponStrike(h.weapon?.base), kin: null, class: who.class,
+});
+
+function run(name: string, s: Scenario): FightReplay {
+  const hero = makeHero(s.hero, s.level, s.health, s.path ?? null);
+  const ally = s.ally ? makeHero(s.ally.hero, s.ally.level, s.ally.health) : null;
   for (let i = 0; i < 60_000; i++) {
-    const hp = Math.max(1, Math.round(maxHp * s.health));
-    const hero = heroCombat({ name: s.hero.name, class: s.hero.class, race: s.hero.race, level: s.level, talents: ['alert', 'tough'], path: s.path ?? null, scores, maxHp, hp, worn });
-    const monsters = spawnEncounter(createRng(`${name}:spawn:${i}`), s.floor, s.kind);
+    const spawn = createRng(`${name}:spawn:${i}`);
+    const monsters = ally && s.kind !== 'boss' ? duoEncounter(spawn, s.floor, s.kind) : spawnEncounter(spawn, s.floor, s.kind);
     const result = simulateFight(createRng(`${name}:fight:${i}`), {
-      hero, monsters, uses: restUses(s.hero.class, s.level, s.path ?? null), potions: s.potions, runPowers: { deathless: false, lucky: false },
+      hero: { ...hero }, monsters, uses: restUses(s.hero.class, s.level, s.path ?? null), potions: s.potions, runPowers: { deathless: false, lucky: false },
       stance: s.stance ?? 'bold', surprise: s.surprise ?? null, bomb: s.bomb ? fireBomb(s.floor) : null, gold: s.gold ?? 0,
+      ally: ally && s.ally ? {
+        hero: { ...ally }, uses: restUses(s.ally.hero.class, s.ally.level, null), potions: s.ally.potions, runPowers: { deathless: false, lucky: false },
+        stance: s.ally.stance ?? 'bold',
+      } : null,
     });
     if (!s.want(result, monsters)) continue;
     return fightReplaySchema.parse({
       map: THEMES[themeOf(s.floor)].maps[0],
-      hero: {
-        key: 'hero', name: { en: s.hero.name, ru: s.hero.name }, art: s.hero.portrait, hp, maxHp, ac: hero.ac, boss: false, banner: s.hero.banner, elite: null,
-        powers: [], strike: weaponStrike(hero.weapon?.base), kin: null, class: s.hero.class,
-      },
+      hero: drawn('hero', s.hero, hero),
+      ally: ally && s.ally ? drawn('ally', s.ally.hero, ally) : null,
       monsters: monsters.map(combatant),
       events: result.events,
       outcome: result.outcome,

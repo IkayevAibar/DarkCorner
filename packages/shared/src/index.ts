@@ -16,3 +16,4 @@ export * from './season.js';
 export * from './push.js';
 export * from './delve.js';
 export * from './steps.js';
+export * from './duo.js';

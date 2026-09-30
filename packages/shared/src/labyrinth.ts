@@ -67,6 +67,9 @@ export type Combatant = z.infer<typeof combatantSchema>;
 export const fightOutcomeSchema = z.enum(['victory', 'survived', 'escaped', 'dead']);
 export type FightOutcomeId = z.infer<typeof fightOutcomeSchema>;
 
+/** In a Duo fight, which Hero a line is about when it isn't the one watching: 'ally'. Absent means the Hero. */
+const who = z.string().optional();
+
 export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('initiative'), order: z.array(z.string()) }),
   /** That side was caught off guard (a failed Sneak) and loses its first round. */
@@ -76,7 +79,7 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     hit: z.boolean(), crit: z.boolean(), damage: z.number().int(), targetHp: z.number().int(), kind: z.enum(['weapon', 'spell']),
   }),
   /** A blow turned aside: by the Ashen Aegis, or by a Wizard's Shield. */
-  z.object({ type: z.literal('blocked'), actor: z.string(), by: z.enum(['aegis', 'shield']).default('aegis') }),
+  z.object({ type: z.literal('blocked'), actor: z.string(), by: z.enum(['aegis', 'shield']).default('aegis'), target: who }),
   z.object({
     type: z.literal('burst'), actor: z.string(), source: z.enum(['spell', 'bomb']),
     targets: z.array(z.object({ key: z.string(), damage: z.number().int(), hp: z.number().int() })),
@@ -84,6 +87,8 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('heal'), actor: z.string(), ability: z.enum(['second-wind', 'cure-wounds', 'potion', 'life-steal']),
     amount: z.number().int(), hp: z.number().int(),
+    /** A Cleric mending its Duo partner: the healer, when it isn't `actor`. */
+    by: z.string().optional(),
   }),
   /**
    * A Hero's Class or Path at work: Survivor heals, Indomitable and Relentless stand at 1, an Abjurer's
@@ -92,6 +97,7 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless']),
     amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(), target: z.string().optional(),
+    actor: who,
   }),
   /** A monster's power at work: `amount` is gold stolen, health restored or damage dealt; `hp` the target's health after. */
   z.object({
@@ -101,7 +107,7 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   /** A saving throw the Hero makes against a monster's power. */
   z.object({
     type: z.literal('save'), ability: z.enum(['str', 'dex', 'con', 'int', 'wis', 'cha']), natural: z.number().int(), total: z.number().int(),
-    dc: z.number().int(), success: z.boolean(),
+    dc: z.number().int(), success: z.boolean(), actor: who,
   }),
   z.object({ type: z.literal('status'), target: z.string(), status: statusSchema, turns: z.number().int() }),
   /** Damage at the start of a turn: burning, or poison when `status` says so. */
@@ -117,12 +123,12 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   /** A monster runs off, a thief with what it stole. */
   z.object({ type: z.literal('fled'), key: z.string() }),
   z.object({ type: z.literal('defeated'), key: z.string() }),
-  z.object({ type: z.literal('down') }),
-  z.object({ type: z.literal('death-save'), natural: z.number().int(), successes: z.number().int(), failures: z.number().int() }),
-  z.object({ type: z.literal('rise'), hp: z.number().int() }),
-  z.object({ type: z.literal('reroll'), natural: z.number().int() }),
+  z.object({ type: z.literal('down'), actor: who }),
+  z.object({ type: z.literal('death-save'), natural: z.number().int(), successes: z.number().int(), failures: z.number().int(), actor: who }),
+  z.object({ type: z.literal('rise'), hp: z.number().int(), actor: who }),
+  z.object({ type: z.literal('reroll'), natural: z.number().int(), actor: who }),
   /** An Escape roll the Hero's Stance made it try, badly hurt. */
-  z.object({ type: z.literal('escape'), natural: z.number().int(), total: z.number().int(), dc: z.number().int(), success: z.boolean() }),
+  z.object({ type: z.literal('escape'), natural: z.number().int(), total: z.number().int(), dc: z.number().int(), success: z.boolean(), actor: who }),
   z.object({ type: z.literal('end'), outcome: fightOutcomeSchema }),
 ]);
 export type FightEventView = z.infer<typeof fightEventSchema>;
@@ -130,7 +136,10 @@ export type FightEventView = z.infer<typeof fightEventSchema>;
 export const fightReplaySchema = z.object({
   /** The Room map it happens on: apps/web/public/art/rooms/<map>.jpg. */
   map: z.string(),
+  /** The Hero whose screen this is. */
   hero: combatantSchema,
+  /** Its Duo partner, fighting alongside with the key 'ally'; null alone. */
+  ally: combatantSchema.nullable().default(null),
   monsters: z.array(combatantSchema),
   events: z.array(fightEventSchema),
   outcome: fightOutcomeSchema,
@@ -361,6 +370,26 @@ export const KIT_BASES = ['potion', 'bomb-fire', 'bomb-smoke', 'scroll-portal'] 
 export const kitItemSchema = z.object({ base: z.enum(KIT_BASES), count: z.number().int(), name: localizedTextSchema, about: localizedTextSchema });
 export type KitItemView = z.infer<typeof kitItemSchema>;
 
+/** The other Hero of a Duo, as its partner sees it. */
+export const duoPartnerSchema = z.object({
+  heroId: z.string(),
+  name: z.string(),
+  portraitUrl: z.string(),
+  banner: z.string(),
+  class: classIdSchema,
+  level: z.number().int(),
+  hp: z.number().int(),
+  maxHp: z.number().int(),
+  stamina: z.number().int(),
+  /** Its Player was on in the last two minutes: the Duo can act. */
+  online: z.boolean(),
+  /** When its Player was last seen; the Duo ends by itself after 30 minutes away. */
+  seenAt: z.string().nullable(),
+  /** The Waypoints it has woken: a Duo enters at one both have. */
+  waypoints: z.array(z.number().int()),
+});
+export type DuoPartner = z.infer<typeof duoPartnerSchema>;
+
 export const labyrinthViewSchema = z.object({
   location: z.enum(['city', 'labyrinth']),
   hero: z.object({
@@ -425,8 +454,11 @@ export const labyrinthViewSchema = z.object({
   /** The Hero's own Map of this Floor: Rooms stood in, the Rooms next to them, and the Doors between. */
   map: z.object({ rooms: z.array(mapRoomSchema), doors: z.array(mapDoorSchema) }).nullable(),
   graves: z.array(graveViewSchema),
+  /** The Duo this Hero is in (docs/design.md → Duos), or null alone. */
+  duo: duoPartnerSchema.nullable().default(null),
 });
 export type LabyrinthView = z.infer<typeof labyrinthViewSchema>;
+
 
 /** What a whole Run brought, shown once it ends: back in the City, or dead. */
 export const runSummarySchema = z.object({

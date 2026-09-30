@@ -65,6 +65,10 @@ Web Push with VAPID (`apps/api/src/services/push.ts`, the `web-push` library to 
 
 There are no websockets in Season 0. The web checks the Feed and "who's online" (`GET /api/tavern`) every 15–30 seconds. Players are online if they made a request in the last 10 minutes (`Player.lastSeenAt`, written at most once a minute).
 
+## Duos
+
+Two Heroes point at each other (`Hero.partnerId`, `apps/api/src/services/duo.ts`). Every Labyrinth action loads the pair with `loadActors()`, which locks both Hero rows in id order, so two Players acting at once wait for each other instead of deadlocking; `activePartner()` then ends a Duo whose Heroes are apart or whose partner has been away 30 minutes, and refuses to act for one away 2 minutes (a stricter "online" than the Tavern's: seen in the last 2 minutes). What an action brings the partner (its fight replay, loot, notes) is tallied into its Run at once and left on its Hero as `duoNews`, which the partner's next Labyrinth response takes and shows (`respond()` merges it). While in a Duo the web looks again every 4 seconds (`useRefresh`), which also keeps the Player "online". A Duo fight is one `simulateFight` with `ally` set; the partner's replay is the same events turned around (`forAlly`), and each Hero is paid by `settle()` from its own side (its gold and drop dice carry an `:ally` suffix).
+
 ## Deployment
 
 - **Server:** the same Ubuntu VPS as the other ugolok sites. The game has its own `docker-compose.yml` (api, web served by nginx, postgres) and a deploy script run by a systemd timer, like MC's.

@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-09-30-duos',
+    date: '2026-09-30',
+    title: t('Duos: the Labyrinth with a friend', 'Дуэты: лабиринт вдвоём'),
+    items: [
+      t('When a friend is online in the City, invite them from the Duo card in the City. Enter together, and either of you can lead: every Move, fight and Retreat takes you both.',
+        'Когда друг в сети и в городе, позовите его с карточки «Дуэт» в городе. Входите вместе, и вести может любой из вас: каждый шаг, бой и отступление — на двоих.'),
+      t('A Duo meets more monsters and fights them side by side. Each Hero pays its own Stamina, gets the full XP and rolls its own gold and loot.',
+        'Дуэту попадается больше монстров, и вы бьётесь с ними плечом к плечу. Каждый герой платит своей выносливостью, получает весь опыт и свои золото и добычу.'),
+      t('A Cleric heals whichever of you is hurt worst, and if one of you falls, the other hauls them up when the fight is won. The Dragon is still faced alone.',
+        'Жрец лечит героя, у которого меньше здоровья, а если герой рухнет без сил, после победы напарник поставит его на ноги. С драконом по-прежнему бьются в одиночку.'),
+    ],
+  },
+  {
     id: '2026-09-30-first-steps',
     date: '2026-09-30',
     title: t('First steps', 'Первые шаги'),

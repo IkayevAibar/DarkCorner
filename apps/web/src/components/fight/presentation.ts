@@ -58,9 +58,9 @@ export function sound(event: FightEventView): void {
   }
 }
 
-/** Monster names, numbered when several share one ("Goblin 1", "Goblin 2"). */
+/** Monster names, numbered when several share one ("Goblin 1", "Goblin 2"); in a Duo, the partner as 'ally'. */
 export function displayNames(replay: FightReplay, text: (value: LocalizedText) => string): Record<string, string> {
-  const names: Record<string, string> = { hero: text(replay.hero.name) };
+  const names: Record<string, string> = { hero: text(replay.hero.name), ...(replay.ally ? { ally: text(replay.ally.name) } : {}) };
   const count = new Map<string, number>();
   for (const m of replay.monsters) count.set(text(m.name), (count.get(text(m.name)) ?? 0) + 1);
   const seen = new Map<string, number>();
@@ -88,6 +88,9 @@ const POWER_LINES: Partial<Record<MonsterPowerView, MessageKey>> = {
 
 export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: Record<string, string>): string | null {
   const n = (key: string) => names[key] ?? key;
+  // Lines about a Hero that don't name one: the Hero watching, or in a Duo its partner ('ally').
+  const self = n('actor' in e && e.actor ? e.actor : 'hero');
+  const duo = names.ally !== undefined;
   switch (e.type) {
     case 'initiative': return t('fight.initiative', { list: e.order.map(n).join(', ') });
     case 'attack':
@@ -96,32 +99,39 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
       return t(e.kind === 'spell' ? 'fight.spell' : 'fight.hit', { actor: n(e.actor), target: n(e.target), n: e.damage });
     case 'blocked': return t(e.by === 'shield' ? 'fight.shield' : 'fight.blocked', { actor: n(e.actor) });
     case 'burst': return t(e.source === 'bomb' ? 'fight.bomb' : 'fight.burst', { actor: n(e.actor), n: e.targets.reduce((s, x) => s + x.damage, 0) });
-    case 'heal': return t(`fight.heal.${e.ability}`, { actor: n(e.actor), n: e.amount });
+    case 'heal':
+      return e.by && e.by !== e.actor
+        ? t('fight.heal.mend', { by: n(e.by), actor: n(e.actor), n: e.amount })
+        : t(`fight.heal.${e.ability}`, { actor: n(e.actor), n: e.amount });
     case 'defeated': return t('fight.defeated', { name: n(e.key) });
-    case 'down': return t('fight.down', { name: n('hero') });
-    case 'death-save': return t('fight.deathSave', { d: e.natural, s: e.successes, f: e.failures });
-    case 'rise': return t('fight.rise', { name: n('hero'), n: e.hp });
-    case 'reroll': return t('fight.reroll', { name: n('hero'), d: e.natural });
+    case 'down': return t('fight.down', { name: self });
+    case 'death-save': return duo
+      ? t('fight.deathSaveOf', { name: self, d: e.natural, s: e.successes, f: e.failures })
+      : t('fight.deathSave', { d: e.natural, s: e.successes, f: e.failures });
+    case 'rise': return t('fight.rise', { name: self, n: e.hp });
+    case 'reroll': return t('fight.reroll', { name: self, d: e.natural });
     case 'surprise': return t(`fight.surprise.${e.side}`);
-    case 'escape': return t(e.success ? 'fight.escape.yes' : 'fight.escape.no', { name: n('hero'), d: e.natural, t: e.total, dc: e.dc });
+    case 'escape': return t(e.success ? 'fight.escape.yes' : 'fight.escape.no', { name: self, d: e.natural, t: e.total, dc: e.dc });
     case 'power': {
       const key = POWER_LINES[e.power];
       return key ? t(key, { actor: n(e.actor), target: n(e.target ?? 'hero'), n: e.amount ?? 0 }) : null;
     }
-    case 'save':
-      return t('fight.save', { ability: t(`ability.${e.ability}`), d: e.natural, t: e.total, dc: e.dc, result: t(e.success ? 'result.success' : 'result.failure') });
+    case 'save': {
+      const line = t('fight.save', { ability: t(`ability.${e.ability}`), d: e.natural, t: e.total, dc: e.dc, result: t(e.success ? 'result.success' : 'result.failure') });
+      return duo ? `${self}: ${line}` : line;
+    }
     case 'status': return t(`fight.status.${e.status}`, { name: n(e.target) });
     case 'expire': return t(`fight.expire.${e.status}`, { name: n(e.target) });
     case 'tick': return t(e.status === 'poisoned' ? 'fight.tickPoison' : 'fight.tick', { name: n(e.target), n: e.damage });
     case 'held': return t('fight.held', { name: n(e.target) });
     case 'feature':
-      if (e.feature === 'survivor') return t('fight.feature.survivor', { name: n('hero'), n: e.amount ?? 0 });
-      if (e.feature === 'indomitable') return t('fight.feature.indomitable', { name: n('hero') });
-      if (e.feature === 'relentless') return t('fight.feature.relentless', { name: n('hero') });
-      if (e.feature === 'rage') return t('fight.feature.rage', { name: n('hero') });
-      if (e.feature === 'mark') return t('fight.feature.mark', { name: n('hero'), target: n(e.target ?? '') });
+      if (e.feature === 'survivor') return t('fight.feature.survivor', { name: self, n: e.amount ?? 0 });
+      if (e.feature === 'indomitable') return t('fight.feature.indomitable', { name: self });
+      if (e.feature === 'relentless') return t('fight.feature.relentless', { name: self });
+      if (e.feature === 'rage') return t('fight.feature.rage', { name: self });
+      if (e.feature === 'mark') return t('fight.feature.mark', { name: self, target: n(e.target ?? '') });
       return e.amount === undefined
-        ? t('fight.feature.wardUp', { name: n('hero'), n: e.left ?? 0 })
+        ? t('fight.feature.wardUp', { name: self, n: e.left ?? 0 })
         : t('fight.feature.ward', { n: e.amount, left: e.left ?? 0 });
     case 'fled': return t('fight.fled', { name: n(e.key) });
     case 'end': return null;

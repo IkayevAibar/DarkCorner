@@ -14,7 +14,7 @@ export interface Cue {
 export function cueFor(replay: FightReplay, event: FightEventView | null, reduced: boolean): Cue {
   const cue: Cue = { actor: null, targets: [], contact: 0, length: duration(event, reduced), hold: 0, slow: 0 };
   if (!event) return cue;
-  if ('actor' in event) cue.actor = event.actor;
+  if ('actor' in event) cue.actor = event.actor ?? null;
   if ('target' in event && event.target) cue.targets = [event.target];
   if (event.type === 'burst') cue.targets = event.targets.map(hit => hit.key);
   if (event.type === 'heal') cue.targets = [event.actor];

@@ -361,9 +361,13 @@ _Avoid_: inn, sleep, rest (alone)
 The Tavern's boards of the current Season's records, one per record (deepest Floor, level, gold, fights won, Deeds done, finest Item, Graves looted, Vaults emptied, deaths, the Dragon), each with a podium. Unlike the Hall of Fame, they end with the Wipe.
 _Avoid_: tops, leaderboard, scores
 
-**Duo**:
-Two Heroes doing the same Run together.
+**Duo** (дуэт):
+Two Heroes, of two Players online at once, walking the same Rooms and fighting side by side. Each pays its own Stamina and gets its own loot.
 _Avoid_: party, group
+
+**Partner** (напарник):
+The other Hero of a Duo.
+_Avoid_: teammate, buddy
 
 **Guild**:
 A small, permanent group of Players.

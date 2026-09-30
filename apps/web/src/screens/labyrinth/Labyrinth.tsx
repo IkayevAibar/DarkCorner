@@ -1,14 +1,15 @@
-import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from 'react';
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router';
 import {
-  STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
+  STANCES, TIERS, type CheckView, type Direction, type DuoPartner, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
   type LabyrinthView, type RunSummary,
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
 import { CenterModal } from '../../components/CenterModal';
 import { Guide } from '../../components/Guide';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
-import { useLoad } from '../../components/useLoad';
+import { useLoad, useRefresh } from '../../components/useLoad';
+import { DuoCard } from '../../components/DuoCard';
 import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
@@ -47,16 +48,33 @@ export function Labyrinth() {
 
   useEffect(() => { void preloadFightScene().catch(() => { /* Playback can retry or show its fallback. */ }); }, []);
 
-  const load = useCallback(async () => {
+  /** Where the Hero stands, to hear a Duo partner lead it on. */
+  const place = useRef<string | null>(null);
+  /**
+   * Shows a result: a fight plays first. A Duo fight shows as its log in the report
+   * until the fight scene draws a partner (docs/tasks/codex-16-duo-fight.md). News
+   * that comes while a report is open joins it rather than hiding it.
+   */
+  const present = useCallback((result: LabyrinthResult, polled = false) => {
+    const at = result.view.floor && result.view.room ? `${result.view.floor.number}:${result.view.room.id}` : null;
+    if (polled && place.current !== null && at !== place.current) play('door', { rate: 0.9 });
+    place.current = at;
+    if (result.fight && !result.fight.ally) {
+      setPlaying(result);
+      return;
+    }
+    setView(result.view);
+    if (hasNews(result)) setReport((open) => (open ? joinReports(open, result) : result));
+  }, []);
+
+  const load = useCallback(async (polled = false) => {
     try {
-      const result = await api.labyrinth();
-      setView(result.view);
-      if (hasNews(result)) setReport(result);
+      present(await api.labyrinth(), polled);
       setStatus('ready');
     } catch (e) {
       setStatus(e instanceof ApiRequestError && e.body?.error === 'no_hero' ? 'noHero' : 'failed');
     }
-  }, []);
+  }, [present]);
 
   useEffect(() => {
     void load();
@@ -68,6 +86,12 @@ export function Labyrinth() {
   };
   useAt(view?.hero.staminaNextAt, refresh);
   useAt(view?.room?.restedAt, refresh);
+  // In a Duo either Player can lead, so look every few seconds for what the other did.
+  const inDuo = view?.duo != null;
+  const poll = useCallback(async () => {
+    if (inDuo && !busy && !playing) await load(true);
+  }, [inDuo, busy, playing, load]);
+  useRefresh(poll, 4_000);
 
   const act: Act = async (call) => {
     setBusy(true);
@@ -75,12 +99,7 @@ export function Labyrinth() {
     try {
       const result = await call();
       setReport(null);
-      if (result.fight) {
-        setPlaying(result);
-      } else {
-        setView(result.view);
-        if (hasNews(result)) setReport(result);
-      }
+      present(result);
     } catch (e) {
       setError(describeError(t, e));
       void load();
@@ -118,7 +137,7 @@ export function Labyrinth() {
     <div className="grid gap-3">
       {report && <Report result={report} onClose={() => setReport(null)} />}
       {view.location === 'city' ? (
-        <Gate view={view} busy={busy} error={error} act={act} />
+        <Gate view={view} busy={busy} error={error} act={act} onDuo={() => void load()} />
       ) : (
         <Inside view={view} busy={busy} error={error} act={act} />
       )}
@@ -137,6 +156,22 @@ const hasNews = (r: LabyrinthResult) =>
   r.fight !== null || r.loot.length > 0 || r.gold > 0 || r.xp > 0 || r.levelUp !== null || r.died || r.notices.length > 0
   || r.checks.length > 0 || r.duel !== null || r.run !== null || r.deeds.length > 0;
 
+/** Two results in one report, the newer's fight and view winning. */
+const joinReports = (a: LabyrinthResult, b: LabyrinthResult): LabyrinthResult => ({
+  view: b.view,
+  fight: b.fight ?? a.fight,
+  loot: [...a.loot, ...b.loot],
+  gold: a.gold + b.gold,
+  xp: a.xp + b.xp,
+  levelUp: b.levelUp ?? a.levelUp,
+  died: a.died || b.died,
+  notices: [...a.notices, ...b.notices],
+  checks: [...a.checks, ...b.checks],
+  duel: b.duel ?? a.duel,
+  run: b.run ?? a.run,
+  deeds: [...a.deeds, ...b.deeds],
+});
+
 /** Drinks one Healing potion from the Bag, then shows the Labyrinth again. */
 async function drinkPotion(): Promise<LabyrinthResult> {
   const me = await api.myHero();
@@ -150,10 +185,13 @@ async function drinkPotion(): Promise<LabyrinthResult> {
  * status and belt, and under it the way down: the gate, a Waypoint already woken,
  * or an open Town Portal.
  */
-function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act }) {
+function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act; onDuo: () => void }) {
   const { t, locale } = useI18n();
   const [popup, setPopup] = useState<Popup | null>(null);
-  const floors = [1, ...view.waypoints.filter((n) => n !== 1).sort((a, b) => a - b)];
+  const duo = view.duo;
+  // A Duo enters where both can: Floor 1, or a Waypoint both Heroes have woken.
+  const woken = view.waypoints.filter((n) => n !== 1).sort((a, b) => a - b);
+  const floors = [1, ...woken.filter((n) => !duo || duo.waypoints.includes(n))];
   const shut = view.season.status === 'planned';
   const hero = view.hero;
   const enter = (floor: number, portal = false) => {
@@ -164,7 +202,7 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
     <>
       <Stage art={{ src: GATE_ART, style: undefined }} dim="brightness-[0.42]" view={view} onPopup={setPopup}>
         <div className="absolute inset-x-0 top-[48%] grid -translate-y-1/2 justify-items-center gap-2.5 px-6 text-center">
-          <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={86} />
+          <Pair view={view} size={86} />
           <h1 className="m-0 font-head text-[28px] leading-tight font-extrabold [text-shadow:0_2px_8px_#000]">{t('lab.gate.title')}</h1>
           <p className="m-0 max-w-[32ch] text-sm text-bone/85 [text-shadow:0_1px_4px_#000]">{t('lab.gate.body')}</p>
         </div>
@@ -176,8 +214,9 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
       </div>
       {view.season.omen && <OmenNote omen={view.season.omen} />}
 
+      {duo && <DuoStrip partner={duo} busy={busy} act={act} />}
       <section className="grid gap-2">
-        {view.portal && (
+        {view.portal && !duo && (
           <div className="grid gap-1">
             <button type="button" className="btn btn-primary" disabled={busy || shut} onClick={() => enter(view.portal!.floor, true)}>
               {t('lab.portalBack', { n: view.portal.floor })}
@@ -186,12 +225,15 @@ function Gate({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; 
           </div>
         )}
         {floors.map((n) => (
-          <button key={n} type="button" className={`btn ${n === 1 && !view.portal ? 'btn-primary' : ''}`} disabled={busy || shut} onClick={() => enter(n)}>
-            {n === 1 ? t('lab.enter') : t('lab.enterWaypoint', { n })}
+          <button key={n} type="button" className={`btn ${n === 1 && (!view.portal || duo) ? 'btn-primary' : ''}`} disabled={busy || shut} onClick={() => enter(n)}>
+            {duo ? (n === 1 ? t('duo.enter') : t('duo.enterWaypoint', { n })) : n === 1 ? t('lab.enter') : t('lab.enterWaypoint', { n })}
           </button>
         ))}
+        {duo && floors.length <= woken.length && <span className="px-1 text-xs text-muted">{t('duo.shared')}</span>}
+        {duo && view.portal && <span className="px-1 text-xs text-muted">{t('err.duo_portal')}</span>}
       </section>
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
+      {!duo && <DuoCard onChange={onDuo} />}
       {view.bestFloor === 0 && <FirstRunTips />}
       <FirstSteps />
 
@@ -296,7 +338,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         ) : (
           <>
             <div className="absolute inset-0 grid place-items-center">
-              <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={86} />
+              <Pair view={view} size={86} />
             </div>
             {exits.map((exit) => (
               <DoorMarker key={exit.to} exit={exit} disabled={busy} onMove={move} />
@@ -320,6 +362,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         )}
       </Stage>
 
+      {view.duo && <DuoStrip partner={view.duo} busy={busy} act={act} />}
       <div className="grid gap-1 px-1 text-sm text-muted">
         <span className="flex flex-wrap gap-1.5">
           <span className="chip">{hero.xpNext === null ? t('lab.xpMax', { n: hero.xp }) : t('lab.xp', { n: hero.xp, m: hero.xpNext })}</span>
@@ -610,6 +653,51 @@ function BagCard({ onClose }: { onClose: () => void }) {
   );
 }
 
+/** The Hero's token, and in a Duo its partner's beside it, a little smaller. */
+function Pair({ view, size }: { view: LabyrinthView; size: number }) {
+  const hero = view.hero;
+  const partner = view.duo;
+  return (
+    <span className="flex items-end justify-center gap-2">
+      <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={size} />
+      {partner && (
+        <Token art={partner.portraitUrl} label={partner.name} ring={partner.banner} size={Math.round(size * 0.78)} className={partner.online ? '' : 'opacity-60'} />
+      )}
+    </span>
+  );
+}
+
+/** The Duo partner: its health and Stamina, whether its Player is here, and leaving the Duo. */
+function DuoStrip({ partner, busy, act }: { partner: DuoPartner; busy: boolean; act: Act }) {
+  const { t } = useI18n();
+  const leave = () => void act(async () => {
+    await api.duoLeave();
+    return api.labyrinth();
+  });
+  return (
+    <section className="grid gap-1.5 rounded-[2px] border border-line bg-[rgb(22_18_14/0.7)] p-2">
+      <div className="flex items-center gap-2.5">
+        <Token art={partner.portraitUrl} label={partner.name} ring={partner.banner} size={36} />
+        <div className="grid min-w-0 flex-1 gap-1">
+          <div className="flex items-baseline gap-2">
+            <span className="truncate font-head font-bold">{t('duo.with', { name: partner.name })}</span>
+            <span className={`shrink-0 text-xs ${partner.online ? 'text-tier-uncommon' : 'text-[#ff9a8a]'}`}>{partner.online ? t('duo.online') : t('duo.away')}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[11px] leading-none text-muted tabular-nums">
+            <div className="h-[5px] flex-1 border border-black bg-[#2a211a]">
+              <div className="h-full bg-[#c23030]" style={{ width: `${Math.round((partner.hp / Math.max(1, partner.maxHp)) * 100)}%` }} />
+            </div>
+            <span>{partner.hp}/{partner.maxHp}</span>
+            <span>· {t('hero.stamina')} {partner.stamina}</span>
+          </div>
+        </div>
+        <button type="button" className="btn btn-small shrink-0" disabled={busy} onClick={leave}>{t('duo.leave')}</button>
+      </div>
+      {!partner.online && <p className="m-0 text-sm text-[#ff9a8a]">{t('duo.awayNote', { name: partner.name })}</p>}
+    </section>
+  );
+}
+
 /** The monsters in the doorway above, the Hero below, as in the fight that may follow. */
 function FacingTokens({ facing, view, onFoe }: { facing: Facing; view: LabyrinthView; onFoe: (key: string) => void }) {
   const text = useText();
@@ -632,7 +720,7 @@ function FacingTokens({ facing, view, onFoe }: { facing: Facing; view: Labyrinth
         ))}
       </div>
       <div className="absolute inset-x-0 bottom-[66px] flex justify-center">
-        <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={78} />
+        <Pair view={view} size={78} />
       </div>
     </>
   );
@@ -661,7 +749,7 @@ function FacingCard({ facing, view, busy, act, onAside, onFoe }: {
       width={420}
       head={
         <div className="flex items-center gap-2.5">
-          <Token art={view.hero.portraitUrl} label={view.hero.name} ring={view.hero.banner} size={44} />
+          <Pair view={view} size={44} />
           <span className="font-head text-sm font-extrabold text-muted">{t('facing.vs')}</span>
           <div className="flex min-w-0 flex-wrap gap-1">
             {facing.monsters.map((m) => (
@@ -702,6 +790,7 @@ function FacingCard({ facing, view, busy, act, onAside, onFoe }: {
           ))}
         </div>
         <p className="m-0 text-sm text-muted">{t(`stance.${stance}.blurb`)}</p>
+        {view.duo && <p className="m-0 text-sm text-muted">{t('duo.fightNote', { name: view.duo.name })}</p>}
       </div>
 
       <div className="grid gap-2">
@@ -720,6 +809,7 @@ function FacingCard({ facing, view, busy, act, onAside, onFoe }: {
               {t('facing.sneakOdds', { ability: t('ability.dex'), mod: signed(sneak.modifier), dc: sneak.dc })}
               {sneak.edge !== 'normal' && ` · ${t(`facing.${sneak.edge}`)}`}
             </span>
+            {view.duo && <span className="text-xs font-normal text-muted">{t('duo.sneakNote')}</span>}
           </button>
         )}
         {sneak && smoke > 0 && (
@@ -1030,7 +1120,12 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
             <span className="text-sm">{t('report.deedReward', { n: d.gold })}</span>
           </NavLink>
         ))}
-        {result.fight && (
+        {result.fight?.ally && (
+          <div className="max-h-[38vh] overflow-y-auto rounded-[2px] border border-line/60 bg-black/20 p-2">
+            <FightLog replay={result.fight} />
+          </div>
+        )}
+        {result.fight && !result.fight.ally && (
           <button
             type="button"
             className="btn"

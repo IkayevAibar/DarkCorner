@@ -1052,6 +1052,8 @@ export function simulateFight(rng: Rng, input: FightInput): FightResult {
   }
   // A fight won by the Heroes still in it; one that runs out of rounds ends with them pulling back, alive.
   for (const s of sides) s.out ??= won ? 'victory' : 'survived';
+  // A Duo that wins hauls its fallen partner up: they stay and share the spoils.
+  if (duo && won) for (const s of sides) if (s.out === 'survived') s.out = 'victory';
   const outcome = hero.out!;
   events.push({ type: 'end', outcome });
 

@@ -1,9 +1,10 @@
 import type { Hero, HeroFloor, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type Foe, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
-  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT, type MonsterInstance,
-  type PathId, RELIC_CHANCE, type RaceId, type StanceId, type TalentId, type ThreatId, weakeningAt,
-  type DeedCounts, KILL_METRIC, monsterStrike, weaponStrike, createRng, fireBomb, heroCombat, monsterById, restUses, simulateFight, spawnEncounter,
+  BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightEvent, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT,
+  type MonsterInstance, type PathId, RELIC_CHANCE, type RaceId, type SideResult, type StanceId, type TalentId, type ThreatId, weakeningAt,
+  type DeedCounts, KILL_METRIC, monsterStrike, weaponStrike, createRng, duoEncounter, fireBomb, forAlly, heroCombat, monsterById, restUses,
+  simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { feed } from './feed.js';
@@ -161,57 +162,35 @@ export function fightInput(hero: HeroWithItems, combat: HeroCombat, monsters: Mo
   };
 }
 
+/** A Hero as the fight scene draws it, under `key` ('hero' for the one watching, 'ally' for its Duo partner). */
+function heroCombatant(key: 'hero' | 'ally', hero: HeroWithItems, combat: HeroCombat): Combatant {
+  return {
+    key, name: { en: hero.name, ru: hero.name }, art: portraitUrlOf(hero), hp: combat.hp, maxHp: combat.maxHp, ac: combat.ac,
+    boss: false, banner: hero.banner, elite: null, powers: [], strike: weaponStrike(combat.weapon?.base), kin: null, class: hero.class as ClassId,
+  };
+}
+
+interface Fought {
+  seed: string;
+  events: FightEvent[];
+  xp: number;
+  defeated: string[];
+}
+
 /**
- * Fights what waits in a Room (or the given monsters, e.g. a mimic), then pays out:
- * XP, gold, the Bad-luck meter and drops on a win; a Grave on a death.
+ * Pays one Hero out after a fight, from its own side of it: potions drunk, gold a
+ * thief ran off with, death and its Grave, XP and health, then on a win the Room,
+ * the Bad-luck meter, gold, drops, bounties, the Hunt and Deeds. `key` is which side
+ * of the fight it was on; the Hero alone always keeps its dice of old.
  */
-export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: FightKind, out: Outcome, opts: {
-  monsters?: MonsterInstance[];
-  /** Extra Items on a win, on top of the usual drops. */
-  bonusDrops?: number;
-  /** Whether winning clears the Room (Event rooms track themselves). */
-  clears?: boolean;
-  /** A failed Sneak: the monsters act first. */
-  surprise?: 'hero' | 'monsters';
-  /** A Fire bomb goes off before the first round (the caller has taken it from the Bag). */
-  bomb?: boolean;
-  /** The Threat the Player saw before choosing to fight: for bounties, and a Trivial fight never kills. */
-  threat?: ThreatId | null;
-} = {}): Promise<'victory' | 'survived' | 'escaped' | 'dead'> {
+async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', side: SideResult, fought: Fought, monsters: MonsterInstance[],
+  season: Season, floor: Floor, roomId: number, kind: FightKind, out: Outcome, opts: { bonusDrops?: number; clears?: boolean; threat?: ThreatId | null }) {
   const now = new Date();
-  const spawned = opts.monsters ? null : monstersFor(season, hero, floor, roomId, kind, now);
-  const monsters = opts.monsters ?? spawned!.monsters;
-  const spawnSeed = spawned?.spawnSeed ?? null;
-
-  const combat = combatOf(hero);
-  const potionStacks = hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion');
-  const seed = newSeed();
   const omen = omenOf(season, now);
-  const input = fightInput(hero, combat, monsters, {
-    surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null, escapeBonus: omen?.sneak ?? 0, spare: opts.threat === 'trivial',
-  });
-  const result = simulateFight(createRng(seed), input);
-  await tx.rollLog.create({
-    data: {
-      playerId: hero.playerId, kind: 'fight', seed,
-      detail: { floor: floor.number, room: roomId, kind, outcome: result.outcome, spawnSeed, stance: input.stance, surprise: input.surprise, bomb: Boolean(opts.bomb) },
-    },
-  });
-
-  out.fight = fightReplaySchema.parse({
-    map: floor.rooms[roomId]!.map,
-    hero: {
-      key: 'hero', name: { en: hero.name, ru: hero.name }, art: portraitUrlOf(hero), hp: combat.hp, maxHp: combat.maxHp, ac: combat.ac,
-      boss: false, banner: hero.banner, elite: null, powers: [], strike: weaponStrike(combat.weapon?.base), kin: null, class: hero.class as ClassId,
-    },
-    monsters: monsters.map((m) => combatant(m.key, m)),
-    events: result.events,
-    outcome: result.outcome,
-  });
-
+  const suffix = key === 'hero' ? '' : `:${key}`;
   // Potions drunk come out of the Bag.
-  let drink = result.potionsUsed;
-  for (const stack of potionStacks) {
+  let drink = side.potionsUsed;
+  for (const stack of hero.items.filter((i) => i.place === 'BAG' && i.base === 'potion')) {
     if (drink <= 0) break;
     const used = Math.min(drink, stack.quantity);
     drink -= used;
@@ -224,54 +203,55 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     }
   }
 
-  if (kind === 'boss') await feed(tx, season, hero, 'boss-attempt', { outcome: result.outcome });
+  if (kind === 'boss') await feed(tx, season, hero, 'boss-attempt', { outcome: side.outcome });
 
   // A cutpurse that got away took its gold for good.
-  if (result.goldStolen > 0) {
-    hero.carriedGold = Math.max(0, hero.carriedGold - result.goldStolen);
+  if (side.goldStolen > 0) {
+    hero.carriedGold = Math.max(0, hero.carriedGold - side.goldStolen);
     await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: hero.carriedGold } });
-    out.notices.push(t(`A thief got away with ${result.goldStolen} of your gold.`, `Вор ушёл с вашим золотом: ${result.goldStolen}.`));
+    out.notices.push(t(`A thief got away with ${side.goldStolen} of your gold.`, `Вор ушёл с вашим золотом: ${side.goldStolen}.`));
   }
 
-  if (result.outcome === 'dead') {
+  if (side.outcome === 'dead') {
     // Nobody can Sneak past the Boss, so a Grave in its lair could never be reached: it lies on the doorstep.
     await die(tx, hero, season, floor.number, kind === 'boss' ? (hero.prevRoom ?? floor.landing) : roomId, out);
-    return 'dead';
+    return;
   }
 
-  const rng = createRng(`${seed}:after`);
-  const xp = await boostedXp(tx, hero, season, Math.round(result.xp * (omen?.xp ?? 1)));
+  const rng = createRng(`${fought.seed}:after${suffix}`);
+  const xp = await boostedXp(tx, hero, season, Math.round(fought.xp * (omen?.xp ?? 1)));
   const levelUp = gainXp(hero, xp);
   out.xp += xp;
   out.levelUp = levelUp.newLevel ?? out.levelUp;
   const after = {
-    hp: result.hp,
-    spellUses: result.uses.spells,
-    healUses: result.uses.heals,
-    deathless: result.runPowers.deathless,
-    lucky: result.runPowers.lucky,
+    hp: side.hp,
+    spellUses: side.uses.spells,
+    healUses: side.uses.heals,
+    deathless: side.runPowers.deathless,
+    lucky: side.runPowers.lucky,
     facing: false,
     ...levelUp.data,
-    ...(result.outcome === 'victory' ? { prevRoom: roomId } : fallBack(hero, floor, now)),
+    ...(side.outcome === 'victory' ? { prevRoom: roomId } : fallBack(hero, floor, now)),
   };
   await tx.hero.update({ where: { id: hero.id }, data: after });
   Object.assign(hero, after);
   // Going down and living through it is a Deed's worth; a natural 20 that stands the Hero up, another.
-  if (result.events.some((e) => e.type === 'down')) {
-    await countDeeds(tx, hero, { saved: 1, rose: result.events.some((e) => e.type === 'rise') ? 1 : 0 }, out);
+  const mine = (e: FightEvent) => ('actor' in e && e.actor ? e.actor : 'hero') === key;
+  if (fought.events.some((e) => e.type === 'down' && mine(e))) {
+    await countDeeds(tx, hero, { saved: 1, rose: fought.events.some((e) => e.type === 'rise' && mine(e)) ? 1 : 0 }, out);
   }
 
-  if (result.outcome === 'survived') {
+  if (side.outcome === 'survived') {
     out.notices.push(t('Barely alive, you crawl back to the last safe Room.', 'Едва живы, вы отползаете в последнюю безопасную комнату.'));
-    return 'survived';
+    return;
   }
-  if (result.outcome === 'escaped') {
+  if (side.outcome === 'escaped') {
     out.notices.push(t('You break away and run back to the last safe Room.', 'Вы вырываетесь и бежите в последнюю безопасную комнату.'));
-    return 'escaped';
+    return;
   }
 
   // The Boss pays out on its own terms (boss.ts).
-  if (kind === 'boss') return 'victory';
+  if (kind === 'boss') return;
 
   // Victory: the Room stays clear for a day, the Bad-luck meter ticks, and there is loot.
   if (kind === 'fight') {
@@ -285,8 +265,8 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   }
   await addBadLuck(tx, hero, kind === 'fight' ? BAD_LUCK_PER_FIGHT : BAD_LUCK_PER_MINIBOSS);
   // Gold from every monster that fell (a thief that ran pays nothing); Gilded elites pay triple.
-  const fallen = monsters.filter((m) => result.defeated.includes(m.key));
-  const baseGold = fallen.reduce((s, m) => s + createRng(`${seed}:gold:${m.key}`).int(1, 4) * (floor.number + 1) * (m.elite === 'gilded' ? GILDED_GOLD : 1), 0)
+  const fallen = monsters.filter((m) => fought.defeated.includes(m.key));
+  const baseGold = fallen.reduce((s, m) => s + createRng(`${fought.seed}:gold${suffix}:${m.key}`).int(1, 4) * (floor.number + 1) * (m.elite === 'gilded' ? GILDED_GOLD : 1), 0)
     * (kind === 'fight' ? 1 : 10);
   const gold = withGoldFind(hero, Math.round(baseGold * (omen?.gold ?? 1)));
   out.gold += gold;
@@ -312,7 +292,118 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
     if (metric) kills[metric] = (kills[metric] ?? 0) + 1;
   }
   await countDeeds(tx, hero, { ...kills, minibosses: kind === 'miniboss' ? 1 : 0, elites, deadly: opts.threat === 'deadly' ? 1 : 0 }, out);
-  return 'victory';
+}
+
+/**
+ * Fights what waits in a Room (or the given monsters, e.g. a mimic), then pays out:
+ * XP, gold, the Bad-luck meter and drops on a win; a Grave on a death.
+ */
+export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: FightKind, out: Outcome, opts: {
+  monsters?: MonsterInstance[];
+  /** Extra Items on a win, on top of the usual drops. */
+  bonusDrops?: number;
+  /** Whether winning clears the Room (Event rooms track themselves). */
+  clears?: boolean;
+  /** A failed Sneak: the monsters act first. */
+  surprise?: 'hero' | 'monsters';
+  /** A Fire bomb goes off before the first round (the caller has taken it from the Bag). */
+  bomb?: boolean;
+  /** The Threat the Player saw before choosing to fight: for bounties, and a Trivial fight never kills. */
+  threat?: ThreatId | null;
+} = {}): Promise<'victory' | 'survived' | 'escaped' | 'dead'> {
+  const now = new Date();
+  const spawned = opts.monsters ? null : monstersFor(season, hero, floor, roomId, kind, now);
+  const monsters = opts.monsters ?? spawned!.monsters;
+  const spawnSeed = spawned?.spawnSeed ?? null;
+
+  const combat = combatOf(hero);
+  const seed = newSeed();
+  const omen = omenOf(season, now);
+  const input = fightInput(hero, combat, monsters, {
+    surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null, escapeBonus: omen?.sneak ?? 0, spare: opts.threat === 'trivial',
+  });
+  const result = simulateFight(createRng(seed), input);
+  await tx.rollLog.create({
+    data: {
+      playerId: hero.playerId, kind: 'fight', seed,
+      detail: { floor: floor.number, room: roomId, kind, outcome: result.outcome, spawnSeed, stance: input.stance, surprise: input.surprise, bomb: Boolean(opts.bomb) },
+    },
+  });
+
+  out.fight = fightReplaySchema.parse({
+    map: floor.rooms[roomId]!.map,
+    hero: heroCombatant('hero', hero, combat),
+    monsters: monsters.map((m) => combatant(m.key, m)),
+    events: result.events,
+    outcome: result.outcome,
+  });
+  await settle(tx, hero, 'hero', result, { seed, events: result.events, xp: result.xp, defeated: result.defeated }, monsters, season, floor, roomId, kind, out, opts);
+  return result.outcome;
+}
+
+/** Who waits for a Duo in a Room: one group for the pair, the same all day, tougher than either would meet alone. */
+export function duoMonstersFor(season: Season, a: Pick<Hero, 'id'>, b: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: 'fight' | 'miniboss', now: Date) {
+  const pair = [a.id, b.id].sort().join(':');
+  const spawnSeed = `${season.seed}:duo:${pair}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
+  return { spawnSeed, monsters: duoEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now), omenOf(season, now)) };
+}
+
+/** A Duo's fight input: the one acting as the Hero, its partner alongside. */
+export function duoInput(hero: HeroWithItems, partner: HeroWithItems, monsters: MonsterInstance[], opts: {
+  stance?: StanceId; surprise?: 'hero' | null; bombFloor?: number | null; escapeBonus?: number;
+} = {}): FightInput {
+  const potions = partner.items.filter((i) => i.place === 'BAG' && i.base === 'potion').reduce((s, i) => s + i.quantity, 0);
+  return {
+    ...fightInput(hero, combatOf(hero), monsters, opts),
+    ally: {
+      hero: combatOf(partner), uses: { spells: partner.spellUses, heals: partner.healUses }, potions,
+      runPowers: { deathless: partner.deathless, lucky: partner.lucky }, stance: partner.stance as StanceId, gold: partner.carriedGold,
+    },
+  };
+}
+
+/**
+ * A Duo fights what waits in their Room together: one fight, and each Hero is paid
+ * from its own side of it (docs/design.md → Duos). The partner's replay is the same
+ * fight turned around, so each Player watches their own Hero.
+ */
+export async function duoFight(tx: Tx, hero: HeroWithItems, partner: HeroWithItems, season: Season, floor: Floor, roomId: number, kind: 'fight' | 'miniboss',
+  out: Outcome, partnerOut: Outcome, opts: { surprise?: 'hero'; bomb?: boolean; threat?: ThreatId | null } = {}) {
+  const now = new Date();
+  const { monsters, spawnSeed } = duoMonstersFor(season, hero, partner, floor, roomId, kind, now);
+  const seed = newSeed();
+  const omen = omenOf(season, now);
+  const input = duoInput(hero, partner, monsters, { surprise: opts.surprise, bombFloor: opts.bomb ? floor.number : null, escapeBonus: omen?.sneak ?? 0 });
+  const result = simulateFight(createRng(seed), input);
+  const ally = result.ally!;
+  await tx.rollLog.create({
+    data: {
+      playerId: hero.playerId, kind: 'fight', seed,
+      detail: { floor: floor.number, room: roomId, kind, outcome: result.outcome, partner: partner.id, partnerOutcome: ally.outcome, spawnSeed, stance: input.stance, surprise: input.surprise, bomb: Boolean(opts.bomb) },
+    },
+  });
+  const combat = input.hero;
+  const allyCombat = input.ally!.hero;
+  const shown = monsters.map((m) => combatant(m.key, m));
+  out.fight = fightReplaySchema.parse({
+    map: floor.rooms[roomId]!.map, hero: heroCombatant('hero', hero, combat), ally: heroCombatant('ally', partner, allyCombat),
+    monsters: shown, events: result.events, outcome: result.outcome,
+  });
+  partnerOut.fight = fightReplaySchema.parse({
+    map: floor.rooms[roomId]!.map, hero: heroCombatant('hero', partner, allyCombat), ally: heroCombatant('ally', hero, combat),
+    monsters: shown, events: forAlly(result.events, ally.outcome), outcome: ally.outcome,
+  });
+  const fought = { seed, events: result.events, xp: result.xp, defeated: result.defeated };
+  await settle(tx, hero, 'hero', result, fought, monsters, season, floor, roomId, kind, out, opts);
+  await settle(tx, partner, 'ally', ally, fought, monsters, season, floor, roomId, kind, partnerOut, opts);
+  // Down and never up by its own dice, yet the pair won: the partner hauled it up.
+  const hauled = (key: 'hero' | 'ally') => {
+    const count = (type: 'down' | 'rise') => result.events.filter((e) => e.type === type && (e.actor ?? 'hero') === key).length;
+    return count('down') > count('rise');
+  };
+  if (result.outcome === 'victory' && hauled('hero')) out.notices.push(t(`${partner.name} hauls you back to your feet.`, `${partner.name} поднимает вас на ноги.`));
+  if (ally.outcome === 'victory' && hauled('ally')) partnerOut.notices.push(t(`${hero.name} hauls you back to your feet.`, `${hero.name} поднимает вас на ноги.`));
+  return { hero: result.outcome, partner: ally.outcome };
 }
 
 /** Death: everything carried goes into a Grave here; the Hero wakes at the Temple with a Starter kit. */

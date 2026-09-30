@@ -3,7 +3,7 @@ import { prisma } from '../src/db.js';
 
 export async function resetDatabase(): Promise<void> {
   await prisma.$executeRawUnsafe(
-    'TRUNCATE "Setting", "HuntHunter", "Hunt", "HallEntry", "VaultOpening", "RelicFind", "BossKill", "Job", "EventVisit", "ShopPurchase", "Listing", "SpecialClaim", "Grave", "HeroFloor", "Item", "HeroDraft", "Hero", "FeedEvent", "RollLog", "Season", "Player" RESTART IDENTITY CASCADE',
+    'TRUNCATE "Setting", "DuoInvite", "HuntHunter", "Hunt", "HallEntry", "VaultOpening", "RelicFind", "BossKill", "Job", "EventVisit", "ShopPurchase", "Listing", "SpecialClaim", "Grave", "HeroFloor", "Item", "HeroDraft", "Hero", "FeedEvent", "RollLog", "Season", "Player" RESTART IDENTITY CASCADE',
   );
 }
 

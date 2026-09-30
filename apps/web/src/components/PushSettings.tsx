@@ -6,7 +6,7 @@ import { isIos, isStandalone } from '../install';
 import { type DevicePush, devicePush, syncPush, testPush, turnPushOff, turnPushOn } from '../push';
 
 /** Every kind, in the order the sheet lists them; a Record so a new kind can't be missed. Types only from shared: its values bring zod along. */
-const ORDER: Record<PushKind, number> = { stamina: 0, camp: 1, market: 2, delve: 3, gate: 4, news: 5 };
+const ORDER: Record<PushKind, number> = { stamina: 0, camp: 1, duo: 2, market: 3, delve: 4, gate: 5, news: 6 };
 const KINDS = (Object.keys(ORDER) as PushKind[]).sort((a, b) => ORDER[a] - ORDER[b]);
 
 /** Push notifications for this device, and which kinds of news the Player wants. */

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { api } from '../../api';
 import { CityMap } from '../../components/city/CityMap';
+import { DuoCard } from '../../components/DuoCard';
 import { FirstSteps } from '../../components/FirstSteps';
 import { InstallCard } from '../../components/InstallCard';
 import { useLoad, useRefresh } from '../../components/useLoad';
@@ -48,6 +49,7 @@ export function City() {
         <button type="button" className="btn btn-small" onClick={() => void reload()}>{t('retry')}</button>
       </div> : !data && <p className="m-0 text-sm text-muted" role="status">{t('city.statusLoading')}</p>}
       {needsHero && <QuickStart onCreated={() => navigate('/labyrinth')} onCustom={() => navigate('/heroes?custom=1')} />}
+      {mine.data?.hero && <DuoCard />}
       {mine.data?.hero && <FirstSteps />}
       {offerInstall && (
         <InstallCard

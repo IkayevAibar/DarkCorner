@@ -88,6 +88,17 @@ model Delve {
   @@index([seasonId, day])
 }
 
+/// An invite to a Duo from one Hero to another, open for ten minutes.
+model DuoInvite {
+  id        String   @id @default(cuid())
+  fromId    String
+  toId      String
+  createdAt DateTime @default(now())
+
+  @@unique([fromId, toId])
+  @@index([toId])
+}
+
 /// A phone or browser that gets the Player's push notifications.
 model PushSubscription {
   id        String    @id @default(cuid())
@@ -216,6 +227,10 @@ model Hero {
   /// Push notifications already sent: when Stamina came full, and which Camp rest.
   staminaPushAt DateTime?
   campPushAt    DateTime?
+  /// The other Hero of its Duo (docs/design.md → Duos); the two point at each other.
+  partnerId     String?
+  /// What the partner's actions brought this Hero since its Player last looked: shown once, then cleared.
+  duoNews       Json?
 
   // Luck
   /// The Bad-luck meter: at 120 the next Item that drops is Legendary or better.

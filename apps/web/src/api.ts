@@ -4,7 +4,7 @@ import type {
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
-  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult,
+  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState,
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -51,6 +51,11 @@ export const api = {
 
   steps: () => request<StepsView>('GET', '/api/steps'),
   claimStep: (id: string) => request<StepClaimResult>('POST', '/api/steps/claim', { id }),
+  duo: () => request<DuoState>('GET', '/api/duo'),
+  duoInvite: (heroId: string) => request<DuoState>('POST', '/api/duo/invite', { heroId }),
+  duoAccept: (inviteId: string) => request<DuoState>('POST', '/api/duo/accept', { inviteId }),
+  duoDecline: (inviteId: string) => request<DuoState>('POST', '/api/duo/decline', { inviteId }),
+  duoLeave: () => request<DuoState>('POST', '/api/duo/leave'),
   adminAnnounce: (body: AdminAnnounce) => request<AdminAnnounceResult>('POST', '/api/admin/announce', body),
   adminPlayers: () => request<AdminPlayersResponse>('GET', '/api/admin/players'),
   setGate: (open: boolean) => request<AdminPlayersResponse>('POST', '/api/admin/gate', { open }),
