@@ -74,6 +74,8 @@ interface Bot {
   stats: Stats;
   /** Rooms to leave alone today: "floor:room". */
   avoid: Set<string>;
+  /** Rooms a Door refused this session (the Dragon's, before the Boss gate opens): explore elsewhere. */
+  blocked: Set<string>;
   handled: Set<string>;
   /** Where the Hero last died, while its Grave lasts. */
   grave: { floor: number; room: number; until: number } | null;
@@ -454,6 +456,7 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
 
 async function session(bot: Bot) {
   await grow(bot);
+  bot.blocked.clear();
   for (let step = 0; step < 150; step++) {
     const view = await look(bot);
     if (view.location === 'city') {
@@ -538,20 +541,24 @@ async function session(bot: Bot) {
       await act(bot, '/api/labyrinth/ascend');
       continue;
     }
-    const unvisited = (id: number) => !known.get(id)?.visited && !bot.avoid.has(`${floor}:${id}`);
+    const unvisited = (id: number) => !known.get(id)?.visited && !bot.avoid.has(`${floor}:${id}`) && !bot.blocked.has(`${floor}:${id}`);
     const target = grave?.floor === floor ? nextStep(bot, view, (id) => id === grave.room)
       : hero.hp < hero.maxHp * 0.5 && hero.potions === 0 ? nextStep(bot, view, (id) => known.get(id)?.type === 'camp')
         : goHome ? nextStep(bot, view, (id) => (known.get(id)?.type === 'waypoint' && view.waypoints.includes(floor)) || known.get(id)?.type === 'landing')
           : wantStairs ? nextStep(bot, view, (id) => known.get(id)?.type === 'stairs') ?? nextStep(bot, view, unvisited)
             : nextStep(bot, view, unvisited);
-    const exits = view.exits.filter((e) => e.passable && !bot.avoid.has(`${floor}:${e.to}`));
+    const exits = view.exits.filter((e) => e.passable && !bot.avoid.has(`${floor}:${e.to}`) && !bot.blocked.has(`${floor}:${e.to}`));
     // A Door that hums like a Waypoint on a Floor whose Waypoint isn't woken yet: take it.
     const waypointDoor = !view.waypoints.includes(floor) && !goHome ? exits.find((e) => !e.visited && WAYPOINT_CLUES.has(e.clue.en)) : undefined;
     const to = waypointDoor?.to ?? target ?? exits[Math.floor(Math.random() * exits.length)]?.to;
     if (to === undefined) return;
     bot.doing = `walking into F${floor} room ${to}`;
     const moved = await act(bot, '/api/labyrinth/move', { to }, view);
-    if (!moved) return;
+    if (!moved) {
+      if (bot.blocked.has(`${floor}:${to}`)) return;
+      bot.blocked.add(`${floor}:${to}`);
+      continue;
+    }
     bot.stats.moves++;
     if (moved.view.hero.stamina < hero.stamina) bot.stats.newRooms++;
   }
@@ -569,7 +576,7 @@ for (const [cls, race, portrait] of CLASSES) {
   const name = `${cls[0]!.toUpperCase()}${cls.slice(1)}bot`;
   const cookie = await devLogin(app, name, bots.length === 0);
   await prisma.player.updateMany({ where: { username: name }, data: { approvedAt: new Date() } });
-  const bot: Bot = { name, cls, cookie, stats: newStats(), avoid: new Set(), handled: new Set(), grave: null, doing: '', seen: new Map(), looted: new Set() };
+  const bot: Bot = { name, cls, cookie, stats: newStats(), avoid: new Set(), blocked: new Set(), handled: new Set(), grave: null, doing: '', seen: new Map(), looted: new Set() };
   // Like a Player would: use every reroll, then keep the set with the best primary ability (and CON).
   let draft = (await call<{ draft: HeroDraft }>(bot, 'POST', '/api/heroes/draft')).body.draft;
   while (draft.rerollsLeft > 0) draft = (await call<{ draft: HeroDraft }>(bot, 'POST', '/api/heroes/draft/reroll')).body.draft;
