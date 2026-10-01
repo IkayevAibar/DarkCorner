@@ -3,7 +3,7 @@ import type { EventAction, EventView, LocalizedText } from '@dark/shared';
 import {
   ALTAR_TIERS, BLESSING_MS, BLESSINGS, type CheckResult, type ClassId, type EventKind, type Floor, type GearRoll, MERCHANT_BUYS_AT,
   MERCHANT_MARKUP, RACE_DEFS, type RaceId, SUFFIXES, type Tier, abilityModifier, baseById, buybackPrice, cacheContents,
-  chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
+  CUPS, chestBase, createRng, cupsEnd, cupsMaxBet, cupsWin, goblinDice, shellGame, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
   type ChestGrade, lockChest, lockJammed, lockOpen, makeLock, pickLock, prayAtShrine, tapLock, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, TRAP_SHRUG, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
   RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
   banishDevil, bloodPrice, devilOffers, pryLid, HOARD_HANDFULS, HOARD_WAKE, SKULLS_SCREAM, doorsOf, grabHoard, listenToSkulls,
@@ -33,6 +33,8 @@ interface VisitState {
   answered?: number;
   /** Lockpicking: how far the lock got today. */
   lock?: { set: number; broken: number };
+  /** The goblin's cups: the stake down, and once picked, how it ended. */
+  cups?: { bet: number; end?: { gem: number | null; won: boolean } };
 }
 
 const seedFor = (season: Season, hero: HeroWithItems, floor: number, room: number, day: number) =>
@@ -149,8 +151,19 @@ export async function eventView(tx: Tx, hero: HeroWithItems, season: Season, flo
       const chests = threeChests(createRng(seed), floor.number);
       return { kind, done, chests: chests.map((content, i) => ({ picked: state.picked === i, content: state.picked === undefined ? null : content })) };
     }
-    case 'gambler':
-      return { kind, done, maxBet: hero.carriedGold };
+    case 'gambler': {
+      const game = state.cups ? shellGame(createRng(`${seed}:cups`), floor.number) : null;
+      return {
+        kind, done, maxBet: hero.carriedGold,
+        cups: {
+          maxBet: Math.min(hero.carriedGold, cupsMaxBet(floor.number)),
+          game: state.cups && game ? {
+            bet: state.cups.bet, start: game.start, swaps: game.swaps, swapMs: game.swapMs,
+            palmed: hero.class === 'rogue' ? game.palmed : null, end: state.cups.end ?? null,
+          } : null,
+        },
+      };
+    }
     case 'merchant': {
       const wares = merchantWares(createRng(seed), { floor: floor.number, classId: hero.class as ClassId });
       const sold = new Set(state.sold ?? []);
@@ -281,6 +294,42 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
 
     case 'gambler': {
       const { seed: rollSeed, rng } = seeded();
+      if (action.action === 'cups-bet') {
+        // The stake goes down first; only then does the game show.
+        if (state.cups) throw ApiError.conflict('cups_down', 'Your stake is already on his cups');
+        if (action.amount > cupsMaxBet(floor.number)) throw ApiError.badRequest('bet_too_big', 'He won’t take that much on his cups');
+        await spendCarried(tx, hero, action.amount);
+        await tx.eventVisit.update({ where: { id: visit.id }, data: { state: { ...state, cups: { bet: action.amount } } as Prisma.InputJsonValue } });
+        return;
+      }
+      if (action.action === 'cups-pick') {
+        if (!state.cups) throw ApiError.conflict('no_stake', 'Put a stake down first');
+        const bet = state.cups.bet;
+        const game = shellGame(createRng(`${seed}:cups`), floor.number);
+        const won = cupsWin(game, action.pick);
+        const gem = game.palmed ? null : cupsEnd(game.start, game.swaps);
+        await logRoll(tx, hero, rollSeed, { event: kind, cups: bet, pick: action.pick, gem, won });
+        if (won) {
+          await earnCarried(tx, hero, bet * CUPS.payout);
+          out.gold += bet * (CUPS.payout - 1);
+          out.notices.push(action.pick === 'cheat'
+            ? t(`You catch his sleeve, and the gem falls out. He pays double to keep you quiet: +${bet} gold.`,
+              `Вы хватаете его за рукав, и камешек выпадает. Он платит вдвое, лишь бы вы молчали: +${bet} золота.`)
+            : t(`The gem is under that cup: +${bet} gold.`, `Камешек под этим напёрстком: +${bet} золота.`));
+        } else {
+          out.notices.push(action.pick === 'cheat'
+            ? t(`He lifts the right cup, gem and all, and keeps your ${bet} gold for the insult.`,
+              `Он поднимает нужный напёрсток вместе с камешком и забирает ваши ${bet} золота за оскорбление.`)
+            : game.palmed
+              ? t(`Empty, and so are the other two: the gem was up his sleeve all along. Your ${bet} gold is gone.`,
+                `Пусто, и под двумя другими тоже: камешек всё это время был у него в рукаве. Ваши ${bet} золота пропали.`)
+              : t(`Empty. He lifts the right cup with a grin and sweeps up your ${bet} gold.`,
+                `Пусто. Он с ухмылкой поднимает нужный напёрсток и сгребает ваши ${bet} золота.`));
+        }
+        await finish(tx, visit, hero, floor.number, room, now, { ...state, cups: { bet, end: { gem, won } } }, out);
+        return;
+      }
+      if (state.cups) throw ApiError.conflict('cups_down', 'Your stake is already on his cups');
       if (action.action === 'bet-gold') {
         await spendCarried(tx, hero, action.amount);
         const duel = goblinDice(rng, race(hero).rerollOnes);

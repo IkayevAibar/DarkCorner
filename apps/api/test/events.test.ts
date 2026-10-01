@@ -121,6 +121,37 @@ describe('Event rooms', () => {
     else expect(bet.loot).toHaveLength(0);
   });
 
+  it('the goblin’s cups: the stake goes down first, then the game shows, and a pick settles it', async () => {
+    const { floor, room } = roomWith('gambler');
+    await placeAt(floor.number, room, { carriedGold: 500 });
+    const before = (await view()).room!.eventView;
+    if (before?.kind !== 'gambler') throw new Error('no gambler');
+    expect(before.cups).toEqual({ maxBet: Math.min(500, 30 * (floor.number + 1)), game: null });
+    expect((await post('/api/labyrinth/event', { action: 'cups-pick', pick: 0 })).json().error).toBe('no_stake');
+    expect((await post('/api/labyrinth/event', { action: 'cups-bet', amount: 9999 })).json().error).toBe('bet_too_big');
+    await act({ action: 'cups-bet', amount: 20 });
+    expect((await hero()).carriedGold).toBe(480);
+    const shown = (await view()).room!.eventView;
+    if (shown?.kind !== 'gambler' || !shown.cups?.game) throw new Error('no game');
+    const game = shown.cups.game;
+    // Only a Rogue's eye sees whether he palmed it.
+    expect(game).toMatchObject({ bet: 20, palmed: null, end: null });
+    expect((await post('/api/labyrinth/event', { action: 'bet-gold', amount: 5 })).json().error).toBe('cups_down');
+    // Follow the gem, swap by swap.
+    let at = game.start;
+    for (const [a, b] of game.swaps) at = at === a ? b : at === b ? a : at;
+    const r = await act({ action: 'cups-pick', pick: at });
+    const after = (await view()).room!.eventView;
+    if (after?.kind !== 'gambler' || !after.cups?.game?.end) throw new Error('no end');
+    const end = after.cups.game.end;
+    expect(after.done).toBe(true);
+    // Followed right, it is under that cup, unless he palmed it.
+    expect(end.gem === null || end.gem === at).toBe(true);
+    expect(end.won).toBe(end.gem !== null);
+    expect((await hero()).carriedGold).toBe(end.won ? 520 : 480);
+    expect(r.gold).toBe(end.won ? 20 : 0);
+  });
+
   it('the Wandering merchant sells rare wares and pays double for yours', async () => {
     const { floor, room } = roomWith('merchant');
     await placeAt(floor.number, room, { carriedGold: 100_000 });

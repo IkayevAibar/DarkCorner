@@ -72,6 +72,40 @@ export function goblinDice(rng: Rng, rerollOnes: boolean): { hero: number; gobli
   return { hero, goblin, win: hero > goblin };
 }
 
+/**
+ * The goblin's cups (v0): he shows the gem under a cup and shuffles, more swaps and quicker
+ * ones deeper down (`swaps` plus half the Floor; each from `slowest` ms on Floor 1 to
+ * `fastest` on Floor 10). A `palm` of the time he palms the gem and no cup holds it; a
+ * Rogue's eye catches that. The gem's cup, or calling his cheat when he did palm it, pays
+ * `payout` times the stake; anything else loses it. He takes at most `stake` × (Floor + 1).
+ */
+export const CUPS = { palm: 0.25, payout: 2, stake: 30, swaps: 4, slowest: 650, fastest: 330 };
+
+export interface CupsGame { start: number; swaps: [number, number][]; swapMs: number; palmed: boolean }
+
+export function shellGame(rng: Rng, floor: number): CupsGame {
+  const f = Math.min(10, Math.max(1, floor));
+  const start = rng.int(0, 2);
+  const swaps = Array.from({ length: CUPS.swaps + Math.ceil(f / 2) }, (): [number, number] => {
+    const a = rng.int(0, 2);
+    return [a, (a + rng.int(1, 2)) % 3];
+  });
+  return { start, swaps, swapMs: Math.round(CUPS.slowest - ((CUPS.slowest - CUPS.fastest) * (f - 1)) / 9), palmed: rng.chance(CUPS.palm) };
+}
+
+/** Where the gem ends up after the swaps: it moves with its cup. */
+export function cupsEnd(start: number, swaps: [number, number][]): number {
+  let at = start;
+  for (const [a, b] of swaps) at = at === a ? b : at === b ? a : at;
+  return at;
+}
+
+/** Whether a pick wins: the gem's cup, or calling his cheat when he palmed it. */
+export const cupsWin = (game: CupsGame, pick: number | 'cheat'): boolean =>
+  (pick === 'cheat' ? game.palmed : !game.palmed && pick === cupsEnd(game.start, game.swaps));
+
+export const cupsMaxBet = (floor: number): number => CUPS.stake * (Math.min(10, floor) + 1);
+
 /** Betting an Item wins one a Tier higher. Mythics and Relics have nowhere higher to go. */
 export function nextTier(tier: Tier): Tier | null {
   if (tierRank(tier) >= tierRank('mythic')) return null;

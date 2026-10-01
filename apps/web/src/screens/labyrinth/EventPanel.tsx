@@ -9,6 +9,7 @@ import { useI18n } from '../../i18n';
 import { play, type Sound } from '../../sound';
 import type { MessageKey } from '../../i18n/en';
 import { LockPick } from './LockPick';
+import { Cups } from './Cups';
 
 type Act = (call: () => Promise<LabyrinthResult>) => Promise<void>;
 
@@ -89,7 +90,7 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
         <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'pray' })}>{t('event.shrine.pray')}</button>
       )}
 
-      {event.kind === 'gambler' && !event.done && (
+      {event.kind === 'gambler' && !event.done && !event.cups?.game && (
         <Gamble
           maxBet={event.maxBet}
           busy={busy}
@@ -100,6 +101,15 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
             (i) => t(`tier.${i.tier}`),
             (i) => ({ action: 'bet-item', itemId: i.id }),
           )}
+        />
+      )}
+
+      {event.kind === 'gambler' && event.cups && (!event.done || event.cups.game?.end) && (
+        <Cups
+          cups={event.cups}
+          busy={busy}
+          onBet={(amount) => void act(() => api.eventAction({ action: 'cups-bet', amount }))}
+          onPick={(pick) => void act(() => api.eventAction({ action: 'cups-pick', pick }))}
         />
       )}
 

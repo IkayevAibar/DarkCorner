@@ -7,6 +7,7 @@ import { TwinPreview } from './sandbox/TwinPreview';
 import { TrustPreview } from './sandbox/TrustPreview';
 import { MapPreview } from './sandbox/MapPreview';
 import { LockPreview } from './sandbox/LockPreview';
+import { CupsPreview } from './sandbox/CupsPreview';
 import type { FightReplay } from '@dark/shared';
 import { useI18n } from '../i18n';
 import { FightScene } from '../components/fight/FightScene';
@@ -26,6 +27,7 @@ export function Sandbox() {
       <h1 className="sub-heading m-0">{t('sandbox.title')}</h1>
       <p className="m-0 text-muted">{t('sandbox.body')}</p>
 
+      <CupsPreview />
       <LockPreview />
       <TrustPreview />
       <TwinPreview onFight={setFight} />

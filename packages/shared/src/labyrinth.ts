@@ -346,6 +346,28 @@ export function lockPinSets(pin: LockPin, ms: number): boolean {
 /** The longest a pin may sweep before its tap (ms). */
 export const LOCK_TAP_MAX = 60_000;
 
+/**
+ * The goblin's cups at a Goblin gambler: the most he takes on them, and once a stake is
+ * down, the game. Cups stand at positions 0–2, left to right; the gem goes under the cup at
+ * `start`, and each swap trades the cups standing at two positions (the gem moves with its
+ * cup). The game only shows once the stake is down, so the shuffle can't be watched first.
+ */
+export const cupsViewSchema = z.object({
+  maxBet: z.number().int(),
+  game: z.object({
+    bet: z.number().int(),
+    start: z.number().int().min(0).max(2),
+    swaps: z.array(z.tuple([z.number().int().min(0).max(2), z.number().int().min(0).max(2)])),
+    /** How long each swap takes on screen (ms). */
+    swapMs: z.number().int(),
+    /** A Rogue's eye: whether he palmed the gem, so no cup holds it. Null for anyone else. */
+    palmed: z.boolean().nullable(),
+    /** Once picked: where the gem was (null: up his sleeve) and whether the Hero won. */
+    end: z.object({ gem: z.number().int().min(0).max(2).nullable(), won: z.boolean() }).nullable(),
+  }).nullable(),
+});
+export type CupsView = z.infer<typeof cupsViewSchema>;
+
 /** What an Event room offers this Hero today, and what it has already done there. */
 export const eventViewSchema = z.discriminatedUnion('kind', [
   z.object({
@@ -355,7 +377,7 @@ export const eventViewSchema = z.discriminatedUnion('kind', [
     chests: z.array(z.object({ picked: z.boolean(), content: chestContentSchema.nullable() })),
   }),
   z.object({ kind: z.literal('shrine'), done: z.boolean() }),
-  z.object({ kind: z.literal('gambler'), done: z.boolean(), maxBet: z.number().int() }),
+  z.object({ kind: z.literal('gambler'), done: z.boolean(), maxBet: z.number().int(), cups: cupsViewSchema.nullable().default(null) }),
   z.object({
     kind: z.literal('merchant'),
     done: z.boolean(),
@@ -416,6 +438,9 @@ export const eventActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('pray') }),
   z.object({ action: z.literal('bet-gold'), amount: z.number().int().min(1) }),
   z.object({ action: z.literal('bet-item'), itemId: z.string() }),
+  /** The goblin's cups: put a stake down (then the game shows), then pick a cup by position or call his cheat. */
+  z.object({ action: z.literal('cups-bet'), amount: z.number().int().min(1) }),
+  z.object({ action: z.literal('cups-pick'), pick: z.union([z.number().int().min(0).max(2), z.literal('cheat')]) }),
   z.object({ action: z.literal('buy'), ware: z.string() }),
   z.object({ action: z.literal('sell'), itemId: z.string() }),
   z.object({ action: z.literal('offer'), itemId: z.string() }),

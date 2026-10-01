@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ALTAR_SUCCESS, LOCK, LOCKPICK_DC, SHRINE_DC, type Lock, cacheContents, createRng, goblinDice, lockJammed, lockOpen, makeLock, merchantWares, nextTier,
+  ALTAR_SUCCESS, CUPS, LOCK, LOCKPICK_DC, cupsEnd, cupsMaxBet, cupsWin, shellGame, SHRINE_DC, type Lock, cacheContents, createRng, goblinDice, lockJammed, lockOpen, makeLock, merchantWares, nextTier,
   offerAtAltar, tapLock,
   pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones, RIDDLES, statueRiddle,
   cookpotDc, cutWeb, tasteStew, webDc, BARGAIN_GOLD_PRICE, BARGAIN_ITEM_PRICE, banishDc, banishDevil, bloodPrice, devilOffers,
@@ -176,6 +176,34 @@ describe('the Locked cache and Lockpicking', () => {
       expect(p.center - p.width / 2).toBeGreaterThan(0);
       expect(p.center + p.width / 2).toBeLessThan(1);
     }
+  });
+});
+
+describe('the goblin’s cups', () => {
+  it('shuffle more and quicker deeper down, and the gem moves with its cup', () => {
+    const shallow = shellGame(createRng('cups'), 1);
+    const deep = shellGame(createRng('cups'), 10);
+    expect(shallow.swaps).toHaveLength(CUPS.swaps + 1);
+    expect(deep.swaps).toHaveLength(CUPS.swaps + 5);
+    expect(deep.swapMs).toBeLessThan(shallow.swapMs);
+    for (const [a, b] of deep.swaps) expect(a).not.toBe(b);
+    expect(cupsEnd(0, [[0, 1], [1, 2]])).toBe(2);
+    expect(cupsEnd(0, [[1, 2]])).toBe(0);
+  });
+
+  it('pay for the gem’s cup, or for a cheat called when he palmed it', () => {
+    let palmed = 0;
+    for (let i = 0; i < 400; i++) {
+      const game = shellGame(createRng(`cups-${i}`), 5);
+      const gem = cupsEnd(game.start, game.swaps);
+      if (game.palmed) palmed++;
+      expect(cupsWin(game, gem)).toBe(!game.palmed);
+      expect(cupsWin(game, 'cheat')).toBe(game.palmed);
+      expect(cupsWin(game, (gem + 1) % 3)).toBe(false);
+    }
+    expect(palmed / 400).toBeGreaterThan(0.15);
+    expect(palmed / 400).toBeLessThan(0.35);
+    expect(cupsMaxBet(4)).toBe(CUPS.stake * 5);
   });
 });
 

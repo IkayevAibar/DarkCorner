@@ -503,7 +503,7 @@ Small goals give each session a reason to go down today *(v0)*.
 |---|---|
 | Three chests | Pick one of three: one holds gold, two hold an Item each, and 30% of the time one of those is a mimic, which means a fight in which the mimic strikes first *(v0)*. |
 | Shrine | Pray for a random Blessing, at the risk of a curse. A WIS Check against 12; failing by 5 or more (or a natural 1) burns a quarter of max health. Clerics roll with advantage, and Wizards sense the curse and step back *(v0)*. |
-| Goblin gambler | Double-or-nothing on carried gold: both roll a d20 and ties go to the goblin. Or bet an Item for one a Tier higher (not Mythics or Relics). One bet per visit *(v0)*. |
+| Goblin gambler | Double-or-nothing on carried gold: both roll a d20 and ties go to the goblin. Or bet an Item for one a Tier higher (not Mythics or Relics). Or play his cups: the stake (up to 30 × (Floor + 1) gold) goes down first, then he shows a gem under one of three cups and shuffles, 4 swaps plus half the Floor, quicker deeper down (0.65 s a swap on Floor 1, 0.33 s on Floor 10). Pick the gem's cup, or call his cheat: a quarter of the time he palms the gem and no cup holds it, and a Rogue's eye catches that. A right cup or a cheat caught pays double; anything else loses the stake. One bet per visit *(v0)*. |
 | Wandering merchant | Sells 3 rare Items (Rare, Epic, sometimes Legendary) at 6 times the Buyback price, and buys yours at twice the Buyback price *(v0)*. |
 | Trapped corridor | A DEX Check (11 + half the Floor) to get through unhurt, or take 2d6 + the Floor number in damage, never below 1 health. A Rogue disarms it; Wizards roll with advantage *(v0)*. |
 | Cursed altar | Offer a Common, Uncommon or Rare Item: 40% chance its Tier goes up by one and it gains a Bonus stat, 60% it is destroyed *(v0)*. |
@@ -526,7 +526,7 @@ Small goals give each session a reason to go down today *(v0)*.
 - **Daily and personal:** what an Event room holds comes from the Hero, the Room and the day, so leaving and coming back doesn't reroll it. Each Event room works once a day per Hero (the merchant sells until his wares are gone).
 - **Luck:** a Hero with the Lucky charm or the Luckstone rerolls one failed Check or death save per Run and keeps the better roll.
 
-Later: the shell game (a goblin hides a gem under one of three cups) and more minigames.
+Later: more minigames.
 
 ### Hidden rooms
 
