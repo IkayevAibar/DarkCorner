@@ -16,12 +16,16 @@ const PATHS = {
   hunt: 'M12 2v5m0 10v5M2 12h5m10 0h5M19 12a7 7 0 1 1-14 0 7 7 0 0 1 14 0ZM9 12h6m-3-3v6',
   gem: 'M7 3h10l5 7-10 12L2 10l5-7ZM2 10h20M7 3l5 19 5-19',
   twin: TWIN_MARK,
+  'oath-kept': 'M3 19V8l4-5h10l4 5v11ZM6 12l4 4 8-8M1 22h22',
+  'oath-broken': 'M3 20V8l4-5h10l4 5v12M13 3l-3 7 5 3-5 8M1 23h22',
+  'oath-cracked': 'M2 18V8l5-5h4l-3 7 4 3-4 8ZM22 18V8l-5-5h-2l-2 6 4 4-4 8h7ZM5 23h3m8 0h3',
 };
 export type TavernSymbol = keyof typeof PATHS;
 export function TavernMark({ kind }: { kind: TavernSymbol }) {
   return <svg className="tavern-mark" viewBox="0 0 24 24" fill={kind === 'twin' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={kind === 'twin' ? 0 : 1.3} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={PATHS[kind]} /></svg>;
 }
 export function feedSymbol(kind: string): TavernSymbol {
+  if (kind === 'oath-kept' || kind === 'oath-broken' || kind === 'oath-cracked') return kind;
   if (kind === 'twin') return 'twin';
   if (kind === 'death' || kind === 'grave-looted') return 'skull';
   if (['relic', 'drop', 'chest', 'identify', 'upgrade10', 'vault', 'hidden', 'market-sale'].includes(kind)) return 'gem';

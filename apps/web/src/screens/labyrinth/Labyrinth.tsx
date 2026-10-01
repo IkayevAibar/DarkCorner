@@ -1,3 +1,4 @@
+import { useTrustText } from './trust/messages';
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router';
 import {
@@ -24,6 +25,8 @@ import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
 import { ChestPanel, OathPanel } from './Trust';
+import { OathStone } from './trust/OathScene';
+import { ChestProp } from './trust/ChestScene';
 import { EliteBadge } from '../../components/EliteBadge';
 import { THREAT_TONE, ThreatChip } from '../../components/ThreatChip';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
@@ -314,6 +317,7 @@ type Popup = 'map' | 'bag' | BeltPick;
  * the doorway, an event, the Map, the belt's details) comes up in the middle.
  */
 function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act }) {
+  const trustText = useTrustText();
   const { t, locale } = useI18n();
   const now = useNow();
   const floor = view.floor!;
@@ -386,7 +390,9 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           <FacingTokens facing={facing} view={view} onFoe={setFoe} />
         ) : (
           <>
-            <div className="absolute inset-0 grid place-items-center">
+            {oath && <div className="oath-room-prop"><OathStone active={oath.state === 'open'} /></div>}
+            {chest && <div className="duo-chest-room-prop"><ChestProp /></div>}
+            <div className={oath || chest ? 'oath-room-pair' : 'absolute inset-0 grid place-items-center'}>
               <Pair view={view} size={86} />
             </div>
             {exits.map((exit) => (
@@ -396,7 +402,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         )}
         <div className="absolute top-[70px] left-3 grid max-w-[40%] rounded-[2px] border border-[#4a3a26] bg-[rgb(22_18_14/0.88)] px-2.5 py-1 leading-tight">
           <span className="font-head text-[13px] font-bold text-bone">{label}</span>
-          {room.cleared && room.type !== 'empty' && <span className="text-[11px] text-muted">{t(room.type === 'twin' ? 'room.clearedWeek' : 'room.cleared')}</span>}
+          {room.cleared && room.type !== 'empty' && <span className="text-[11px] text-muted">{t(room.type === 'twin' || room.type === 'oathstone' ? 'room.clearedWeek' : 'room.cleared')}</span>}
         </div>
         {facing && (
           <div className="absolute top-[70px] right-3">
@@ -511,8 +517,8 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
       )}
       {chestCard && (
         <CenterModal
-          label={t('chest.title')}
-          head={<span className="sub-heading">{t('chest.title')}</span>}
+          label={trustText('chest.title')}
+          head={<span className="sub-heading">{trustText('chest.title')}</span>}
           onClose={() => setChestAside(true)}
           closeLabel={t('lab.lookAround')}
           width={460}

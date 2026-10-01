@@ -74,7 +74,7 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
         const p = center(r), exit = exitTo.get(r.id), active = exit?.passable && !disabled;
         const fresh = mini && motion.rooms.has(r.id);
         const roomLabel = r.type ? t(`room.${r.type}`) : t('unknown');
-        const dim = r.cleared && ['fight', 'treasure', 'vault', 'hidden', 'miniboss', 'boss', 'twin'].includes(r.type ?? '');
+        const dim = r.cleared && ['fight', 'treasure', 'vault', 'hidden', 'miniboss', 'boss', 'twin', 'oathstone'].includes(r.type ?? '');
         return <g key={r.id} transform={`translate(${p.x} ${p.y})`} data-room={r.id}>
           <g key={fresh ? motion.revision : 'known'} className={`map-room${r.visited ? ' map-visited' : ''}${r.id === current ? ' map-here' : ''}${active ? ' map-exit' : ''}${fresh ? ' map-uncover' : ''}`}
             style={{ '--reveal-delay': `${motion.rooms.get(r.id) ?? 0}ms` } as CSSProperties}>
@@ -84,7 +84,7 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
             {!r.visited && r.type && <path className="map-revealed" d="M-12 14 H12" />}
             {exit?.free && <circle className="map-free-dot" cx="-14" cy="-14" r="2.5" />}
           </g>
-          {!mini && <title>{roomLabel}{dim ? ` · ${t('room.cleared')}` : ''}</title>}
+          {!mini && <title>{roomLabel}{dim ? ` · ${t(r.type === 'twin' || r.type === 'oathstone' ? 'room.clearedWeek' : 'room.cleared')}` : ''}</title>}
           {!mini && exit && <circle className="map-hit" r={hitRadius} role="button" tabIndex={active ? 0 : -1}
             aria-disabled={!active} aria-label={`${t(`dir.${exit.direction}`)} · ${roomLabel}${exit.free ? ` · ${t('free')}` : ''}`}
             onClick={() => move(r.id)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); move(r.id); } }} />}

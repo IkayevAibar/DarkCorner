@@ -2,6 +2,9 @@ import { RANKINGS, type BountiesView, type HallEntry, type LodgingView, type Ran
 import { REVEALS } from './lootFixtures';
 const t = (en: string, ru: string) => ({ en, ru });
 const FEED = [
+  ['oath-kept', 'Garrick and Ilyra keep faith at the Oathstone.', 'Garrick и Ilyra держат слово у камня клятв.', null],
+  ['oath-broken', 'Mira takes both gifts. Nox keeps the oath.', 'Mira забирает оба дара. Nox держит слово.', null],
+  ['oath-cracked', 'Borin and Ash both take. The Oathstone cracks.', 'Borin и Ash тянутся забрать. Камень клятв трескается.', null],
   ['twin', 'Garrick and Ilyra break the Twin Wardens on Floor 2.', 'Garrick и Ilyra побеждают стражей-близнецов на 2-м этаже.', null],
   ['announcement', 'The Boss gate opens tonight. Leave a light for the next Hero.', 'Врата босса откроются сегодня. Оставьте огонь для следующего героя.', null],
   ['relic', 'Ilyra brings the Eye of the Deep out of the Vault.', 'Ilyra выносит Око глубин из сокровищницы.', 'relic'],

@@ -1,0 +1,78 @@
+.trust-preview {
+  display: grid;
+  min-width: 0;
+  max-width: calc(100vw - 32px);
+  gap: 12px;
+  border-bottom: 1px solid #655238;
+  padding-bottom: 24px;
+}
+
+.trust-preview h2 {
+  margin: 0;
+}
+
+.trust-preview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trust-preview-controls .btn {
+  min-height: 44px;
+}
+
+.trust-preview-room {
+  position: relative;
+  isolation: isolate;
+  height: 370px;
+  overflow: hidden;
+  border: 1px solid #61553e;
+  background: #151511;
+}
+
+.trust-preview-room>img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(.65);
+  z-index: -1;
+}
+
+.trust-preview-room>span {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #151510da;
+  padding: 6px 10px;
+  font: 700 19px var(--font-head);
+}
+
+.trust-preview-room>svg {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  width: 36px;
+  height: 36px;
+  stroke: #d1b984;
+  stroke-width: 1.8;
+  fill: none;
+  background: #111a;
+  border: 1px solid #a18e63;
+}
+
+.trust-preview-room .oath-room-prop {
+  top: 16%;
+  width: 90%;
+}
+
+.trust-preview-tokens {
+  position: absolute;
+  bottom: 30px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 35px;
+}
