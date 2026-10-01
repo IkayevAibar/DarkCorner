@@ -1828,8 +1828,8 @@
      "ru": "Древний дракон"
     },
     "art": "/art/tokens/dragon.webp",
-    "hp": 700,
-    "maxHp": 700,
+    "hp": 1400,
+    "maxHp": 1400,
     "ac": 20,
     "boss": true,
     "banner": null,
@@ -1882,7 +1882,7 @@
     "hit": true,
     "crit": false,
     "damage": 7,
-    "targetHp": 693,
+    "targetHp": 1393,
     "kind": "weapon"
    },
    {
@@ -1894,7 +1894,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 693,
+    "targetHp": 1393,
     "kind": "weapon"
    },
    {
@@ -1906,7 +1906,7 @@
     "hit": true,
     "crit": false,
     "damage": 5,
-    "targetHp": 688,
+    "targetHp": 1388,
     "kind": "weapon"
    },
    {
@@ -1934,7 +1934,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 688,
+    "targetHp": 1388,
     "kind": "weapon"
    },
    {
@@ -1946,7 +1946,7 @@
     "hit": true,
     "crit": true,
     "damage": 11,
-    "targetHp": 677,
+    "targetHp": 1377,
     "kind": "weapon"
    },
    {
@@ -1958,7 +1958,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 677,
+    "targetHp": 1377,
     "kind": "weapon"
    },
    {
@@ -1991,7 +1991,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 677,
+    "targetHp": 1377,
     "kind": "weapon"
    },
    {
@@ -2003,7 +2003,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 677,
+    "targetHp": 1377,
     "kind": "weapon"
    },
    {
@@ -2015,7 +2015,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 677,
+    "targetHp": 1377,
     "kind": "weapon"
    },
    {
@@ -2026,8 +2026,8 @@
     "total": 18,
     "hit": true,
     "crit": false,
-    "damage": 9,
-    "targetHp": 89,
+    "damage": 13,
+    "targetHp": 85,
     "kind": "weapon"
    },
    {
@@ -2038,8 +2038,8 @@
     "total": 28,
     "hit": true,
     "crit": false,
-    "damage": 20,
-    "targetHp": 69,
+    "damage": 24,
+    "targetHp": 61,
     "kind": "weapon"
    },
    {
@@ -2047,7 +2047,7 @@
     "actor": "hero",
     "ability": "second-wind",
     "amount": 24,
-    "hp": 93
+    "hp": 85
    },
    {
     "type": "attack",
@@ -2057,8 +2057,8 @@
     "total": 24,
     "hit": true,
     "crit": false,
-    "damage": 14,
-    "targetHp": 79,
+    "damage": 18,
+    "targetHp": 67,
     "kind": "weapon"
    },
    {
@@ -2069,8 +2069,8 @@
     "total": 25,
     "hit": true,
     "crit": false,
-    "damage": 9,
-    "targetHp": 70,
+    "damage": 13,
+    "targetHp": 54,
     "kind": "weapon"
    },
    {
@@ -2082,7 +2082,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 677,
+    "targetHp": 1377,
     "kind": "weapon"
    },
    {
@@ -2094,7 +2094,7 @@
     "hit": false,
     "crit": false,
     "damage": 0,
-    "targetHp": 677,
+    "targetHp": 1377,
     "kind": "weapon"
    },
    {
@@ -2106,7 +2106,7 @@
     "hit": true,
     "crit": false,
     "damage": 7,
-    "targetHp": 670,
+    "targetHp": 1370,
     "kind": "weapon"
    },
    {
@@ -2123,14 +2123,14 @@
     "power": "breath",
     "target": "hero",
     "amount": 27,
-    "hp": 43
+    "hp": 27
    },
    {
     "type": "heal",
     "actor": "hero",
     "ability": "potion",
     "amount": 22,
-    "hp": 65
+    "hp": 49
    },
    {
     "type": "save",
@@ -2146,14 +2146,14 @@
     "power": "breath",
     "target": "hero",
     "amount": 20,
-    "hp": 45
+    "hp": 29
    },
    {
     "type": "heal",
     "actor": "hero",
     "ability": "potion",
     "amount": 24,
-    "hp": 69
+    "hp": 53
    },
    {
     "type": "save",
@@ -2169,14 +2169,14 @@
     "power": "breath",
     "target": "hero",
     "amount": 49,
-    "hp": 20
+    "hp": 4
    },
    {
     "type": "heal",
     "actor": "hero",
     "ability": "potion",
     "amount": 20,
-    "hp": 40
+    "hp": 24
    },
    {
     "type": "save",

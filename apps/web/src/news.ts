@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-dragon',
+    date: '2026-10-01',
+    title: t('The Dragon stirs', 'Дракон пробуждается'),
+    items: [
+      t('The Ancient Dragon has grown: twice the health, and harder blows. At full strength it is a gamble for even the mightiest Hero, until it starts to weaken on day 29 of the Season, a little more every week.',
+        'Древний дракон окреп: вдвое больше здоровья и удары тяжелее. В полной силе он опасен даже для сильнейшего героя, пока с 29-го дня сезона не начнёт слабеть, понемногу каждую неделю.'),
+    ],
+  },
+  {
     id: '2026-10-01-cups',
     date: '2026-10-01',
     title: t('Keep your eye on the gem', 'Следите за камешком'),

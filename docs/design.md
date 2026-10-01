@@ -313,16 +313,16 @@ Every monster has a signature power, so a fight plays differently depending on w
 - **Deeper is harder** *(v0)*: gear keeps getting better, so the monsters do too.
   - Each Floor into a theme adds 15% health and +1 to hit and to damage.
   - On top of that, every Floor below Floor 2 adds 20% health, +0.75 to hit and +0.55 damage (rounded), so a Floor 9 monster has 2.4 times its Floor-1 health and +5 to hit and +4 damage from depth alone. Floors 1 and 2 stay gentle for new Heroes.
-  - The Mimic and the Doppelganger, which turn up anywhere, grow like the Floor's own monsters. The Dragon is measured on its own (700 health, AC 20).
-  - The aim, checked with `npm run balance:par -w @dark/engine`: on the Floor a typical Hero has just reached, a fight costs about a quarter of its health, most Rooms read Trivial or Easy at full health with a few Dangerous ones, and the Floor's Mini-boss is a real fight. The Dragon at full strength needs about level 18–20 and late-Season gear.
+  - The Mimic and the Doppelganger, which turn up anywhere, grow like the Floor's own monsters. The Dragon is measured on its own (1,400 health, AC 20).
+  - The aim, checked with `npm run balance:par -w @dark/engine`: on the Floor a typical Hero has just reached, a fight costs about a quarter of its health, most Rooms read Trivial or Easy at full health with a few Dangerous ones, and the Floor's Mini-boss is a real fight. The Dragon at full strength is a gamble even at level 20 with late-Season gear: about one win in four, and two deaths in five. Its weakening from day 29 brings it within reach: about one win in two on day 29, two in three on day 36 and nine in ten on day 43, so most Seasons find their Champion after day 29 *(v0)*.
 - **Mini-bosses** come with an escort:
   - the Goblin chieftain with a Goblin archer
   - the Bone knight, which is **Undying**, with a Skeleton
   - the Horned tyrant (two attacks a turn, and **Terrifying**: a WIS save as the fight starts, DC 14, or 2 rounds of disadvantage on attacks) with an Imp
 - **The Dragon:**
-  - **Terrifying** (DC 14).
-  - **Fire breath:** 10d6, DEX DC 16.
-  - Two attacks a turn.
+  - **Terrifying** (DC 15).
+  - **Fire breath:** 12d6, DEX DC 17.
+  - Two attacks a turn, 2d10 + 10 each.
   - **Rage:** below half health, once, it gains +2 AC and +1 to hit, and its breath is ready again.
 - **Elite packs** *(v0)*: from Floor 2 on, a group's strongest monster is sometimes an elite. The chance is 10% on Floors 2–3, 15% on 4–6, 20% on 7–9 and 25% on 10.
   - Every elite has 25% more health (Gilded 50%), is worth double XP, and drops one more Item when it falls.

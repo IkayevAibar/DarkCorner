@@ -172,7 +172,7 @@ export const MONSTERS: MonsterDef[] = [
   m({ id: 'drake', name: text('Drake', 'Дрейк'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/drake.webp', role: 'brute', hp: 90, ac: 17, attack: 9, damage: [2, 8, 4], dex: 12, xp: 250, weight: 2,
     powers: [{ id: 'breath', dice: [7, 6], dc: 15 }],
     about: text('A young cousin of the Dragon with a hot temper and a scorching breath.', 'Молодой родич дракона с горячим нравом и обжигающим дыханием.') }),
-  m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.webp', role: 'boss', hp: 700, ac: 20, attack: 13, damage: [2, 10, 6], dex: 10, xp: 5000, weight: 0,
+  m({ id: 'ancient-dragon', name: text('The Ancient Dragon', 'Древний дракон'), theme: 'lair', kin: 'dragonkin', art: '/art/tokens/dragon.webp', role: 'boss', hp: 1400, ac: 20, attack: 13, damage: [2, 10, 10], dex: 10, xp: 5000, weight: 0,
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'breath', dice: [12, 6], dc: 17 }, { id: 'frighten', dc: 15, rounds: 2 }, { id: 'enrage' }],
     about: text('The Season’s Boss. Two attacks a turn, fire that fills the lair, a roar that breaks courage, and fury when wounded.', 'Босс сезона. Две атаки за ход, пламя на всё логово, рёв, ломающий мужество, и ярость, когда ранен.') }),
 
