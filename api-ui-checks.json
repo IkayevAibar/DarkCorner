@@ -1,0 +1,26 @@
+{
+  "source": "actual screens against intercepted shared-shaped responses",
+  "calls": [
+    {
+      "url": "oath",
+      "body": {
+        "choice": "share"
+      }
+    },
+    {
+      "url": "chest",
+      "body": {
+        "index": 0
+      }
+    }
+  ],
+  "checks": [
+    "single oath request after rapid double tap",
+    "waiting partner stays secret",
+    "single Chest POST with index",
+    "my confirmed pick flies",
+    "partner poll updates turn",
+    "curse in Loot and Temple"
+  ],
+  "passed": true
+}

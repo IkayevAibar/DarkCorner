@@ -1,0 +1,86 @@
+[
+  {
+    "locale": "en",
+    "width": 320,
+    "reducedMotion": "no-preference",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "en",
+    "width": 320,
+    "reducedMotion": "reduce",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "en",
+    "width": 375,
+    "reducedMotion": "no-preference",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "en",
+    "width": 375,
+    "reducedMotion": "reduce",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "en",
+    "width": 1440,
+    "reducedMotion": "no-preference",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "en",
+    "width": 1440,
+    "reducedMotion": "reduce",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "ru",
+    "width": 320,
+    "reducedMotion": "no-preference",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "ru",
+    "width": 320,
+    "reducedMotion": "reduce",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "ru",
+    "width": 375,
+    "reducedMotion": "no-preference",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "ru",
+    "width": 375,
+    "reducedMotion": "reduce",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "ru",
+    "width": 1440,
+    "reducedMotion": "no-preference",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  },
+  {
+    "locale": "ru",
+    "width": 1440,
+    "reducedMotion": "reduce",
+    "checks": "secret oath, four outcomes, paired flip, keyboard, silent/spent, ownership flights, Item inspect, expiry, full Bags, final pick, bounds",
+    "passed": true
+  }
+]
