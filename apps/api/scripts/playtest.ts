@@ -483,7 +483,8 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
     // Caught: the ambush is a fight played turn by turn, and the bot hands it to the AI.
     if (r?.view.fight) {
       bot.stats.caught++;
-      await act(bot, '/api/labyrinth/fight', { action: { kind: 'auto' } });
+      // With the Room it stood in, so a death there is logged and its Grave remembered.
+      await act(bot, '/api/labyrinth/fight', { action: { kind: 'auto' } }, view);
     }
   } else {
     bot.stats.retreats++;
