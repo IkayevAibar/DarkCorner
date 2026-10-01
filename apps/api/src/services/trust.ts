@@ -84,6 +84,8 @@ async function settleOaths(tx: Tx, season: Season, floor: Floor, room: number, p
   const { gifts, cursed } = oathOutcome(oaths[0], oaths[1]);
   for (const [i, hero] of pair.entries()) {
     const out = outs.get(hero.id)!;
+    // The reveal, for the screen: both oaths, from this Hero's side.
+    out.oath = { mine: oaths[i]!, partner: oaths[1 - i]! };
     for (let g = 0; g < gifts[i]!; g++) {
       await giveDrop(tx, hero, season, await rollDrop(tx, hero, season, { floor: floor.number, odds: oathOdds(floor.number), source: 'oathstone' }), out);
     }

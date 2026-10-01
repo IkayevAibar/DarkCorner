@@ -613,6 +613,11 @@ export const labyrinthResultSchema = z.object({
   run: runSummarySchema.nullable(),
   /** Deeds this action finished: each paid its gold and earned its Title. */
   deeds: z.array(z.object({ id: z.string(), title: localizedTextSchema, gold: z.number().int() })),
+  /**
+   * An Oathstone settled, by this Player's oath or its partner's (then it comes on the
+   * partner's next look, like the rest of its news): what each swore, from this Player's side.
+   */
+  oath: z.object({ mine: oathSchema, partner: oathSchema }).nullable().default(null),
 });
 export type LabyrinthResult = z.infer<typeof labyrinthResultSchema>;
 

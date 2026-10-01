@@ -79,6 +79,7 @@ describe('Oathstones', () => {
 
     const done = await act(b.cookie, '/api/labyrinth/oath', { choice: 'share' });
     expect(done.notices.map((n) => n.en).join(' ')).toContain('You both shared');
+    expect(done.oath).toEqual({ mine: 'share', partner: 'share' });
     for (const [h, n] of [[a.hero, before.a], [b.hero, before.b]] as const) {
       const gear = await bagGear(h.id);
       expect(gear).toHaveLength(n + 1);
@@ -98,11 +99,17 @@ describe('Oathstones', () => {
     await act(a.cookie, '/api/labyrinth/oath', { choice: 'share' });
     const r = await act(b.cookie, '/api/labyrinth/oath', { choice: 'take' });
     expect(r.notices.map((n) => n.en).join(' ')).toContain('both gifts are yours');
+    expect(r.oath).toEqual({ mine: 'take', partner: 'share' });
     expect(await bagGear(a.hero.id)).toHaveLength(before.a);
     expect(await bagGear(b.hero.id)).toHaveLength(before.b + 2);
     const line = await prisma.feedEvent.findFirstOrThrow({ where: { kind: 'oath-broken' } });
     expect(line.data).toMatchObject({ hero: 'Mira', partner: 'Garrick' });
-    expect((await look(a.cookie)).notices.map((n) => n.en).join(' ')).toContain('Mira took both gifts');
+    // The first to swear sees the reveal on its next look, from its own side.
+    const seen = await look(a.cookie);
+    expect(seen.notices.map((n) => n.en).join(' ')).toContain('Mira took both gifts');
+    expect(seen.oath).toEqual({ mine: 'share', partner: 'take' });
+    // Only once.
+    expect((await look(a.cookie)).oath).toBeNull();
   });
 
   it('crack under two takers and curse them both', async () => {

@@ -15,7 +15,7 @@ Both work today with plain stand-ins in `apps/web/src/screens/labyrinth/Trust.ts
 ## Contract (already in `packages/shared`)
 
 - `RoomTypeId` has `'oathstone'`. `LabyrinthView.room.oath: OathView | null`: `state` (`silent` alone, `open` while swearing, `spent` for the week, with `until`), `mine` (this Player's oath or null) and `partnerSwore`.
-- `POST /api/labyrinth/oath { choice: 'share' | 'take' }` → `LabyrinthResult`. The second oath settles both: the result's `notices` say what happened, its `loot` holds the gifts, and the partner's side arrives as news on its next look (the web polls every few seconds in a Duo).
+- `POST /api/labyrinth/oath { choice: 'share' | 'take' }` → `LabyrinthResult`. The second oath settles both: the result's `oath` is `{ mine, partner }` (what each swore, from this Player's side; null otherwise), its `notices` say what happened in words and its `loot` holds the gifts. The partner's side, `oath` included, arrives as news on its next look (the web polls every few seconds in a Duo), once.
 - `LabyrinthView.chest: DuoChestView | null`: `items` (`ItemView` and `takenBy`: `me`, `partner` or null), `turn` (`me`, `partner`, or null once neither can carry more), `full` (this Player's Bag is full, so its turns pass) and `deadline`.
 - `POST /api/labyrinth/chest { index }` → `LabyrinthResult`. A pick out of turn is `not_your_pick`; a taken Item is `already_taken`.
 - `HeroView.luck.blessing.curse`: the Oathbreaker's curse sits in the Blessing's place.

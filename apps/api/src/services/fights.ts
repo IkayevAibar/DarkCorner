@@ -3,7 +3,7 @@ import { type Combatant, type FightReplay, type Foe, type ItemView, type Localiz
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightEvent, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT,
   type MonsterInstance, type PathId, RELIC_CHANCE, type RaceId, type SideResult, type StanceId, type TalentId, type ThreatId, weakeningAt,
-  type DeedCounts, KILL_METRIC, monsterStrike, weaponStrike, createRng, dropOdds, duoEncounter, fireBomb, heroCombat, monsterById, restUses,
+  type DeedCounts, KILL_METRIC, type Oath, monsterStrike, weaponStrike, createRng, dropOdds, duoEncounter, fireBomb, heroCombat, monsterById, restUses,
   simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
@@ -43,6 +43,8 @@ export interface Outcome {
   runEnd: { gold: number } | null;
   /** Deeds finished by the action, shown apart from the other lines. */
   deeds: DoneDeed[];
+  /** An Oathstone settled: what each swore, from this Hero's side. */
+  oath: { mine: Oath; partner: Oath } | null;
 }
 
 export interface DoneDeed { id: string; title: LocalizedText; gold: number }
@@ -62,6 +64,7 @@ export interface CheckOutcome {
 
 export const emptyOutcome = (): Outcome => ({
   fight: null, loot: [], gold: 0, xp: 0, levelUp: null, died: false, notices: [], checks: [], duel: null, explored: 0, depth: 0, runEnd: null, deeds: [],
+  oath: null,
 });
 
 // ─── What one Hero knows of a Floor ───────────────────────────────────────

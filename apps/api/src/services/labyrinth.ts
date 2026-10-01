@@ -500,6 +500,7 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
     duel: shown.duel,
     run: run ?? news?.run ?? null,
     deeds: shown.deeds,
+    oath: shown.oath,
   };
 }
 

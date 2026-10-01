@@ -65,6 +65,7 @@ export function mergeOutcomes(older: Outcome, newer: Outcome): Outcome {
     depth: Math.max(older.depth, newer.depth),
     runEnd: newer.runEnd ?? older.runEnd,
     deeds: [...older.deeds, ...newer.deeds],
+    oath: newer.oath ?? older.oath,
   };
 }
 
@@ -93,7 +94,7 @@ export async function takeNews(heroId: string): Promise<News | null> {
 /** Nothing to show: no news worth a Player's look. */
 export const nothingNew = (o: Outcome): boolean =>
   !o.fight && o.loot.length === 0 && o.gold === 0 && o.xp === 0 && o.levelUp === null && !o.died && o.notices.length === 0
-  && o.checks.length === 0 && !o.duel && !o.runEnd && o.deeds.length === 0;
+  && o.checks.length === 0 && !o.duel && !o.runEnd && o.deeds.length === 0 && !o.oath;
 
 const note = (en: string, ru: string): Outcome => ({ ...emptyOutcome(), notices: [t(en, ru)] });
 
