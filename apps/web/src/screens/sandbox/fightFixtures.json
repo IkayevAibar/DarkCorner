@@ -11169,7 +11169,7 @@
      "en": "Dawn Warden",
      "ru": "Страж рассвета"
     },
-    "art": null,
+    "art": "/art/tokens/dawn-warden.webp",
     "hp": 30,
     "maxHp": 30,
     "ac": 14,
@@ -11190,7 +11190,7 @@
      "en": "Dusk Warden",
      "ru": "Страж заката"
     },
-    "art": null,
+    "art": "/art/tokens/dusk-warden.webp",
     "hp": 30,
     "maxHp": 30,
     "ac": 14,
@@ -11467,7 +11467,7 @@
      "en": "Dawn Warden",
      "ru": "Страж рассвета"
     },
-    "art": null,
+    "art": "/art/tokens/dawn-warden.webp",
     "hp": 30,
     "maxHp": 30,
     "ac": 14,
@@ -11488,7 +11488,7 @@
      "en": "Dusk Warden",
      "ru": "Страж заката"
     },
-    "art": null,
+    "art": "/art/tokens/dusk-warden.webp",
     "hp": 30,
     "maxHp": 30,
     "ac": 14,

@@ -177,10 +177,10 @@ export const MONSTERS: MonsterDef[] = [
     about: text('The Season’s Boss. Two attacks a turn, fire that fills the lair, a roar that breaks courage, and fury when wounded.', 'Босс сезона. Две атаки за ход, пламя на всё логово, рёв, ломающий мужество, и ярость, когда ранен.') }),
 
   // Behind a Twin door on Floors 1–9, for a Duo: the Twin Wardens. Their numbers are WARDENS', for the Floor's theme.
-  m({ id: 'dawn-warden', name: text('Dawn Warden', 'Страж рассвета'), theme: 'warrens', kin: 'humanoid', art: null, role: 'warden', hp: 30, ac: 14, attack: 5, damage: [1, 10, 3], dex: 10, xp: 80, weight: 0,
+  m({ id: 'dawn-warden', name: text('Dawn Warden', 'Страж рассвета'), theme: 'warrens', kin: 'humanoid', art: '/art/tokens/dawn-warden.webp', role: 'warden', hp: 30, ac: 14, attack: 5, damage: [1, 10, 3], dex: 10, xp: 80, weight: 0,
     powers: [{ id: 'twin' }, { id: 'mend', dice: [2, 8] }],
     about: text('A stone guardian lit from within like the morning. It mends its twin once, and rises again while its twin stands.', 'Каменный страж, светящийся изнутри, как утро. Один раз лечит своего близнеца и встаёт снова, пока тот на ногах.') }),
-  m({ id: 'dusk-warden', name: text('Dusk Warden', 'Страж заката'), theme: 'warrens', kin: 'humanoid', art: null, role: 'warden', hp: 30, ac: 14, attack: 5, damage: [1, 10, 3], dex: 10, xp: 80, weight: 0,
+  m({ id: 'dusk-warden', name: text('Dusk Warden', 'Страж заката'), theme: 'warrens', kin: 'humanoid', art: '/art/tokens/dusk-warden.webp', role: 'warden', hp: 30, ac: 14, attack: 5, damage: [1, 10, 3], dex: 10, xp: 80, weight: 0,
     powers: [{ id: 'twin' }, { id: 'drain' }],
     about: text('Its twin’s shadow, cut from the same stone. It drinks the life it strikes, and rises again while its twin stands.', 'Тень своего близнеца из того же камня. Пьёт жизнь тех, кого бьёт, и встаёт снова, пока близнец на ногах.') }),
 
