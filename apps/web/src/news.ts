@@ -25,6 +25,8 @@ export const NEWS: NewsEntry[] = [
     items: [
       t('The Goblin gambler now plays cups too: put your stake down, watch him shuffle, then pick the gem’s cup or call his cheat. A quarter of the time it’s up his sleeve, and only a Rogue sees it go.',
         'Гоблин-игрок теперь играет и в напёрстки: сделайте ставку, следите, как он тасует, и выберите напёрсток с камешком или уличите его в жульничестве. В четверти случаев камешек у него в рукаве, и заметит это только плут.'),
+      t('Two new Deeds: Nimble fingers for 10 tricky locks picked, and Sharp-eyed for catching the goblin cheating 3 times.',
+        'Два новых подвига: «Ловкие пальцы» за 10 вскрытых хитрых замков и «Зоркий глаз» за трижды пойманного на жульничестве гоблина.'),
     ],
   },
   {

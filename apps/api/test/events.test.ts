@@ -238,6 +238,8 @@ describe('Event rooms', () => {
       } else {
         expect(r.checks).toHaveLength(0);
         expect(r.loot[0]!.kind).toBe('chest');
+        // A lock picked counts toward Nimble fingers.
+        expect((await hero()).deedCounts).toMatchObject({ locks: 1 });
       }
     }
     expect((await view()).room!.eventView).toMatchObject({ kind: 'lockpicking', done: true, lock: null });

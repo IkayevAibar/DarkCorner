@@ -218,6 +218,8 @@ A **Deed** is a feat a Hero works toward all Season. The moment one is done, its
 | Riddle master | Answer 10 riddles right. | 300 |
 | Blood-trader | Strike 5 devil's bargains. | 300 |
 | Tomb robber | Open 5 sarcophagi. | 300 |
+| Nimble fingers | Pick 10 tricky locks. | 300 |
+| Sharp-eyed | Catch the goblin palming his gem 3 times. | 300 |
 | Moneybags | Bring 10,000 gold home from the Labyrinth. | 500 |
 | Chest-cracker | Open 25 Chests. | 500 |
 | Legend-seeker | Find a Legendary Item (a Relic counts). | 300 |

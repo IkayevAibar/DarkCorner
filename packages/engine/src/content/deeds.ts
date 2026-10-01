@@ -10,7 +10,7 @@ export type DeedMetric =
   | 'kills-goblinoid' | 'kills-beast' | 'kills-undead' | 'kills-demon'
   | 'minibosses' | 'elites' | 'dragon' | 'deadly'
   | 'saved' | 'rose'
-  | 'depth' | 'rooms' | 'hidden' | 'events' | 'riddles' | 'bargains' | 'sarcophagi'
+  | 'depth' | 'rooms' | 'hidden' | 'events' | 'riddles' | 'bargains' | 'sarcophagi' | 'locks' | 'cheats'
   | 'banked' | 'chests' | 'legendary' | 'bounties' | 'delves'
   | 'raised' | 'twins' | 'oaths-kept' | 'oaths-broken';
 
@@ -47,6 +47,8 @@ export const DEEDS: DeedDef[] = [
   deed('riddle-master', 'riddles', 10, 300, text('Riddle master', 'Знаток загадок'), text('Answer 10 riddles right.', 'Отгадайте 10 загадок.')),
   deed('blood-trader', 'bargains', 5, 300, text('Blood-trader', 'Торговец кровью'), text('Strike 5 devil’s bargains.', 'Заключите 5 сделок с дьяволом.')),
   deed('tomb-robber', 'sarcophagi', 5, 300, text('Tomb robber', 'Расхититель гробниц'), text('Open 5 sarcophagi.', 'Вскройте 5 саркофагов.')),
+  deed('nimble-fingers', 'locks', 10, 300, text('Nimble fingers', 'Ловкие пальцы'), text('Pick 10 tricky locks.', 'Вскройте 10 хитрых замков.')),
+  deed('sharp-eyed', 'cheats', 3, 300, text('Sharp-eyed', 'Зоркий глаз'), text('Catch the goblin palming his gem 3 times.', 'Трижды поймайте гоблина, когда он прячет камешек.')),
   deed('moneybags', 'banked', 10_000, 500, text('Moneybags', 'Толстосум'), text('Bring 10,000 gold home from the Labyrinth.', 'Принесите из лабиринта 10 000 золота.')),
   deed('chest-cracker', 'chests', 25, 500, text('Chest-cracker', 'Взломщик сундуков'), text('Open 25 Chests.', 'Откройте 25 сундуков.')),
   deed('legend-seeker', 'legendary', 1, 300, text('Legend-seeker', 'Искатель легенд'), text('Find a Legendary Item.', 'Найдите легендарный предмет.')),

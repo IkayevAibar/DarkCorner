@@ -312,6 +312,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         if (won) {
           await earnCarried(tx, hero, bet * CUPS.payout);
           out.gold += bet * (CUPS.payout - 1);
+          if (action.pick === 'cheat') await countDeeds(tx, hero, { cheats: 1 }, out);
           out.notices.push(action.pick === 'cheat'
             ? t(`You catch his sleeve, and the gem falls out. He pays double to keep you quiet: +${bet} gold.`,
               `Вы хватаете его за рукав, и камешек выпадает. Он платит вдвое, лишь бы вы молчали: +${bet} золота.`)
@@ -464,6 +465,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       }
       await finish(tx, visit, hero, floor.number, room, now, state, out);
       if (chest) {
+        await countDeeds(tx, hero, { locks: 1 }, out);
         out.notices.push(t('The last pin clicks home, and the lock gives.', 'Последний штифт встаёт на место, и замок поддаётся.'));
         await dropStack(tx, hero, season, chestBase(chest), 1, out);
       } else out.notices.push(t('The lock jams for good.', 'Замок заклинило намертво.'));
