@@ -4,6 +4,7 @@ import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
 import { useLoad } from '../useLoad';
 import { ICON_VIEWBOX, iconPath } from './icons';
+import { TwinMark } from '../TwinMark';
 
 /** Comparison colors: muted, so Tier colors stay the brightest thing on screen. */
 const BETTER = '#9cc48a';
@@ -42,12 +43,12 @@ export function ItemChip({ item, size = 62, onClick }: { item: ItemView; size?: 
         <img src={item.art} alt="" className="size-[96%] object-contain" draggable={false} />
       ) : (
         <svg
-          viewBox={ICON_VIEWBOX}
+          viewBox={item.base === 'bond-ring' ? '0 0 24 24' : ICON_VIEWBOX}
           fill="currentColor"
           className={`size-[62%] drop-shadow-[0_2px_2px_rgb(0_0_0/0.6)] ${item.identified ? '' : 'opacity-50'}`}
           aria-hidden="true"
         >
-          <path d={iconPath(item.icon)} />
+          {item.base === 'bond-ring' ? <TwinMark /> : <path d={iconPath(item.icon)} />}
         </svg>
       )}
       {!item.identified && (

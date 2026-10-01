@@ -28,6 +28,8 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
     cue.actor = event.actor ?? 'hero';
     cue.targets = ['mark', 'help', 'guard'].includes(event.feature) ? (event.target ? [event.target] : []) : [cue.actor];
   }
+  // Even a reconnect backlog leaves time to read the Wardens' round-end rule.
+  if (event.type === 'power' && event.power === 'twin') cue.length = 3000;
   if (reduced) return cue;
   switch (event.type) {
     case 'attack': {
@@ -49,6 +51,7 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
       break;
     case 'power':
       cue.contact = event.power === 'breath' ? 300 : 180;
+      if (event.power === 'twin') cue.contact = 900;
       if (event.power === 'breath' || event.power === 'explode' || event.power === 'wail') cue.hold = 65;
       break;
     case 'defeated': cue.contact = 80; cue.length = 750; break;

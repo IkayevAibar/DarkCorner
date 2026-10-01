@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-twin-art',
+    date: '2026-10-01',
+    title: t('The Wardens’ bond', 'Узы стражей'),
+    items: [
+      t('At the round’s end, a thread of light reveals how one Twin Warden raises the other. The scene calls out the rule: fell both in the same round.',
+        'В конце раунда световая нить показывает, как один страж-близнец поднимает другого. В сцене появляется напоминание: повергните обоих за один раунд.'),
+      t('A split-ring mark connects Twin doors, the Wardens’ Room on the Map, Bond rings and the Tavern’s Feed. Joined Bond rings cast a warm light between the Duo’s portraits.',
+        'Знак разомкнутого кольца объединяет парные двери, комнату стражей на карте, кольца уз и ленту таверны. Соединённые кольца уз зажигают тёплый свет между портретами дуэта.'),
+    ],
+  },
+  {
     id: '2026-10-01-twin-doors',
     date: '2026-10-01',
     title: t('Doors that open for two', 'Двери, что открываются двоим'),

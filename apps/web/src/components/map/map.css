@@ -20,7 +20,8 @@
 .map-glyph-camp { fill: #b28b55; }
 .map-glyph-fight, .map-glyph-miniboss, .map-glyph-boss { fill: #8e5741; }
 .map-glyph-hidden { fill: #968398; }
-.map-glyph-twin { fill: #c9a24a; }
+.map-glyph-twin { fill: #c9a24a; color: #453422; }
+.map-twin { color: #e0c390; fill: #201b15; stroke: #bb9b63; stroke-width: 1; }
 .map-glyph-treasure, .map-glyph-vault { fill: #b29756; }
 .map-cleared { opacity: .38; }
 .map-room:not(.map-visited):not(.map-exit) .map-glyph { color: #b2a07c; fill: #575345; }

@@ -1,5 +1,6 @@
 import type { FightReplay } from '@dark/shared';
 import fixtures from './fightFixtures.json';
+import { framesFor } from '../../components/fight/replay';
 
 /** Engine-produced fixtures stay untouched; these extra examples exercise rare visual paths. */
 export const REAL_FIGHTS = fixtures as unknown as Record<string, FightReplay>;
@@ -51,4 +52,21 @@ export const EXTRA_FIGHTS: Record<string, FightReplay> = {
   },
 };
 
-export const FIGHTS = { ...REAL_FIGHTS, ...EXTRA_FIGHTS };
+/** Preview the new paintings until Claude adds their art paths to the engine content. Events stay untouched. */
+function paintedWardens(replay: FightReplay): FightReplay {
+  if (!replay.monsters.some(m => m.powers.includes('twin'))) return replay;
+  return { ...replay, monsters: replay.monsters.map(m => m.powers.includes('twin')
+    ? { ...m, art: m.art ?? `/art/tokens/${m.powers.includes('mend') ? 'dawn' : 'dusk'}-warden.webp` } : m) };
+}
+export const FIGHTS = { ...Object.fromEntries(Object.entries(REAL_FIGHTS).map(([id, replay]) => [id, paintedWardens(replay)])), ...EXTRA_FIGHTS };
+
+// A short live cut starts with the blow that fells Dusk. Its original HP and every subsequent event are recorded values.
+const wardens = FIGHTS['duo-twin-wardens']!;
+const cut = wardens.events.findIndex(e => e.type === 'defeated') - 1;
+const atCut = framesFor(wardens)[cut]!;
+export const WARDEN_RISE: FightReplay = { ...wardens,
+  hero: { ...wardens.hero, hp: atCut.fighters.hero!.hp },
+  ally: { ...wardens.ally!, hp: atCut.fighters.ally!.hp },
+  monsters: wardens.monsters.map(m => ({ ...m, hp: atCut.fighters[m.key]!.hp })),
+  events: wardens.events.slice(cut),
+};

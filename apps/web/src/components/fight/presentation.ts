@@ -49,6 +49,7 @@ export function sound(event: FightEventView): void {
       else if (event.power === 'thief') play('coins', { rate: 1.2 });
       else if (event.power === 'enrage' || event.power === 'frighten') play('crit', { rate: 0.7, volume: 0.8 });
       else if (event.power === 'undying') play('creak');
+      else if (event.power === 'twin') { play('creak', { rate: 0.65, volume: 0.7 }); play('reveal', { rate: 0.8, volume: 0.55 }); }
       break;
     case 'end':
       if (event.outcome === 'victory') play('coins', { delay: 150 });

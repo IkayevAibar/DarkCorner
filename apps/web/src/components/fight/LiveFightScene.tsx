@@ -11,6 +11,7 @@ import { dieFor } from './replay';
 import { cueFor, cueDuration, Playhead, readSpeed, saveSpeed, sceneTime } from './choreography';
 import { describe, displayNames, sound } from './presentation';
 import { TurnChoices } from './TurnChoices';
+import { TwinRise } from './TwinRise';
 import type { FightStage } from './stage';
 import './fight.css';
 
@@ -44,7 +45,7 @@ function LiveBoard({ fight, at, busy, onChoose, onDone }: Props) {
   const complete = caughtUp && fight.outcome !== null;
   const paused = hidden || logOpen;
   // A long backlog (for example after reconnecting) must not consume a Duo's whole choice deadline.
-  const rate = speed * (timeline.events.length - shown > 8 ? 3 : 1);
+  const rate = speed * (timeline.events.length - shown > 8 && !(event?.type === 'power' && event.power === 'twin') ? 3 : 1);
   const names = useMemo(() => displayNames(base, value => value[locale]), [base, locale]);
   const map = useMemo(() => roomArt(base.map, at), [base.map, at?.floor, at?.room]);
   const cue = useMemo(() => cueFor(base, event, reduced), [base, event, reduced]);
@@ -119,6 +120,7 @@ function LiveBoard({ fight, at, busy, onChoose, onDone }: Props) {
         </header>
         <div className={`fight-board ${base.ally ? 'fight-duo' : ''}`}>
           <div ref={host} className="fight-canvas" />
+          <TwinRise event={event} names={names} />
           {!ready && <div className="fight-loading">{t('loading')}</div>}
           {fallback && <div className="live-fallback"><img {...map} alt="" />{fighters.map(who => {
             const place = places[who.key]!, state = frame.fighters[who.key]!;

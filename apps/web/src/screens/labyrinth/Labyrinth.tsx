@@ -1,7 +1,7 @@
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router';
 import {
-  STANCES, TIERS, type CheckView, type Direction, type DuoPartner, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
+  STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
   type LabyrinthView, type RunSummary,
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
@@ -10,6 +10,9 @@ import { Guide } from '../../components/Guide';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { DuoCard } from '../../components/DuoCard';
+import { DuoStrip } from '../../components/DuoStrip';
+import { BondedPortraits } from '../../components/BondedPortraits';
+import { DoorMarker } from './DoorMarker';
 import { OmenNote } from '../../components/OmenNote';
 import { useSheet } from '../../components/Sheet';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
@@ -246,7 +249,7 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
       </div>
       {view.season.omen && <OmenNote omen={view.season.omen} />}
 
-      {duo && <DuoStrip partner={duo} busy={busy} act={act} />}
+      {duo && <DuoStrip hero={hero} partner={duo} busy={busy} onLeave={() => void act(async () => { await api.duoLeave(); return api.labyrinth(); })} />}
       <section className="grid gap-2">
         {view.portal && !duo && (
           <div className="grid gap-1">
@@ -394,7 +397,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         )}
       </Stage>
 
-      {view.duo && <DuoStrip partner={view.duo} busy={busy} act={act} />}
+      {view.duo && <DuoStrip hero={hero} partner={view.duo} busy={busy} onLeave={() => void act(async () => { await api.duoLeave(); return api.labyrinth(); })} />}
       <div className="grid gap-1 px-1 text-sm text-muted">
         <span className="flex flex-wrap gap-1.5">
           <span className="chip">{hero.xpNext === null ? t('lab.xpMax', { n: hero.xp }) : t('lab.xp', { n: hero.xp, m: hero.xpNext })}</span>
@@ -689,6 +692,7 @@ function BagCard({ onClose }: { onClose: () => void }) {
 function Pair({ view, size }: { view: LabyrinthView; size: number }) {
   const hero = view.hero;
   const partner = view.duo;
+  if (partner?.bonded) return <BondedPortraits hero={hero} partner={partner} size={size} />;
   return (
     <span className="flex items-end justify-center gap-2">
       <Token art={hero.portraitUrl} label={hero.name} ring={hero.banner} size={size} />
@@ -696,38 +700,6 @@ function Pair({ view, size }: { view: LabyrinthView; size: number }) {
         <Token art={partner.portraitUrl} label={partner.name} ring={partner.banner} size={Math.round(size * 0.78)} className={partner.online ? '' : 'opacity-60'} />
       )}
     </span>
-  );
-}
-
-/** The Duo partner: its health and Stamina, whether its Player is here, and leaving the Duo. */
-function DuoStrip({ partner, busy, act }: { partner: DuoPartner; busy: boolean; act: Act }) {
-  const { t } = useI18n();
-  const leave = () => void act(async () => {
-    await api.duoLeave();
-    return api.labyrinth();
-  });
-  return (
-    <section className="grid gap-1.5 rounded-[2px] border border-line bg-[rgb(22_18_14/0.7)] p-2">
-      <div className="flex items-center gap-2.5">
-        <Token art={partner.portraitUrl} label={partner.name} ring={partner.banner} size={36} />
-        <div className="grid min-w-0 flex-1 gap-1">
-          <div className="flex items-baseline gap-2">
-            <span className="truncate font-head font-bold">{t('duo.with', { name: partner.name })}</span>
-            <span className={`shrink-0 text-xs ${partner.online ? 'text-tier-uncommon' : 'text-[#ff9a8a]'}`}>{partner.online ? t('duo.online') : t('duo.away')}</span>
-          </div>
-          <div className="flex items-center gap-2 text-[11px] leading-none text-muted tabular-nums">
-            <div className="h-[5px] flex-1 border border-black bg-[#2a211a]">
-              <div className="h-full bg-[#c23030]" style={{ width: `${Math.round((partner.hp / Math.max(1, partner.maxHp)) * 100)}%` }} />
-            </div>
-            <span>{partner.hp}/{partner.maxHp}</span>
-            <span>· {t('hero.stamina')} {partner.stamina}</span>
-          </div>
-        </div>
-        <button type="button" className="btn btn-small shrink-0" disabled={busy} onClick={leave}>{t('duo.leave')}</button>
-      </div>
-      {partner.bonded && <p className="m-0 text-sm text-tier-epic">{t('duo.bonded')}</p>}
-      {!partner.online && <p className="m-0 text-sm text-[#ff9a8a]">{t('duo.awayNote', { name: partner.name })}</p>}
-    </section>
   );
 }
 
@@ -1006,37 +978,6 @@ function RestCard({ view, busy, act, onClose }: { view: LabyrinthView; busy: boo
       </button>
       <button type="button" className="btn" onClick={onClose}>{t('close')}</button>
     </CenterModal>
-  );
-}
-
-const MARKER_PLACE: Record<Direction, string> = {
-  n: 'top-[70px] left-1/2 -translate-x-1/2',
-  s: 'bottom-[62px] left-1/2 -translate-x-1/2',
-  e: 'right-1.5 top-1/2 -translate-y-1/2',
-  w: 'left-1.5 top-1/2 -translate-y-1/2',
-};
-const ARROW: Record<Direction, string> = { n: 'M6 15l6-6 6 6', s: 'M6 9l6 6 6-6', e: 'M9 6l6 6-6 6', w: 'M15 6l-6 6 6 6' };
-
-/** A Door on the Room map itself, where the art has its openings. */
-function DoorMarker({ exit, disabled, onMove }: { exit: Exit; disabled: boolean; onMove: (to: number) => void }) {
-  const { t } = useI18n();
-  return (
-    <button
-      type="button"
-      aria-label={t(`dir.${exit.direction}`)}
-      disabled={disabled || !exit.passable}
-      onClick={() => onMove(exit.to)}
-      className={`absolute grid size-11 place-items-center rounded-full border-2 bg-black/70 p-0 shadow-[0_0_0_1px_#000] transition-transform active:scale-95 disabled:opacity-40 ${
-        MARKER_PLACE[exit.direction]
-      } ${exit.kind === 'secret' ? 'border-dashed border-tier-epic text-tier-epic' : exit.kind === 'locked' || exit.kind === 'twin' ? 'border-[#c9a24a] text-[#e8cf9a]' : exit.visited ? 'border-bone/40 text-bone/70' : 'border-gold text-gold'}`}
-    >
-      <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d={ARROW[exit.direction]} />
-      </svg>
-      {exit.suspicious && (
-        <span className="absolute -top-1 -right-1 grid size-4 place-items-center rounded-full bg-tier-mythic font-head text-[11px] font-extrabold text-black">!</span>
-      )}
-    </button>
   );
 }
 

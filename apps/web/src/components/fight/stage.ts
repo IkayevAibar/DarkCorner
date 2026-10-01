@@ -197,6 +197,41 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         healer.halo.circle(0, 0, healer.radius + 10).stroke({ color: 0xffe8a0, width: 3, alpha: 1 - p });
       });
     };
+    const twinRise = (standing: TokenView, fallen: TokenView) => {
+      const thread = new Graphics(), gold = 0xf0d49a, dusk = 0xcdb6ed;
+      // The thread follows a low arch above both heads, separate from the Cleric's healing orb.
+      const from = { x: standing.x, y: standing.y - standing.radius - 9 };
+      const to = { x: fallen.x, y: fallen.y - fallen.radius - 9 };
+      const arch = (p: number) => ({ x: from.x + (to.x - from.x) * p, y: from.y + (to.y - from.y) * p - Math.sin(p * Math.PI) * 38 });
+      clip(thread, 0, reduced ? 260 : cue.length, () => {
+        const reach = reduced ? 1 : Math.min(1, time / cue.contact);
+        const fade = reduced ? .8 : Math.min(1, (cue.length - time) / 550);
+        thread.clear();
+        for (const [width, alpha] of [[12, .12], [5, .25], [2, .95]]) {
+          thread.moveTo(from.x, from.y);
+          for (let i = 1; i <= 28; i++) { const point = arch(reach * i / 28); thread.lineTo(point.x, point.y); }
+          thread.stroke({ color: gold, width: width!, alpha: alpha! * fade });
+        }
+        const tip = arch(reach);
+        thread.circle(tip.x, tip.y, 4).fill({ color: 0xfff5d4, alpha: fade });
+        for (const [token, color] of [[standing, gold], [fallen, dusk]] as const) {
+          const r = token.radius + 12;
+          thread.moveTo(token.x + Math.cos(-.4) * r, token.y + Math.sin(-.4) * r)
+            .arc(token.x, token.y, r, -.4, Math.PI - .4).stroke({ color, width: 3, alpha: fade })
+            .moveTo(token.x + Math.cos(Math.PI + .1) * (r + 5), token.y + Math.sin(Math.PI + .1) * (r + 5))
+            .arc(token.x, token.y, r + 5, Math.PI + .1, Math.PI * 2 + .1).stroke({ color, width: 2, alpha: fade * .6 });
+        }
+      });
+      if (!reduced) clip(undefined, cue.contact, 680, p => {
+        // Unfold from the same fallen pose used between events; health changes only at contact.
+        const left = (1 - p) ** 3;
+        fallen.root.alpha = 1 - left * .65; fallen.art.y = left * 20;
+        fallen.art.rotation = left * .25; fallen.art.scale.y = 1 - left * .12;
+        fallen.flash.tint = dusk; fallen.flash.alpha = Math.sin(p * Math.PI) * .28;
+        once('twin-rise', cue.contact, () => spray(fallen.x, fallen.y + fallen.radius / 2,
+          { color: gold, count: 26, shape: 'chip', up: 115, speed: 55, gravity: -10, size: 6, life: 850 }));
+      });
+    };
     const swing = (a: TokenView, b: TokenView, hit: boolean) => {
       const strike = a.who.strike, dx = b.x - a.x, dy = b.y - a.y, d = Math.max(1, Math.hypot(dx, dy));
       const x = b.x + (hit ? 0 : -dy / d * (b.radius + 42)), y = b.y + (hit ? 0 : dx / d * (b.radius + 42));
@@ -258,6 +293,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
     const prepare = () => {
       if (!event) return;
       const a = cue.actor ? get(cue.actor) : undefined, b = cue.targets[0] ? get(cue.targets[0]) : undefined;
+      if (event.type === 'power' && event.power === 'twin' && a && b) { twinRise(a, b); return; }
       if (reduced) {
         if (event.type === 'feature' && ['rage', 'mark', 'relentless'].includes(event.feature)) return;
         if (event.type === 'revive' && event.success && b) number(b, '+' + event.hp, 0xffdc82, 0);
@@ -406,7 +442,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
       const ended = event?.type === 'end';
       let cameraStrength = 0, cameraZoom = 0;
       for (const [key, token] of tokens) {
-        const raising = event?.type === 'revive' || (event?.type === 'heal' && event.by);
+        const raising = event?.type === 'revive' || (event?.type === 'heal' && event.by) || (event?.type === 'power' && event.power === 'twin');
         const state = (raising && time < cue.contact ? previous?.fighters[key] : current.fighters[key]) ?? current.fighters[key]; if (!state) continue;
         const active = cue.actor === key && (replay.ally || !event || !['save', 'escape', 'reroll', 'rise'].includes(event.type)) && !state.fallen && !state.fled && !ended;
         token.root.position.set(token.x, token.y); token.root.alpha = state.fled ? 0 : state.fallen ? .35 : 1;
@@ -507,6 +543,8 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         host.dataset.renderedFrames = String(++renderedFrames);
         host.dataset.raging = String(hero.raging); host.dataset.marked = hero.marked ?? '';
         host.dataset.fighters = JSON.stringify(current.fighters);
+        host.dataset.tokenPoses = JSON.stringify(Object.fromEntries([...tokens].map(([key, token]) => [key,
+          { hp: token.shownHp, opacity: token.root.alpha, tilt: token.art.rotation }])));
       }
     };
     const resize = () => {

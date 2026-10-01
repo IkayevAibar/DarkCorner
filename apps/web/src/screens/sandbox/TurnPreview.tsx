@@ -5,11 +5,11 @@ import { LiveFightScene } from '../../components/fight/LiveFightScene';
 import { endedBoard, type BoardFight } from '../../components/fight/live';
 import { framesFor } from '../../components/fight/replay';
 import { FightLog } from '../labyrinth/FightLog';
-import { REAL_FIGHTS } from './fightExamples';
+import { FIGHTS, REAL_FIGHTS, WARDEN_RISE } from './fightExamples';
 
 const TEXT = {
-  en: { title: 'Manual fights', note: 'Preview: choices reveal the next recorded turn; they never reroll the fight.', partner: 'Partner chooses (preview)', restart: 'Restart', done: 'Report' },
-  ru: { title: 'Бой по ходам', note: 'Пример: выбор показывает следующий записанный ход, не меняя броски.', partner: 'Выбор напарника (пример)', restart: 'Сначала', done: 'Отчёт' },
+  en: { title: 'Manual fights', note: 'Preview: choices reveal the next recorded turn; they never reroll the fight.', partner: 'Partner chooses (preview)', restart: 'Restart', done: 'Report', rise: 'Twin Wardens · the round-end rise' },
+  ru: { title: 'Бой по ходам', note: 'Пример: выбор показывает следующий записанный ход, не меняя броски.', partner: 'Выбор напарника (пример)', restart: 'Сначала', done: 'Отчёт', rise: 'Стражи-близнецы · подъём в конце раунда' },
 };
 const EXAMPLES = ['wizard-burst', 'cleric-heals', 'barbarian-rage', 'ranger-mark-moves', ...Object.keys(REAL_FIGHTS).filter(key => key.startsWith('duo-'))];
 function stops(replay: FightReplay) {
@@ -42,9 +42,9 @@ export function TurnPreview() {
   const [id, setId] = useState(EXAMPLES[0]!), [run, setRun] = useState(0);
   return <section className="grid gap-3" data-turn-preview>
     <h2 className="sub-heading m-0">{text.title}</h2><p className="m-0 text-sm text-muted">{text.note}</p>
-    <label className="grid gap-1">{text.title}<select data-turn-fixture className="input" value={id} onChange={e => setId(e.target.value)}>{EXAMPLES.map(name => <option key={name}>{name}</option>)}</select></label>
+    <label className="grid gap-1">{text.title}<select data-turn-fixture className="input" value={id} onChange={e => setId(e.target.value)}><option value="twin-rise">{text.rise}</option>{EXAMPLES.map(name => <option key={name}>{name}</option>)}</select></label>
     <button className="btn btn-small" type="button" onClick={() => setRun(n => n + 1)}>{text.restart}</button>
-    <RecordedTurns key={`${id}:${run}`} replay={REAL_FIGHTS[id]!} />
+    <RecordedTurns key={`${id}:${run}`} replay={id === 'twin-rise' ? WARDEN_RISE : FIGHTS[id]!} />
   </section>;
 }
 function RecordedTurns({ replay }: { replay: FightReplay }) {
