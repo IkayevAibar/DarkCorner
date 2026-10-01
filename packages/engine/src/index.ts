@@ -34,3 +34,4 @@ export * from './features.js';
 export * from './delve.js';
 export * from './content/steps.js';
 export * from './duo.js';
+export * from './schooling.js';

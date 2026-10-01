@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-02-academy',
+    date: '2026-10-02',
+    title: t('The Academy opens', 'Академия открыта'),
+    items: [
+      t('From level 12, the masters of the new Academy teach one more Talent at a time for gold: 2,000, then 6,000, then 15,000, three in all. Fireproof before the Dragon, perhaps?',
+        'С 12-го уровня мастера новой академии учат ещё одному таланту за раз за золото: 2000, затем 6000, затем 15 000, всего три. Может, огнеупорность перед встречей с драконом?'),
+    ],
+  },
+  {
     id: '2026-10-01-dragon',
     date: '2026-10-01',
     title: t('The Dragon stirs', 'Дракон пробуждается'),

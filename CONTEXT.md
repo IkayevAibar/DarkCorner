@@ -31,7 +31,7 @@ Taking the next level by hand, once the Hero has the XP for it, on a page that s
 _Avoid_: ding, auto-level
 
 **Talent**:
-A small passive perk. Every Hero picks an origin Talent when it is created, and may learn more as it grows.
+A small passive perk. Every Hero picks an origin Talent when it is created, and may learn more as it grows or at the Academy.
 _Avoid_: feat, perk, skill
 
 **Path**:
@@ -296,6 +296,10 @@ _Avoid_: town, hub (the ugolok.world hub is a different thing)
 **Gold**:
 The only currency.
 _Avoid_: coins, money
+
+**Academy**:
+The City Building where a Hero from level 12 learns more Talents for gold.
+_Avoid_: school, library, trainer
 
 **Market**:
 The City board where Players list Items at their own price, for anyone to buy at any time.

@@ -81,7 +81,7 @@ Later Seasons add more Races (Tiefling, Orc, Dragonborn, Gnome…).
 
 ### Origin talents *(v0)*
 
-This list exists so the Human's extra Talent has something to choose from in Season 0. Academy Talents come later.
+This list exists so the Human's extra Talent has something to choose from in Season 0. Every Talent can also be learned at the Academy (The City).
 
 | Talent | Effect |
 |---|---|
@@ -137,7 +137,7 @@ Robes are woven with wards: Armor Class 13 + the full DEX modifier *(v0)*, like 
 - **Levelling up is the Player's moment:** XP never levels a Hero on its own. When there's enough, the report says the level is ready, and a Level up button waits on the Heroes tab. It opens the level's page, as in Baldur's Gate 3: everything the level changes, in words (health, proficiency, attacks, spell and Sneak attack dice, uses a rest, new features, a Path's mastery), then the level's choice, then a button to take it. Levels are taken one at a time, anywhere, even mid-Run. Until then the Hero fights at its old level.
 - **Health on level-up:** roll the Class hit die, but never take less than its average. For example, a d10 always gives at least 6. The page shows the range beforehand, and the roll after.
 - **Growing:** at level 3 the Player chooses a Path; at levels 4, 8, 12, 16 and 19, +2 to one ability score, +1 to two, or a new Talent (see Growing: Paths and Talents). The choice is made on the level's page, and the level can't be taken without it.
-- **Where power comes from:** about 70% from gear and 30% from the Hero itself (level, ability scores, Talents, and later Academy Talents and training).
+- **Where power comes from:** about 70% from gear and 30% from the Hero itself (level, ability scores, Talents, Academy Talents and training).
 - **What death never takes:** levels, ability scores, Talents and the Path.
 - **Full health** counts gear: a Hero's own health plus its "+max health" Bonus stats. The City, a Camp's rest and potions fill up to it.
 
@@ -392,7 +392,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 | Market | Season 0 | Players list Items at their own price, and anyone can buy at any time. |
 | Temple | Season 0 | Where Heroes wake after death. Sells Blessings. You Retire your Hero here. |
 | Labyrinth gate | Season 0 | Enter the Labyrinth at the entrance or at any Waypoint your Hero has reached. |
-| Academy | later | Learn passive Talents for gold. |
+| Academy | Season 0 | From level 12, learn one more Talent at a time for City gold, any the Hero doesn't know: 2,000 gold, then 6,000, then 15,000, three in all *(v0)*. They are the Hero's like any other Talent (death never takes them) and leave with it when it Retires. |
 | Training grounds | later | Train an ability score for a few hours while you're away. It costs gold, and the Hero can't enter the Labyrinth meanwhile. |
 | Houses | later | Bought with gold. They give more Storage and a trophy wall friends can visit. |
 | Arena | later | Tournaments with nothing to lose: the loser is simply knocked out. |

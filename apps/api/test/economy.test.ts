@@ -234,6 +234,35 @@ describe('the Temple', () => {
   });
 });
 
+describe('the Academy', () => {
+  it('teaches a Hero from level 12 up to three more Talents, each dearer than the last', async () => {
+    const { cookie, hero } = await makeHero('Scholar');
+    await setGold(hero.id, 30_000);
+    expect((await post(cookie, '/api/academy/learn', { talent: 'fireproof' })).json().error).toBe('too_green');
+    await prisma.hero.update({ where: { id: hero.id }, data: { level: 12 } });
+    const view = (await get(cookie, '/api/academy')).json();
+    expect(view).toMatchObject({ minLevel: 12, max: 3, learned: [], price: 2000 });
+    expect(view.talents.find((t: { id: string }) => t.id === 'alert').known).toBe(true);
+    expect((await post(cookie, '/api/academy/learn', { talent: 'alert' })).json().error).toBe('talent_known');
+
+    const first = (await post(cookie, '/api/academy/learn', { talent: 'fireproof' })).json();
+    expect(first).toMatchObject({ learned: ['fireproof'], price: 6000 });
+    expect(first.hero.talents).toContain('fireproof');
+    expect(await gold(hero.id)).toBe(28_000);
+    await post(cookie, '/api/academy/learn', { talent: 'iron-will' });
+    const third = (await post(cookie, '/api/academy/learn', { talent: 'battle-hardened' })).json();
+    expect(third).toMatchObject({ learned: ['fireproof', 'iron-will', 'battle-hardened'], price: null });
+    expect(await gold(hero.id)).toBe(30_000 - 2000 - 6000 - 15_000);
+    expect((await post(cookie, '/api/academy/learn', { talent: 'scavenger' })).json().error).toBe('academy_done');
+  });
+
+  it('teaches only in the City', async () => {
+    const { cookie, hero } = await makeHero('Truant');
+    await prisma.hero.update({ where: { id: hero.id }, data: { level: 12, gold: 5000, location: 'LABYRINTH', floor: 1, room: 0 } });
+    expect((await post(cookie, '/api/academy/learn', { talent: 'fireproof' })).json().error).toBe('not_in_city');
+  });
+});
+
 describe('nothing can be duplicated', () => {
   it('sells one listing to exactly one of two racing buyers', async () => {
     const seller = await makeHero('Sly');

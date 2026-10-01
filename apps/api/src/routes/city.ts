@@ -1,15 +1,16 @@
 import type { FastifyInstance } from 'fastify';
 import {
-  type ForgeView, type HeroResponse, type MarketView, type ShopView, type TempleView, type TradeResult, blessRequestSchema,
-  craftRequestSchema, listRequestSchema, shopBuyRequestSchema,
+  type AcademyView, type ForgeView, type HeroResponse, type MarketView, type ShopView, type TempleView, type TradeResult, blessRequestSchema,
+  craftRequestSchema, learnTalentRequestSchema, listRequestSchema, shopBuyRequestSchema,
 } from '@dark/shared';
+import { academyView, learnTalent } from '../services/academy.js';
 import { requireApproved } from '../lib/session.js';
 import { craft, forgeView } from '../services/forge.js';
 import { buyListing, cancelListing, listItem, marketView } from '../services/market.js';
 import { buyFromShop, shopView } from '../services/shop.js';
 import { buyBlessing, templeView } from '../services/temple.js';
 
-/** The City's buildings: Shops, the Forge, the Market and the Temple. */
+/** The City's buildings: Shops, the Forge, the Market, the Temple and the Academy. */
 export async function cityRoutes(app: FastifyInstance) {
   const guard = { preHandler: requireApproved };
   type ById = { Params: { id: string } };
@@ -38,5 +39,11 @@ export async function cityRoutes(app: FastifyInstance) {
   app.post('/api/temple/bless', guard, async (request): Promise<TempleView> => {
     const { blessing } = blessRequestSchema.parse(request.body);
     return buyBlessing(request.player!, blessing);
+  });
+
+  app.get('/api/academy', guard, async (request): Promise<AcademyView> => academyView(request.player!));
+  app.post('/api/academy/learn', guard, async (request): Promise<AcademyView> => {
+    const { talent } = learnTalentRequestSchema.parse(request.body);
+    return learnTalent(request.player!, talent);
   });
 }

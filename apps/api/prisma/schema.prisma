@@ -218,6 +218,8 @@ model Hero {
   race        String
   class       String
   talents     String[]
+  /// Talents learned at the Academy (each also in `talents`), in order: their count sets the next price.
+  academy     String[]  @default([])
   /// The Path chosen at level 3; null before.
   path        String?
   /// Growth chosen at levels 4, 8, 12, 16 and 19: [{ level, kind, ... }] (engine: Growth).

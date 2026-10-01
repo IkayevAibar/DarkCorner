@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { blessingIdSchema, heroSchema } from './heroes.js';
+import { blessingIdSchema, heroSchema, talentIdSchema } from './heroes.js';
 import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 
 // The City's trades: Shops, the Forge, the Market and the Temple, plus Chests
@@ -170,3 +170,22 @@ export const templeViewSchema = z.object({
 export type TempleView = z.infer<typeof templeViewSchema>;
 
 export const blessRequestSchema = z.object({ blessing: blessingIdSchema });
+
+/** GET /api/academy — every Talent, whether this Hero knows it, and what the next one costs here. */
+export const academyViewSchema = z.object({
+  /** The level a Hero needs to study here. */
+  minLevel: z.number().int(),
+  /** The most Talents a Hero learns here. */
+  max: z.number().int(),
+  /** Talents learned here, in order. */
+  learned: z.array(talentIdSchema),
+  /** What the next Talent costs in City gold, or null once all are learned. */
+  price: z.number().int().nullable(),
+  /** Every Talent, and whether this Hero knows it (from any source). */
+  talents: z.array(z.object({ id: talentIdSchema, name: localizedTextSchema, description: localizedTextSchema, known: z.boolean() })),
+  hero: heroSchema,
+});
+export type AcademyView = z.infer<typeof academyViewSchema>;
+
+/** POST /api/academy/learn — a Talent the Hero doesn't know yet → AcademyView. */
+export const learnTalentRequestSchema = z.object({ talent: talentIdSchema });
