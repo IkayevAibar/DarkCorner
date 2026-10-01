@@ -42,7 +42,9 @@ export type MonsterPower =
   /** A cloud of small bodies: weapon hits deal half damage, bursts and Fire bombs double. */
   | { id: 'swarm' }
   /** As the fight starts, a scream: `dice` damage to the Hero, a WIS save halves it. */
-  | { id: 'wail'; dc: number; dice: [number, number] };
+  | { id: 'wail'; dc: number; dice: [number, number] }
+  /** Bound to its twin: fallen while the twin stands, it rises at the end of the round. Only both falling in one round ends them. */
+  | { id: 'twin' };
 
 export type MonsterPowerId = MonsterPower['id'];
 
@@ -55,7 +57,8 @@ export interface MonsterDef {
   kin: MonsterKin;
   /** Token art under apps/web/public/art/tokens; null until painted. */
   art: string | null;
-  role: 'minion' | 'brute' | 'miniboss' | 'boss';
+  /** Wardens: the Twin Wardens behind a Twin door, faced only by a Duo. */
+  role: 'minion' | 'brute' | 'miniboss' | 'boss' | 'warden';
   hp: number;
   ac: number;
   /** Attack bonus added to the d20. */
@@ -173,6 +176,14 @@ export const MONSTERS: MonsterDef[] = [
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'breath', dice: [12, 6], dc: 17 }, { id: 'frighten', dc: 15, rounds: 2 }, { id: 'enrage' }],
     about: text('The Season’s Boss. Two attacks a turn, fire that fills the lair, a roar that breaks courage, and fury when wounded.', 'Босс сезона. Две атаки за ход, пламя на всё логово, рёв, ломающий мужество, и ярость, когда ранен.') }),
 
+  // Behind a Twin door on Floors 1–9, for a Duo: the Twin Wardens. Their numbers are WARDENS', for the Floor's theme.
+  m({ id: 'dawn-warden', name: text('Dawn Warden', 'Страж рассвета'), theme: 'warrens', kin: 'humanoid', art: null, role: 'warden', hp: 30, ac: 14, attack: 5, damage: [1, 10, 3], dex: 10, xp: 80, weight: 0,
+    powers: [{ id: 'twin' }, { id: 'mend', dice: [2, 8] }],
+    about: text('A stone guardian lit from within like the morning. It mends its twin once, and rises again while its twin stands.', 'Каменный страж, светящийся изнутри, как утро. Один раз лечит своего близнеца и встаёт снова, пока тот на ногах.') }),
+  m({ id: 'dusk-warden', name: text('Dusk Warden', 'Страж заката'), theme: 'warrens', kin: 'humanoid', art: null, role: 'warden', hp: 30, ac: 14, attack: 5, damage: [1, 10, 3], dex: 10, xp: 80, weight: 0,
+    powers: [{ id: 'twin' }, { id: 'drain' }],
+    about: text('Its twin’s shadow, cut from the same stone. It drinks the life it strikes, and rises again while its twin stands.', 'Тень своего близнеца из того же камня. Пьёт жизнь тех, кого бьёт, и встаёт снова, пока близнец на ногах.') }),
+
   // Anywhere: the prisoner who isn't one (Prisoner).
   m({ id: 'doppelganger', name: text('Doppelganger', 'Двойник'), theme: 'warrens', kin: 'humanoid', art: '/art/tokens/doppelganger.webp', role: 'brute', hp: 20, ac: 13, attack: 5, damage: [1, 8, 2], dex: 16, xp: 45, weight: 0,
     powers: [{ id: 'quick' }], anywhere: true,
@@ -184,6 +195,19 @@ export const MONSTERS: MonsterDef[] = [
 ];
 
 const BY_ID = new Map(MONSTERS.map((d) => [d.id, d]));
+
+/** The Twin Wardens, in their keys' order. */
+export const TWIN_WARDENS = ['dawn-warden', 'dusk-warden'] as const;
+
+/**
+ * The Twin Wardens' numbers on each theme's Floors (v0), before each Floor's own growth:
+ * set to be a fight for a Duo, so no Duo toughening goes on top.
+ */
+export const WARDENS: Record<Exclude<ThemeId, 'lair'>, Pick<MonsterDef, 'hp' | 'ac' | 'attack' | 'damage' | 'xp'>> = {
+  warrens: { hp: 26, ac: 14, attack: 5, damage: [1, 10, 2], xp: 80 },
+  crypts: { hp: 62, ac: 16, attack: 7, damage: [2, 6, 4], xp: 220 },
+  depths: { hp: 105, ac: 17, attack: 9, damage: [2, 8, 5], xp: 420 },
+};
 
 export function monsterById(id: string): MonsterDef {
   const def = BY_ID.get(id);

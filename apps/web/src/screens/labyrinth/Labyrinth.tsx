@@ -379,7 +379,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         )}
         <div className="absolute top-[70px] left-3 grid max-w-[40%] rounded-[2px] border border-[#4a3a26] bg-[rgb(22_18_14/0.88)] px-2.5 py-1 leading-tight">
           <span className="font-head text-[13px] font-bold text-bone">{label}</span>
-          {room.cleared && room.type !== 'empty' && <span className="text-[11px] text-muted">{t('room.cleared')}</span>}
+          {room.cleared && room.type !== 'empty' && <span className="text-[11px] text-muted">{t(room.type === 'twin' ? 'room.clearedWeek' : 'room.cleared')}</span>}
         </div>
         {facing && (
           <div className="absolute top-[70px] right-3">
@@ -434,7 +434,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         <section className="grid gap-2">
           <span className="sub-heading">{t('lab.whereNext')}</span>
           {exits.map((exit) => (
-            <ExitButton key={exit.to} exit={exit} disabled={busy} onMove={move} />
+            <ExitButton key={exit.to} exit={exit} disabled={busy} onMove={move} out={room.type === 'twin'} />
           ))}
         </section>
       )}
@@ -725,6 +725,7 @@ function DuoStrip({ partner, busy, act }: { partner: DuoPartner; busy: boolean; 
         </div>
         <button type="button" className="btn btn-small shrink-0" disabled={busy} onClick={leave}>{t('duo.leave')}</button>
       </div>
+      {partner.bonded && <p className="m-0 text-sm text-tier-epic">{t('duo.bonded')}</p>}
       {!partner.online && <p className="m-0 text-sm text-[#ff9a8a]">{t('duo.awayNote', { name: partner.name })}</p>}
     </section>
   );
@@ -1027,7 +1028,7 @@ function DoorMarker({ exit, disabled, onMove }: { exit: Exit; disabled: boolean;
       onClick={() => onMove(exit.to)}
       className={`absolute grid size-11 place-items-center rounded-full border-2 bg-black/70 p-0 shadow-[0_0_0_1px_#000] transition-transform active:scale-95 disabled:opacity-40 ${
         MARKER_PLACE[exit.direction]
-      } ${exit.kind === 'secret' ? 'border-dashed border-tier-epic text-tier-epic' : exit.kind === 'locked' ? 'border-[#c9a24a] text-[#e8cf9a]' : exit.visited ? 'border-bone/40 text-bone/70' : 'border-gold text-gold'}`}
+      } ${exit.kind === 'secret' ? 'border-dashed border-tier-epic text-tier-epic' : exit.kind === 'locked' || exit.kind === 'twin' ? 'border-[#c9a24a] text-[#e8cf9a]' : exit.visited ? 'border-bone/40 text-bone/70' : 'border-gold text-gold'}`}
     >
       <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d={ARROW[exit.direction]} />
@@ -1039,7 +1040,8 @@ function DoorMarker({ exit, disabled, onMove }: { exit: Exit; disabled: boolean;
   );
 }
 
-function ExitButton({ exit, disabled, onMove }: { exit: Exit; disabled: boolean; onMove: (to: number) => void }) {
+/** `out`: the Door leads out of the Twin Wardens' Room, which anyone may do. */
+function ExitButton({ exit, disabled, onMove, out = false }: { exit: Exit; disabled: boolean; onMove: (to: number) => void; out?: boolean }) {
   const { t } = useI18n();
   const text = useText();
   const notes: { key: string; line: string; tone: string }[] = [];
@@ -1048,6 +1050,7 @@ function ExitButton({ exit, disabled, onMove }: { exit: Exit; disabled: boolean;
   }
   if (exit.kind === 'cracked') notes.push({ key: 'crack', line: t('lab.exit.cracked'), tone: 'text-[#e8cf9a]' });
   if (exit.kind === 'secret') notes.push({ key: 'secret', line: t('lab.exit.secret'), tone: 'text-tier-epic' });
+  if (exit.kind === 'twin' && !out) notes.push({ key: 'twin', line: exit.passable ? t('lab.exit.twinOpen') : t('lab.exit.twinShut'), tone: 'text-[#e8cf9a]' });
   if (exit.suspicious) notes.push({ key: 'lie', line: t('lab.exit.suspicious'), tone: 'text-[#ff9a8a]' });
   if (exit.visited) notes.push({ key: 'seen', line: exit.free ? t('lab.exit.visited') : t('lab.exit.again'), tone: 'text-muted' });
 

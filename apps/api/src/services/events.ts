@@ -7,7 +7,7 @@ import {
   pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, TRAP_SHRUG, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
   RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
   banishDevil, bloodPrice, devilOffers, pryLid, HOARD_HANDFULS, HOARD_WAKE, SKULLS_SCREAM, doorsOf, grabHoard, listenToSkulls,
-  takeChampionGear,
+  takeChampionGear, bonusPoolOf,
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
@@ -340,7 +340,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       if (!ALTAR_TIERS.includes(item.tier as Tier)) throw ApiError.conflict('too_precious', 'The altar only takes Common, Uncommon and Rare gear');
       const { seed: rollSeed, rng } = seeded();
       const bonusStats = item.bonusStats as unknown as GearRoll['bonusStats'];
-      const r = offerAtAltar(rng, { tier: item.tier as Tier, itemLevel: item.itemLevel, bonusStats });
+      const r = offerAtAltar(rng, { base: item.base, tier: item.tier as Tier, itemLevel: item.itemLevel, bonusStats });
       const name = nameOf(item);
       await logRoll(tx, hero, rollSeed, { event: kind, itemId: item.id, from: item.tier, ...r });
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
@@ -350,7 +350,8 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
           data: {
             tier: r.tier,
             bonusStats: (r.stat ? [...bonusStats, r.stat] : bonusStats) as unknown as Prisma.InputJsonValue,
-            suffix: item.suffix ?? rng.int(0, SUFFIXES.length - 1),
+            // A Bond ring keeps its name.
+            suffix: item.suffix ?? (bonusPoolOf(item.base) ? null : rng.int(0, SUFFIXES.length - 1)),
           },
         });
         out.loot.push(toItemView(updated));

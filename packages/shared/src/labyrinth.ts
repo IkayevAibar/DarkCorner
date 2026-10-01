@@ -4,13 +4,13 @@ import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 import { omenViewSchema, seasonStatusSchema } from './season.js';
 
 export const ROOM_TYPES = [
-  'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss', 'hidden',
+  'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss', 'hidden', 'twin',
 ] as const;
 export const roomTypeSchema = z.enum(ROOM_TYPES);
 export type RoomTypeId = z.infer<typeof roomTypeSchema>;
 
-/** A secret Door shows only to a Hero who has spotted it. */
-export const doorKindSchema = z.enum(['open', 'cracked', 'locked', 'secret']);
+/** A secret Door shows only to a Hero who has spotted it; a Twin door opens only for a Duo (and lets anyone out). */
+export const doorKindSchema = z.enum(['open', 'cracked', 'locked', 'secret', 'twin']);
 export const directionSchema = z.enum(['n', 's', 'e', 'w']);
 export type Direction = z.infer<typeof directionSchema>;
 
@@ -21,7 +21,7 @@ export type Direction = z.infer<typeof directionSchema>;
 /** Monster signatures (engine: content/monsters.ts). */
 export const MONSTER_POWERS = [
   'pack', 'quick', 'thief', 'brittle', 'paralyze', 'undying', 'drain', 'mend', 'burn', 'breath', 'multiattack', 'frighten', 'enrage',
-  'poison', 'explode', 'swarm', 'wail',
+  'poison', 'explode', 'swarm', 'wail', 'twin',
 ] as const;
 export const monsterPowerSchema = z.enum(MONSTER_POWERS);
 export type MonsterPowerView = z.infer<typeof monsterPowerSchema>;
@@ -99,7 +99,10 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(), target: z.string().optional(),
     actor: who,
   }),
-  /** A monster's power at work: `amount` is gold stolen, health restored or damage dealt; `hp` the target's health after. */
+  /**
+   * A monster's power at work: `amount` is gold stolen, health restored or damage dealt; `hp` the target's health after.
+   * `twin`: at the end of a round, the Twin Warden `actor` raises its fallen twin `target` with `hp`.
+   */
   z.object({
     type: z.literal('power'), actor: z.string(), power: monsterPowerSchema,
     target: z.string().optional(), amount: z.number().int().optional(), hp: z.number().int().optional(),
@@ -228,7 +231,7 @@ export const foeSchema = z.object({
   /** Its `key` among the Facing's monsters. */
   key: z.string(),
   kin: z.enum(MONSTER_KINS),
-  role: z.enum(['minion', 'brute', 'miniboss', 'boss']),
+  role: z.enum(['minion', 'brute', 'miniboss', 'boss', 'warden']),
   about: localizedTextSchema,
   /** Added to its d20 to hit. */
   attack: z.number().int(),
@@ -242,7 +245,8 @@ export type Foe = z.infer<typeof foeSchema>;
 
 /** Monsters the Hero has walked in on and not fought yet: it must Fight, Sneak past or Retreat. */
 export const facingSchema = z.object({
-  kind: z.enum(['fight', 'miniboss', 'boss']),
+  /** `twin`: the Twin Wardens, behind a Twin door. */
+  kind: z.enum(['fight', 'miniboss', 'boss', 'twin']),
   monsters: z.array(combatantSchema),
   /** Each monster's card, in the same order. */
   foes: z.array(foeSchema),
@@ -454,6 +458,8 @@ export const duoPartnerSchema = z.object({
   seenAt: z.string().nullable(),
   /** The Waypoints it has woken: a Duo enters at one both have. */
   waypoints: z.array(z.number().int()),
+  /** Each of the two wears a half of one pair of Bond rings: in their fights, the halves count their Bonus stats twice. */
+  bonded: z.boolean().default(false),
 });
 export type DuoPartner = z.infer<typeof duoPartnerSchema>;
 

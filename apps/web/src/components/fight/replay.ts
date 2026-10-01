@@ -59,6 +59,8 @@ export function advance(frame: Frame, event: FightEventView): Frame {
         event.hp,
       );
       if (event.power === 'enrage' && who(event.actor)) who(event.actor)!.enraged = true;
+      // A Twin Warden raises its fallen twin.
+      if (event.power === 'twin' && event.target && who(event.target)) who(event.target)!.fallen = false;
       break;
     case 'status': if (who(event.target)) who(event.target)!.statuses[event.status] = event.turns; break;
     case 'expire': if (who(event.target)) delete who(event.target)!.statuses[event.status]; break;

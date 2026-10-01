@@ -14,8 +14,8 @@ export const LABYRINTH_VERSION = 4;
 /** About 1 Clue in 5 lies (docs/design.md, v0). */
 export const CLUE_LIE_CHANCE = 0.2;
 
-/** Secret Doors lead to hidden rooms and show only to a Hero who spots them. */
-export type DoorKind = 'open' | 'cracked' | 'locked' | 'secret';
+/** Secret Doors lead to hidden rooms and show only to a Hero who spots them; Twin doors open only for a Duo. */
+export type DoorKind = 'open' | 'cracked' | 'locked' | 'secret' | 'twin';
 
 export interface Clue {
   text: Text;
@@ -64,7 +64,7 @@ export function generateLabyrinth(seed: string): Labyrinth {
   const floors: Floor[] = [];
   for (let n = 1; n <= FLOOR_COUNT; n++) {
     const floor = hideRooms(createRng(`${seed}:floor:${n}:secrets`), generateFloor(createRng(`${seed}:floor:${n}`), n));
-    floors.push(laterEvents(seed, floor));
+    floors.push(twinRooms(createRng(`${seed}:floor:${n}:twins`), laterEvents(seed, floor)));
   }
   return { seed, floors };
 }
@@ -131,6 +131,57 @@ function hideRooms(rng: Rng, floor: Floor): Floor {
     doors: floor.doors.map((d) => {
       if (hidden.includes(d.b)) return { ...d, kind: 'secret', clueFromA: clue() };
       if (hidden.includes(d.a)) return { ...d, kind: 'secret', clueFromB: clue() };
+      return d;
+    }),
+  };
+}
+
+/**
+ * One Room per Floor (not the lair, which no Duo enters) holds the Twin Wardens, behind
+ * Twin doors (v0): a dead end where there is one, or else a Room that is never the only
+ * way to anything. It is reached without passing a Mini-boss or a Vault, and walls off
+ * nothing else that was. Like hidden rooms it runs on its own RNG, last of all, so it
+ * changes only that Room and its Doors: a Labyrinth made before keeps every other Room,
+ * event and Clue.
+ */
+function twinRooms(rng: Rng, floor: Floor): Floor {
+  if (floor.number >= FLOOR_COUNT) return floor;
+  const x = (id: number) => id % floor.width;
+  const y = (id: number) => Math.floor(id / floor.width);
+  const steps = (a: number, b: number) => Math.abs(x(a) - x(b)) + Math.abs(y(a) - y(b));
+  const touching = floor.rooms.map((r) => floor.doors.filter((d) => d.a === r.id || d.b === r.id));
+  const open = touching.map((doors, id) => doors.filter((d) => d.kind === 'open').map((d) => (d.a === id ? d.b : d.a)));
+  /** Rooms reached from the landing by open Doors, without entering any of `avoid`. */
+  const reach = (avoid: ReadonlySet<number>): Set<number> => {
+    const reached = new Set([floor.landing]);
+    const queue = [floor.landing];
+    while (queue.length > 0) {
+      for (const to of open[queue.shift()!]!) {
+        if (reached.has(to) || avoid.has(to)) continue;
+        reached.add(to);
+        queue.push(to);
+      }
+    }
+    return reached;
+  };
+  const aside = new Set(floor.rooms.filter((r) => r.type === 'miniboss' || r.type === 'vault').map((r) => r.id));
+  const around = reach(aside);
+  const fit = floor.rooms.filter((r) => HIDEABLE.includes(r.type) && steps(r.id, floor.landing) >= 3 && around.has(r.id)
+    && touching[r.id]!.every((d) => d.kind !== 'secret'));
+  // A dead end is never the only way to anything; any other Room has to be shown not to be.
+  const deadEnds = fit.filter((r) => touching[r.id]!.length === 1);
+  const all = deadEnds.length > 0 ? 0 : reach(new Set()).size;
+  const pool = deadEnds.length > 0 ? deadEnds
+    : fit.filter((r) => reach(new Set([r.id])).size === all - 1 && reach(new Set([...aside, r.id])).size === around.size - 1);
+  if (pool.length === 0) return floor;
+  const twin = rng.pick(pool).id;
+  const clue = (): Clue => ({ text: rng.pick(cluesFor('twin', floor.theme)), lie: false });
+  return {
+    ...floor,
+    rooms: floor.rooms.map((r) => (r.id === twin ? { ...r, type: 'twin', event: null } : r)),
+    doors: floor.doors.map((d) => {
+      if (d.b === twin) return { ...d, kind: 'twin', clueFromA: clue() };
+      if (d.a === twin) return { ...d, kind: 'twin', clueFromB: clue() };
       return d;
     }),
   };

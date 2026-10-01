@@ -321,6 +321,8 @@ function nextStep(bot: Bot, view: LabyrinthView, goal: (id: number) => boolean):
   for (const d of map.doors) {
     if (d.kind === 'locked' && bot.cls !== 'rogue') continue;
     if (d.kind === 'cracked' && !breaksWalls(bot.cls)) continue;
+    // Bots walk alone, and a Twin door opens only for a Duo.
+    if (d.kind === 'twin') continue;
     link(d.a, d.b);
     link(d.b, d.a);
   }

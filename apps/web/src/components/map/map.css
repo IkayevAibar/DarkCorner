@@ -7,7 +7,8 @@
 .map-door-secret .map-passage { stroke: #aa98ab; stroke-width: 2; stroke-dasharray: 3 4; opacity: .8; }
 .map-door-secret .map-passage-edge { stroke-width: 4; opacity: .5; }
 .map-door-cracked .map-passage { stroke: #786e5b; stroke-dasharray: 3 2; }
-.map-lock, .map-crack { fill: #bf9a54; stroke: #100e0b; stroke-width: 1.5; stroke-linejoin: round; }
+.map-door-twin .map-passage { stroke: #c9a24a; stroke-width: 3; }
+.map-lock, .map-crack, .map-twin { fill: #bf9a54; stroke: #100e0b; stroke-width: 1.5; stroke-linejoin: round; }
 .map-crack { fill: none; stroke: #d0bfa1; stroke-width: 2; }
 .map-room-shadow { fill: #080908; stroke: #080908; stroke-width: 5; }
 .map-room-wall { fill: #1e211d; stroke: #565445; stroke-width: 1.6; stroke-dasharray: 3 2; }
@@ -19,6 +20,7 @@
 .map-glyph-camp { fill: #b28b55; }
 .map-glyph-fight, .map-glyph-miniboss, .map-glyph-boss { fill: #8e5741; }
 .map-glyph-hidden { fill: #968398; }
+.map-glyph-twin { fill: #c9a24a; }
 .map-glyph-treasure, .map-glyph-vault { fill: #b29756; }
 .map-cleared { opacity: .38; }
 .map-room:not(.map-visited):not(.map-exit) .map-glyph { color: #b2a07c; fill: #575345; }

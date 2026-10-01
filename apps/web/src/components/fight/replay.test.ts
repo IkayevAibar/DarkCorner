@@ -4,8 +4,8 @@ import { FIGHTS, EXTRA_FIGHTS, REAL_FIGHTS } from '../../screens/sandbox/fightEx
 import { advance, dieFor, framesFor, initialFrame } from './replay';
 
 describe('recorded fight playback', () => {
-  it('accepts all 36 engine replays and supplemental examples without mutating them', () => {
-    expect(Object.keys(REAL_FIGHTS)).toHaveLength(36);
+  it('accepts all 38 engine replays and supplemental examples without mutating them', () => {
+    expect(Object.keys(REAL_FIGHTS)).toHaveLength(38);
     for (const replay of Object.values(FIGHTS)) {
       fightReplaySchema.parse(replay);
       const before = JSON.stringify(replay);
@@ -23,8 +23,17 @@ describe('recorded fight playback', () => {
       'status', 'expire', 'tick', 'held', 'fled', 'defeated', 'down', 'death-save', 'rise', 'reroll', 'escape', 'revive', 'end',
     ]));
     expect(new Set(Object.values(REAL_FIGHTS).flatMap(f => f.events).flatMap(e => e.type === 'power' ? [e.power] : []))).toEqual(new Set([
-      'thief', 'mend', 'drain', 'breath', 'undying', 'enrage', 'frighten', 'explode', 'wail',
+      'thief', 'mend', 'drain', 'breath', 'undying', 'enrage', 'frighten', 'explode', 'wail', 'twin',
     ]));
+  });
+
+  it('stands a Twin Warden back up when its twin raises it', () => {
+    const replay = REAL_FIGHTS['duo-twin-wardens']!;
+    const frames = framesFor(replay);
+    const rise = replay.events.findIndex(e => e.type === 'power' && e.power === 'twin');
+    const event = replay.events[rise] as Extract<FightEventView, { type: 'power' }>;
+    expect(frames[rise]!.fighters[event.target!]!.fallen).toBe(true);
+    expect(frames[rise + 1]!.fighters[event.target!]).toMatchObject({ fallen: false, hp: event.hp });
   });
 
   it('trusts recorded HP even when damage arithmetic disagrees', () => {

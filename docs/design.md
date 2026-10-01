@@ -300,6 +300,7 @@ Every monster has a signature power, so a fight plays differently depending on w
 | 10 | Kobold | **Pack hunter** |
 | 10 | Drake | **Fire breath:** 7d6, DC 15 |
 | any | Mimic | Bites before the Hero can move: the Hero is surprised. |
+| 1–9, Duo | Dawn Warden, Dusk Warden | **Twin:** felled while its twin stands, it rises at the end of the round with half its health (Duos → Twin doors). The Dawn Warden also has **Dark mending** (2d8), the Dusk Warden **Life drain** |
 
 - **One fear a fight:** when several monsters are Terrifying, only the first one's roar calls for a save.
 
@@ -472,7 +473,7 @@ Small goals give each session a reason to go down today *(v0)*.
 
 - **Clues:** every Door carries a Clue about the Room behind it, such as "growling behind the door", "a faint golden glow" or "the smell of sulfur". About 80% of Clues are true and 20% lie *(v0)*.
 - **Spotting lies:** Rogues and Elves make a WIS Check (DC 13 *(v0)*) to mark a lying Clue as suspicious, and Elves roll it with advantage.
-- **Special doors:** cracked walls, which only a Fighter or a Barbarian can smash through; locked Doors, which need a Key or a Rogue; and secret Doors (see Hidden rooms).
+- **Special doors:** cracked walls, which only a Fighter or a Barbarian can smash through; locked Doors, which need a Key or a Rogue; secret Doors (see Hidden rooms); and Twin doors, which open only for a Duo (see Duos → Twin doors).
 - **The Map:** each Player's Map shows every Room and Door their Hero has seen this Season. Everything else stays dark. Maps can't be shared in Season 0. (An idea for later: sell copies of your Map on the Market.)
 
 ### Room types
@@ -489,6 +490,7 @@ Small goals give each session a reason to go down today *(v0)*.
 | Vault | 1–2 per Floor | Special room: see below. |
 | Mini-boss | 1 per Floor | Special room: see below. |
 | Hidden room | 1–2 per Floor (not the lair) | Behind a secret Door: see below. Personal. |
+| Twin Wardens | 1 per Floor (not the lair) | Behind a Twin door, for a Duo: see Duos → Twin doors. Personal. |
 
 ### Event rooms (Season 0)
 
@@ -731,9 +733,20 @@ Two friends walk the Labyrinth together, while both are online.
 - **Sneaking:** a group Check: each Hero rolls, and one success takes both past. A Smoke bomb covers both. Past a Mini-boss only if both could Sneak past it alone.
 - **Home:** leaving by a Waypoint or the entrance takes both home, still a Duo. Each Hero's Run is its own.
 - **The Boss** is faced alone: a Duo can't go into the lair *(v0)*.
+- **Twin doors:** see below.
 - **Away:** a Player not seen for 2 minutes is away, and the Duo waits: the other Player can't lead it until they're back, or leaves the Duo. After 30 minutes away the Duo ends by itself.
 - **Ending:** either Player can leave the Duo at any time. A death, or reading a Town Portal, also ends it. The other Hero goes on alone from where it stands.
 - **Seeing it:** while in a Duo the game looks every few seconds for what the partner did. The partner's fights, loot and notes come up on the next look.
+
+#### Twin doors *(v0)*
+
+- **Where:** one Room on every Floor from 1 to 9 waits behind a **Twin door**, two stone hands side by side: a dead end where the Floor has one free, otherwise a Room that is never the only way to anywhere (every Door into it is then a Twin door). Its Clue is always true. Like the Floor's other later additions, it was placed apart from the rest, so no other Room changed.
+- **Opening:** it opens only for a Duo. Alone, a Hero sees the Door and can't go through; anyone walks out. A Hero left alone in the doorway (its Duo over) steps back out.
+- **The Twin Wardens:** inside wait the Dawn Warden (it mends its twin once) and the Dusk Warden (it drinks the life it strikes). One felled while its twin stands rises at the end of the round with half its health; only both falling in the same round ends them. No Sneaking past them, and no Duo toughening on top: their numbers are a Duo's already, growing with the Floor like its own monsters, so for the Heroes who reach it they are about as hard as that Floor's Mini-boss is for one Hero alone (balance:twins).
+- **On Auto,** a Hero goes for the healthier Warden, so both wear down together; played by hand, the Players can do better.
+- **The prize:** each Hero takes its share of the fight's XP and gold (ten times a fight Room's, like a Mini-boss), 2 Items with the odds of two Floors deeper, and, when both stand at the end, a half of a pair of **Bond rings**. The Feed tells everyone.
+- **Coming back:** the Wardens wake for a Hero a week after it beat them. A Duo meets them while either Hero hasn't beaten them this week, and both are paid.
+- **Bond rings:** a pair of one Tier, Rare or Epic (as the odds two Floors deeper weigh those two), identified, each half with its own Quality and Bonus stats from the ones that count in a fight (abilities but Charisma, armor, damage, critical chance, spell power, healing, life steal). While the two Heroes of a Duo each wear a half of one pair, the halves count their Bonus stats **twice** in their fights; otherwise each is a ring of its Tier. A Bond ring goes into the Bag even when it is full, never drops or sells at random, and keeps to its stats when Reforged or offered at the Cursed altar.
 
 ### Rankings
 

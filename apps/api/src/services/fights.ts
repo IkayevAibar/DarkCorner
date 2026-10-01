@@ -1,9 +1,9 @@
-import type { Hero, HeroFloor, Season } from '@prisma/client';
+import type { Hero, HeroFloor, Item, Season } from '@prisma/client';
 import { type Combatant, type FightReplay, type Foe, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightEvent, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT,
   type MonsterInstance, type PathId, RELIC_CHANCE, type RaceId, type SideResult, type StanceId, type TalentId, type ThreatId, weakeningAt,
-  type DeedCounts, KILL_METRIC, monsterStrike, weaponStrike, createRng, duoEncounter, fireBomb, heroCombat, monsterById, restUses,
+  type DeedCounts, type GearRoll, KILL_METRIC, monsterStrike, weaponStrike, bondedStats, createRng, dropOdds, duoEncounter, fireBomb, heroCombat, monsterById, restUses,
   simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
@@ -98,7 +98,7 @@ export function fallBack(hero: Pick<Hero, 'prevRoom'>, floor: Floor, now: Date):
 export function combatant(key: string, m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
   return {
-    key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
+    key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss' || def.role === 'warden', banner: null,
     elite: m.elite, powers: m.powers.map((p) => p.id), strike: monsterStrike(def), kin: def.kin, class: null,
   };
 }
@@ -113,7 +113,11 @@ export function foeOf(m: MonsterInstance): Foe {
   };
 }
 
-export type FightKind = 'fight' | 'miniboss' | 'boss';
+/** What a fight Room holds: a group, a Mini-boss, the Boss, or the Twin Wardens (a Duo's, behind a Twin door). */
+export type FightKind = 'fight' | 'miniboss' | 'boss' | 'twin';
+
+/** The Twin Wardens wake again for a Hero a week after it beat them (v0). */
+export const WARDENS_MS = 7 * DAY_MS;
 
 /** The monsters waiting for one Hero in a Room: personal, and the same group all day. */
 export function monstersFor(season: Season, hero: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: FightKind, now: Date) {
@@ -121,11 +125,19 @@ export function monstersFor(season: Season, hero: Pick<Hero, 'id'>, floor: Floor
   return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now), omenOf(season, now)) };
 }
 
-/** The Hero as it fights: its row, with its worn gear. */
-export function combatOf(hero: HeroWithItems): HeroCombat {
+/** The Bond rings two Heroes join: pairs of which each wears a half. */
+export function joinedBonds(mine: Pick<Item, 'place' | 'bond'>[], theirs: Pick<Item, 'place' | 'bond'>[]): Set<string> {
+  const worn = (items: Pick<Item, 'place' | 'bond'>[]) => new Set(items.filter((i) => i.place === 'WORN' && i.bond).map((i) => i.bond!));
+  const other = worn(theirs);
+  return new Set([...worn(mine)].filter((bond) => other.has(bond)));
+}
+
+/** The Hero as it fights: its row, with its worn gear. Beside its Duo partner, a joined Bond ring counts its Bonus stats twice. */
+export function combatOf(hero: HeroWithItems, partner: HeroWithItems | null = null): HeroCombat {
+  const joined = partner ? joinedBonds(hero.items, partner.items) : new Set<string>();
   const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => ({
     base: i.base, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
-    bonusStats: i.bonusStats as { stat: string; value: number }[], uniqueId: i.uniqueId,
+    bonusStats: bondedStats(i.bonusStats as unknown as GearRoll['bonusStats'], i.bond !== null && joined.has(i.bond)), uniqueId: i.uniqueId,
   }));
   return heroCombat({
     name: hero.name, class: hero.class as ClassId, race: hero.race as RaceId, level: hero.level,
@@ -256,8 +268,8 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
   // The Boss pays out on its own terms (boss.ts).
   if (kind === 'boss') return;
 
-  // Victory: the Room stays clear for a day, the Bad-luck meter ticks, and there is loot.
-  if (kind === 'fight') {
+  // Victory: the Room stays clear for a day (the Twin Wardens, a week), the Bad-luck meter ticks, and there is loot.
+  if (kind === 'fight' || kind === 'twin') {
     if (opts.clears !== false) await markCleared(tx, await heroFloor(tx, hero.id, floor.number), roomId, now);
   } else {
     await tx.specialClaim.upsert({
@@ -278,7 +290,9 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
   // Every elite that fell drops one more Item.
   const elites = fallen.filter((m) => m.elite !== null).length;
   const drops = (kind === 'fight' ? (rng.chance(LOOT.fightDrop) ? 1 : 0) : LOOT.minibossItems) + elites + (opts.bonusDrops ?? 0);
-  if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind }, out);
+  // The Twin Wardens' hoard has the odds of two Floors deeper (their Bond rings come apart: twins.ts).
+  const odds = kind === 'twin' ? { odds: dropOdds(Math.min(10, floor.number + 2)) } : {};
+  if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind, ...odds }, out);
   if (kind === 'fight' && rng.chance(LOOT.fightKey)) await dropStack(tx, hero, season, 'key-iron', 1, out);
   if (kind === 'miniboss' && rng.chance(LOOT.minibossChest)) await dropChest(tx, hero, season, floor.number, out);
   if (kind === 'miniboss' && floor.number >= DEEP_FLOOR && rng.chance(RELIC_CHANCE.deepMiniboss)) {
@@ -344,11 +358,18 @@ export async function fight(tx: Tx, hero: HeroWithItems, season: Season, floor: 
   return result.outcome;
 }
 
-/** Who waits for a Duo in a Room: one group for the pair, the same all day, tougher than either would meet alone. */
-export function duoMonstersFor(season: Season, a: Pick<Hero, 'id'>, b: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: 'fight' | 'miniboss', now: Date) {
+/**
+ * Who waits for a Duo in a Room: one group for the pair, the same all day, tougher than either
+ * would meet alone. The Twin Wardens are a Duo's own, and need no toughening.
+ */
+export function duoMonstersFor(season: Season, a: Pick<Hero, 'id'>, b: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: 'fight' | 'miniboss' | 'twin', now: Date) {
   const pair = [a.id, b.id].sort().join(':');
   const spawnSeed = `${season.seed}:duo:${pair}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
-  return { spawnSeed, monsters: duoEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now), omenOf(season, now)) };
+  const rng = createRng(spawnSeed);
+  const monsters = kind === 'twin'
+    ? spawnEncounter(rng, floor.number, 'twin', 0, omenOf(season, now))
+    : duoEncounter(rng, floor.number, kind, weakeningAt(season.startsAt, now), omenOf(season, now));
+  return { spawnSeed, monsters };
 }
 
 /** A Duo's fight input: the one acting as the Hero, its partner alongside. */
@@ -357,9 +378,9 @@ export function duoInput(hero: HeroWithItems, partner: HeroWithItems, monsters: 
 } = {}): FightInput {
   const potions = partner.items.filter((i) => i.place === 'BAG' && i.base === 'potion').reduce((s, i) => s + i.quantity, 0);
   return {
-    ...fightInput(hero, combatOf(hero), monsters, opts),
+    ...fightInput(hero, combatOf(hero, partner), monsters, opts),
     ally: {
-      hero: combatOf(partner), uses: { spells: partner.spellUses, heals: partner.healUses }, potions,
+      hero: combatOf(partner, hero), uses: { spells: partner.spellUses, heals: partner.healUses }, potions,
       runPowers: { deathless: partner.deathless, lucky: partner.lucky }, stance: partner.stance as StanceId, gold: partner.carriedGold,
     },
   };

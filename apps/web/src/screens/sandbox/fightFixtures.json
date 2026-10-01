@@ -11124,6 +11124,602 @@
   ],
   "outcome": "victory"
  },
+ "duo-twin-wardens": {
+  "map": "goblins-1",
+  "hero": {
+   "key": "hero",
+   "name": {
+    "en": "Garrick",
+    "ru": "Garrick"
+   },
+   "art": "/art/portraits/human-fighter-1.webp",
+   "hp": 54,
+   "maxHp": 54,
+   "ac": 18,
+   "boss": false,
+   "banner": "#9e2a2a",
+   "elite": null,
+   "strike": "slash",
+   "kin": null,
+   "class": "fighter",
+   "powers": []
+  },
+  "ally": {
+   "key": "ally",
+   "name": {
+    "en": "Ilyra",
+    "ru": "Ilyra"
+   },
+   "art": "/art/portraits/elf-wizard-1.webp",
+   "hp": 42,
+   "maxHp": 42,
+   "ac": 15,
+   "boss": false,
+   "banner": "#3b5fa8",
+   "elite": null,
+   "strike": "blunt",
+   "kin": null,
+   "class": "wizard",
+   "powers": []
+  },
+  "monsters": [
+   {
+    "key": "m0",
+    "name": {
+     "en": "Dawn Warden",
+     "ru": "Страж рассвета"
+    },
+    "art": null,
+    "hp": 30,
+    "maxHp": 30,
+    "ac": 14,
+    "boss": true,
+    "banner": null,
+    "elite": null,
+    "strike": "blunt",
+    "kin": "humanoid",
+    "class": null,
+    "powers": [
+     "twin",
+     "mend"
+    ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Dusk Warden",
+     "ru": "Страж заката"
+    },
+    "art": null,
+    "hp": 30,
+    "maxHp": 30,
+    "ac": 14,
+    "boss": true,
+    "banner": null,
+    "elite": null,
+    "strike": "slash",
+    "kin": "humanoid",
+    "class": null,
+    "powers": [
+     "twin",
+     "drain"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "type": "initiative",
+    "order": [
+     "ally",
+     "m1",
+     "hero",
+     "m0"
+    ]
+   },
+   {
+    "type": "burst",
+    "actor": "ally",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 12,
+      "hp": 18
+     },
+     {
+      "key": "m1",
+      "damage": 9,
+      "hp": 21
+     }
+    ]
+   },
+   {
+    "type": "blocked",
+    "actor": "m1",
+    "by": "shield",
+    "target": "ally"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 5,
+    "total": 11,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 21,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 20,
+    "total": 26,
+    "hit": true,
+    "crit": true,
+    "damage": 9,
+    "targetHp": 12,
+    "kind": "weapon"
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "mend",
+    "target": "m1",
+    "amount": 7,
+    "hp": 19
+   },
+   {
+    "type": "burst",
+    "actor": "ally",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 9,
+      "hp": 9
+     },
+     {
+      "key": "m1",
+      "damage": 12,
+      "hp": 7
+     }
+    ]
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "hero",
+    "natural": 18,
+    "total": 24,
+    "hit": true,
+    "crit": false,
+    "damage": 9,
+    "targetHp": 45,
+    "kind": "weapon"
+   },
+   {
+    "type": "power",
+    "actor": "m1",
+    "power": "drain",
+    "amount": 4,
+    "hp": 11
+   },
+   {
+    "type": "feature",
+    "feature": "help",
+    "target": "ally"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 9,
+    "total": 15,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 45,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "ally",
+    "target": "m1",
+    "natural": 16,
+    "total": 22,
+    "hit": true,
+    "crit": false,
+    "damage": 11,
+    "targetHp": 0,
+    "kind": "spell"
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 7,
+    "total": 13,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 9,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 18,
+    "total": 24,
+    "hit": true,
+    "crit": false,
+    "damage": 4,
+    "targetHp": 5,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "hero",
+    "natural": 17,
+    "total": 23,
+    "hit": true,
+    "crit": false,
+    "damage": 5,
+    "targetHp": 40,
+    "kind": "weapon"
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "twin",
+    "target": "m1",
+    "hp": 15
+   },
+   {
+    "type": "attack",
+    "actor": "ally",
+    "target": "m1",
+    "natural": 17,
+    "total": 23,
+    "hit": true,
+    "crit": false,
+    "damage": 20,
+    "targetHp": 0,
+    "kind": "spell"
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m0",
+    "natural": 13,
+    "total": 19,
+    "hit": true,
+    "crit": false,
+    "damage": 5,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "defeated",
+    "key": "m0"
+   },
+   {
+    "type": "end",
+    "outcome": "victory"
+   }
+  ],
+  "outcome": "victory"
+ },
+ "duo-twin-wardens-partner": {
+  "map": "goblins-1",
+  "hero": {
+   "key": "hero",
+   "name": {
+    "en": "Ilyra",
+    "ru": "Ilyra"
+   },
+   "art": "/art/portraits/elf-wizard-1.webp",
+   "hp": 42,
+   "maxHp": 42,
+   "ac": 15,
+   "boss": false,
+   "banner": "#3b5fa8",
+   "elite": null,
+   "strike": "blunt",
+   "kin": null,
+   "class": "wizard",
+   "powers": []
+  },
+  "ally": {
+   "key": "ally",
+   "name": {
+    "en": "Garrick",
+    "ru": "Garrick"
+   },
+   "art": "/art/portraits/human-fighter-1.webp",
+   "hp": 54,
+   "maxHp": 54,
+   "ac": 18,
+   "boss": false,
+   "banner": "#9e2a2a",
+   "elite": null,
+   "strike": "slash",
+   "kin": null,
+   "class": "fighter",
+   "powers": []
+  },
+  "monsters": [
+   {
+    "key": "m0",
+    "name": {
+     "en": "Dawn Warden",
+     "ru": "Страж рассвета"
+    },
+    "art": null,
+    "hp": 30,
+    "maxHp": 30,
+    "ac": 14,
+    "boss": true,
+    "banner": null,
+    "elite": null,
+    "strike": "blunt",
+    "kin": "humanoid",
+    "class": null,
+    "powers": [
+     "twin",
+     "mend"
+    ]
+   },
+   {
+    "key": "m1",
+    "name": {
+     "en": "Dusk Warden",
+     "ru": "Страж заката"
+    },
+    "art": null,
+    "hp": 30,
+    "maxHp": 30,
+    "ac": 14,
+    "boss": true,
+    "banner": null,
+    "elite": null,
+    "strike": "slash",
+    "kin": "humanoid",
+    "class": null,
+    "powers": [
+     "twin",
+     "drain"
+    ]
+   }
+  ],
+  "events": [
+   {
+    "type": "initiative",
+    "order": [
+     "hero",
+     "m1",
+     "ally",
+     "m0"
+    ]
+   },
+   {
+    "type": "burst",
+    "actor": "hero",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 12,
+      "hp": 18
+     },
+     {
+      "key": "m1",
+      "damage": 9,
+      "hp": 21
+     }
+    ]
+   },
+   {
+    "type": "blocked",
+    "actor": "m1",
+    "by": "shield"
+   },
+   {
+    "type": "attack",
+    "actor": "ally",
+    "target": "m1",
+    "natural": 5,
+    "total": 11,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 21,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "ally",
+    "target": "m1",
+    "natural": 20,
+    "total": 26,
+    "hit": true,
+    "crit": true,
+    "damage": 9,
+    "targetHp": 12,
+    "kind": "weapon"
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "mend",
+    "target": "m1",
+    "amount": 7,
+    "hp": 19
+   },
+   {
+    "type": "burst",
+    "actor": "hero",
+    "source": "spell",
+    "targets": [
+     {
+      "key": "m0",
+      "damage": 9,
+      "hp": 9
+     },
+     {
+      "key": "m1",
+      "damage": 12,
+      "hp": 7
+     }
+    ]
+   },
+   {
+    "type": "attack",
+    "actor": "m1",
+    "target": "ally",
+    "natural": 18,
+    "total": 24,
+    "hit": true,
+    "crit": false,
+    "damage": 9,
+    "targetHp": 45,
+    "kind": "weapon"
+   },
+   {
+    "type": "power",
+    "actor": "m1",
+    "power": "drain",
+    "amount": 4,
+    "hp": 11
+   },
+   {
+    "type": "feature",
+    "feature": "help",
+    "target": "hero",
+    "actor": "ally"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "ally",
+    "natural": 9,
+    "total": 15,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 45,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 16,
+    "total": 22,
+    "hit": true,
+    "crit": false,
+    "damage": 11,
+    "targetHp": 0,
+    "kind": "spell"
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
+    "type": "attack",
+    "actor": "ally",
+    "target": "m0",
+    "natural": 7,
+    "total": 13,
+    "hit": false,
+    "crit": false,
+    "damage": 0,
+    "targetHp": 9,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "ally",
+    "target": "m0",
+    "natural": 18,
+    "total": 24,
+    "hit": true,
+    "crit": false,
+    "damage": 4,
+    "targetHp": 5,
+    "kind": "weapon"
+   },
+   {
+    "type": "attack",
+    "actor": "m0",
+    "target": "ally",
+    "natural": 17,
+    "total": 23,
+    "hit": true,
+    "crit": false,
+    "damage": 5,
+    "targetHp": 40,
+    "kind": "weapon"
+   },
+   {
+    "type": "power",
+    "actor": "m0",
+    "power": "twin",
+    "target": "m1",
+    "hp": 15
+   },
+   {
+    "type": "attack",
+    "actor": "hero",
+    "target": "m1",
+    "natural": 17,
+    "total": 23,
+    "hit": true,
+    "crit": false,
+    "damage": 20,
+    "targetHp": 0,
+    "kind": "spell"
+   },
+   {
+    "type": "defeated",
+    "key": "m1"
+   },
+   {
+    "type": "attack",
+    "actor": "ally",
+    "target": "m0",
+    "natural": 13,
+    "total": 19,
+    "hit": true,
+    "crit": false,
+    "damage": 5,
+    "targetHp": 0,
+    "kind": "weapon"
+   },
+   {
+    "type": "defeated",
+    "key": "m0"
+   },
+   {
+    "type": "end",
+    "outcome": "victory"
+   }
+  ],
+  "outcome": "victory"
+ },
  "bearheart-relentless": {
   "map": "crypt-1",
   "hero": {

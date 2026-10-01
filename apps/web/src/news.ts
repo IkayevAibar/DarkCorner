@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-twin-doors',
+    date: '2026-10-01',
+    title: t('Doors that open for two', 'Двери, что открываются двоим'),
+    items: [
+      t('Every Floor from 1 to 9 hides a Twin door with two stone hands. It opens only for a Duo.',
+        'На каждом этаже с 1-го по 9-й есть парная дверь с двумя каменными ладонями. Она открывается только дуэту.'),
+      t('Behind it wait the Twin Wardens. Strike one down alone and its twin raises it at the round’s end: plan together and fell both in the same round.',
+        'За ней ждут стражи-близнецы. Сразите одного — и близнец поднимет его в конце раунда: договоритесь и повергните обоих за один раунд.'),
+      t('Their prize: a hoard from deeper Floors and a pair of Bond rings, one for each of you. Wear both halves in a Duo and their Bonus stats count twice.',
+        'Награда — клад с глубоких этажей и пара колец уз, по одному каждому. Носите оба кольца в дуэте, и их бонусы считаются дважды.'),
+    ],
+  },
+  {
     id: '2026-09-30-tavern', date: '2026-09-30',
     title: t('A fire in the Tavern', 'Огонь в таверне'),
     items: [t('Faces around the hearth, news on the board, Bounties pinned up and Lodging upstairs. The Hall of Fame keeps each Season in stone.', 'Лица у очага, новости на доске, задания на листках и ночлег наверху. Зал славы хранит каждый сезон в камне.')],

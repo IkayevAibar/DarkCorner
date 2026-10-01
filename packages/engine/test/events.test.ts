@@ -99,7 +99,7 @@ describe('the Cursed altar', () => {
     let ups = 0;
     const n = 20_000;
     for (let i = 0; i < n; i++) {
-      const r = offerAtAltar(rng, { tier: 'uncommon', itemLevel: 3, bonusStats: [{ stat: 'str', value: 2 }] });
+      const r = offerAtAltar(rng, { base: 'ring', tier: 'uncommon', itemLevel: 3, bonusStats: [{ stat: 'str', value: 2 }] });
       if (!r.success) continue;
       ups++;
       expect(r.tier).toBe('rare');
@@ -109,7 +109,7 @@ describe('the Cursed altar', () => {
   });
 
   it('refuses Epic and above', () => {
-    expect(() => offerAtAltar(createRng('x'), { tier: 'epic', itemLevel: 1, bonusStats: [] })).toThrow();
+    expect(() => offerAtAltar(createRng('x'), { base: 'ring', tier: 'epic', itemLevel: 1, bonusStats: [] })).toThrow();
   });
 });
 

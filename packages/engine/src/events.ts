@@ -4,7 +4,7 @@ import { BLESSING_IDS, type BlessingId, type ChestGrade, rollChestGrade, usableB
 import type { ClassId } from './content/classes.js';
 import { type Tier, TIERS, tierRank } from './content/loot.js';
 import { RIDDLES } from './content/riddles.js';
-import { type GearRoll, dropOdds, rollExtraBonusStat, rollGear, rollTier } from './items.js';
+import { type GearRoll, bonusPoolOf, dropOdds, rollExtraBonusStat, rollGear, rollTier } from './items.js';
 import type { Rng } from './rng.js';
 
 // Event rooms (docs/design.md → Event rooms). All numbers are v0. Each function
@@ -117,13 +117,13 @@ export const ALTAR_TIERS: Tier[] = ['common', 'uncommon', 'rare'];
  * The offering: 40% the Item rises one Tier and gains a Bonus stat, 60% it is
  * destroyed. `stat` is the new Bonus stat, rolled at the new Tier.
  */
-export function offerAtAltar(rng: Rng, item: Pick<GearRoll, 'tier' | 'itemLevel' | 'bonusStats'>): {
+export function offerAtAltar(rng: Rng, item: Pick<GearRoll, 'base' | 'tier' | 'itemLevel' | 'bonusStats'>): {
   success: boolean; tier: Tier; stat: GearRoll['bonusStats'][number] | null;
 } {
   if (!ALTAR_TIERS.includes(item.tier)) throw new Error(`the altar refuses ${item.tier} Items`);
   if (!rng.chance(ALTAR_SUCCESS)) return { success: false, tier: item.tier, stat: null };
   const tier = nextTier(item.tier)!;
-  const stat = rollExtraBonusStat(rng, tier, item.itemLevel, item.bonusStats.map((b) => b.stat));
+  const stat = rollExtraBonusStat(rng, tier, item.itemLevel, item.bonusStats.map((b) => b.stat), bonusPoolOf(item.base));
   return { success: true, tier, stat };
 }
 

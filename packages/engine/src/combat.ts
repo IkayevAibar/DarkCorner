@@ -5,7 +5,7 @@ import { CLASS_DEFS, type ClassId } from './content/classes.js';
 import { type ThemeId, themeOf } from './content/floors.js';
 import { RADIANT_BOOST } from './content/loot.js';
 import {
-  ELITE_CHANCE, ELITE_HP, ELITES, type EliteId, GILDED_HP, type MonsterDef, type MonsterPower, type MonsterPowerId, MONSTERS, monsterById,
+  ELITE_CHANCE, ELITE_HP, ELITES, type EliteId, GILDED_HP, type MonsterDef, type MonsterPower, type MonsterPowerId, MONSTERS, TWIN_WARDENS, WARDENS, monsterById,
 } from './content/monsters.js';
 import type { OmenDef } from './content/omens.js';
 import { type PathId, PATH_MASTERY, onPath } from './content/paths.js';
@@ -209,13 +209,21 @@ function underOmen(mm: MonsterInstance, omen: OmenDef | null): MonsterInstance {
  * elite. A Mini-boss or the Boss comes with its escort. The day's Omen may make
  * them tougher or weaker, and elites more common.
  */
-export function spawnEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss' | 'boss', weakening = 0, omen: OmenDef | null = null): MonsterInstance[] {
+export function spawnEncounter(rng: Rng, floor: number, kind: EncounterKind, weakening = 0, omen: OmenDef | null = null): MonsterInstance[] {
   const out = spawnGroup(rng, floor, kind, weakening, omen);
   return out.map((mm) => underOmen(mm, omen));
 }
 
-function spawnGroup(rng: Rng, floor: number, kind: 'fight' | 'miniboss' | 'boss', weakening: number, omen: OmenDef | null): MonsterInstance[] {
+/** What waits in a Room: a group, a Mini-boss, the Boss, or the Twin Wardens (for a Duo, behind a Twin door). */
+export type EncounterKind = 'fight' | 'miniboss' | 'boss' | 'twin';
+
+function spawnGroup(rng: Rng, floor: number, kind: EncounterKind, weakening: number, omen: OmenDef | null): MonsterInstance[] {
   const theme = themeOf(floor);
+  if (kind === 'twin') {
+    // The lair has no Twin door; past the depths the Wardens keep the depths' numbers.
+    const home = theme === 'lair' ? 'depths' : theme;
+    return TWIN_WARDENS.map((id, i) => instantiate({ ...monsterById(id), ...WARDENS[home], theme: home }, floor, `m${i}`));
+  }
   if (kind !== 'fight') {
     const def = MONSTERS.find((d) => d.theme === theme && d.role === kind);
     if (!def) throw new Error(`no ${kind} for theme ${theme}`);
@@ -439,6 +447,8 @@ const DEATH_SAVE_DC = 10;
 /** A Hero drinks at most this many potions in one fight (v0), however many it carries. */
 export const POTIONS_PER_FIGHT = 3;
 const ROUND_LIMIT = 60;
+/** Twin Wardens: one that fell while its twin stands rises at the end of the round with this share of its health (v0). */
+export const TWIN_RISE = 0.5;
 /** Thief, Ghost: the round from which every round's Sneak attack gets the full dice (v0). */
 export const THIEF_STUDY_ROUND = 4;
 /** Ember Fang: a critical hit leaves the enemy burning (v0). */
@@ -756,11 +766,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const targets = alive();
     if (targets.length === 0) return;
     const { c } = s;
-    // A riposte answers its attacker; then the Player's choice; otherwise a thief running with gold, a Ranger's quarry, then whoever is closest to falling.
+    // A riposte answers its attacker; then the Player's choice; otherwise a thief running with gold, a Ranger's quarry,
+    // the healthier of two Twin Wardens (to wear both down together), then whoever is closest to falling.
+    const twins = targets.filter((mm) => powerOf(mm, 'twin'));
     const target = (at && at.hp > 0 ? at : null)
       ?? (prefer ? targets.find((mm) => mm.key === prefer) : undefined)
       ?? targets.find((mm) => (stolen.get(mm.key)?.amount ?? 0) > 0)
       ?? targets.find((mm) => mm.key === s.marked)
+      ?? (twins.length >= 2 ? twins.reduce((a, b) => (b.hp > a.hp ? b : a)) : undefined)
       ?? targets.reduce((a, b) => (b.hp < a.hp ? b : a));
     const ambush = currentRound === 1 && s.path('stalker');
     const edge = combine(combine(combine(s.stance.attackEdge, s.frightened > 0 ? 'disadvantage' : 'normal'), ambush ? 'advantage' : 'normal'),
@@ -893,6 +906,42 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     };
   };
 
+  /** About what a Hero's 'attack' deals this turn, every attack of it together: the AI's sums against Twin Wardens. */
+  const blowOf = (s: Side): number => {
+    const { c } = s;
+    if (s.caster) {
+      const [n, sides_] = spellDice(c.class, c.level)!;
+      return ((n * (sides_ + 1)) / 2 + s.mod(s.cls.primary) * (s.path('evoker') ? 2 : 1)) * (1 + c.spellPower / 100) * attacksFor(s);
+    }
+    const [n, sides_] = c.weapon?.base.damage ?? [1, 4];
+    const each = ((n * (sides_ + 1)) / 2) * (c.weapon?.factor ?? 1) + s.mod(s.attackAbility) + (s.raging ? rageDamage(c.level) : 0);
+    return each * (1 + c.damagePct / 100) * attacksFor(s);
+  };
+  /** About what a Burst of fire deals each monster. */
+  const burstOf = (s: Side): number => (burstDice(s.c.level) * 3.5 + (s.path('evoker') ? 2 * s.intMod : 0)) * (1 + s.c.spellPower / 100);
+
+  /**
+   * Against the Twin Wardens a blow that fells one is wasted unless the other falls in
+   * the same round: the AI wears both down together, the healthier first, and Helps its
+   * partner rather than fell one alone. Null when there are no Twins to think about.
+   */
+  const twinsPlan = (s: Side, burst: boolean): HeroAction | null => {
+    const twins = alive().filter((mm) => powerOf(mm, 'twin'));
+    if (twins.length < 2) return null;
+    const [hi, lo] = [...twins].sort((a, b) => b.hp - a.hp) as [MonsterInstance, MonsterInstance];
+    // A burst that fells only the weaker one waits; one that fells both, or neither, lands evenly.
+    if (burst && !(hi.hp <= burstOf(s) || lo.hp > burstOf(s))) burst = false;
+    if (burst) return { kind: 'burst' };
+    const partner = partnerOf(s);
+    const helper = partner && partner.out === null && !partner.down && partner.c.hp > 0 ? partner : null;
+    const mine = blowOf(s);
+    // Two attacks or more can fell both; or its partner, still to act this round, can fell the other.
+    const both = attacksFor(s) >= 2 && hi.hp + lo.hp <= mine;
+    const followed = helper !== null && order.indexOf(helper.key) > order.indexOf(s.key) && lo.hp <= blowOf(helper);
+    if (hi.hp <= mine && !both && !followed) return { kind: helper ? 'help' : 'dodge' };
+    return { kind: 'attack', target: hi.key };
+  };
+
   /** What a Hero does when nobody chooses for it: the AI of every automatic fight. */
   const ai = (s: Side, stage: Stage): HeroAction => {
     const { c } = s;
@@ -916,7 +965,10 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     }
     if (stage !== 'after-potion' && c.hp < c.maxHp * 0.3 && s.potions > 0 && s.potionsUsed < POTIONS_PER_FIGHT) return { ...action, kind: 'potion' };
     if (!duo && s.stance.escapeBelow > 0 && c.hp < c.maxHp * s.stance.escapeBelow) return { ...action, kind: 'escape' };
-    if (c.class === 'wizard' && s.uses.spells > 0 && alive().length >= (s.path('evoker', PATH_MASTERY) ? 1 : 2)) return { ...action, kind: 'burst' };
+    const burst = c.class === 'wizard' && s.uses.spells > 0 && alive().length >= (s.path('evoker', PATH_MASTERY) ? 1 : 2);
+    const twins = twinsPlan(s, burst);
+    if (twins) return { ...action, ...twins };
+    if (burst) return { ...action, kind: 'burst' };
     return action;
   };
 
@@ -1328,6 +1380,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         }
         if (sides.every((x) => x.out !== null)) over = true;
         else if (alive().length === 0) over = won = true;
+      }
+      // The round is over: a Twin Warden that fell while its twin still stands rises again.
+      for (const mm of over ? [] : mons) {
+        const twin = mm.hp <= 0 && !fled.has(mm.key) && powerOf(mm, 'twin') ? alive().find((x) => powerOf(x, 'twin')) : undefined;
+        if (!twin) continue;
+        mm.hp = Math.max(1, Math.round(mm.maxHp * TWIN_RISE));
+        if (defeated.includes(mm.key)) defeated.splice(defeated.indexOf(mm.key), 1);
+        events.push({ type: 'power', actor: twin.key, power: 'twin', target: mm.key, hp: mm.hp });
       }
       for (const s of sides) {
         if (s.frightened > 0) {

@@ -29,6 +29,8 @@ const MONSTER_STRIKE: Partial<Record<string, Strike>> = {
   'horned-tyrant': 'slash',
   kobold: 'pierce',
   doppelganger: 'claw',
+  'dawn-warden': 'blunt',
+  'dusk-warden': 'slash',
 };
 
 export const monsterStrike = (def: Pick<MonsterDef, 'id' | 'kin'>): Strike => MONSTER_STRIKE[def.id] ?? KIN_STRIKE[def.kin];

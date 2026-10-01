@@ -19,7 +19,7 @@ import { enterEvent, eventAction, eventView, withLuck } from './events.js';
 import { feed } from './feed.js';
 import { type PartnerRow, activePartner, addNews, endDuo, loadActors, mergeOutcomes, partnerView, takeNews } from './duo.js';
 import {
-  DAY_MS, type FightKind, type Outcome, combatOf, combatant, duoInput, duoMonstersFor, emptyOutcome, fallBack, fight, fightInput, foeOf,
+  DAY_MS, type FightKind, type Outcome, WARDENS_MS, combatOf, combatant, duoInput, duoMonstersFor, emptyOutcome, fallBack, fight, fightInput, foeOf,
   heroFloor, isCleared, markCleared, monstersFor, t,
 } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
@@ -93,17 +93,18 @@ function whereIs(hero: HeroWithItems, lab: Labyrinth): { floor: Floor; room: num
 /**
  * The monsters this Hero would have to deal with in a Room right now, if any:
  * a fight Room it hasn't cleared today, a Mini-boss nobody has beaten in the
- * last day, or the Boss when its lair isn't quiet for this Hero.
+ * last day, the Boss when its lair isn't quiet for this Hero, or the Twin
+ * Wardens it hasn't beaten this week.
  */
 async function monstersWaiting(tx: Tx, hero: Hero, season: Season, floor: Floor, roomId: number, now: Date): Promise<FightKind | null> {
   const type = floor.rooms[roomId]!.type;
-  if (type !== 'fight' && type !== 'miniboss' && type !== 'boss') return null;
+  if (type !== 'fight' && type !== 'miniboss' && type !== 'boss' && type !== 'twin') return null;
   if (type === 'miniboss') {
     const claim = await tx.specialClaim.findUnique({ where: { seasonId_floor_room: { seasonId: season.id, floor: floor.number, room: roomId } } });
     return claim && now.getTime() - claim.claimedAt.getTime() < DAY_MS ? null : 'miniboss';
   }
   const hf = await tx.heroFloor.findUnique({ where: { heroId_floor: { heroId: hero.id, floor: floor.number } } });
-  return isCleared(hf, roomId, now) ? null : type;
+  return isCleared(hf, roomId, now, type === 'twin' ? WARDENS_MS : DAY_MS) ? null : type;
 }
 
 /** A Duo meets whatever either Hero still has to beat in a Room: its monsters wait for both. */
@@ -114,9 +115,17 @@ async function pairWaiting(tx: Tx, hero: Hero, partner: Hero | null, season: Sea
 /**
  * A Hero (or Duo) that is still marked as facing monsters that are gone (a Mini-boss
  * someone else beat meanwhile) stops facing them, and the Room becomes its last safe one.
+ * A Hero left facing the Twin Wardens alone (its Duo over) steps back out: they face only a Duo.
  */
-async function stillFacing(tx: Tx, hero: HeroWithItems, partner: Hero | null, season: Season, floor: Floor, now: Date): Promise<FightKind | null> {
+async function stillFacing(tx: Tx, hero: HeroWithItems, partner: Hero | null, season: Season, floor: Floor, now: Date, out?: Outcome): Promise<FightKind | null> {
   if (!(hero.facing || partner?.facing) || hero.room === null) return null;
+  if (!partner && floor.rooms[hero.room]!.type === 'twin') {
+    const back = { facing: false, ...fallBack(hero, floor, now) };
+    await tx.hero.update({ where: { id: hero.id }, data: back });
+    Object.assign(hero, back);
+    out?.notices.push(t('Alone, you step back from the Twin Wardens: they face only a Duo.', 'В одиночку вы отступаете от стражей-близнецов: они встречают только дуэт.'));
+    return null;
+  }
   const kind = await pairWaiting(tx, hero, partner, season, floor, hero.room, now);
   if (!kind) {
     for (const h of partner ? [hero, partner] : [hero]) {
@@ -143,6 +152,8 @@ function somethingNew(floor: Floor, roomId: number, hf: HeroFloor | null, now: D
       return !isCleared(hf, roomId, now);
     case 'hidden':
       return !isCleared(hf, roomId, now, HOARD_MS);
+    case 'twin':
+      return !isCleared(hf, roomId, now, WARDENS_MS);
     case 'event':
       return room.event !== 'merchant' && !isCleared(hf, roomId, now);
     default:
@@ -159,6 +170,7 @@ function freeToEnter(floor: Floor, roomId: number, hf: HeroFloor | null, now: Da
   if (!(hf?.seen.includes(roomId) ?? false) || somethingNew(floor, roomId, hf, now)) return false;
   if (partnerHf === undefined) return true;
   const type = floor.rooms[roomId]!.type;
+  if (type === 'twin') return isCleared(partnerHf, roomId, now, WARDENS_MS);
   return !(type === 'fight' || type === 'miniboss' || type === 'boss') || isCleared(partnerHf, roomId, now);
 }
 
@@ -212,10 +224,21 @@ function spotsSecret(hero: HeroWithItems, floor: Floor, door: Door, seen: Readon
   }).success;
 }
 
+/** Whether one Hero alone gets through a Door. A Twin door it doesn't: it opens only for a Duo (opens()). */
 function canPass(door: Door, hero: HeroWithItems): boolean {
   if (door.kind === 'cracked') return breaksWalls(hero.class as ClassId);
   if (door.kind === 'locked') return hero.class === 'rogue' || stackIn(hero, 'key-iron') !== null;
+  if (door.kind === 'twin') return false;
   return true;
+}
+
+/**
+ * Whether the Hero, with its partner when it has one beside it, gets through a Door to `to`:
+ * where either could alone, and through a Twin door as a Duo. Anyone walks out of the Wardens' Room.
+ */
+function opens(door: Door, floor: Floor, to: number, hero: HeroWithItems, partner: HeroWithItems | null): boolean {
+  if (door.kind === 'twin') return partner !== null || floor.rooms[to]!.type !== 'twin';
+  return canPass(door, hero) || (partner !== null && canPass(door, partner));
 }
 
 /** Rangers always know a lying Clue; Rogues and Elves (with advantage) may see through one. Stable per Door. */
@@ -313,7 +336,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     waypoints: hero.waypoints,
     portal: portalOf(hero, now),
     bestFloor: hero.bestFloor,
-    duo: partner ? partnerView(partner, now) : null,
+    duo: partner ? partnerView(partner, now, hero.items) : null,
     fight: null,
   };
 
@@ -347,7 +370,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
         kind: door.kind,
         clue: truth ?? clue.text,
         suspicious: !truth && clue.lie && seesThrough(hero, floor.number, door, room.id),
-        passable: canPass(door, hero) || (together !== null && canPass(door, together)),
+        passable: opens(door, floor, to, hero, together),
         visited: seen.has(to),
         free: freeToEnter(floor, to, hf, now, pf),
       };
@@ -367,7 +390,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
   }
   // The Eye of the Abyss shows every Special room on the Floor.
   const eye = wears(hero, 'eye-of-the-abyss');
-  const special = (type: string) => type === 'vault' || type === 'miniboss' || type === 'hidden';
+  const special = (type: string) => type === 'vault' || type === 'miniboss' || type === 'hidden' || type === 'twin';
   if (eye) for (const r of floor.rooms) if (special(r.type)) known.add(r.id);
   const rooms = [...known].sort((a, b) => a - b).map((id) => {
     const r = floor.rooms[id]!;
@@ -519,7 +542,7 @@ export async function labyrinthState(player: Player): Promise<LabyrinthResult> {
       return h;
     }
     await restIfDue(tx, h, now, outcome);
-    if (h.location === 'LABYRINTH' && h.floor !== null) await stillFacing(tx, h, partner, season, floorOf(labyrinthFor(season), h.floor), now);
+    if (h.location === 'LABYRINTH' && h.floor !== null) await stillFacing(tx, h, partner, season, floorOf(labyrinthFor(season), h.floor), now, outcome);
     return h;
   });
   return respond(hero.id, season, outcome);
@@ -604,7 +627,7 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     const { floor, room: from } = whereIs(hero, lab);
     await restIfDue(tx, hero, now, outcome);
     if (partner) await restIfDue(tx, partner, now, partnerOut);
-    if (await stillFacing(tx, hero, partner, season, floor, now)) {
+    if (await stillFacing(tx, hero, partner, season, floor, now, outcome)) {
       throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
     }
     const exit = doorsOf(floor, from).find((d) => d.to === to);
@@ -614,7 +637,8 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     if (exit.door.kind === 'secret' && !walkers.some((w) => spotsSecret(w.hero, floor, exit.door, new Set(w.hf.seen), now))) {
       throw ApiError.badRequest('no_door', 'No Door leads there');
     }
-    if (!walkers.some((w) => canPass(exit.door, w.hero))) {
+    if (!opens(exit.door, floor, to, hero, partner)) {
+      if (exit.door.kind === 'twin') throw ApiError.conflict('twin_door', 'The Twin door opens only for a Duo');
       throw ApiError.conflict(exit.door.kind === 'cracked' ? 'wall' : 'locked', 'You cannot get through that Door');
     }
     const target = floor.rooms[to]!;
@@ -689,6 +713,9 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
     case 'boss':
       out.notices.push(t('The lair is quiet. The Dragon will be back tomorrow.', 'В логове тихо. Дракон вернётся завтра.'));
       break;
+    case 'twin':
+      out.notices.push(t('The Twin Wardens stand still as stone. They wake a week after you beat them.', 'Стражи-близнецы стоят неподвижно, как камень. Они проснутся через неделю после вашей победы.'));
+      break;
     case 'waypoint':
       if (!hero.waypoints.includes(floor.number)) {
         await tx.hero.update({ where: { id: hero.id }, data: { waypoints: { push: floor.number } } });
@@ -760,7 +787,7 @@ export async function face(player: Player, action: FaceAction): Promise<Labyrint
     const { hero, partner } = await actors(tx, player, season, now, outcome);
     await noFight(tx, hero.id);
     const { floor, room } = whereIs(hero, lab);
-    const kind = await stillFacing(tx, hero, partner, season, floor, now);
+    const kind = await stillFacing(tx, hero, partner, season, floor, now, outcome);
     if (!kind) throw ApiError.conflict('not_facing', 'There is nothing here to face');
     if (partner) {
       await faceTogether(tx, hero, partner, season, floor, room, kind, action, now, outcome, partnerOut);

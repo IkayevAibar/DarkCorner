@@ -57,6 +57,8 @@ export function feedLine(e: Pick<FeedEvent, 'kind' | 'data'>): { text: Localized
       return { tier: 'mythic', text: { en: d.place === 1 ? `${hero} slew the Dragon: Champion!` : `${hero} slew the Dragon: ${d.place === 2 ? '2nd' : '3rd'} place`, ru: d.place === 1 ? `${hero} побеждает дракона — чемпион!` : `${hero} побеждает дракона — ${d.place}-е место` } };
     case 'hidden':
       return { tier: null, text: { en: `${hero} found a hidden room on Floor ${d.floor}`, ru: `${hero} находит потайную комнату на этаже ${d.floor}` } };
+    case 'twin':
+      return { tier: 'epic', text: { en: `${hero} and ${d.partner} broke the Twin Wardens on Floor ${d.floor}`, ru: `${hero} и ${d.partner} одолевают стражей-близнецов на этаже ${d.floor}` } };
     case 'bounty': {
       const title = d.title as LocalizedText | undefined;
       return { tier: null, text: { en: `${hero} finished a weekly bounty: ${title?.en ?? ''}`, ru: `${hero} выполняет недельное задание: ${title?.ru ?? ''}` } };

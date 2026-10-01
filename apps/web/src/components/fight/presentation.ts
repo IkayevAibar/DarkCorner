@@ -84,6 +84,7 @@ const POWER_LINES: Partial<Record<MonsterPowerView, MessageKey>> = {
   frighten: 'fight.power.frighten',
   explode: 'fight.power.explode',
   wail: 'fight.power.wail',
+  twin: 'fight.power.twin',
 };
 
 export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: Record<string, string>): string | null {
@@ -114,7 +115,7 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
     case 'escape': return t(e.success ? 'fight.escape.yes' : 'fight.escape.no', { name: self, d: e.natural, t: e.total, dc: e.dc });
     case 'power': {
       const key = POWER_LINES[e.power];
-      return key ? t(key, { actor: n(e.actor), target: n(e.target ?? 'hero'), n: e.amount ?? 0 }) : null;
+      return key ? t(key, { actor: n(e.actor), target: n(e.target ?? 'hero'), n: e.power === 'twin' ? e.hp ?? 0 : e.amount ?? 0 }) : null;
     }
     case 'save': {
       const line = t('fight.save', { ability: t(`ability.${e.ability}`), d: e.natural, t: e.total, dc: e.dc, result: t(e.success ? 'result.success' : 'result.failure') });

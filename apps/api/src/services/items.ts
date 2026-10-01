@@ -1,10 +1,16 @@
 import type { Item, Prisma } from '@prisma/client';
-import type { ItemView, Tier } from '@dark/shared';
+import type { ItemView, LocalizedText, Tier } from '@dark/shared';
 import {
   type GearRoll, STACK_TIER_HINT, baseById, bonusLines, buybackPrice, gearFacts, isGear, itemAbout, itemName, sellValue, uniqueById,
 } from '@dark/engine';
 
 type BonusStats = GearRoll['bonusStats'];
+
+/** A Bond ring's power: which pair it is half of, and what joining the halves does. */
+const bondPower = (other: string | null): LocalizedText => ({
+  en: `One of a pair: the other half went to ${other ?? '?'}. Worn by the two Heroes of a Duo, the halves count their Bonus stats twice in fights.`,
+  ru: `Одно из пары: второе кольцо досталось герою ${other ?? '?'}. Если оба кольца носят герои одного дуэта, их бонусы в бою считаются дважды.`,
+});
 
 /** An Item as the web renders it. Fields that identifying reveals stay null until then. */
 export function toItemView(item: Item): ItemView {
@@ -61,7 +67,7 @@ export function toItemView(item: Item): ItemView {
     identified: known,
     quality: known ? item.quality : null,
     bonusStats: known ? bonusLines(roll) : null,
-    power: known && unique ? unique.power : null,
+    power: known && unique ? unique.power : item.bond ? bondPower(item.bondWith) : null,
     radiant: known ? item.radiant : null,
     upgrade: item.upgrade,
     serial: known && item.serial && serialOf ? { number: item.serial, of: serialOf } : null,
@@ -78,7 +84,7 @@ export function toItemView(item: Item): ItemView {
 export function rollView(roll: GearRoll, id: string): ItemView {
   return toItemView({
     ...gearData(roll, ''), id, seasonId: '', heroId: null, place: 'BAG', slot: null, quantity: 1, upgrade: 0, serial: null,
-    owners: null, graveId: null, createdAt: new Date(0), updatedAt: new Date(0),
+    owners: null, bond: null, bondWith: null, graveId: null, createdAt: new Date(0), updatedAt: new Date(0),
   } as Item);
 }
 
@@ -86,7 +92,7 @@ export function stackView(base: string, quantity: number, id = base): ItemView {
   return toItemView({
     id, seasonId: '', heroId: null, place: 'BAG', slot: null, base, tier: 'common', quantity, itemLevel: 1, quality: null,
     bonusStats: [], suffix: null, uniqueId: null, radiant: false, identified: true, upgrade: 0, serial: null, owners: null,
-    seed: null, graveId: null, createdAt: new Date(0), updatedAt: new Date(0),
+    bond: null, bondWith: null, seed: null, graveId: null, createdAt: new Date(0), updatedAt: new Date(0),
   });
 }
 

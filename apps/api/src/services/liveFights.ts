@@ -13,6 +13,7 @@ import {
 } from './fights.js';
 import type { HeroWithItems, Tx } from './ledger.js';
 import { omenOf } from './omens.js';
+import { grantBondRings } from './twins.js';
 
 // Room fights played turn by turn (docs/design.md → Manual fights). A Fight row keeps
 // what the engine needs to play the fight again from its first die: the seed, the input
@@ -68,9 +69,10 @@ export async function fightHeroes(tx: Tx, fight: Fight, lock = true): Promise<Fi
 export async function startFight(tx: Tx, hero: HeroWithItems, partner: HeroWithItems | null, season: Season, floor: Floor, roomId: number,
   kind: FightKind, opts: { surprise?: 'hero'; bomb?: boolean; threat?: ThreatId | null; auto?: boolean }, now: Date): Promise<Fight> {
   if (partner && kind === 'boss') throw ApiError.conflict('duo_boss', 'The Dragon is faced alone: leave the Duo first');
+  if (!partner && kind === 'twin') throw ApiError.conflict('twin_alone', 'The Twin Wardens face only a Duo');
   const omen = omenOf(season, now);
   const spawned = partner
-    ? duoMonstersFor(season, hero, partner, floor, roomId, kind as 'fight' | 'miniboss', now)
+    ? duoMonstersFor(season, hero, partner, floor, roomId, kind as 'fight' | 'miniboss' | 'twin', now)
     : monstersFor(season, hero, floor, roomId, kind, now);
   const shared = { surprise: opts.surprise ?? null, bombFloor: opts.bomb ? floor.number : null, escapeBonus: omen?.sneak ?? 0 };
   const input = partner
@@ -171,6 +173,10 @@ async function finish(tx: Tx, fight: Fight, result: FightResult, choices: HeroCh
   await settle(tx, heroes.hero, 'hero', result, fought, monsters, season, floor, fight.room, kind, heroOut, opts);
   if (ally && allyOut) await settle(tx, ally.hero, 'ally', ally.side, fought, monsters, season, floor, fight.room, kind, allyOut, opts);
   if (kind === 'boss' && result.outcome === 'victory') await bossVictory(tx, heroes.hero, season, floor.number, fight.room, heroOut);
+  // The Twin Wardens broken with both Heroes standing: the pair's Bond rings.
+  if (kind === 'twin' && ally && allyOut && result.outcome === 'victory' && ally.side.outcome === 'victory') {
+    await grantBondRings(tx, season, floor.number, [[heroes.hero, heroOut], [ally.hero, allyOut]]);
+  }
 
   if (ally && allyOut) {
     // Down at the end of a won fight: the partner hauled it up.

@@ -1,6 +1,6 @@
 import { type GearBase, GEAR_BASES, baseById, isGear } from './content/bases.js';
 import {
-  BONUS_COUNT, BONUS_STATS, type BonusStatDef, type BonusStatId, BUYBACK_BASE, DROP_ODDS, IDENTIFIED_BELOW, RADIANT_BOOST, RADIANT_CHANCE,
+  BOND_STATS, BONUS_COUNT, BONUS_STATS, type BonusStatDef, type BonusStatId, BUYBACK_BASE, DROP_ODDS, IDENTIFIED_BELOW, RADIANT_BOOST, RADIANT_CHANCE,
   SUFFIXES, type Tier, tierRank, uniqueById, uniquesOfTier,
 } from './content/loot.js';
 import { type Text } from './content/text.js';
@@ -68,9 +68,13 @@ function rollStatValue(rng: Rng, def: BonusStatDef, itemLevel: number, tier: Tie
   return Math.max(1, Math.round(raw * (1 + (itemLevel - 1) * 0.1) * (1 + tierRank(tier) * 0.18)));
 }
 
-/** A fresh set of Bonus stats for a Tier: new rolls, no kind twice. Used by drops and Reforge. */
-export function rollBonusStats(rng: Rng, tier: Tier, itemLevel: number): GearRoll['bonusStats'] {
-  const pool = [...BONUS_STATS];
+/** The Bonus stats a base can roll: a Bond ring's count in a fight; anything else, any. */
+export const bonusPoolOf = (base: string): readonly BonusStatId[] | null => (isGear(baseById(base)) && (baseById(base) as GearBase).paired ? BOND_STATS : null);
+const poolOf = (only: readonly BonusStatId[] | null) => (only ? BONUS_STATS.filter((d) => only.includes(d.id)) : BONUS_STATS);
+
+/** A fresh set of Bonus stats for a Tier: new rolls, no kind twice, from `only` if given. Used by drops and Reforge. */
+export function rollBonusStats(rng: Rng, tier: Tier, itemLevel: number, only: readonly BonusStatId[] | null = null): GearRoll['bonusStats'] {
+  const pool = [...poolOf(only)];
   const out: GearRoll['bonusStats'] = [];
   for (let i = 0; i < BONUS_COUNT[tier] && pool.length > 0; i++) {
     const [def] = pool.splice(rng.int(0, pool.length - 1), 1);
@@ -79,9 +83,9 @@ export function rollBonusStats(rng: Rng, tier: Tier, itemLevel: number): GearRol
   return out;
 }
 
-/** One more Bonus stat, of a kind the Item doesn't have yet (the Cursed altar). */
-export function rollExtraBonusStat(rng: Rng, tier: Tier, itemLevel: number, have: readonly string[]): GearRoll['bonusStats'][number] | null {
-  const pool = BONUS_STATS.filter((d) => !have.includes(d.id));
+/** One more Bonus stat, of a kind the Item doesn't have yet (the Cursed altar), from `only` if given. */
+export function rollExtraBonusStat(rng: Rng, tier: Tier, itemLevel: number, have: readonly string[], only: readonly BonusStatId[] | null = null): GearRoll['bonusStats'][number] | null {
+  const pool = poolOf(only).filter((d) => !have.includes(d.id));
   if (pool.length === 0) return null;
   const def = rng.pick(pool);
   return { stat: def.id, value: rollStatValue(rng, def, itemLevel, tier) };
@@ -130,6 +134,34 @@ export function rollGear(rng: Rng, opts: RollGearOptions): GearRoll {
     identified: opts.identified ?? tierRank(tier) < tierRank(IDENTIFIED_BELOW),
   };
 }
+
+/**
+ * A pair of Bond rings (v0), from the Twin Wardens on `floor`: Rare or Epic, as the odds
+ * two Floors deeper weigh those two, and identified. Each half rolls its own Quality and
+ * Bonus stats, from the ones that count in a fight.
+ */
+export function rollBondRings(rng: Rng, floor: number): [GearRoll, GearRoll] {
+  const tier = rollTier(rng, dropOdds(Math.min(10, floor + 2)).filter(([t]) => t === 'rare' || t === 'epic'));
+  const half = (): GearRoll => ({
+    base: 'bond-ring',
+    tier,
+    itemLevel: Math.max(1, floor),
+    quality: rng.int(1, 100),
+    bonusStats: rollBonusStats(rng, tier, Math.max(1, floor), BOND_STATS),
+    suffix: null,
+    uniqueId: null,
+    radiant: rng.chance(RADIANT_CHANCE),
+    identified: true,
+  });
+  return [half(), half()];
+}
+
+/** Bond rings (v0): while the two Heroes of a Duo each wear a half of one pair, each half's Bonus stats count this many times in their fights. */
+export const BOND_FACTOR = 2;
+
+/** A worn piece's Bonus stats as they count in a fight: a joined Bond ring's, BOND_FACTOR times. */
+export const bondedStats = (stats: GearRoll['bonusStats'], joined: boolean): GearRoll['bonusStats'] =>
+  (joined ? stats.map((b) => ({ ...b, value: b.value * BOND_FACTOR })) : stats);
 
 /** Quality 1–100 → 85%–115% of the base damage or armor. */
 export const qualityFactor = (quality: number): number => 0.85 + (0.3 * (quality - 1)) / 99;

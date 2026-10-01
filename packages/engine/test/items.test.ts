@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BONUS_COUNT, BONUS_STATS, DROP_ODDS, GEAR_BASES, TIERS, UNIQUES, baseById, bonusLines, buybackPrice, createRng, itemName,
-  qualityFactor, rollDropTier, rollGear,
+  BOND_FACTOR, BOND_STATS, BONUS_COUNT, BONUS_STATS, DROP_ODDS, GEAR_BASES, TIERS, UNIQUES, baseById, bonusLines, bonusPoolOf, bondedStats, buybackPrice,
+  createRng, itemName, qualityFactor, rollBondRings, rollBonusStats, rollDropTier, rollGear,
 } from '../src/index.js';
 
 describe('rollDropTier', () => {
@@ -125,5 +125,43 @@ describe('content', () => {
 
   it('points every unique at real gear', () => {
     for (const unique of UNIQUES) expect(GEAR_BASES.some((b) => b.id === unique.base)).toBe(true);
+  });
+});
+
+describe('Bond rings', () => {
+  it('come in pairs of one Tier, Rare or Epic, identified, each half with its own fighting Bonus stats', () => {
+    const tiers = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const [a, b] = rollBondRings(createRng(`bond-${i}`), 1 + (i % 9));
+      expect(a.base).toBe('bond-ring');
+      expect(b.base).toBe('bond-ring');
+      expect(a.tier).toBe(b.tier);
+      expect(['rare', 'epic']).toContain(a.tier);
+      tiers.add(a.tier);
+      for (const half of [a, b]) {
+        expect(half.identified).toBe(true);
+        expect(half.suffix).toBeNull();
+        expect(half.bonusStats).toHaveLength(BONUS_COUNT[half.tier]);
+        for (const { stat } of half.bonusStats) expect(BOND_STATS).toContain(stat);
+      }
+    }
+    expect(tiers).toEqual(new Set(['rare', 'epic']));
+    expect(itemName({ base: 'bond-ring', suffix: null, uniqueId: null })).toEqual({ en: 'Bond ring', ru: 'Кольцо уз' });
+  });
+
+  it('never drop, sell or turn up at random', () => {
+    expect(GEAR_BASES.map((b) => b.id)).not.toContain('bond-ring');
+    for (let i = 0; i < 300; i++) expect(rollGear(createRng(`any-${i}`), { tier: 'rare', itemLevel: 3 }).base).not.toBe('bond-ring');
+    expect(bonusPoolOf('bond-ring')).toBe(BOND_STATS);
+    expect(bonusPoolOf('ring')).toBeNull();
+    for (let i = 0; i < 50; i++) {
+      for (const { stat } of rollBonusStats(createRng(`reforge-${i}`), 'epic', 5, bonusPoolOf('bond-ring'))) expect(BOND_STATS).toContain(stat);
+    }
+  });
+
+  it('count their Bonus stats twice while joined', () => {
+    const stats = [{ stat: 'str' as const, value: 2 }, { stat: 'damage' as const, value: 6 }];
+    expect(bondedStats(stats, false)).toEqual(stats);
+    expect(bondedStats(stats, true)).toEqual([{ stat: 'str', value: 2 * BOND_FACTOR }, { stat: 'damage', value: 6 * BOND_FACTOR }]);
   });
 });

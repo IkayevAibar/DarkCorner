@@ -4,7 +4,7 @@ import type {
 } from '@dark/shared';
 import {
   type ForgeCost as EngineCost, MAX_UPGRADE, RECIPES, REFORGE_COST, type Tier, UPGRADE_SAFE_UNTIL, baseById, upgradeChance,
-  bonusLines, canReforge, createRng, isGear, itemName, rollBonusStats, rollSalvage, rollUpgrade, salvageRange, upgradeCost,
+  bonusLines, bonusPoolOf, canReforge, createRng, isGear, itemName, rollBonusStats, rollSalvage, rollUpgrade, salvageRange, upgradeCost,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -131,7 +131,7 @@ export async function reforgeItem(player: Player, itemId: string): Promise<Refor
     await pay(tx, hero, REFORGE_COST[tier]!);
     const seed = newSeed();
     const before = item.bonusStats as { stat: string; value: number }[];
-    const bonusStats = rollBonusStats(createRng(seed), tier, item.itemLevel);
+    const bonusStats = rollBonusStats(createRng(seed), tier, item.itemLevel, bonusPoolOf(item.base));
     await tx.rollLog.create({ data: { playerId: player.id, kind: 'reforge', seed, detail: { itemId: item.id, before, after: bonusStats } } });
     const updated = await tx.item.update({ where: { id: item.id }, data: { bonusStats: bonusStats as unknown as Prisma.InputJsonValue } });
     return { heroId: hero.id, updated, before: bonusLines({ bonusStats: before as never, radiant: item.radiant }) };

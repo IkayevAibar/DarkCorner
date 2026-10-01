@@ -1,9 +1,9 @@
-import { type Hero, type Player, Prisma } from '@prisma/client';
+import { type Hero, type Item, type Player, Prisma } from '@prisma/client';
 import type { DuoHero, DuoInvite, DuoPartner, DuoState, RunSummary } from '@dark/shared';
 import { type ClassId, currentStamina } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
-import { type Outcome, emptyOutcome, t } from './fights.js';
+import { type Outcome, emptyOutcome, joinedBonds, t } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
 import { type HeroWithItems, type Tx, noFight } from './ledger.js';
 import { notify } from './push.js';
@@ -26,12 +26,14 @@ export type PartnerRow = HeroWithItems & { player: Player };
 const seenAgo = (player: Pick<Player, 'lastSeenAt'>, now: Date) => (player.lastSeenAt ? now.getTime() - player.lastSeenAt.getTime() : Infinity);
 export const isOnline = (player: Pick<Player, 'lastSeenAt'>, now: Date) => seenAgo(player, now) <= ONLINE_MS;
 
-export function partnerView(partner: PartnerRow, now: Date): DuoPartner {
+/** The partner as its Duo sees it; `mine` is the watching Hero's own Items, to tell whether their Bond rings are joined. */
+export function partnerView(partner: PartnerRow, now: Date, mine: Pick<Item, 'place' | 'bond'>[]): DuoPartner {
   return {
     heroId: partner.id, name: partner.name, portraitUrl: portraitUrlOf(partner), banner: partner.banner, class: partner.class as ClassId,
     level: partner.level, hp: Math.min(partner.hp, fullHealth(partner)), maxHp: fullHealth(partner),
     stamina: currentStamina(partner.stamina, partner.staminaAt, now).stamina,
     online: isOnline(partner.player, now), seenAt: partner.player.lastSeenAt?.toISOString() ?? null, waypoints: partner.waypoints,
+    bonded: joinedBonds(mine, partner.items).size > 0,
   };
 }
 
@@ -181,7 +183,7 @@ async function stateOf(tx: Tx, hero: Hero, seasonId: string, now: Date): Promise
     take: 20,
   });
   return {
-    partner: partner && partner.partnerId === hero.id ? partnerView(partner, now) : null,
+    partner: partner && partner.partnerId === hero.id ? partnerView(partner, now, await tx.item.findMany({ where: { heroId: hero.id, place: 'WORN' } })) : null,
     incoming: invites.filter((i) => i.toId === hero.id).map(view).filter((v): v is DuoInvite => v !== null),
     outgoing: invites.filter((i) => i.fromId === hero.id).map(view).find((v): v is DuoInvite => v !== null) ?? null,
     candidates: candidates.map(heroCard),

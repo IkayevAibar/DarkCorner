@@ -377,6 +377,9 @@ model Item {
   serial     Int?
   /// Relic owner history: display names, oldest first.
   owners     Json?
+  /// Bond rings: the pair this half belongs to (both halves share it), and the Hero the other half went to.
+  bond       String?
+  bondWith   String?
   /// The seed that rolled this Item, for the roll log.
   seed       String?
   graveId    String?

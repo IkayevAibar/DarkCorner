@@ -71,6 +71,9 @@ export const BONUS_STATS: BonusStatDef[] = [
   { id: 'lifeSteal', label: text('+{n}% life steal', '+{n}% вампиризма'), range: [1, 3] },
 ];
 
+/** What a Bond ring rolls, Forged or offered on an altar: Bonus stats that count in a fight, max health aside. */
+export const BOND_STATS: readonly BonusStatId[] = ['str', 'dex', 'con', 'int', 'wis', 'armor', 'damage', 'crit', 'spellPower', 'healing', 'lifeSteal'];
+
 /** "X of Y" names: the genitive suffix needs no gender agreement in Russian. */
 export const SUFFIXES: Text[] = [
   text('of Ash', 'пепла'), text('of Dusk', 'сумерек'), text('of the Crypt', 'склепа'),

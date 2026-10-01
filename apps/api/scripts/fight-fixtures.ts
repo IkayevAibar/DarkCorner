@@ -23,7 +23,7 @@ interface Scenario {
   policy?: (turn: TurnOptions) => HeroAction;
   level: number;
   floor: number;
-  kind: 'fight' | 'miniboss' | 'boss';
+  kind: 'fight' | 'miniboss' | 'boss' | 'twin';
   /** Starting health as a share of the maximum. */
   health: number;
   potions: number;
@@ -213,6 +213,14 @@ const SCENARIOS: Record<string, Scenario> = {
     want: (r) => r.outcome === 'victory' && r.events.length <= 60
       && ['guard', 'help', 'dodge'].every((f) => has(r, (e) => e.type === 'feature' && e.feature === f)),
   },
+  'duo-twin-wardens': {
+    hero: { name: 'Garrick', race: 'human', class: 'fighter', portrait: '/art/portraits/human-fighter-1.webp', banner: BANNER_COLORS[0] },
+    ally: { hero: { name: 'Ilyra', race: 'elf', class: 'wizard', portrait: '/art/portraits/elf-wizard-1.webp', banner: BANNER_COLORS[1] }, level: 5, health: 1, potions: 1 },
+    level: 5, floor: 2, kind: 'twin', health: 1, potions: 1,
+    // A Warden rises at least once before both fall in one round.
+    want: (r) => r.outcome === 'victory' && r.ally?.outcome === 'victory' && r.events.length <= 90
+      && has(r, (e) => e.type === 'power' && e.power === 'twin'),
+  },
   'bearheart-relentless': {
     hero: { name: 'Hrolf', race: 'dwarf', class: 'barbarian', portrait: '/art/portraits/dwarf-fighter-1.webp', banner: BANNER_COLORS[7] },
     level: 9, floor: 6, kind: 'miniboss', health: 0.5, potions: 0, path: 'bearheart',
@@ -223,7 +231,7 @@ const SCENARIOS: Record<string, Scenario> = {
 function combatant(m: MonsterInstance): Combatant {
   const def = monsterById(m.id);
   return {
-    key: m.key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss', banner: null,
+    key: m.key, name: def.name, art: def.art, hp: m.hp, maxHp: m.maxHp, ac: m.ac, boss: def.role === 'boss' || def.role === 'miniboss' || def.role === 'warden', banner: null,
     elite: m.elite, powers: m.powers.map((p) => p.id), strike: monsterStrike(def), kin: def.kin, class: null,
   };
 }
@@ -263,7 +271,7 @@ function run(name: string, s: Scenario): FightReplay {
   const ally = s.ally ? makeHero(s.ally.hero, s.ally.level, s.ally.health) : null;
   for (let i = 0; i < 60_000; i++) {
     const spawn = createRng(`${name}:spawn:${i}`);
-    const monsters = ally && s.kind !== 'boss' ? duoEncounter(spawn, s.floor, s.kind) : spawnEncounter(spawn, s.floor, s.kind);
+    const monsters = s.kind === 'twin' || !ally || s.kind === 'boss' ? spawnEncounter(spawn, s.floor, s.kind) : duoEncounter(spawn, s.floor, s.kind);
     const input: FightInput = {
       hero: { ...hero }, monsters, uses: restUses(s.hero.class, s.level, s.path ?? null), potions: s.potions, runPowers: { deathless: false, lucky: false },
       stance: s.stance ?? 'bold', surprise: s.surprise ?? null, bomb: s.bomb ? fireBomb(s.floor) : null, gold: s.gold ?? 0,

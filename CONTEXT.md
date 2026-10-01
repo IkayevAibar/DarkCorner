@@ -377,6 +377,18 @@ _Avoid_: tactical mode, manual mode
 A Hero fighting on its own, the AI choosing for it: from the doorway, or from any turn of a Manual fight.
 _Avoid_: autoplay, bot
 
+**Twin door** (парная дверь):
+A Door that opens only for a Duo; behind it wait the Twin Wardens.
+_Avoid_: double door, duo door
+
+**Twin Wardens** (стражи-близнецы):
+The Dawn Warden and the Dusk Warden behind a Twin door: one felled alone rises at the end of the round, so both must fall in the same round.
+_Avoid_: twins, guardians
+
+**Bond ring** (кольцо уз):
+One half of a pair of rings the Twin Wardens leave, one for each Hero of the Duo. Worn by both Heroes of a Duo, the halves count their Bonus stats twice in fights.
+_Avoid_: couple ring, friendship ring
+
 **Dodge** (уклонение), **Help** (помощь), **Guard** (прикрытие), **Pull up** (поднять):
 Choices for a Hero's turn: blows at it have disadvantage until its next turn; its partner's next attack has advantage; blows meant for its partner come to it; a fallen partner stands up.
 

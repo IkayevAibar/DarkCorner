@@ -39,12 +39,34 @@ describe('generateLabyrinth', () => {
     ]);
   });
 
-  it('lets anyone reach every Room through ordinary Doors, apart from hidden ones behind a secret Door', () => {
+  it('lets anyone reach every Room through ordinary Doors, apart from hidden ones and the Twin Wardens', () => {
     for (const seed of seeds) {
       for (const floor of generateLabyrinth(seed).floors) {
-        const hidden = floor.rooms.filter((r) => r.type === 'hidden');
-        expect(reachable(floor, ['open']).size).toBe(floor.rooms.length - hidden.length);
-        expect(reachable(floor, ['open', 'secret']).size).toBe(floor.rooms.length);
+        const behind = floor.rooms.filter((r) => r.type === 'hidden' || r.type === 'twin');
+        expect(reachable(floor, ['open']).size).toBe(floor.rooms.length - behind.length);
+        expect(reachable(floor, ['open', 'secret', 'twin']).size).toBe(floor.rooms.length);
+      }
+    }
+  });
+
+  it('puts the Twin Wardens in one Room per Floor above the lair, behind Twin doors with true Clues', () => {
+    for (const seed of [...seeds, ...Array.from({ length: 40 }, (_, i) => `twins-${i}`)]) {
+      for (const floor of generateLabyrinth(seed).floors) {
+        const twins = floor.rooms.filter((r) => r.type === 'twin');
+        if (floor.number === FLOOR_COUNT) {
+          expect(twins).toHaveLength(0);
+          expect(floor.doors.some((d) => d.kind === 'twin')).toBe(false);
+          continue;
+        }
+        expect(twins).toHaveLength(1);
+        const [room] = twins;
+        expect(room!.event).toBeNull();
+        // Every way in is a Twin door, and only those: a dead end's one, or a few.
+        const doors = floor.doors.filter((d) => d.a === room!.id || d.b === room!.id);
+        expect(doors.every((d) => d.kind === 'twin')).toBe(true);
+        expect(floor.doors.filter((d) => d.kind === 'twin')).toHaveLength(doors.length);
+        for (const door of doors) expect((door.a === room!.id ? door.clueFromB : door.clueFromA).lie).toBe(false);
+        expect(Math.abs(room!.x - (floor.landing % floor.width)) + Math.abs(room!.y - Math.floor(floor.landing / floor.width))).toBeGreaterThanOrEqual(3);
       }
     }
   });
@@ -158,9 +180,9 @@ describe('the way through', () => {
             queue.push(to);
           }
         }
-        // Everything but the special Rooms themselves and the hidden rooms (behind secret Doors).
-        const hidden = floor.rooms.filter((r) => r.type === 'hidden').length;
-        expect(reached.size).toBe(floor.rooms.length - special.size - hidden);
+        // Everything but the special Rooms themselves, the hidden rooms (behind secret Doors) and the Twin Wardens.
+        const behind = floor.rooms.filter((r) => r.type === 'hidden' || r.type === 'twin').length;
+        expect(reached.size).toBe(floor.rooms.length - special.size - behind);
       }
     }
   });

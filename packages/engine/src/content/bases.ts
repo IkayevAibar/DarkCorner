@@ -30,6 +30,8 @@ export interface GearBase extends BaseCommon {
   ac?: number;
   /** Body armor: how much DEX modifier still counts (Infinity = all of it). */
   maxDex?: number;
+  /** Made only in pairs, never dropped or sold at random: Bond rings, from the Twin Wardens. */
+  paired?: true;
 }
 
 export interface StackBase extends BaseCommon {
@@ -82,6 +84,7 @@ export const BASES: ItemBase[] = [
   gear({ id: 'boots', name: text('Boots', 'Сапоги'), icon: 'boots', slot: 'feet' }),
   gear({ id: 'amulet', name: text('Amulet', 'Амулет'), icon: 'amulet', slot: 'amulet' }),
   gear({ id: 'ring', name: text('Ring', 'Кольцо'), icon: 'ring', slot: 'ring' }),
+  gear({ id: 'bond-ring', name: text('Bond ring', 'Кольцо уз'), icon: 'ring', slot: 'ring', paired: true }),
 
   // Stackables
   stack({ id: 'potion', kind: 'potion', name: text('Healing potion', 'Зелье лечения'), icon: 'potion', maxStack: 10 }),
@@ -109,7 +112,8 @@ export function baseById(id: string): ItemBase {
   return base;
 }
 
-export const GEAR_BASES = BASES.filter((b): b is GearBase => b.kind === 'gear');
+/** Gear that drops, sells and is made at random: everything but the paired Bond rings. */
+export const GEAR_BASES = BASES.filter((b): b is GearBase => b.kind === 'gear' && !b.paired);
 
 export const isGear = (base: ItemBase): base is GearBase => base.kind === 'gear';
 
