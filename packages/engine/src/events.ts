@@ -1,3 +1,4 @@
+import { type LockPin, lockPinSets } from '@dark/shared';
 import { type CheckResult, check } from './check.js';
 import { rollDice, sum } from './dice.js';
 import { BLESSING_IDS, type BlessingId, type ChestGrade, rollChestGrade, usableBases } from './economy.js';
@@ -137,12 +138,51 @@ export function cacheContents(rng: Rng, floor: number, magicFind: number): { tie
 
 // ─── Lockpicking ──────────────────────────────────────────────────────────
 
-/** Until the minigame lands, picking the lock is a DEX Check (Rogues with advantage). */
+/**
+ * The lock (v0): its pins set one by one, each by stopping a sweeping marker in its
+ * sweet spot. Deeper Floors sweep quicker (one sweep there and back takes `slowest` ms
+ * on Floor 1, `fastest` on Floor 10), and each pin a little quicker than the one before.
+ * A miss breaks a pick and the pin sweeps again; out of picks, the lock jams. Rogues get
+ * a wider spot and a spare pick, and each point of DEX modifier widens it a little.
+ * How a tap is judged is part of the contract (lockPinSets), so the screen can say at once.
+ */
+export const LOCK = { pins: 3, picks: 2, roguePicks: 3, slowest: 1400, fastest: 800, quicker: 0.08, width: 0.11, rogueWidth: 1.5, dexWidth: 0.01 };
+
+export interface Lock { pins: LockPin[]; picks: number }
+/** How far a lock got: pins set, picks broken. */
+export type LockProgress = { set: number; broken: number };
+
+const two = (x: number) => Math.round(x * 100) / 100;
+
+export function makeLock(rng: Rng, floor: number, o: { rogue: boolean; dex: number }): Lock {
+  const period = LOCK.slowest - ((LOCK.slowest - LOCK.fastest) * (Math.min(10, Math.max(1, floor)) - 1)) / 9;
+  const width = two(LOCK.width * (o.rogue ? LOCK.rogueWidth : 1) + LOCK.dexWidth * Math.max(0, o.dex));
+  const pins = Array.from({ length: LOCK.pins }, (_, i) => ({
+    period: Math.round(period * (1 - LOCK.quicker * i) * (0.9 + 0.2 * rng.next())),
+    phase: two(rng.next()),
+    center: two(0.2 + 0.6 * rng.next()),
+    width,
+  }));
+  return { pins, picks: o.rogue ? LOCK.roguePicks : LOCK.picks };
+}
+
+/** One tap, `ms` into the next pin's sweep: that pin sets, or a pick breaks. */
+export function tapLock(lock: Lock, at: LockProgress, ms: number): LockProgress {
+  return lockPinSets(lock.pins[at.set]!, ms) ? { set: at.set + 1, broken: at.broken } : { set: at.set, broken: at.broken + 1 };
+}
+
+export const lockOpen = (lock: Lock, at: LockProgress): boolean => at.set >= lock.pins.length;
+export const lockJammed = (lock: Lock, at: LockProgress): boolean => at.broken >= lock.picks;
+
+/** What an opened lock holds: a Chest with the odds of three Floors deeper. */
+export const lockChest = (rng: Rng, floor: number): ChestGrade => rollChestGrade(rng, Math.min(10, floor + 3));
+
+/** For a screen that can't play the lock: a DEX Check (Rogues with advantage). */
 export const LOCKPICK_DC = 14;
 
 export function pickLock(rng: Rng, o: CheckOptions & { floor: number }): { check: CheckResult; chest: ChestGrade | null } {
   const result = roll(rng, LOCKPICK_DC, o);
-  return { check: result, chest: result.success ? rollChestGrade(rng, Math.min(10, o.floor + 3)) : null };
+  return { check: result, chest: result.success ? lockChest(rng, o.floor) : null };
 }
 
 // ─── Fountain ─────────────────────────────────────────────────────────────

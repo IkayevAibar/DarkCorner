@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-lockpicking',
+    date: '2026-10-01',
+    title: t('Pick it yourself', 'Вскройте сами'),
+    items: [
+      t('A tricky lock is now in your hands: tap to stop each pin’s marker in the lit spot. Three pins, two picks (three for a Rogue), and deeper locks are quicker.',
+        'Хитрый замок теперь в ваших руках: нажмите, чтобы остановить метку каждого штифта в подсвеченном месте. Три штифта, две отмычки (у плута три), а замки поглубже быстрее.'),
+    ],
+  },
+  {
     id: '2026-10-01-duo-deeds',
     date: '2026-10-01',
     title: t('Deeds for two', 'Подвиги на двоих'),

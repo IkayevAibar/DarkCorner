@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { type EventKind, type Floor, RIDDLES, createRng, doorsOf, generateLabyrinth, rollGear } from '@dark/engine';
-import { labyrinthResultSchema } from '@dark/shared';
+import { type LockPin, labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
 import { gearData } from '../src/services/items.js';
@@ -176,7 +176,7 @@ describe('Event rooms', () => {
     expect(await prisma.item.count({ where: { heroId, base: 'key-iron' } })).toBe(0);
   });
 
-  it('Lockpicking is a Check that may give a Chest; Rogues get advantage', async () => {
+  it('Lockpicking without the lock on screen is a Check that may give a Chest; Rogues get advantage', async () => {
     await resetDatabase();
     seasonId = (await prisma.season.create({ data: { number: 0, seed: SEED } })).id;
     await makeHero('rogue');
@@ -187,6 +187,48 @@ describe('Event rooms', () => {
     expect(r.checks[0]!.dice.length).toBeGreaterThanOrEqual(2);
     if (r.checks[0]!.success) expect(r.loot[0]!.kind).toBe('chest');
     else expect(r.loot).toHaveLength(0);
+  });
+
+  it('Lockpicking by hand: each tap sets a pin, and the last opens it for a Chest', async () => {
+    const { floor, room } = roomWith('lockpicking');
+    await placeAt(floor.number, room);
+    const shown = (await view()).room!.eventView;
+    if (shown?.kind !== 'lockpicking') throw new Error('no lock');
+    const lock = shown.lock!;
+    expect(lock).toMatchObject({ picks: 2, set: 0, broken: 0 });
+    expect(lock.pins).toHaveLength(3);
+    const hit = (p: LockPin) => Math.round(((((p.center / 2 - p.phase) % 1) + 1) % 1) * p.period);
+    for (const [i, pin] of lock.pins.entries()) {
+      const r = await act({ action: 'pick-lock', tap: hit(pin) });
+      if (i < 2) {
+        expect(r.loot).toHaveLength(0);
+        // How far it got stays with the room, so leaving and coming back picks up there.
+        expect((await view()).room!.eventView).toMatchObject({ kind: 'lockpicking', done: false, lock: { set: i + 1, broken: 0 } });
+      } else {
+        expect(r.checks).toHaveLength(0);
+        expect(r.loot[0]!.kind).toBe('chest');
+      }
+    }
+    expect((await view()).room!.eventView).toMatchObject({ kind: 'lockpicking', done: true, lock: null });
+  });
+
+  it('Lockpicking by hand jams once every pick is broken', async () => {
+    await resetDatabase();
+    seasonId = (await prisma.season.create({ data: { number: 0, seed: SEED } })).id;
+    await makeHero('fighter');
+    const { floor, room } = roomWith('lockpicking');
+    await placeAt(floor.number, room);
+    const shown = (await view()).room!.eventView;
+    if (shown?.kind !== 'lockpicking') throw new Error('no lock');
+    // At the far end of its sweep, the marker is nowhere near a spot in the middle of the bar.
+    const far = (p: LockPin) => Math.round(((((1 - p.phase) % 1) + 1) % 1) * p.period) + (p.center > 0.5 ? 0 : p.period / 2);
+    const pin = shown.lock!.pins[0]!;
+    await act({ action: 'pick-lock', tap: far(pin) });
+    expect((await view()).room!.eventView).toMatchObject({ lock: { set: 0, broken: 1 } });
+    const r = await act({ action: 'pick-lock', tap: far(pin) });
+    expect(r.loot).toHaveLength(0);
+    expect(r.notices.map((n) => n.en)).toContain('The lock jams for good.');
+    expect((await view()).room!.eventView).toMatchObject({ done: true, lock: null });
   });
 
   it('only acts in the Event room the Hero stands in', async () => {

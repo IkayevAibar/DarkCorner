@@ -8,6 +8,7 @@ import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { play, type Sound } from '../../sound';
 import type { MessageKey } from '../../i18n/en';
+import { LockPick } from './LockPick';
 
 type Act = (call: () => Promise<LabyrinthResult>) => Promise<void>;
 
@@ -168,8 +169,8 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
         </button>
       )}
 
-      {event.kind === 'lockpicking' && !event.done && (
-        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void send({ action: 'pick-lock' })}>{t('event.lockpicking.try')}</button>
+      {event.kind === 'lockpicking' && !event.done && event.lock && (
+        <LockPick lock={event.lock} busy={busy} onTap={(tap) => void act(() => api.eventAction({ action: 'pick-lock', tap }))} />
       )}
 
       {event.kind === 'fountain' && !event.done && (

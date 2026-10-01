@@ -4,7 +4,7 @@ import {
   ALTAR_TIERS, BLESSING_MS, BLESSINGS, type CheckResult, type ClassId, type EventKind, type Floor, type GearRoll, MERCHANT_BUYS_AT,
   MERCHANT_MARKUP, RACE_DEFS, type RaceId, SUFFIXES, type Tier, abilityModifier, baseById, buybackPrice, cacheContents,
   chestBase, createRng, goblinDice, instantiate, isGear, itemName, merchantWares, monsterById, nextTier, offerAtAltar,
-  pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, TRAP_SHRUG, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
+  type ChestGrade, lockChest, lockJammed, lockOpen, makeLock, pickLock, prayAtShrine, tapLock, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, TRAP_SHRUG, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
   RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
   banishDevil, bloodPrice, devilOffers, pryLid, HOARD_HANDFULS, HOARD_WAKE, SKULLS_SCREAM, doorsOf, grabHoard, listenToSkulls,
   takeChampionGear, bonusPoolOf, charmOf, shopBuyPrice, shopSellPrice,
@@ -31,6 +31,8 @@ interface VisitState {
   sold?: string[];
   /** The Riddling statue: the answer chosen. */
   answered?: number;
+  /** Lockpicking: how far the lock got today. */
+  lock?: { set: number; broken: number };
 }
 
 const seedFor = (season: Season, hero: HeroWithItems, floor: number, room: number, day: number) =>
@@ -55,6 +57,10 @@ async function finish(tx: Tx, visit: EventVisit, hero: HeroWithItems, floor: num
   await trackBounties(tx, hero, { type: 'event' }, out ?? null, now);
   await countDeeds(tx, hero, { events: 1 }, out ?? null);
 }
+
+/** Today's lock in a Lockpicking room, the same for the view and the picking. */
+const lockOf = (hero: HeroWithItems, seed: string, floor: number) =>
+  makeLock(createRng(`${seed}:lock`), floor, { rogue: hero.class === 'rogue', dex: mod(scoresOf(hero).dex) });
 
 /** A fresh seed and its Rng; event rolls are logged with the seed like every roll that matters. */
 function seeded() {
@@ -157,6 +163,8 @@ export async function eventView(tx: Tx, hero: HeroWithItems, season: Season, flo
     case 'locked-cache':
     case 'prisoner':
       return { kind, done, canOpen: hero.class === 'rogue' || stackTotal(hero, 'key-iron') > 0, free: hero.class === 'rogue' };
+    case 'lockpicking':
+      return { kind, done, lock: done ? null : { ...lockOf(hero, seed, floor.number), ...(state.lock ?? { set: 0, broken: 0 }) } };
     case 'riddle': {
       const today = statueRiddle(createRng(seed));
       return {
@@ -385,14 +393,31 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
     case 'lockpicking': {
       if (action.action !== 'pick-lock') throw wrong();
       const { seed: rollSeed, rng } = seeded();
-      const rogue = hero.class === 'rogue';
-      const picked = await withLuck(tx, hero, t('Dexterity at the lock', 'Ловкость у замка'), () => pickLock(rng, {
-        modifier: mod(scoresOf(hero).dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
-      }), out);
-      await finish(tx, visit, hero, floor.number, room, now, undefined, out);
-      await logRoll(tx, hero, rollSeed, { event: kind, success: picked.check.success, chest: picked.chest });
-      if (picked.chest) await dropStack(tx, hero, season, chestBase(picked.chest), 1, out);
-      else out.notices.push(t('The lock jams for good.', 'Замок заклинило намертво.'));
+      let chest: ChestGrade | null;
+      if (action.tap !== undefined) {
+        // Picked by hand, a tap at a time: the taps decide, and the Chest is rolled here.
+        const lock = lockOf(hero, seed, floor.number);
+        const at = tapLock(lock, state.lock ?? { set: 0, broken: 0 }, action.tap);
+        if (!lockOpen(lock, at) && !lockJammed(lock, at)) {
+          await tx.eventVisit.update({ where: { id: visit.id }, data: { state: { ...state, lock: at } as Prisma.InputJsonValue } });
+          return;
+        }
+        chest = lockOpen(lock, at) ? lockChest(rng, floor.number) : null;
+        await logRoll(tx, hero, rollSeed, { event: kind, set: at.set, broken: at.broken, chest });
+        state.lock = at;
+      } else {
+        const rogue = hero.class === 'rogue';
+        const picked = await withLuck(tx, hero, t('Dexterity at the lock', 'Ловкость у замка'), () => pickLock(rng, {
+          modifier: mod(scoresOf(hero).dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        }), out);
+        chest = picked.chest;
+        await logRoll(tx, hero, rollSeed, { event: kind, success: picked.check.success, chest });
+      }
+      await finish(tx, visit, hero, floor.number, room, now, state, out);
+      if (chest) {
+        out.notices.push(t('The last pin clicks home, and the lock gives.', 'Последний штифт встаёт на место, и замок поддаётся.'));
+        await dropStack(tx, hero, season, chestBase(chest), 1, out);
+      } else out.notices.push(t('The lock jams for good.', 'Замок заклинило намертво.'));
       return;
     }
 

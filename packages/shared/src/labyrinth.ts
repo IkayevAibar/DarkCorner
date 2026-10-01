@@ -318,6 +318,34 @@ export const chestContentSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('mimic') }),
 ]);
 
+/**
+ * One pin of a Lockpicking lock: its marker sweeps 0 → 1 → 0 once every `period` ms,
+ * starting `phase` (0–1) of the way through a sweep, and the pin sets when the marker
+ * stops within `center` ± `width` / 2.
+ */
+export const lockPinSchema = z.object({ period: z.number(), phase: z.number(), center: z.number(), width: z.number() });
+export type LockPin = z.infer<typeof lockPinSchema>;
+
+/** Where a pin's marker is (0–1) `ms` after its sweep began: the screen draws it, and the server judges a tap by it. */
+export function lockPinAt(pin: LockPin, ms: number): number {
+  const x = (((ms / pin.period + pin.phase) % 1) + 1) % 1;
+  return 1 - Math.abs(2 * x - 1);
+}
+
+/** A tap counts if the marker was in the spot up to this long before it (ms): the screen and the finger both lag a little (v0). */
+export const LOCK_GRACE_MS = 80;
+
+/** Whether a tap `ms` into a pin's sweep sets it. The screen shows it at once; the server's say is the same. */
+export function lockPinSets(pin: LockPin, ms: number): boolean {
+  for (let back = 0; back <= LOCK_GRACE_MS; back += 10) {
+    if (Math.abs(lockPinAt(pin, Math.max(0, ms - back)) - pin.center) <= pin.width / 2) return true;
+  }
+  return false;
+}
+
+/** The longest a pin may sweep before its tap (ms). */
+export const LOCK_TAP_MAX = 60_000;
+
 /** What an Event room offers this Hero today, and what it has already done there. */
 export const eventViewSchema = z.discriminatedUnion('kind', [
   z.object({
@@ -338,7 +366,17 @@ export const eventViewSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('trapped-corridor'), done: z.boolean() }),
   z.object({ kind: z.literal('cursed-altar'), done: z.boolean() }),
   z.object({ kind: z.literal('locked-cache'), done: z.boolean(), canOpen: z.boolean(), free: z.boolean() }),
-  z.object({ kind: z.literal('lockpicking'), done: z.boolean() }),
+  /**
+   * The lock to pick by hand (null once done): its pins, set in order, how many picks the
+   * Hero has, and how far it got today (`set` pins set, `broken` picks broken).
+   */
+  z.object({
+    kind: z.literal('lockpicking'),
+    done: z.boolean(),
+    lock: z.object({
+      pins: z.array(lockPinSchema), picks: z.number().int(), set: z.number().int(), broken: z.number().int(),
+    }).nullable().default(null),
+  }),
   z.object({ kind: z.literal('fountain'), done: z.boolean() }),
   /** The chains need an Iron key, or a Rogue's hands. */
   z.object({ kind: z.literal('prisoner'), done: z.boolean(), canOpen: z.boolean(), free: z.boolean() }),
@@ -382,7 +420,12 @@ export const eventActionSchema = z.discriminatedUnion('action', [
   z.object({ action: z.literal('sell'), itemId: z.string() }),
   z.object({ action: z.literal('offer'), itemId: z.string() }),
   z.object({ action: z.literal('open') }),
-  z.object({ action: z.literal('pick-lock') }),
+  /**
+   * `tap`: when the tap on the next pin came, in ms from the start of its sweep. It sets
+   * the pin, or misses and breaks a pick (that pin then sweeps again from its start).
+   * Without a tap (a screen that can't play the lock) it is a DEX Check.
+   */
+  z.object({ action: z.literal('pick-lock'), tap: z.number().min(0).max(LOCK_TAP_MAX).optional() }),
   z.object({ action: z.literal('drink') }),
   z.object({ action: z.literal('free') }),
   z.object({ action: z.literal('read') }),

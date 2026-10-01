@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ALTAR_SUCCESS, LOCKPICK_DC, SHRINE_DC, cacheContents, createRng, goblinDice, merchantWares, nextTier, offerAtAltar,
+  ALTAR_SUCCESS, LOCK, LOCKPICK_DC, SHRINE_DC, type Lock, cacheContents, createRng, goblinDice, lockJammed, lockOpen, makeLock, merchantWares, nextTier,
+  offerAtAltar, tapLock,
   pickLock, prayAtShrine, springTrap, threeChests, tierRank, trapDc, drinkFountain, freePrisoner, readTome, searchBones, RIDDLES, statueRiddle,
   cookpotDc, cutWeb, tasteStew, webDc, BARGAIN_GOLD_PRICE, BARGAIN_ITEM_PRICE, banishDc, banishDevil, bloodPrice, devilOffers,
   pryLid, sarcophagusDc, CHAMPION_ODDS, HOARD_WAKE, grabHoard, listenToSkulls, skullsDc, takeChampionGear,
 } from '../src/index.js';
+import { type LockPin, lockPinAt, lockPinSets } from '@dark/shared';
 
 const plain = { modifier: 0, advantage: false, rerollOnes: false };
 
@@ -126,6 +128,53 @@ describe('the Locked cache and Lockpicking', () => {
       const r = pickLock(rng, { ...plain, floor: 3 });
       expect(r.check.dc).toBe(LOCKPICK_DC);
       expect(r.chest !== null).toBe(r.check.success);
+    }
+  });
+
+  it('picked by hand: three pins, each set by stopping its marker in the sweet spot', () => {
+    const lock = makeLock(createRng('hand'), 1, { rogue: false, dex: 0 });
+    expect(lock.pins).toHaveLength(LOCK.pins);
+    expect(lock.picks).toBe(LOCK.picks);
+    expect(makeLock(createRng('hand'), 1, { rogue: false, dex: 0 })).toEqual(lock);
+    // A marker sweeps 0 → 1 → 0 once a period.
+    const pin = { period: 1000, phase: 0, center: 0.5, width: 0.1 };
+    expect(lockPinAt(pin, 0)).toBe(0);
+    expect(lockPinAt(pin, 250)).toBeCloseTo(0.5);
+    expect(lockPinAt(pin, 500)).toBeCloseTo(1);
+    expect(lockPinAt(pin, 1000)).toBeCloseTo(0);
+    expect(lockPinSets(pin, 250)).toBe(true);
+    expect(lockPinSets(pin, 400)).toBe(false);
+    // Just past the spot still counts: the screen and the finger lag a little.
+    expect(lockPinSets(pin, 290)).toBe(true);
+
+    // Taps one at a time, until it opens or jams.
+    const play = (l: Lock, taps: number[]) => {
+      let at = { set: 0, broken: 0 };
+      for (const ms of taps) if (!lockOpen(l, at) && !lockJammed(l, at)) at = tapLock(l, at, ms);
+      return { ...at, open: lockOpen(l, at), jammed: lockJammed(l, at) };
+    };
+
+    const hit = (p: LockPin) => Math.round(((((p.center / 2 - p.phase) % 1) + 1) % 1) * p.period);
+    const perfect = lock.pins.map(hit);
+    expect(play(lock, perfect)).toEqual({ set: 3, broken: 0, open: true, jammed: false });
+    // A miss breaks a pick and the pin sweeps again; out of picks, it jams.
+    // Far from its spot: the end of the sweep away from it.
+    const far = (p: LockPin) => Math.round(((((1 - p.phase) % 1) + 1) % 1) * p.period) + (p.center > 0.5 ? 0 : p.period / 2);
+    expect(play(lock, [perfect[0]!, far(lock.pins[1]!), perfect[1]!, perfect[2]!])).toEqual({ set: 3, broken: 1, open: true, jammed: false });
+    expect(play(lock, [far(lock.pins[0]!), far(lock.pins[0]!), perfect[0]!])).toEqual({ set: 0, broken: 2, open: false, jammed: true });
+    expect(play(lock, [perfect[0]!])).toEqual({ set: 1, broken: 0, open: false, jammed: false });
+  });
+
+  it('sweeps quicker deeper down, and opens wider for Rogues and deft hands', () => {
+    const shallow = makeLock(createRng('depth'), 1, { rogue: false, dex: 0 });
+    const deep = makeLock(createRng('depth'), 10, { rogue: false, dex: 0 });
+    expect(deep.pins[0]!.period).toBeLessThan(shallow.pins[0]!.period);
+    const rogue = makeLock(createRng('depth'), 1, { rogue: true, dex: 3 });
+    expect(rogue.picks).toBe(LOCK.roguePicks);
+    expect(rogue.pins[0]!.width).toBeGreaterThan(shallow.pins[0]!.width * LOCK.rogueWidth);
+    for (const p of [...shallow.pins, ...deep.pins]) {
+      expect(p.center - p.width / 2).toBeGreaterThan(0);
+      expect(p.center + p.width / 2).toBeLessThan(1);
     }
   });
 });
