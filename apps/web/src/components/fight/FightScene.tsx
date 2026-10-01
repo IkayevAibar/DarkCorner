@@ -5,6 +5,7 @@ import { useI18n } from '../../i18n';
 import { roomArt } from '../../screens/labyrinth/roomArt';
 import { BOSS_RING, MONSTER_RING, Token } from '../Token';
 import { describe, displayNames, sound } from './presentation';
+import { TwinRise } from './TwinRise';
 import { dieFor, framesFor } from './replay';
 import { cueDuration, cueFor, Playhead, readSpeed, saveSpeed, sceneTime } from './choreography';
 import { FightLog } from '../../screens/labyrinth/FightLog';
@@ -159,6 +160,7 @@ function Playback({ replay, room, onDone }: FightSceneProps) {
         </header>
         <div className={`fight-board ${replay.ally ? 'fight-duo' : ''}`}>
           <div ref={host} className="fight-canvas" />
+          <TwinRise event={event} names={names} />
           {!ready && <div className="fight-loading" role="status">{t('loading')}</div>}
           {fallback && <div className="fight-fallback">
             <img {...map} className="fight-fallback-map" alt="" />

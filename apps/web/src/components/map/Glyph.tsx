@@ -1,4 +1,5 @@
 import type { MapDoor, MapRoom } from './geometry';
+import { TwinMark } from '../TwinMark';
 
 /** Small ink silhouettes use shape as well as color: readable without a color key. */
 export function Glyph({ type }: { type: MapRoom['type'] }) {
@@ -13,7 +14,7 @@ export function Glyph({ type }: { type: MapRoom['type'] }) {
     case 'treasure': return <><path d="M-11-4 Q0-13 11-4 V9 H-11 Z M-11 0 H11" /><path d="M-2-2 H2 V4 H-2 Z M-7 3 V7 M7 3 V7" /></>;
     case 'vault': return <><path d="M-11-11 H11 V11 H-11 Z M-7-7 H7 V7 H-7 Z" /><circle r="3" /><path d="M0-5 V5 M-5 0 H5" /></>;
     case 'hidden': return <><path d="M-13 0 Q0-15 13 0 Q0 15-13 0 Z" /><path d="M0-6 L4 0 0 6-4 0 Z" /></>;
-    case 'twin': return <><circle cx="-6" cy="-7" r="4" /><circle cx="6" cy="-7" r="4" /><path d="M-12 11 V0 H-1 V11 M1 11 V0 H12 V11" /></>;
+    case 'twin': return <><path d="M-13 14H13M-10 11H10" /><g transform="translate(-12 -14)"><TwinMark /></g></>;
     case 'miniboss': return <><path d="M-8 1 Q-13-12 0-11 Q13-12 8 1 L5 4 V10 H-5 V4 Z" /><path d="M-5-2 H-2 M2-2 H5 M0 4 V10" /></>;
     case 'boss': return <><path d="M-3 11 L-10 2-13-10-5-5 0-13 5-5 13-10 10 2 3 11 Z" /><path d="M-7-1 L-3 1 M3 1 L7-1 M0 4 V9" /></>;
     default: return null;
@@ -23,6 +24,6 @@ export function Glyph({ type }: { type: MapRoom['type'] }) {
 export function DoorGlyph({ kind }: { kind: MapDoor['kind'] }) {
   if (kind === 'locked') return <g className="map-lock"><path d="M-3-1 V-4 A3 3 0 0 1 3-4 V-1" /><path d="M-5-1 H5 V6 H-5 Z" /><path d="M0 1 V4" /></g>;
   if (kind === 'cracked') return <g className="map-crack"><path d="M-5-7 L1-3-2 1 4 7 M1-3 L6-5 M-2 1 L-6 4" /></g>;
-  if (kind === 'twin') return <g className="map-twin"><circle cx="-3.5" r="3" /><circle cx="3.5" r="3" /></g>;
+  if (kind === 'twin') return <g className="map-twin"><circle r="9" /><g transform="translate(-7 -7) scale(.5833)"><TwinMark /></g></g>;
   return null;
 }

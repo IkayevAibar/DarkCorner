@@ -4,6 +4,8 @@
 .fight-progress{font-size:12px;color:#958874;font-variant-numeric:tabular-nums}
 .fight-board{position:relative;aspect-ratio:1;border:1px solid #78613f;overflow:hidden;background:#15120e;box-shadow:0 0 0 1px #000,0 15px 40px #0008}
 .fight-canvas{position:absolute;inset:0}.fight-canvas canvas{display:block}
+.fight-twin-rise{position:absolute;z-index:1;left:3%;right:3%;top:43%;display:grid;gap:3px;padding:5px 6px;text-align:center;color:#f4dfb1;background:linear-gradient(90deg,#151019df,#221d19f5,#151019df);border-block:1px solid #b9a478;box-shadow:0 3px 18px #0008;pointer-events:none;line-height:1.2}
+.fight-twin-rise small{display:flex;justify-content:center;align-items:center;gap:6px;color:#d4bceb;font-size:12px;letter-spacing:.1em;text-transform:uppercase}.fight-twin-rise svg{width:16px;height:16px}.fight-twin-rise strong{font-family:var(--font-head,Georgia,serif);font-size:clamp(16px,4.4vw,22px)}.fight-twin-rise>span{font-size:12px;color:#e0d5c1}
 .fight-loading{position:absolute;inset:0;display:grid;place-items:center;color:#d4c6ae}
 .fight-log{min-height:100px;background:#17130f;border:1px solid #3d3225;border-left:3px solid #8a6d3e;padding:10px 12px;display:grid;align-content:end;gap:3px;font-size:15px;line-height:1.25}
 .fight-log p{margin:0;color:#a99a83}.fight-log p:last-child{color:#e8dcc5}

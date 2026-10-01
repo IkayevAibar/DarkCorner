@@ -1,9 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import { STRIKE_IDS, MONSTER_KINS, type FightEventView } from '@dark/shared';
-import { FIGHTS, REAL_FIGHTS, EXTRA_FIGHTS } from '../../screens/sandbox/fightExamples';
+import { FIGHTS, REAL_FIGHTS, EXTRA_FIGHTS, WARDEN_RISE } from '../../screens/sandbox/fightExamples';
+import { framesFor } from './replay';
 import { cueDuration, cueFor, Playhead, sceneTime } from './choreography';
 
 describe('fight choreography', () => {
+  it.each(['duo-twin-wardens', 'duo-twin-wardens-partner'])('gives the recorded resurrection in %s time to arrive and read', id => {
+    const replay = REAL_FIGHTS[id]!, frames = framesFor(replay);
+    const index = replay.events.findIndex(e => e.type === 'power' && e.power === 'twin');
+    const event = replay.events[index]!;
+    if (event.type !== 'power' || !event.target) throw new Error('Missing Warden resurrection');
+    const cue = cueFor(replay, event, false);
+    expect(cue).toMatchObject({ actor: event.actor, targets: [event.target] });
+    expect(frames[index]!.fighters[event.actor]!.fallen).toBe(false);
+    expect(frames[index]!.fighters[event.target]).toMatchObject({ fallen: true, hp: 0 });
+    expect(frames[index + 1]!.fighters[event.target]).toMatchObject({ fallen: false, hp: event.hp });
+    expect(cue.contact).toBeGreaterThanOrEqual(800);
+    expect((cueDuration(cue) - cue.contact) / 2).toBeGreaterThanOrEqual(1000);
+    expect(cueFor(replay, event, true)).toMatchObject({ contact: 0, hold: 0, slow: 0, length: cue.length });
+  });
+  it('preserves the real fight’s final state in the short live resurrection cut', () => {
+    const original = REAL_FIGHTS['duo-twin-wardens']!;
+    expect(framesFor(WARDEN_RISE).at(-1)!.fighters).toEqual(framesFor(original).at(-1)!.fighters);
+    const start = original.events.findIndex(e => e.type === 'defeated') - 1;
+    expect(WARDEN_RISE.events).toEqual(original.events.slice(start));
+    expect(FIGHTS['duo-twin-wardens']!.events).toBe(original.events);
+    expect(FIGHTS['duo-twin-wardens']!.monsters).not.toBe(original.monsters);
+    expect(FIGHTS['duo-twin-wardens']!.monsters.every(m => m.art?.endsWith('-warden.webp'))).toBe(true);
+  });
   it('has real coverage of all strikes and kin, plus a Hero bow example', () => {
     const fighters = Object.values(REAL_FIGHTS).flatMap(f => [f.hero, ...f.monsters]);
     expect(new Set(fighters.map(f => f.strike))).toEqual(new Set(STRIKE_IDS));

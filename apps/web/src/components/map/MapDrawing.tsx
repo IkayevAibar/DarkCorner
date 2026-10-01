@@ -67,14 +67,14 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
         return <g key={`${key}-${newly ? motion.revision : 'known'}`} className={`map-door map-door-${d.kind}${newly ? ' map-door-new' : ''}`} data-door={key}>
           <path d={`M${p.x} ${p.y} L${q.x} ${q.y}`} className="map-passage-edge" />
           <path d={`M${p.x} ${p.y} L${q.x} ${q.y}`} className="map-passage" />
-          <g transform={`translate(${(p.x + q.x) / 2} ${(p.y + q.y) / 2})`}><DoorGlyph kind={d.kind} /></g>
+          {d.kind !== 'twin' && <g transform={`translate(${(p.x + q.x) / 2} ${(p.y + q.y) / 2})`}><DoorGlyph kind={d.kind} /></g>}
         </g>;
       })}
       {map.rooms.map(r => {
         const p = center(r), exit = exitTo.get(r.id), active = exit?.passable && !disabled;
         const fresh = mini && motion.rooms.has(r.id);
         const roomLabel = r.type ? t(`room.${r.type}`) : t('unknown');
-        const dim = r.cleared && ['fight', 'treasure', 'vault', 'hidden', 'miniboss', 'boss'].includes(r.type ?? '');
+        const dim = r.cleared && ['fight', 'treasure', 'vault', 'hidden', 'miniboss', 'boss', 'twin'].includes(r.type ?? '');
         return <g key={r.id} transform={`translate(${p.x} ${p.y})`} data-room={r.id}>
           <g key={fresh ? motion.revision : 'known'} className={`map-room${r.visited ? ' map-visited' : ''}${r.id === current ? ' map-here' : ''}${active ? ' map-exit' : ''}${fresh ? ' map-uncover' : ''}`}
             style={{ '--reveal-delay': `${motion.rooms.get(r.id) ?? 0}ms` } as CSSProperties}>
@@ -89,6 +89,13 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
             aria-disabled={!active} aria-label={`${t(`dir.${exit.direction}`)} · ${roomLabel}${exit.free ? ` · ${t('free')}` : ''}`}
             onClick={() => move(r.id)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); move(r.id); } }} />}
         </g>;
+      })}
+      {/* The split seal sits over the wall edges so neither half disappears in a narrow passage. */}
+      {map.doors.filter(d => d.kind === 'twin').map(d => {
+        const a = byId.get(d.a), b = byId.get(d.b);
+        if (!a || !b) return null;
+        const p = center(a), q = center(b);
+        return <g key={doorKey(d)} className="map-overlay" transform={`translate(${(p.x + q.x) / 2} ${(p.y + q.y) / 2})`}><DoorGlyph kind="twin" /></g>;
       })}
       {here && <g className={`map-token${mini && motion.slide ? ' map-walking' : ''}`}
         style={{ transform: `translate(${point.x + 13}px, ${point.y - 13}px)` }} data-current={current}>

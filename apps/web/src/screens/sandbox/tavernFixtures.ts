@@ -2,6 +2,7 @@ import { RANKINGS, type BountiesView, type HallEntry, type LodgingView, type Ran
 import { REVEALS } from './lootFixtures';
 const t = (en: string, ru: string) => ({ en, ru });
 const FEED = [
+  ['twin', 'Garrick and Ilyra break the Twin Wardens on Floor 2.', 'Garrick и Ilyra побеждают стражей-близнецов на 2-м этаже.', null],
   ['announcement', 'The Boss gate opens tonight. Leave a light for the next Hero.', 'Врата босса откроются сегодня. Оставьте огонь для следующего героя.', null],
   ['relic', 'Ilyra brings the Eye of the Deep out of the Vault.', 'Ilyra выносит Око глубин из сокровищницы.', 'relic'],
   ['drop', 'Garrick finds the Crown of Ash in the depths.', 'Garrick находит Корону пепла в глубинах.', 'mythic'],
