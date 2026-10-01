@@ -218,6 +218,9 @@ export async function takeTurns(tx: Tx, chest: DuoChest, heroes: Map<string, Her
   const open = taken.size < items.length && nextPicker(order, picks.at(-1)?.heroId ?? null, canCarry) !== null;
   if (!open) {
     await tx.duoChest.delete({ where: { id: chest.id } });
+    // Its last state, for the screen to finish the picks on: once, for each of the two.
+    const last = { ...chest, picks: picks as unknown as Prisma.JsonValue, turnAt: now };
+    for (const [heroId, out] of outs) out.closedChest = { ...chestView(last, heroId, heroes), turn: null };
     const left = items.length - taken.size;
     for (const out of outs.values()) {
       out.notices.push(left > 0

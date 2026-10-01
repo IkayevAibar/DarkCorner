@@ -18,6 +18,7 @@ Both work today with plain stand-ins in `apps/web/src/screens/labyrinth/Trust.ts
 - `POST /api/labyrinth/oath { choice: 'share' | 'take' }` → `LabyrinthResult`. The second oath settles both: the result's `oath` is `{ mine, partner }` (what each swore, from this Player's side; null otherwise), its `notices` say what happened in words and its `loot` holds the gifts. The partner's side, `oath` included, arrives as news on its next look (the web polls every few seconds in a Duo), once.
 - `LabyrinthView.chest: DuoChestView | null`: `items` (`ItemView` and `takenBy`: `me`, `partner` or null), `turn` (`me`, `partner`, or null once neither can carry more), `full` (this Player's Bag is full, so its turns pass) and `deadline`.
 - `POST /api/labyrinth/chest { index }` → `LabyrinthResult`. A pick out of turn is `not_your_pick`; a taken Item is `already_taken`.
+- `LabyrinthResult.closedChest: DuoChestView | null`: when a Duo Chest closes (the last pick, neither Bag able to carry more, or the Duo walking on, going home, reading a portal or ending), its last state with every `takenBy` from this Player's side (null: left behind) and `turn` null. The Player whose action closed it gets it in that result; the other on its next look, once. `view.chest` is null by then.
 - `HeroView.luck.blessing.curse`: the Oathbreaker's curse sits in the Blessing's place.
 - Feed kinds `oath-kept`, `oath-broken`, `oath-cracked`.
 

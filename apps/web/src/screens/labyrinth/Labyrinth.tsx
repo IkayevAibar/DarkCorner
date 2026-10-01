@@ -191,7 +191,7 @@ export function Labyrinth() {
 
 const hasNews = (r: LabyrinthResult) =>
   r.fight !== null || r.loot.length > 0 || r.gold > 0 || r.xp > 0 || r.levelUp !== null || r.died || r.notices.length > 0
-  || r.checks.length > 0 || r.duel !== null || r.run !== null || r.deeds.length > 0 || r.oath !== null;
+  || r.checks.length > 0 || r.duel !== null || r.run !== null || r.deeds.length > 0 || r.oath !== null || r.closedChest !== null;
 
 /** Two results in one report, the newer's fight and view winning. */
 const joinReports = (a: LabyrinthResult, b: LabyrinthResult): LabyrinthResult => ({
@@ -208,6 +208,7 @@ const joinReports = (a: LabyrinthResult, b: LabyrinthResult): LabyrinthResult =>
   run: b.run ?? a.run,
   deeds: [...a.deeds, ...b.deeds],
   oath: b.oath ?? a.oath,
+  closedChest: b.closedChest ?? a.closedChest,
 });
 
 /** Drinks one Healing potion from the Bag, then shows the Labyrinth again. */

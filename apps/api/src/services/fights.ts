@@ -1,5 +1,5 @@
 import type { Hero, HeroFloor, Item, Season } from '@prisma/client';
-import { type Combatant, type FightReplay, type Foe, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
+import { type Combatant, type DuoChestView, type FightReplay, type Foe, type ItemView, type LocalizedText, fightReplaySchema } from '@dark/shared';
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightEvent, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT,
   type MonsterInstance, type PathId, RELIC_CHANCE, type RaceId, type SideResult, type StanceId, type TalentId, type ThreatId, weakeningAt,
@@ -45,6 +45,8 @@ export interface Outcome {
   deeds: DoneDeed[];
   /** An Oathstone settled: what each swore, from this Hero's side. */
   oath: { mine: Oath; partner: Oath } | null;
+  /** A Duo Chest that closed: its last state, from this Hero's side. */
+  closedChest: DuoChestView | null;
 }
 
 export interface DoneDeed { id: string; title: LocalizedText; gold: number }
@@ -65,6 +67,7 @@ export interface CheckOutcome {
 export const emptyOutcome = (): Outcome => ({
   fight: null, loot: [], gold: 0, xp: 0, levelUp: null, died: false, notices: [], checks: [], duel: null, explored: 0, depth: 0, runEnd: null, deeds: [],
   oath: null,
+  closedChest: null,
 });
 
 // ─── What one Hero knows of a Floor ───────────────────────────────────────

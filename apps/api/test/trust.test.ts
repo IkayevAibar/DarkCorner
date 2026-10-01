@@ -147,16 +147,43 @@ describe('Duo Chests', () => {
     const after = await look(first.cookie);
     const taken = after.view.chest?.items.filter((i) => i.takenBy !== null).length ?? chest.items.length;
     expect(taken).toBeGreaterThanOrEqual(2);
+
+    // Pick out the rest in turn. The last pick closes it, and each of the two sees its last state
+    // once, from its own side: the closer in its pick's result, the other on its next look.
+    let closer = after.view.chest ? null : after.closedChest;
+    let firstSaw = after;
+    let picker = first;
+    while (!closer) {
+      firstSaw = await look(first.cookie);
+      const open = firstSaw.view.chest;
+      if (!open) {
+        closer = firstSaw.closedChest;
+        break;
+      }
+      picker = open.turn === 'me' ? first : second;
+      const r = await act(picker.cookie, '/api/labyrinth/chest', { index: open.items.findIndex((x) => x.takenBy === null) });
+      if (!r.view.chest) closer = r.closedChest;
+    }
+    const other = picker === first ? (await look(second.cookie)).closedChest : firstSaw.closedChest ?? (await look(first.cookie)).closedChest;
+    expect(closer!.turn).toBeNull();
+    expect(closer!.items.every((x) => x.takenBy !== null)).toBe(true);
+    expect(other!.items.map((x) => x.takenBy)).toEqual(closer!.items.map((x) => (x.takenBy === 'me' ? 'partner' : 'me')));
   });
 
   it('pick the rest in turn when the Duo walks on', async () => {
-    const { a } = await duoAt(beside);
+    const { a, b } = await duoAt(beside);
     await act(a.cookie, '/api/labyrinth/move', { to: treasure });
     const size = (await look(a.cookie)).view.chest!.items.length;
     const heroes = await prisma.hero.findMany({ include: { items: true } });
     const before = heroes.reduce((n, h) => n + h.items.length, 0);
-    await act(a.cookie, '/api/labyrinth/move', { to: beside });
+    const left = await act(a.cookie, '/api/labyrinth/move', { to: beside });
     expect(await prisma.duoChest.count()).toBe(0);
+    // Walking on picks the rest: its last state comes with the move, and on the partner's next look.
+    expect(left.closedChest?.items).toHaveLength(size);
+    expect(left.closedChest!.items.every((x) => x.takenBy !== null)).toBe(true);
+    const theirs = (await look(b.cookie)).closedChest;
+    expect(theirs!.items.map((x) => x.takenBy)).toEqual(left.closedChest!.items.map((x) => (x.takenBy === 'me' ? 'partner' : 'me')));
+    expect((await look(b.cookie)).closedChest).toBeNull();
     const now = await prisma.item.count({ where: { heroId: { in: heroes.map((h) => h.id) } } });
     expect(now - before).toBe(size);
   });

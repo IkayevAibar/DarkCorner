@@ -618,6 +618,12 @@ export const labyrinthResultSchema = z.object({
    * partner's next look, like the rest of its news): what each swore, from this Player's side.
    */
   oath: z.object({ mine: oathSchema, partner: oathSchema }).nullable().default(null),
+  /**
+   * A Duo Chest that closed, with this Player's pick or its partner's, or as the Duo walked on
+   * (then it comes with the partner's news): its last state, every Item's taker from this
+   * Player's side (null: left behind), and `turn` null. `view.chest` is null by then.
+   */
+  closedChest: duoChestSchema.nullable().default(null),
 });
 export type LabyrinthResult = z.infer<typeof labyrinthResultSchema>;
 

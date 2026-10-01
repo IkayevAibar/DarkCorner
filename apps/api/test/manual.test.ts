@@ -116,7 +116,8 @@ describe('Fights played turn by turn', () => {
     expect(events.slice(0, live.events.length)).toEqual(live.events);
     expect(events.slice(live.events.length).find((e) => e.type === 'attack' && e.actor === 'hero')).toMatchObject({ target });
 
-    const [end] = await playOut(cookie);
+    // That swing may already have felled the last monster (the group is rolled anew for each test's Hero).
+    const [end] = next.fight ? [next] : await playOut(cookie);
     expect(end!.fight?.outcome).toBe('victory');
     expect(end!.xp).toBeGreaterThan(0);
     expect(end!.view.fight).toBeNull();

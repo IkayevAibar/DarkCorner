@@ -501,6 +501,7 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
     run: run ?? news?.run ?? null,
     deeds: shown.deeds,
     oath: shown.oath,
+    closedChest: shown.closedChest,
   };
 }
 
