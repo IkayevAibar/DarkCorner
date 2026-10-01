@@ -1,8 +1,9 @@
 import { type GearBase, GEAR_BASES, baseById, isGear } from './content/bases.js';
 import type { ClassId } from './content/classes.js';
-import { BONUS_COUNT, RADIANT_BOOST, type Tier, tierRank } from './content/loot.js';
+import { abilityModifier } from './abilities.js';
+import { BONUS_COUNT, type Tier, tierRank } from './content/loot.js';
 import { type Text, text } from './content/text.js';
-import { type GearRoll, buybackPrice, rollGear, rollTier } from './items.js';
+import { type GearRoll, type StatGear, buybackPrice, rollGear, rollTier, statTotal } from './items.js';
 import type { Rng } from './rng.js';
 import { canUse } from './stats.js';
 import { type PathId, onPath } from './content/paths.js';
@@ -110,8 +111,15 @@ export const STACK_BUYBACK: Record<string, number> = {
 /** Haggler: Shops pay 10% more and sell for 10% less. */
 export const HAGGLE = 0.1;
 
-export const shopBuyPrice = (price: number, haggler: boolean): number => Math.max(1, Math.round(price * (haggler ? 1 - HAGGLE : 1)));
-export const shopSellPrice = (price: number, haggler: boolean): number => Math.round(price * (haggler ? 1 + HAGGLE : 1));
+/** Charisma (v0): Shops and the Wandering merchant deal this much better per point of Charisma modifier; low Charisma costs nothing. */
+export const CHARM_STEP = 0.04;
+export const charmOf = (cha: number): number => CHARM_STEP * Math.max(0, abilityModifier(cha));
+/** How much better a Hero's Shop deals are: a Haggler's 10% and its Charisma's, added. */
+export const shopDeal = (haggler: boolean, cha: number): number => (haggler ? HAGGLE : 0) + charmOf(cha);
+
+/** A price a Hero pays, and one it is paid, `deal` better (shopDeal, or charmOf at the Wandering merchant). */
+export const shopBuyPrice = (price: number, deal: number): number => Math.max(1, Math.round(price * (1 - deal)));
+export const shopSellPrice = (price: number, deal: number): number => Math.round(price * (1 + deal));
 
 /** What the Shops pay for one Item (a whole stack counts each piece). */
 export function sellValue(item: { base: string; tier: Tier; itemLevel: number; radiant: boolean; quantity: number }): number {
@@ -289,15 +297,13 @@ export const BLESSINGS: Record<BlessingId, BlessingDef> = {
 
 /** Magic find, gold find and meter speed from worn gear, an active Blessing and Relics. */
 export function luckOf(opts: {
-  worn: { bonusStats: { stat: string; value: number }[]; radiant: boolean; uniqueId: string | null }[];
+  worn: (StatGear & { uniqueId: string | null })[];
   blessing: BlessingId | null;
   talents?: readonly TalentId[];
   path?: PathId | null;
   level?: number;
 }): { magicFind: number; goldFind: number; badLuckRate: number } {
-  const sum = (stat: string) => opts.worn.reduce((t, g) => t + g.bonusStats
-    .filter((b) => b.stat === stat)
-    .reduce((s, b) => s + (g.radiant ? Math.round(b.value * RADIANT_BOOST) : b.value), 0), 0);
+  const sum = (stat: 'magicFind' | 'goldFind') => statTotal(opts.worn, stat);
   const blessing = opts.blessing ? BLESSINGS[opts.blessing] : null;
   const crown = opts.worn.some((g) => g.uniqueId === 'first-kings-crown') ? 2 : 1;
   return {

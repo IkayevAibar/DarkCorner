@@ -1,19 +1,21 @@
 import { Prisma, type Hero, type Player, type Season } from '@prisma/client';
 import type { ShopView, TradeResult } from '@dark/shared';
 import {
-  type ClassId, SHOP_BASICS, SHOP_GEAR_MARKUP, buybackPrice, createRng, isGear, baseById, sellValue, shopBuyPrice,
+  type ClassId, SHOP_BASICS, SHOP_GEAR_MARKUP, buybackPrice, createRng, isGear, baseById, sellValue, shopBuyPrice, shopDeal,
   shopSellPrice, shopStock,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
-import { toHeroView } from './heroes.js';
+import { scoresOf, toHeroView } from './heroes.js';
+import type { HeroWithItems } from './ledger.js';
 import { gearData, rollView, stackView } from './items.js';
 import {
   dayNumber, destroyItem, earnGold, giveItem, giveStack, lockHero, ownItem, requireCity, spendGold,
 } from './ledger.js';
 import { currentSeason } from './seasons.js';
 
-const haggler = (hero: Hero) => hero.talents.includes('haggler');
+/** How much better this Hero's Shop deals are: a Haggler's, and its Charisma's. */
+const deal = (hero: HeroWithItems) => shopDeal(hero.talents.includes('haggler'), scoresOf(hero).cha);
 
 /** Today's gear for one Hero: seeded by the day, so it is the same all day and new tomorrow. */
 function todaysStock(season: Season, hero: Hero, day: number) {
@@ -23,7 +25,7 @@ function todaysStock(season: Season, hero: Hero, day: number) {
   });
 }
 
-const stockPrice = (hero: Hero, roll: Parameters<typeof buybackPrice>[0]) => shopBuyPrice(buybackPrice(roll) * SHOP_GEAR_MARKUP, haggler(hero));
+const stockPrice = (hero: HeroWithItems, roll: Parameters<typeof buybackPrice>[0]) => shopBuyPrice(buybackPrice(roll) * SHOP_GEAR_MARKUP, deal(hero));
 
 async function heroView(heroId: string) {
   return toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }));
@@ -38,12 +40,13 @@ export async function shopView(player: Player): Promise<ShopView> {
   const bought = new Set((await prisma.shopPurchase.findMany({ where: { heroId: hero.id, day } })).map((p) => p.offer));
   return {
     basics: SHOP_BASICS.map(({ base, price }) => ({
-      id: base, item: stackView(base, 1), price: shopBuyPrice(price, haggler(hero)), soldOut: false,
+      id: base, item: stackView(base, 1), price: shopBuyPrice(price, deal(hero)), soldOut: false,
     })),
     stock: todaysStock(season, hero, day).map((roll, i) => ({
       id: `stock-${i}`, item: rollView(roll, `stock-${i}`), price: stockPrice(hero, roll), soldOut: bought.has(`stock-${i}`),
     })),
     restocksAt: new Date((day + 1) * 86_400_000).toISOString(),
+    sellRate: 1 + deal(hero),
     hero: toHeroView(hero, now),
   };
 }
@@ -56,7 +59,7 @@ export async function buyFromShop(player: Player, offer: string, quantity: numbe
     requireCity(hero);
     const basic = SHOP_BASICS.find((b) => b.base === offer);
     if (basic) {
-      const price = shopBuyPrice(basic.price, haggler(hero)) * quantity;
+      const price = shopBuyPrice(basic.price, deal(hero)) * quantity;
       await spendGold(tx, hero, price);
       await giveStack(tx, hero, season.id, basic.base, quantity);
       return { heroId: hero.id, spent: price };
@@ -92,7 +95,7 @@ export async function sellToShop(player: Player, itemId: string, quantity?: numb
     if (item.tier === 'relic') throw ApiError.conflict('relic', 'The Shops won’t touch a Relic. Try the Market.');
     const count = isGear(baseById(item.base)) ? 1 : (quantity ?? item.quantity);
     if (count > item.quantity) throw ApiError.badRequest('too_many', 'You don’t have that many');
-    const earned = shopSellPrice(sellValue({ ...item, tier: item.tier as never, quantity: count }), haggler(hero));
+    const earned = shopSellPrice(sellValue({ ...item, tier: item.tier as never, quantity: count }), deal(hero));
     if (count === item.quantity) await destroyItem(tx, hero, item);
     else await tx.item.update({ where: { id: item.id }, data: { quantity: item.quantity - count } });
     await earnGold(tx, hero, earned);

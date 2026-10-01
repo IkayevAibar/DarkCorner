@@ -10,6 +10,7 @@ import {
   type ClassId, type Growth, type GrowthChoice, ORIGIN_TALENTS, PATH_DEFS, PATH_LEVEL, type PathId, type TalentId, createRng, currentStamina, maxHealth,
   pathsOf, pendingGrowth, portraitById, portraitClass, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth, talentArmor, talentOffer,
   validateGrowth, validateHeroChoices, MAX_LEVEL, XP_FOR_LEVEL, type RaceId, levelChoice, levelGains,
+  ABILITIES, type AbilityScores, BONUS_STATS, charmOf, critFromOf, escapeSteps, gearScores, onPath, statTotal,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -51,18 +52,46 @@ export const activeBlessing = (hero: Pick<Hero, 'blessing' | 'blessingUntil'>, n
   hero.blessing && hero.blessingUntil && hero.blessingUntil > now ? (hero.blessing as BlessingId) : null;
 
 /** Magic find, gold find and meter speed from worn gear and the Blessing. */
+/** The Hero's worn gear as far as its Bonus stats go (Radiant and Upgrades count; joined Bond rings only in a Duo's fights). */
+const wornStats = (hero: Hero & { items: Item[] }) => hero.items
+  .filter((i) => i.place === 'WORN')
+  .map((i) => ({ bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant, upgrade: i.upgrade, uniqueId: i.uniqueId }));
+
 export function heroLuck(hero: Hero & { items: Item[] }, now = new Date()) {
-  const worn = hero.items
-    .filter((i) => i.place === 'WORN')
-    .map((i) => ({ bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant, uniqueId: i.uniqueId }));
-  return luckOf({ worn, blessing: activeBlessing(hero, now), talents: hero.talents as TalentId[], path: hero.path as PathId | null, level: hero.level });
+  return luckOf({ worn: wornStats(hero), blessing: activeBlessing(hero, now), talents: hero.talents as TalentId[], path: hero.path as PathId | null, level: hero.level });
 }
 
 /** Full health with the gear the Hero wears: what the City, a Camp's rest and potions fill up to. */
 export function fullHealth(hero: Hero & { items: Item[] }): number {
-  return maxHealth(hero.maxHp, hero.items
-    .filter((i) => i.place === 'WORN')
-    .map((i) => ({ bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant })));
+  return maxHealth(hero.maxHp, wornStats(hero));
+}
+
+const baseScores = (hero: Hero): AbilityScores => ({ str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha });
+
+/** The Hero's ability scores with its worn gear: what every Check rolls with, as fights do. */
+export function scoresOf(hero: Hero & { items: Item[] }): AbilityScores {
+  return gearScores(baseScores(hero), wornStats(hero));
+}
+
+/** What worn gear adds to the Hero, for the Character sheet and the Item cards' explanations. */
+function gearView(hero: Hero & { items: Item[] }): HeroView['gear'] {
+  const base = baseScores(hero);
+  const scores = scoresOf(hero);
+  const worn = wornStats(hero);
+  const stats: HeroView['gear']['stats'] = {};
+  for (const { id } of BONUS_STATS) {
+    if ((ABILITIES as readonly string[]).includes(id)) continue;
+    const total = statTotal(worn, id);
+    if (total !== 0) stats[id] = total;
+  }
+  const champion = onPath({ path: hero.path as PathId | null, level: hero.level }, 'champion');
+  return {
+    abilities: Object.fromEntries(ABILITIES.map((a) => [a, scores[a] - base[a]])) as AbilityScores,
+    stats,
+    critFrom: critFromOf(stats.crit ?? 0, champion),
+    escape: escapeSteps(stats.escape ?? 0),
+    charm: Math.round(charmOf(scores.cha) * 100),
+  };
 }
 
 /** The Hero's portrait art, falling back to the hooded figure if its portrait was removed. */
@@ -88,11 +117,12 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     banner: hero.banner,
     level: hero.level,
     xp: hero.xp,
-    abilities: { str: hero.str, dex: hero.dex, con: hero.con, int: hero.int, wis: hero.wis, cha: hero.cha },
+    abilities: baseScores(hero),
     maxHp: fullHealth(hero),
     hp: Math.min(hero.hp, fullHealth(hero)),
+    gear: gearView(hero),
     armorClass: talentArmor(hero.talents as TalentId[]) + armorClass(
-      hero.dex,
+      scoresOf(hero).dex,
       hero.items
         .filter((i) => i.place === 'WORN')
         .map((i) => ({

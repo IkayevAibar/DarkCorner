@@ -582,9 +582,14 @@ Later: the shell game (a goblin hides a gem under one of three cups) and more mi
   - Common has 0, Uncommon 1, Rare 2, Epic 3, Legendary 4, Mythic 5.
   - They come from a pool of about 15 kinds: ability scores, max health, armor, damage %, critical chance, spell power, healing, escape chance, gold find, magic find, resistances and life steal.
   - Each is rolled within a range that grows with item level and Tier *(v0)*. Ability scores, armor and life steal are the exception: the first two live on the d20, where every point counts, and life steal stacked across a whole kit makes a Hero nothing can wear down, so they grow with Tier only, one point more at Epic and another at Relic.
+  - **What each one does** (the card explains every line when it is tapped, and the Character sheet adds up the gear):
+    - **Ability scores** count wherever the score is used: fights and every Check (event rooms, spotting secret Doors, seeing through lying Clues). Every 2 points of a score are +1 to its rolls. Constitution on gear adds no health ("+max health" does; levels use the Hero's own Constitution).
+    - **Charisma** gets better prices: the Shops and the Wandering merchant pay more and charge less, 4% for each point of Charisma modifier *(v0)*. A low Charisma costs nothing.
+    - **Critical chance** and **escape chance** add up across everything worn and count in steps: every full 5% of critical chance lets one more face of the d20 crit (19–20 at 5%, 18–20 at 10%, the most; a Champion one lower), and every full 5% of escape chance is +1 to Sneak Checks and Escape rolls.
+    - **Damage** raises every hit, weapon or spell; **spell power** raises spells, Burst of fire included; **healing** raises potions and Cure wounds; **life steal** heals for a share of each hit; **gold find** and **magic find** raise gold and the odds of Rare and better drops; **armor** and **max health** add to Armor Class and full health.
 - **Unique power:** Legendary and Mythic Items also carry a named unique power.
 - **Radiant:** 1 in 200 Items of any Tier *(v0)*. It glows and gets +10% to all its numbers.
-- **Upgrade level:** from +0 to +10. Each level adds +4% base damage or armor *(v0)*.
+- **Upgrade level:** from +0 to +10 *(v0)*. Each level adds 4% to base damage and body armor, and 5% to its percentage and max-health Bonus stats. At +5 and again at +10, each of its ability, armor and life-steal Bonus stats gains +1, and so does a helm's or shield's armor. So every Item gains from the Forge, though a small number grows only every few levels. The Forge shows what the next level changes.
 - **Trading:** everything can be traded, including Relics and worn gear.
 - **The card says what it does:** gear shows its slot, its damage (dice, the range after Quality, Upgrades and Radiant, and the damage type) or its Armor Class, which Classes may wear it, and how it compares with what the Hero wears in that slot. A Wizard's or Cleric's card notes that spells ignore weapon dice. Stackables say what using one does: a potion's healing, a Chest's odds, what a Material pays for at the Forge.
 
@@ -640,7 +645,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
 
 ### The Forge
 
-- **Upgrade:** the chance of success at each step *(v0)*:
+- **Upgrade:** what a level gives is under "What an item is made of" (Upgrade level). The chance of success at each step *(v0)*:
 
   | +1 | +2 | +3 | +4 | +5 | +6 | +7 | +8 | +9 | +10 |
   |---|---|---|---|---|---|---|---|---|---|
@@ -674,7 +679,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - base price: Common 5, Uncommon 15, Rare 60, Epic 250, Legendary 1,200, Mythic 6,000 gold
   - multiplied by (1 + item level ÷ 10)
 
-  The price is kept low on purpose, so the Market is always the better place to sell, yet loot is never worthless. Stackables have their own small Buyback prices (a potion 6, an Iron key 12, Scrap 2…). Haggler: Shops pay 10% more and sell for 10% less.
+  The price is kept low on purpose, so the Market is always the better place to sell, yet loot is never worthless. Stackables have their own small Buyback prices (a potion 6, an Iron key 12, Scrap 2…). Haggler: Shops pay 10% more and sell for 10% less. Charisma adds 4% each way for each point of its modifier, at the Shops and with the Wandering merchant *(v0)*.
 - **Shops** *(v0)*: potions 25 gold, Scrolls of Identify 20, Town Portal 50, Protection 200, Fire bombs 40, Smoke bombs 30, Keys 50 / 250 / 1,000. Plus a stock of 4 Common and 2 Uncommon pieces a day, chosen for the Hero's Class and depth, at 4 times their Buyback price; each sells once per Hero per day. Shops, the Forge, the Market and the Temple only work in the City.
 - **Market:** list an Item (a whole stack) at your price for up to 7 days *(v0)*. Anyone can buy it at any time. The seller receives the price minus a 5% tax, even while away in the Labyrinth. Up to 20 listings per Player; expired ones wait for the seller to take them back.
 - **Blessings** *(v0)*: the Temple sells Blessing of Fortune (+25% magic find, 150 gold), of Greed (+50% gold find, 100 gold) and of Providence (the Bad-luck meter fills twice as fast, 200 gold). A Blessing lasts 3 hours and a new one replaces the old; Shrines give them for free.

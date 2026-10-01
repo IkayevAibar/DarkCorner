@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ABILITY_IDS, type ClassId, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
 import { api } from '../../api';
 import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { type InfoId, PERCENT_STATS, critRange, useStatInfo } from '../../components/items/StatInfo';
 import { LevelUp } from './LevelUp';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
@@ -62,6 +63,8 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
       body: <RetireConfirm name={hero.name} onDone={() => { closeSheet(); onChanged(); }} />,
     });
 
+  const explain = useStatInfo(hero);
+  const explainSheet = (id: InfoId, title: string) => openSheet({ title, body: <p className="m-0">{explain(id)}</p> });
   return (
     <section className="grid gap-4">
       <article className="panel grid gap-4 p-3.5">
@@ -106,15 +109,28 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
         <div className="grid gap-2">
           <span className="sub-heading">{t('hero.abilities')}</span>
           <div className="grid grid-cols-6 gap-1.5">
-            {ABILITY_IDS.map((a) => (
-              <div key={a} className="grid justify-items-center gap-px rounded-[2px] border border-bone/25 py-1.5">
-                <span className="text-[11px] font-bold tracking-wide text-muted">{t(`ability.${a}`)}</span>
-                <span className="font-head text-[22px] leading-none font-extrabold">{hero.abilities[a]}</span>
-                <span className="text-xs text-muted">{modifier(hero.abilities[a])}</span>
-              </div>
-            ))}
+            {ABILITY_IDS.map((a) => {
+              // The score as fights and Checks roll it: the Hero's own plus what its gear adds.
+              const gear = hero.gear.abilities[a];
+              const total = hero.abilities[a] + gear;
+              return (
+                <button
+                  key={a}
+                  type="button"
+                  className="grid justify-items-center gap-px rounded-[2px] border border-bone/25 bg-transparent px-0 py-1.5 font-[inherit] text-[inherit]"
+                  onClick={() => explainSheet(a, t(`abilityName.${a}`))}
+                >
+                  <span className="text-[11px] font-bold tracking-wide text-muted">{t(`ability.${a}`)}</span>
+                  <span className="font-head text-[22px] leading-none font-extrabold">{total}</span>
+                  <span className="text-xs text-muted">{modifier(total)}</span>
+                  {gear !== 0 && <span className="text-[10px] leading-none text-tier-uncommon">{t('hero.gearAbility', { n: gear > 0 ? `+${gear}` : `${gear}` })}</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        <GearTotals hero={hero} onExplain={explainSheet} />
 
         <div className="grid gap-2">
           <span className="sub-heading">{t('hero.talents')}</span>
@@ -301,6 +317,44 @@ function RetireConfirm({ name, onDone }: { name: string; onDone: () => void }) {
         {t('hero.retireYes')}
       </button>
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+    </div>
+  );
+}
+
+/** What the Hero's worn gear adds up to, by kind: each line explains itself. */
+function GearTotals({ hero, onExplain }: { hero: HeroView; onExplain: (id: InfoId, title: string) => void }) {
+  const { t } = useI18n();
+  const entries = (Object.entries(hero.gear.stats) as [InfoId & keyof HeroView['gear']['stats'], number][]).filter(([, n]) => n !== 0);
+  const signed = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  return (
+    <div className="grid gap-2">
+      <span className="sub-heading">{t('hero.fromGear')}</span>
+      {entries.length === 0 && hero.gear.charm === 0 ? (
+        <p className="m-0 text-sm text-muted">{t('hero.gearNone')}</p>
+      ) : (
+        <ul className="m-0 grid list-none gap-1 p-0 text-[15px]">
+          {entries.map(([id, n]) => (
+            <li key={id}>
+              <button type="button" className="flex w-full items-baseline gap-1.5 border-0 bg-transparent p-0 text-left font-[inherit] text-[inherit]" onClick={() => onExplain(id, t(`statName.${id}`))}>
+                <span className="flex-1">
+                  {t(`statName.${id}`)} {signed(n)}{PERCENT_STATS.includes(id) ? '%' : ''}
+                  {id === 'crit' && <span className="text-muted"> · {t('gear.critNote', { range: critRange(t, hero.gear.critFrom) })}</span>}
+                  {id === 'escape' && <span className="text-muted"> · {t('gear.escapeNote', { m: hero.gear.escape })}</span>}
+                </span>
+                <span aria-hidden="true" className="text-xs text-muted">ⓘ</span>
+              </button>
+            </li>
+          ))}
+          {hero.gear.charm > 0 && (
+            <li>
+              <button type="button" className="flex w-full items-baseline gap-1.5 border-0 bg-transparent p-0 text-left font-[inherit] text-[inherit]" onClick={() => onExplain('cha', t('abilityName.cha'))}>
+                <span className="flex-1">{t('gear.charm', { n: hero.gear.charm })}</span>
+                <span aria-hidden="true" className="text-xs text-muted">ⓘ</span>
+              </button>
+            </li>
+          )}
+        </ul>
+      )}
     </div>
   );
 }

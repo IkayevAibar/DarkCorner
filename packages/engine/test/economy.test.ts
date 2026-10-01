@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   BAD_LUCK_MAX, CHEST_ODDS, MAX_UPGRADE, RECIPES, REFORGE_COST, SHOP_BASICS, STACK_BUYBACK, UPGRADE_CHANCE, UPGRADE_SAFE_UNTIL,
   baseById, chestGradeOf, createRng, luckOf, marketPayout, rollChestTier, rollDropTier, rollLootTier, rollSalvage,
-  rollUpgrade, salvageRange, sellValue, shopBuyPrice, shopSellPrice, shopStock, tierRank, upgradeCost, dropOdds, canUse,
+  rollUpgrade, salvageRange, sellValue, shopBuyPrice, shopDeal, shopSellPrice, shopStock, tierRank, upgradeCost, dropOdds, canUse,
 } from '../src/index.js';
 
 const tally = <T extends string>(n: number, roll: () => T) => {
@@ -76,9 +76,13 @@ describe('Shops', () => {
   });
 
   it('give a Haggler 10% either way', () => {
-    expect(shopBuyPrice(200, true)).toBe(180);
-    expect(shopSellPrice(200, true)).toBe(220);
-    expect(shopBuyPrice(200, false)).toBe(200);
+    expect(shopBuyPrice(200, shopDeal(true, 10))).toBe(180);
+    expect(shopSellPrice(200, shopDeal(true, 10))).toBe(220);
+    expect(shopBuyPrice(200, shopDeal(false, 10))).toBe(200);
+    // Charisma: 4% a point of its modifier, on top of a Haggler's 10%; low Charisma costs nothing.
+    expect(shopSellPrice(200, shopDeal(false, 14))).toBe(216);
+    expect(shopBuyPrice(200, shopDeal(true, 12))).toBe(172);
+    expect(shopBuyPrice(200, shopDeal(false, 6))).toBe(200);
   });
 
   it('value a stack by the piece', () => {

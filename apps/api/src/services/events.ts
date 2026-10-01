@@ -7,12 +7,12 @@ import {
   pickLock, prayAtShrine, proficiencyBonus, rollGear, sellValue, springTrap, threeChests, TRAP_SHRUG, BLESSING_IDS, type PathId, drinkFountain, freePrisoner, readTome, restUses, searchBones,
   RIDDLES, STATUE_GAZE, STATUE_XP, statueRiddle, COOKPOT_STAMINA, addStamina, currentStamina, cutWeb, tasteStew,
   banishDevil, bloodPrice, devilOffers, pryLid, HOARD_HANDFULS, HOARD_WAKE, SKULLS_SCREAM, doorsOf, grabHoard, listenToSkulls,
-  takeChampionGear, bonusPoolOf,
+  takeChampionGear, bonusPoolOf, charmOf, shopBuyPrice, shopSellPrice,
 } from '@dark/engine';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { type CheckOutcome, type Outcome, fight, heroFloor, markCleared, t } from './fights.js';
-import { fullHealth } from './heroes.js';
+import { fullHealth, scoresOf } from './heroes.js';
 import { gearData, rollView, toItemView } from './items.js';
 import {
   type HeroWithItems, type Tx, dayNumber, destroyItem, earnCarried, giveItem, ownItem, spendCarried, stackTotal, takeStack,
@@ -94,6 +94,8 @@ function checkView(label: LocalizedText, c: CheckResult, rerolled: number | null
 }
 
 const race = (hero: HeroWithItems) => RACE_DEFS[hero.race as RaceId];
+/** The Wandering merchant's price for one of its wares: six times the Buyback price, Charisma's better deal off. */
+const warePrice = (hero: HeroWithItems, roll: GearRoll) => shopBuyPrice(buybackPrice(roll) * MERCHANT_MARKUP, charmOf(scoresOf(hero).cha));
 const mod = (score: number) => abilityModifier(score);
 
 // ─── Entering ─────────────────────────────────────────────────────────────
@@ -108,7 +110,7 @@ export async function enterEvent(tx: Tx, hero: HeroWithItems, season: Season, fl
   const rogue = hero.class === 'rogue';
   const { seed, rng } = seeded();
   const trap = await withLuck(tx, hero, t('Dexterity against the trap', 'Ловкость против ловушки'), () => springTrap(rng, {
-    modifier: mod(hero.dex), advantage: hero.class === 'wizard', rerollOnes: race(hero).rerollOnes, floor: floor.number, disarms: rogue,
+    modifier: mod(scoresOf(hero).dex), advantage: hero.class === 'wizard', rerollOnes: race(hero).rerollOnes, floor: floor.number, disarms: rogue,
   }), out);
   if (rogue) {
     out.notices.push(t('You spot the tripwire and disarm the trap.', 'Вы замечаете растяжку и обезвреживаете ловушку.'));
@@ -148,8 +150,8 @@ export async function eventView(tx: Tx, hero: HeroWithItems, season: Season, flo
       const sold = new Set(state.sold ?? []);
       return {
         kind, done,
-        wares: wares.map((roll, i) => ({ id: `ware-${i}`, item: rollView(roll, `ware-${i}`), price: buybackPrice(roll) * MERCHANT_MARKUP, sold: sold.has(`ware-${i}`) })),
-        buysAt: MERCHANT_BUYS_AT,
+        wares: wares.map((roll, i) => ({ id: `ware-${i}`, item: rollView(roll, `ware-${i}`), price: warePrice(hero, roll), sold: sold.has(`ware-${i}`) })),
+        buysAt: MERCHANT_BUYS_AT * (1 + charmOf(scoresOf(hero).cha)),
       };
     }
     case 'locked-cache':
@@ -248,7 +250,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       const cleric = hero.class === 'cleric';
       const prayer = await withLuck(tx, hero, t('Wisdom at the Shrine', 'Мудрость у святилища'), () => prayAtShrine(rng, {
-        modifier: mod(hero.wis) + (cleric ? proficiencyBonus(hero.level) : 0), advantage: cleric, rerollOnes: race(hero).rerollOnes,
+        modifier: mod(scoresOf(hero).wis) + (cleric ? proficiencyBonus(hero.level) : 0), advantage: cleric, rerollOnes: race(hero).rerollOnes,
         sensesCurses: hero.class === 'wizard',
       }), out);
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
@@ -315,14 +317,14 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         if (!roll) throw ApiError.notFound('no_ware', 'The merchant has no such thing');
         const sold = state.sold ?? [];
         if (sold.includes(action.ware)) throw ApiError.conflict('sold_out', 'Already sold');
-        await spendCarried(tx, hero, buybackPrice(roll) * MERCHANT_MARKUP);
+        await spendCarried(tx, hero, warePrice(hero, roll));
         const bought = await giveItem(tx, hero, { ...gearData(roll, `${seed}#${index}`), seasonId: season.id });
         out.loot.push(toItemView(bought));
         await tx.eventVisit.update({ where: { id: visit.id }, data: { state: { ...state, sold: [...sold, action.ware] } as Prisma.InputJsonValue } });
       } else if (action.action === 'sell') {
         const item = ownItem(hero, action.itemId, ['BAG']);
         if (item.tier === 'relic') throw ApiError.conflict('relic', 'Even the merchant won’t touch a Relic');
-        const price = sellValue({ ...item, tier: item.tier as Tier }) * MERCHANT_BUYS_AT;
+        const price = shopSellPrice(sellValue({ ...item, tier: item.tier as Tier }) * MERCHANT_BUYS_AT, charmOf(scoresOf(hero).cha));
         await destroyItem(tx, hero, item);
         await earnCarried(tx, hero, price);
         out.gold += price;
@@ -385,7 +387,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       const rogue = hero.class === 'rogue';
       const picked = await withLuck(tx, hero, t('Dexterity at the lock', 'Ловкость у замка'), () => pickLock(rng, {
-        modifier: mod(hero.dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        modifier: mod(scoresOf(hero).dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
       }), out);
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       await logRoll(tx, hero, rollSeed, { event: kind, success: picked.check.success, chest: picked.chest });
@@ -450,7 +452,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       const wizard = hero.class === 'wizard';
       const tome = await withLuck(tx, hero, t('Intelligence over the tome', 'Интеллект над фолиантом'), () => readTome(rng, {
-        modifier: mod(hero.int) + (wizard ? proficiencyBonus(hero.level) : 0), advantage: wizard, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        modifier: mod(scoresOf(hero).int) + (wizard ? proficiencyBonus(hero.level) : 0), advantage: wizard, rerollOnes: race(hero).rerollOnes, floor: floor.number,
       }), out);
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       await logRoll(tx, hero, rollSeed, { event: kind, xp: tome.xp, curse: tome.curse });
@@ -529,7 +531,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       // A Dwarf's stomach has seen worse.
       const stew = await withLuck(tx, hero, t('Constitution against the stew', 'Телосложение против похлёбки'), () => tasteStew(rng, {
-        modifier: mod(hero.con), advantage: hero.race === 'dwarf', rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        modifier: mod(scoresOf(hero).con), advantage: hero.race === 'dwarf', rerollOnes: race(hero).rerollOnes, floor: floor.number,
       }), out);
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       await logRoll(tx, hero, rollSeed, { event: kind, good: stew.good });
@@ -557,7 +559,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       const rogue = hero.class === 'rogue';
       const cut = await withLuck(tx, hero, t('Dexterity against the web', 'Ловкость против паутины'), () => cutWeb(rng, {
-        modifier: mod(hero.dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        modifier: mod(scoresOf(hero).dex) + (rogue ? proficiencyBonus(hero.level) : 0), advantage: rogue, rerollOnes: race(hero).rerollOnes, floor: floor.number,
       }), out);
       await logRoll(tx, hero, rollSeed, { event: kind, success: cut.check.success, gold: cut.gold, tier: cut.tier });
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
@@ -581,7 +583,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       const fighter = hero.class === 'fighter';
       const lid = await withLuck(tx, hero, t('Strength against the lid', 'Сила против крышки'), () => pryLid(rng, {
-        modifier: mod(hero.str) + (fighter ? proficiencyBonus(hero.level) : 0), advantage: fighter, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        modifier: mod(scoresOf(hero).str) + (fighter ? proficiencyBonus(hero.level) : 0), advantage: fighter, rerollOnes: race(hero).rerollOnes, floor: floor.number,
       }), out);
       await logRoll(tx, hero, rollSeed, { event: kind, success: lid.check.success, gold: lid.gold, tier: lid.tier });
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
@@ -606,7 +608,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         const { seed: rollSeed, rng } = seeded();
         const cleric = hero.class === 'cleric';
         const rite = await withLuck(tx, hero, t('Wisdom against the devil', 'Мудрость против дьявола'), () => banishDevil(rng, {
-          modifier: mod(hero.wis) + (cleric ? proficiencyBonus(hero.level) : 0), advantage: cleric, rerollOnes: race(hero).rerollOnes, floor: floor.number,
+          modifier: mod(scoresOf(hero).wis) + (cleric ? proficiencyBonus(hero.level) : 0), advantage: cleric, rerollOnes: race(hero).rerollOnes, floor: floor.number,
         }), out);
         await logRoll(tx, hero, rollSeed, { event: kind, banished: rite.check.success });
         await finish(tx, visit, hero, floor.number, room, now, undefined, out);
@@ -653,7 +655,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       const { seed: rollSeed, rng } = seeded();
       // Keen Elven ears catch more of the whispers.
       const skulls = await withLuck(tx, hero, t('Wisdom among the whispers', 'Мудрость среди шёпота'), () => listenToSkulls(rng, {
-        modifier: mod(hero.wis), advantage: hero.race === 'elf', rerollOnes: race(hero).rerollOnes, floor: floor.number,
+        modifier: mod(scoresOf(hero).wis), advantage: hero.race === 'elf', rerollOnes: race(hero).rerollOnes, floor: floor.number,
       }), out);
       await finish(tx, visit, hero, floor.number, room, now, undefined, out);
       await logRoll(tx, hero, rollSeed, { event: kind, success: skulls.check.success });

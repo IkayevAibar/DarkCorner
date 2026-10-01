@@ -2,7 +2,7 @@ import { abilityModifier } from './abilities.js';
 import { type GearBase, baseById, isGear } from './content/bases.js';
 import { CLASSES, CLASS_DEFS, type ClassId } from './content/classes.js';
 import { RADIANT_BOOST } from './content/loot.js';
-import { qualityFactor } from './items.js';
+import { type StatGear, qualityFactor, statTotal, upgradeSteps } from './items.js';
 
 /** Whether a Class has the Proficiency for a piece of gear (docs/design.md → Proficiencies). */
 export function canUse(cls: ClassId, base: GearBase): boolean {
@@ -16,12 +16,10 @@ export function canUse(cls: ClassId, base: GearBase): boolean {
 /** Each Forge Upgrade level adds 4% to base damage or armor (v0). */
 export const UPGRADE_STEP = 0.04;
 
-export interface WornGear {
+export interface WornGear extends StatGear {
   base: string;
   quality: number | null;
   upgrade: number;
-  radiant: boolean;
-  bonusStats: { stat: string; value: number }[];
 }
 
 type Scaling = Pick<WornGear, 'quality' | 'upgrade' | 'radiant'>;
@@ -64,7 +62,7 @@ export function gearFacts(base: GearBase, gear: Scaling): GearFacts {
     armor: base.ac === undefined ? null
       : base.slot === 'body'
         ? { ac: 10 + scaledArmor(base, gear, 10), body: true, maxDex: base.maxDex === undefined || base.maxDex === Infinity ? null : base.maxDex }
-        : { ac: Math.max(1, scaledArmor(base, gear, 0)), body: false, maxDex: null },
+        : { ac: Math.max(1, scaledArmor(base, gear, 0)) + upgradeSteps(gear.upgrade), body: false, maxDex: null },
     heavy: base.slot === 'body' && base.armor === 'heavy',
   };
 }
@@ -72,7 +70,8 @@ export function gearFacts(base: GearBase, gear: Scaling): GearFacts {
 /**
  * Armor Class, SRD-style: body armor's base (or 10 unarmored) plus as much DEX as
  * the armor allows, plus shield and helm, plus "+N armor" Bonus stats.
- * Quality and Upgrades scale only the part of body armor above 10.
+ * Quality and Upgrades scale only the part of body armor above 10; a helm's or
+ * shield's armor gains +1 at each Upgrade milestone instead.
  */
 export function armorClass(dexScore: number, worn: WornGear[]): number {
   const dex = abilityModifier(dexScore);
@@ -87,10 +86,7 @@ export function armorClass(dexScore: number, worn: WornGear[]): number {
   for (const gear of worn) {
     const base = baseById(gear.base);
     if (!isGear(base)) continue;
-    if (base.slot !== 'body' && base.ac !== undefined) ac += Math.max(1, scaledArmor(base, gear, 0));
-    for (const bonus of gear.bonusStats) {
-      if (bonus.stat === 'armor') ac += gear.radiant ? Math.round(bonus.value * RADIANT_BOOST) : bonus.value;
-    }
+    if (base.slot !== 'body' && base.ac !== undefined) ac += Math.max(1, scaledArmor(base, gear, 0)) + upgradeSteps(gear.upgrade);
   }
-  return ac;
+  return ac + statTotal(worn, 'armor');
 }

@@ -159,9 +159,42 @@ export function rollBondRings(rng: Rng, floor: number): [GearRoll, GearRoll] {
 /** Bond rings (v0): while the two Heroes of a Duo each wear a half of one pair, each half's Bonus stats count this many times in their fights. */
 export const BOND_FACTOR = 2;
 
-/** A worn piece's Bonus stats as they count in a fight: a joined Bond ring's, BOND_FACTOR times. */
-export const bondedStats = (stats: GearRoll['bonusStats'], joined: boolean): GearRoll['bonusStats'] =>
-  (joined ? stats.map((b) => ({ ...b, value: b.value * BOND_FACTOR })) : stats);
+/**
+ * Forge Upgrades and Bonus stats (v0): every level adds this share to a piece's percentage
+ * and max-health Bonus stats, and at each milestone level its d20 ones (abilities, armor,
+ * life steal) gain +1, as does a helm's or shield's armor.
+ */
+export const UPGRADE_BONUS_STEP = 0.05;
+export const UPGRADE_MILESTONES = [5, 10] as const;
+/** The +1s an Upgrade level has reached. */
+export const upgradeSteps = (upgrade: number): number => UPGRADE_MILESTONES.filter((level) => upgrade >= level).length;
+
+/** A piece of gear as far as its Bonus stats go. */
+export interface StatGear {
+  bonusStats: { stat: string; value: number }[];
+  radiant: boolean;
+  upgrade?: number;
+  /** A Bond ring whose other half the Hero's Duo partner wears. */
+  joined?: boolean;
+}
+
+/**
+ * A piece's Bonus stats as they count everywhere (fights, Checks, health, luck, prices):
+ * Radiant's +10%, then its Upgrades, and twice over for a joined Bond ring.
+ */
+export function effectiveStats(gear: StatGear): { stat: BonusStatId; value: number }[] {
+  const upgrade = gear.upgrade ?? 0;
+  return gear.bonusStats.map(({ stat, value }) => {
+    const id = stat as BonusStatId;
+    const shown = gear.radiant ? Math.round(value * RADIANT_BOOST) : value;
+    const grown = D20_STATS.includes(id) ? shown + upgradeSteps(upgrade) : Math.round(shown * (1 + UPGRADE_BONUS_STEP * upgrade));
+    return { stat: id, value: grown * (gear.joined ? BOND_FACTOR : 1) };
+  });
+}
+
+/** One Bonus stat's total across a set of worn gear. */
+export const statTotal = (worn: readonly StatGear[], stat: BonusStatId): number =>
+  worn.reduce((total, gear) => total + effectiveStats(gear).filter((b) => b.stat === stat).reduce((s, b) => s + b.value, 0), 0);
 
 /** Quality 1–100 → 85%–115% of the base damage or armor. */
 export const qualityFactor = (quality: number): number => 0.85 + (0.3 * (quality - 1)) / 99;
@@ -174,12 +207,11 @@ export function itemName(roll: Pick<GearRoll, 'base' | 'suffix' | 'uniqueId'>): 
   return { en: `${base.en} ${suffix.en}`, ru: `${base.ru} ${suffix.ru}` };
 }
 
-/** The Bonus stat lines as players read them, Radiant boost included. */
-export function bonusLines(roll: Pick<GearRoll, 'bonusStats' | 'radiant'>): Text[] {
-  return roll.bonusStats.map(({ stat, value }) => {
+/** The Bonus stat lines as players read them, Radiant and Upgrades included. */
+export function bonusLines(roll: Pick<GearRoll, 'bonusStats' | 'radiant'> & { upgrade?: number }): Text[] {
+  return effectiveStats(roll).map(({ stat, value }) => {
     const def = BONUS_STATS.find((d) => d.id === stat)!;
-    const shown = roll.radiant ? Math.round(value * RADIANT_BOOST) : value;
-    return { en: def.label.en.replace('{n}', String(shown)), ru: def.label.ru.replace('{n}', String(shown)) };
+    return { en: def.label.en.replace('{n}', String(value)), ru: def.label.ru.replace('{n}', String(value)) };
   });
 }
 

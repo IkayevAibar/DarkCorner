@@ -1,9 +1,14 @@
+import type { ReactNode } from 'react';
 import type { GearFactsView, HeroView, ItemView, LocalizedText } from '@dark/shared';
 import { api } from '../../api';
 import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
 import { useLoad } from '../useLoad';
 import { ICON_VIEWBOX, iconPath } from './icons';
+import { type InfoId, InfoLine, useOpenLine, useStatInfo } from './StatInfo';
+
+/** Makes a line explain itself when tapped (one at a time on a card); `null` leaves lines plain. */
+type Explain = ((key: string, info: InfoId, line: ReactNode) => ReactNode) | null;
 
 /** Comparison colors: muted, so Tier colors stay the brightest thing on screen. */
 const BETTER = '#9cc48a';
@@ -62,7 +67,7 @@ export function ItemChip({ item, size = 62, onClick }: { item: ItemView; size?: 
   );
 }
 
-/** The full Item: stand-in for Codex's ItemCard, shown in the bottom sheet. */
+/** The full Item: stand-in for Codex's ItemCard, shown in the bottom sheet. Its lines explain themselves when tapped. */
 export function ItemDetails({ item, revealStep = Infinity }: { item: ItemView; revealStep?: number }) {
   const { t } = useI18n();
   const text = useText();
@@ -74,19 +79,25 @@ export function ItemDetails({ item, revealStep = Infinity }: { item: ItemView; r
   const barred = hero !== null && item.gear?.classes != null && !item.gear.classes.includes(hero.class);
   const finalStep = 3 + (item.bonusStats?.length ?? 0) + Number(item.power !== null);
   const reveal = (step: number) => ({ className: 'reveal-line', 'data-hidden': revealStep < step || undefined, 'aria-hidden': revealStep < step || undefined });
+  const lines = useOpenLine();
+  const about = useStatInfo(hero);
+  const known = item.kind === 'gear' && item.identified;
+  const explain: Explain = (key, info, line) => (
+    <InfoLine info={about(info)} open={lines.isOpen(key)} onToggle={() => lines.toggle(key)}>{line}</InfoLine>
+  );
   return (
     <div className="grid gap-3">
       <div className="flex items-center gap-3">
         <ItemChip item={item} size={84} />
-        <div className="grid min-w-0 gap-0.5">
+        <div className="grid min-w-0 flex-1 gap-0.5">
           <span className="font-head text-xl leading-tight font-extrabold" style={{ color }}>
             {text(item.name)}
             {item.upgrade > 0 && ` +${item.upgrade}`}
           </span>
-          <span className="text-sm text-muted">
-            {item.kind === 'gear' ? `${t(`tier.${item.tier}`)} · ${t('item.level', { n: item.itemLevel })}` : t('item.quantity', { n: item.quantity })}
-          </span>
-          {item.radiant && <span {...reveal(finalStep)}><span className="text-sm font-bold text-gold">{t('item.radiant')}</span></span>}
+          {item.kind === 'gear'
+            ? explain('level', 'level', <span className="text-sm text-muted">{`${t(`tier.${item.tier}`)} · ${t('item.level', { n: item.itemLevel })}`}</span>)
+            : <span className="text-sm text-muted">{t('item.quantity', { n: item.quantity })}</span>}
+          {item.radiant && <span {...reveal(finalStep)}>{explain('radiant', 'radiant', <span className="text-sm font-bold text-gold">{t('item.radiant')}</span>)}</span>}
         </div>
       </div>
       {item.kind === 'gear' && !item.identified && (
@@ -94,12 +105,14 @@ export function ItemDetails({ item, revealStep = Infinity }: { item: ItemView; r
           <strong className="text-bone not-italic">{t('item.unidentified')}.</strong> {t('item.unidentifiedHint')}
         </p>
       )}
-      {item.gear && <div {...reveal(finalStep)}><GearFacts gear={item.gear} hero={hero} barred={barred} /></div>}
+      {item.gear && <div {...reveal(finalStep)}><GearFacts gear={item.gear} hero={hero} barred={barred} explain={explain} /></div>}
       {item.about && <div {...reveal(finalStep)}><p className="m-0 text-[15px]">{text(item.about)}</p></div>}
-      {item.quality !== null && <div {...reveal(2)}><span className="text-sm">{t('item.quality', { n: item.quality })}</span></div>}
+      {item.quality !== null && <div {...reveal(2)}>{explain('quality', 'quality', <span className="text-sm">{t('item.quality', { n: item.quality })}</span>)}</div>}
+      {known && item.upgrade > 0 && <div {...reveal(2)}>{explain('upgrade', 'upgrade', <span className="text-sm">{t('item.upgradeLine', { n: item.upgrade })}</span>)}</div>}
       {item.serial && <div {...reveal(finalStep)}><span className="font-head text-sm font-bold text-gold">{t('item.serial', { n: item.serial.number, m: item.serial.of })}</span></div>}
-      <BonusLines item={item} visible={revealStep - 2} />
+      <BonusLines item={item} visible={revealStep - 2} explain={explain} />
       {item.power && <div {...reveal(3 + (item.bonusStats?.length ?? 0))}><p className="m-0 italic" style={{ color }}>{text(item.power)}</p></div>}
+      {known && <div {...reveal(finalStep)}><p className="m-0 text-xs text-muted">{t('info.hint')}</p></div>}
       {item.gear && hero && !barred && <div {...reveal(finalStep)}><Compare item={item} gear={item.gear} hero={hero} /></div>}
       {item.owners && <div {...reveal(finalStep)}><span className="text-sm text-muted">{t('item.owners', { list: item.owners.join(' → ') })}</span></div>}
       {item.worth > 0 && <div {...reveal(finalStep)}><span className="text-xs text-muted">{t('item.worth', { n: item.worth.toLocaleString() })}</span></div>}
@@ -107,17 +120,25 @@ export function ItemDetails({ item, revealStep = Infinity }: { item: ItemView; r
   );
 }
 
-function BonusLines({ item, muted = false, visible = Infinity }: { item: ItemView; muted?: boolean; visible?: number }) {
+function BonusLines({ item, muted = false, visible = Infinity, explain = null }: { item: ItemView; muted?: boolean; visible?: number; explain?: Explain }) {
   const text = useText();
   if (!item.bonusStats || item.bonusStats.length === 0) return null;
   return (
     <ul className={`m-0 grid list-none gap-1 p-0 ${muted ? 'text-sm text-muted' : 'text-[15px]'}`}>
-      {item.bonusStats.map((line, i) => (
-        <li key={i} className="reveal-line" data-hidden={i >= visible || undefined} aria-hidden={i >= visible || undefined}>
-          <span style={{ color: `var(--color-tier-${item.tier})` }}>◆ </span>
-          {text(line)}
-        </li>
-      ))}
+      {item.bonusStats.map((line, i) => {
+        const shown = (
+          <>
+            <span style={{ color: `var(--color-tier-${item.tier})` }}>◆ </span>
+            {text(line)}
+          </>
+        );
+        const id = item.bonusStatIds?.[i];
+        return (
+          <li key={i} className="reveal-line" data-hidden={i >= visible || undefined} aria-hidden={i >= visible || undefined}>
+            {explain && id ? explain(`bonus-${i}`, id, <span>{shown}</span>) : shown}
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -130,34 +151,37 @@ const modifier = (score: number) => Math.floor((score - 10) / 2);
 const armorFor = (gear: GearFactsView, hero: HeroView) => {
   if (!gear.armor) return null;
   if (!gear.armor.body) return gear.armor.ac;
-  return gear.armor.ac + Math.min(modifier(hero.abilities.dex), gear.armor.maxDex ?? Infinity);
+  return gear.armor.ac + Math.min(modifier(hero.abilities.dex + hero.gear.abilities.dex), gear.armor.maxDex ?? Infinity);
 };
 
 /** What a piece of gear does in a fight: its slot, its weapon or armor numbers, and who may wear it. */
-function GearFacts({ gear, hero, barred }: { gear: GearFactsView; hero: HeroView | null; barred: boolean }) {
+function GearFacts({ gear, hero, barred, explain = null }: { gear: GearFactsView; hero: HeroView | null; barred: boolean; explain?: Explain }) {
   const { t } = useI18n();
   const kind = gear.slot === 'main' ? 'weapon' : gear.slot === 'off' ? 'offhand' : gear.slot === 'body' ? 'armor' : null;
-  const lines: string[] = [];
+  const lines: { line: string; info: InfoId | null }[] = [];
   if (gear.damage) {
     const d = gear.damage;
     const dice = `${d.dice}d${d.sides}${d.percent === 100 ? '' : ` × ${d.percent}%`}`;
-    lines.push(`${t('item.damage', { min: d.min, max: d.max })} (${dice}), ${t(`item.hits.${d.hits}`)}`);
-    if (hero && !casts(hero)) lines.push(t('item.plus', { ability: t(`ability.${attackAbility(gear, hero)}`) }));
+    lines.push({ line: `${t('item.damage', { min: d.min, max: d.max })} (${dice}), ${t(`item.hits.${d.hits}`)}`, info: 'weapon' });
+    if (hero && !casts(hero)) lines.push({ line: t('item.plus', { ability: t(`ability.${attackAbility(gear, hero)}`) }), info: null });
   }
   if (gear.armor) {
     const { ac, body, maxDex } = gear.armor;
-    lines.push(!body ? t('item.armorAdd', { ac }) : maxDex === null ? t('item.armorBody', { ac })
-      : maxDex === 0 ? t('item.armorBodyNoDex', { ac }) : t('item.armorBodyCap', { ac, n: maxDex }));
+    lines.push({
+      line: !body ? t('item.armorAdd', { ac }) : maxDex === null ? t('item.armorBody', { ac })
+        : maxDex === 0 ? t('item.armorBodyNoDex', { ac }) : t('item.armorBodyCap', { ac, n: maxDex }),
+      info: body ? 'bodyArmor' : 'armorPiece',
+    });
   }
-  if (gear.heavy) lines.push(t('item.heavy'));
-  if (!gear.damage && !gear.armor) lines.push(t('item.bonusOnly'));
+  if (gear.heavy) lines.push({ line: t('item.heavy'), info: null });
+  if (!gear.damage && !gear.armor) lines.push({ line: t('item.bonusOnly'), info: null });
   return (
     <div className="grid gap-0.5 text-[15px]">
       <span className="text-sm text-muted">
         {t(`slot.${gear.slot === 'ring' ? 'ring1' : gear.slot}`)}
         {kind && gear.group && ` · ${t(`item.${kind}.${gear.group}` as MessageKey)}`}
       </span>
-      {lines.map((line) => <span key={line}>{line}</span>)}
+      {lines.map(({ line, info }) => (explain && info ? <div key={line}>{explain(info, info, <span>{line}</span>)}</div> : <span key={line}>{line}</span>))}
       {gear.damage && casts(hero) && !barred && <span className="text-sm text-muted">{t('item.casterWeapon')}</span>}
       {gear.classes && (
         <span className="text-sm text-muted">{t('item.classes', { list: gear.classes.map((c) => t(`class.${c}`)).join(', ') })}</span>

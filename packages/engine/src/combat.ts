@@ -3,7 +3,8 @@ import { type CheckInput, check } from './check.js';
 import { type GearBase, baseById, isGear } from './content/bases.js';
 import { CLASS_DEFS, type ClassId } from './content/classes.js';
 import { type ThemeId, themeOf } from './content/floors.js';
-import { RADIANT_BOOST } from './content/loot.js';
+import type { BonusStatId } from './content/loot.js';
+import { type StatGear, statTotal } from './items.js';
 import {
   ELITE_CHANCE, ELITE_HP, ELITES, type EliteId, GILDED_HP, type MonsterDef, type MonsterPower, type MonsterPowerId, MONSTERS, TWIN_WARDENS, WARDENS, monsterById,
 } from './content/monsters.js';
@@ -22,12 +23,10 @@ import { armorClass, gearFactor } from './stats.js';
 
 // ─── The Hero as it fights ────────────────────────────────────────────────
 
-export interface WornForCombat {
+export interface WornForCombat extends StatGear {
   base: string;
   quality: number | null;
   upgrade: number;
-  radiant: boolean;
-  bonusStats: { stat: string; value: number }[];
   uniqueId: string | null;
 }
 
@@ -60,16 +59,24 @@ export interface HeroCombat {
 /** Battle-hardened: +1 AC on top of gear. */
 export const talentArmor = (talents: readonly TalentId[]): number => (talents.includes('battle-hardened') ? 1 : 0);
 
-const bonus = (worn: WornForCombat[], stat: string) =>
-  worn.reduce((total, g) => total + g.bonusStats
-    .filter((b) => b.stat === stat)
-    .reduce((s, b) => s + (g.radiant ? Math.round(b.value * RADIANT_BOOST) : b.value), 0), 0);
-
 /** Full health with gear on: the Hero's own plus its "+N max health" Bonus stats. */
-export const maxHealth = (base: number, worn: Pick<WornForCombat, 'bonusStats' | 'radiant'>[]): number =>
-  base + worn.reduce((total, g) => total + g.bonusStats
-    .filter((b) => b.stat === 'maxHp')
-    .reduce((s, b) => s + (g.radiant ? Math.round(b.value * RADIANT_BOOST) : b.value), 0), 0);
+export const maxHealth = (base: number, worn: readonly StatGear[]): number => base + statTotal(worn, 'maxHp');
+
+/** Ability scores with worn gear: its ability Bonus stats, and the Lich's Phylactery's +2 to each. Fights and Checks both use these. */
+export function gearScores(scores: AbilityScores, worn: readonly (StatGear & { uniqueId: string | null })[]): AbilityScores {
+  const phylactery = worn.some((w) => w.uniqueId === 'phylactery') ? 2 : 0;
+  const out = { ...scores };
+  for (const a of Object.keys(out) as Ability[]) out[a] += statTotal(worn, a) + phylactery;
+  return out;
+}
+
+/** Critical chance counts in steps (v0): every full 5% lets one more face of the d20 crit. */
+export const CRIT_STEP = 5;
+/** The lowest natural d20 that crits: 20 alone, down to 18 (17 for a Champion). */
+export const critFromOf = (critChance: number, champion: boolean): number =>
+  Math.max(18 - Number(champion), 20 - Math.floor(critChance / CRIT_STEP) - Number(champion));
+/** Escape chance counts in steps too: every full 5% is +1 on Sneak and Escape rolls. */
+export const escapeSteps = (escape: number): number => Math.floor(escape / 5);
 
 /**
  * A Healing potion (v0): 2d4 + 2 plus a tenth of the drinker's full health, so it
@@ -85,9 +92,8 @@ export function heroCombat(input: {
   scores: AbilityScores; maxHp: number; hp: number; worn: WornForCombat[];
 }): HeroCombat {
   const uniques = input.worn.map((w) => w.uniqueId).filter((u): u is string => Boolean(u));
-  const phylactery = uniques.includes('phylactery') ? 2 : 0;
-  const scores = { ...input.scores };
-  for (const a of Object.keys(scores) as Ability[]) scores[a] += bonus(input.worn, a) + phylactery;
+  const scores = gearScores(input.scores, input.worn);
+  const bonus = (stat: BonusStatId) => statTotal(input.worn, stat);
 
   const weaponGear = input.worn.find((w) => {
     const b = baseById(w.base);
@@ -114,12 +120,12 @@ export function heroCombat(input: {
     hp: Math.min(input.hp, maxHp),
     ac: armorClass(scores.dex, input.worn) + talentArmor(input.talents),
     weapon,
-    damagePct: bonus(input.worn, 'damage'),
-    critChance: bonus(input.worn, 'crit'),
-    spellPower: bonus(input.worn, 'spellPower'),
-    healing: bonus(input.worn, 'healing'),
-    lifeSteal: bonus(input.worn, 'lifeSteal'),
-    escape: bonus(input.worn, 'escape'),
+    damagePct: bonus('damage'),
+    critChance: bonus('crit'),
+    spellPower: bonus('spellPower'),
+    healing: bonus('healing'),
+    lifeSteal: bonus('lifeSteal'),
+    escape: bonus('escape'),
     heavyArmor: input.worn.some((w) => {
       const b = baseById(w.base);
       return isGear(b) && b.slot === 'body' && b.armor === 'heavy';
@@ -551,7 +557,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         : c.weapon?.base.weapon === 'bow' || c.class === 'rogue' || c.class === 'ranger' ? 'dex' : 'str') as Ability,
       /** Ranger, Archery. */
       archery: c.class === 'ranger' && c.weapon?.base.weapon === 'bow' ? ARCHERY_BONUS : 0,
-      critFrom: Math.max(18 - champion, 20 - Math.floor(c.critChance / 5) - champion),
+      critFrom: critFromOf(c.critChance, champion === 1),
       proficientSaves: new Set<Ability>([...cls.saves, ...(c.talents.includes('iron-will') ? (['con', 'wis'] as const) : [])]),
       /** Only Heroes are ever poisoned. */
       poisoned: { turns: 0, dice: [1, 4] as [number, number] },
@@ -1429,7 +1435,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
 export const fireBomb = (floor: number) => ({ dice: 2, sides: 6, bonus: 2 * floor });
 
 const escapeBonus = (hero: HeroCombat) =>
-  abilityModifier(hero.scores.dex) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0) + Math.floor(hero.escape / 5)
+  abilityModifier(hero.scores.dex) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0) + escapeSteps(hero.escape)
   + (hero.talents.includes('light-step') ? 2 : 0) + (onPath(hero, 'thief', PATH_MASTERY) ? 5 : 0);
 
 /** An Escape roll's difficulty (v0): the more monsters still standing, the harder. */

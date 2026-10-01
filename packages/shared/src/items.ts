@@ -6,6 +6,13 @@ export const TIERS = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic
 export const tierSchema = z.enum(TIERS);
 export type Tier = z.infer<typeof tierSchema>;
 
+/** Bonus stat kinds (engine: content/loot.ts). */
+export const BONUS_STAT_IDS = [
+  'str', 'dex', 'con', 'int', 'wis', 'cha', 'maxHp', 'armor', 'damage', 'crit', 'spellPower', 'healing', 'escape', 'goldFind', 'magicFind', 'lifeSteal',
+] as const;
+export const bonusStatIdSchema = z.enum(BONUS_STAT_IDS);
+export type BonusStatId = z.infer<typeof bonusStatIdSchema>;
+
 /** Game content comes from the engine in both languages; the web picks one. */
 export const localizedTextSchema = z.object({ en: z.string(), ru: z.string() });
 export type LocalizedText = z.infer<typeof localizedTextSchema>;
@@ -62,8 +69,10 @@ export const itemViewSchema = z.object({
   identified: z.boolean(),
   /** 1–100. */
   quality: z.number().int().min(1).max(100).nullable(),
-  /** Ready-made lines such as "+3 Strength". */
+  /** Ready-made lines such as "+3 Strength", Radiant and Upgrades counted in. */
   bonusStats: z.array(localizedTextSchema).nullable(),
+  /** Which Bonus stat each of those lines is, in the same order: what the card explains when one is tapped. */
+  bonusStatIds: z.array(bonusStatIdSchema).nullable().default(null),
   /** The named power of a Legendary, Mythic or Relic. */
   power: localizedTextSchema.nullable(),
   radiant: z.boolean().nullable(),

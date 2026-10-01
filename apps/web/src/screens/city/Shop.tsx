@@ -11,10 +11,8 @@ import { play } from '../../sound';
 import { formatDuration, useNow } from '../../time';
 import { NeedHero } from './NeedHero';
 
-const haggles = (hero: HeroView) => hero.talents.includes('haggler');
-/** What the Shops pay: the Buyback price, 10% more for a Haggler (the server does the same). */
-const sellPrice = (hero: HeroView, item: ItemView, quantity = item.quantity) =>
-  Math.round((item.worth / item.quantity) * quantity * (haggles(hero) ? 1.1 : 1));
+/** What the Shops pay: the Buyback price times the Hero's rate (a Haggler's and Charisma's better deal, from the server). */
+const sellPrice = (rate: number, item: ItemView, quantity = item.quantity) => Math.round((item.worth / item.quantity) * quantity * rate);
 
 export function Shop() {
   const { t } = useI18n();
@@ -32,7 +30,7 @@ export function Shop() {
   const showOffer = (offer: ShopOffer, stackable: boolean) =>
     openSheet({ title: text(offer.item.name), body: <BuySheet offer={offer} stackable={stackable} gold={hero.gold} onDone={done} /> });
   const showSell = (item: ItemView) =>
-    openSheet({ title: text(item.name), body: <SellSheet item={item} hero={hero} onDone={done} /> });
+    openSheet({ title: text(item.name), body: <SellSheet item={item} rate={data.sellRate} onDone={done} /> });
   const sellable = [...hero.bag, ...hero.storage];
 
   return (
@@ -64,7 +62,7 @@ export function Shop() {
       <ItemPicker
         title={t('shop.sell')}
         items={sellable}
-        note={(item) => (item.tier === 'relic' ? '—' : t('hero.gold', { n: sellPrice(hero, item) }))}
+        note={(item) => (item.tier === 'relic' ? '—' : t('hero.gold', { n: sellPrice(data.sellRate, item) }))}
         onPick={showSell}
         empty={t('shop.nothingToSell')}
       />
@@ -95,7 +93,7 @@ function BuySheet({ offer, stackable, gold, onDone }: { offer: ShopOffer; stacka
   );
 }
 
-function SellSheet({ item, hero, onDone }: { item: ItemView; hero: HeroView; onDone: () => void }) {
+function SellSheet({ item, rate, onDone }: { item: ItemView; rate: number; onDone: () => void }) {
   const { t } = useI18n();
   const { busy, error, run } = useAction();
   const sell = (quantity: number) => void run(async () => {
@@ -112,11 +110,11 @@ function SellSheet({ item, hero, onDone }: { item: ItemView; hero: HeroView; onD
         <div className="flex flex-wrap gap-2">
           {item.quantity > 1 && (
             <button type="button" className="btn flex-1" disabled={busy} onClick={() => sell(1)}>
-              {t('shop.sellOne', { n: sellPrice(hero, item, 1) })}
+              {t('shop.sellOne', { n: sellPrice(rate, item, 1) })}
             </button>
           )}
           <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => sell(item.quantity)}>
-            {t(item.quantity > 1 ? 'shop.sellAll' : 'shop.sellFor', { n: sellPrice(hero, item) })}
+            {t(item.quantity > 1 ? 'shop.sellAll' : 'shop.sellFor', { n: sellPrice(rate, item) })}
           </button>
         </div>
       )}

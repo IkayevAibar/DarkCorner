@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BOND_FACTOR, BOND_STATS, BONUS_COUNT, BONUS_STATS, DROP_ODDS, GEAR_BASES, TIERS, UNIQUES, baseById, bonusLines, bonusPoolOf, bondedStats, buybackPrice,
+  BOND_FACTOR, BOND_STATS, BONUS_COUNT, BONUS_STATS, DROP_ODDS, GEAR_BASES, TIERS, UNIQUES, baseById, bonusLines, bonusPoolOf, effectiveStats, buybackPrice,
   createRng, itemName, qualityFactor, rollBondRings, rollBonusStats, rollDropTier, rollGear,
 } from '../src/index.js';
 
@@ -160,8 +160,8 @@ describe('Bond rings', () => {
   });
 
   it('count their Bonus stats twice while joined', () => {
-    const stats = [{ stat: 'str' as const, value: 2 }, { stat: 'damage' as const, value: 6 }];
-    expect(bondedStats(stats, false)).toEqual(stats);
-    expect(bondedStats(stats, true)).toEqual([{ stat: 'str', value: 2 * BOND_FACTOR }, { stat: 'damage', value: 6 * BOND_FACTOR }]);
+    const bonusStats = [{ stat: 'str' as const, value: 2 }, { stat: 'damage' as const, value: 6 }];
+    expect(effectiveStats({ bonusStats, radiant: false })).toEqual(bonusStats);
+    expect(effectiveStats({ bonusStats, radiant: false, joined: true })).toEqual([{ stat: 'str', value: 2 * BOND_FACTOR }, { stat: 'damage', value: 6 * BOND_FACTOR }]);
   });
 });

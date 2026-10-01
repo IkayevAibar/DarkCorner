@@ -4,7 +4,7 @@ import type { HeroView, ItemView, OpenChestResult } from '@dark/shared';
 const base: ItemView = {
   id: 'preview-rare', kind: 'gear', quantity: 1, tier: 'rare', base: 'ring', icon: 'ring',
   name: { en: 'Ring of the Watch', ru: 'Кольцо дозора' }, itemLevel: 4, identified: true,
-  quality: 74, bonusStats: [{ en: '+3 Dexterity', ru: '+3 к ловкости' }, { en: '+9% Magic find', ru: '+9% к поиску магии' }],
+  quality: 74, bonusStats: [{ en: '+3 Dexterity', ru: '+3 к ловкости' }, { en: '+9% Magic find', ru: '+9% к поиску магии' }], bonusStatIds: ['dex', 'magicFind'],
   power: null, radiant: false, upgrade: 0, serial: null, owners: null, art: null, worth: 120,
   gear: { slot: 'ring', group: null, classes: null, damage: null, armor: null, heavy: false }, about: null,
 };
@@ -16,6 +16,7 @@ export const REVEALS = {
     name: { en: 'Lantern of the Deep', ru: 'Фонарь глубин' }, quality: 96, radiant: true,
     art: '/art/items/lantern-of-the-deep.webp',
     bonusStats: [{ en: '+4 Intelligence', ru: '+4 к интеллекту' }, { en: '+12 Maximum health', ru: '+12 к максимуму здоровья' }, { en: '+15% Magic find', ru: '+15% к поиску магии' }],
+    bonusStatIds: ['int', 'maxHp', 'magicFind'],
     power: { en: 'Deep light: reveals the darkness beyond the next Door.', ru: 'Глубинный свет: рассеивает тьму за следующей дверью.' },
     gear: { ...base.gear!, slot: 'off', group: 'orb', classes: ['wizard', 'cleric'] }, worth: 2400,
   },
@@ -24,6 +25,7 @@ export const REVEALS = {
     name: { en: 'The First King’s Crown', ru: 'Корона первого короля' }, quality: 100,
     art: '/art/items/first-kings-crown.webp', serial: { number: 2, of: 3 }, owners: ['Mira', 'Garrick'],
     bonusStats: [{ en: '+5 Constitution', ru: '+5 к телосложению' }, { en: '+20 Maximum health', ru: '+20 к максимуму здоровья' }, { en: '+25% Gold find', ru: '+25% к поиску золота' }],
+    bonusStatIds: ['con', 'maxHp', 'goldFind'],
     power: { en: 'A king’s resolve: stand your ground when all hope is lost.', ru: 'Воля короля: стойкость, когда надежда иссякает.' },
     gear: { ...base.gear!, slot: 'head', armor: { ac: 2, body: false, maxDex: null } }, worth: 0,
   },
@@ -31,7 +33,7 @@ export const REVEALS = {
 
 export function sealed(item: ItemView): ItemView {
   return { ...item, name: { en: 'Unidentified Item', ru: 'Неопознанный предмет' }, identified: false,
-    art: null, quality: null, bonusStats: null, power: null, radiant: null, serial: null, owners: null };
+    art: null, quality: null, bonusStats: null, bonusStatIds: null, power: null, radiant: null, serial: null, owners: null };
 }
 
 export const LOOT_HERO: HeroView = {
@@ -42,19 +44,20 @@ export const LOOT_HERO: HeroView = {
   worn: [], bag: [], storage: [], bagSlots: 24, storageSlots: 40, inCity: true,
   luck: { badLuck: 8, badLuckMax: 100, magicFind: 0, goldFind: 0, blessing: null },
   path: null, pathChoices: null, pendingGrowth: [], talentOffer: null, levelUp: null, deeds: [], title: null,
+  gear: { abilities: { str: 0, dex: 3, con: 0, int: 0, wis: 0, cha: 0 }, stats: { magicFind: 9 }, critFrom: 20, escape: 0, charm: 0 },
 };
 
 const mythic: ItemView = {
   ...base, id: 'preview-mythic', tier: 'mythic', base: 'staff', icon: 'staff',
   name: { en: 'Wyrmfire', ru: 'Пламя змея' }, quality: 92, art: '/art/items/wyrmfire.webp',
-  bonusStats: [{ en: '+6 Intelligence', ru: '+6 к интеллекту' }, { en: '+18 Maximum health', ru: '+18 к максимуму здоровья' }],
+  bonusStats: [{ en: '+6 Intelligence', ru: '+6 к интеллекту' }, { en: '+18 Maximum health', ru: '+18 к максимуму здоровья' }], bonusStatIds: ['int', 'maxHp'],
   power: { en: 'Dragon fire: a blaze that will not die.', ru: 'Огонь дракона: пламя, которое не гаснет.' },
   gear: { ...base.gear!, slot: 'main', group: 'staff', classes: ['wizard', 'cleric'],
     damage: { dice: 1, sides: 6, min: 1, max: 9, percent: 150, hits: 'bludgeon' } }, worth: 12000,
 };
 
 export const CHESTS = {
-  iron: { grade: 'iron', prize: { ...base, id: 'preview-iron', tier: 'uncommon', quality: 58, bonusStats: [base.bonusStats![0]!] },
+  iron: { grade: 'iron', prize: { ...base, id: 'preview-iron', tier: 'uncommon', quality: 58, bonusStats: [base.bonusStats![0]!], bonusStatIds: ['dex'] },
     odds: [{ tier: 'uncommon', percent: 70 }, { tier: 'rare', percent: 22 }, { tier: 'epic', percent: 6.5 }, { tier: 'legendary', percent: 1.3 }, { tier: 'mythic', percent: .2 }], hero: LOOT_HERO },
   silver: { grade: 'silver', prize: sealed(base),
     odds: [{ tier: 'rare', percent: 70 }, { tier: 'epic', percent: 24 }, { tier: 'legendary', percent: 5 }, { tier: 'mythic', percent: 1 }], hero: LOOT_HERO },

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { CLASS_IDS, type ClassId, classIdSchema } from './classes.js';
-import { itemViewSchema, localizedTextSchema } from './items.js';
+import { itemViewSchema, localizedTextSchema, bonusStatIdSchema } from './items.js';
 
 export { CLASS_IDS, type ClassId, classIdSchema };
 
@@ -146,10 +146,24 @@ export const heroSchema = z.object({
   banner: z.string(),
   level: z.number().int(),
   xp: z.number().int(),
+  /** The Hero's own scores, before gear (level-up choices build on these). */
   abilities: abilityScoresSchema,
   maxHp: z.number().int(),
   hp: z.number().int(),
   armorClass: z.number().int(),
+  /** What worn gear adds, as fights and Checks count it. */
+  gear: z.object({
+    /** Added to each ability score: ability Bonus stats, and the Phylactery's +2. */
+    abilities: abilityScoresSchema,
+    /** Every other Bonus stat worn, summed by kind (Radiant and Upgrades in); kinds with none are left out. */
+    stats: z.record(bonusStatIdSchema, z.number().int()),
+    /** The lowest natural d20 that crits: 20 alone, lower with critical chance (each full 5%) and a Champion's edge. */
+    critFrom: z.number().int(),
+    /** Added to Sneak Checks and Escape rolls by escape chance (each full 5%). */
+    escape: z.number().int(),
+    /** Charisma's better prices at the Shops and the Wandering merchant, in percent. */
+    charm: z.number().int(),
+  }),
   /** Safe in the City. */
   gold: z.number().int(),
   stamina: z.number().int(),

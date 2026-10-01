@@ -20,7 +20,8 @@ async function makeHero(name: string, cls: 'fighter' | 'wizard' | 'rogue' | 'cle
   const race = { fighter: 'human', wizard: 'elf', rogue: 'halfling', cleric: 'dwarf' }[cls];
   const created = await post(cookie, '/api/heroes', { name, race, class: cls, talents: race === 'human' ? talents : talents.slice(0, 1), portrait, banner: '#9e2a2a', set: 0 });
   if (created.statusCode !== 200) throw new Error(created.body);
-  const hero = await prisma.hero.findFirstOrThrow({ where: { name } });
+  // Charisma 10: plain prices (Charisma's own test raises it).
+  const hero = await prisma.hero.update({ where: { id: (await prisma.hero.findFirstOrThrow({ where: { name } })).id }, data: { cha: 10 } });
   return { cookie, hero };
 }
 
@@ -84,6 +85,21 @@ describe('the Shops', () => {
     expect((await post(cookie, `/api/items/${relic.id}/sell`)).json().error).toBe('relic');
     await post(cookie, `/api/items/${potions.id}/sell`, { quantity: 1 });
     expect(await count(hero.id, 'potion')).toBe(1);
+  });
+
+  it('deal better with a charming Hero: 4% a point of Charisma modifier, gear counted', async () => {
+    const { cookie, hero } = await makeHero('Charmer');
+    // Charisma 12 of its own and +2 from a worn ring: 14, a +2 modifier, 8% better.
+    await prisma.hero.update({ where: { id: hero.id }, data: { cha: 12 } });
+    await prisma.item.create({
+      data: { ...gearData(rollGear(createRng('r1'), { tier: 'common', itemLevel: 1, baseId: 'ring', identified: true }), 'test'), seasonId, heroId: hero.id, place: 'WORN', slot: 'ring1', bonusStats: [{ stat: 'cha', value: 2 }] },
+    });
+    const shop = (await get(cookie, '/api/shop')).json();
+    expect(shop.sellRate).toBeCloseTo(1.08);
+    expect(shop.hero.gear).toMatchObject({ charm: 8, abilities: { cha: 2 } });
+    expect(shop.basics.find((b: { id: string }) => b.id === 'scroll-identify').price).toBe(18);
+    const epic = await giveGear(hero.id, rollGear(createRng('s1'), { tier: 'epic', itemLevel: 3, identified: true }));
+    expect((await post(cookie, `/api/items/${epic.id}/sell`)).json().gold).toBe(Math.round(Math.round(250 * 1.3) * 1.08));
   });
 });
 

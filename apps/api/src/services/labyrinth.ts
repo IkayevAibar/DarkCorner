@@ -22,7 +22,7 @@ import {
   DAY_MS, type FightKind, type Outcome, WARDENS_MS, combatOf, combatant, duoInput, duoMonstersFor, emptyOutcome, fallBack, fight, fightInput, foeOf,
   heroFloor, isCleared, markCleared, monstersFor, t,
 } from './fights.js';
-import { fullHealth, portraitUrlOf } from './heroes.js';
+import { fullHealth, portraitUrlOf, scoresOf } from './heroes.js';
 import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, lockHero, noFight, stackTotal, takeStack } from './ledger.js';
 import { type FightStep, advance, choiceOf, fightHeroes, fightOf, isPaused, liveView, replayOf, startFight } from './liveFights.js';
@@ -217,7 +217,7 @@ function spotsSecret(hero: HeroWithItems, floor: Floor, door: Door, seen: Readon
   const race = RACE_DEFS[hero.race as RaceId];
   const rng = createRng(`${hero.id}:secret:${floor.number}:${door.a}-${door.b}:${Math.floor(now.getTime() / DAY_MS)}`);
   return check(rng, {
-    modifier: abilityModifier(hero.wis) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0),
+    modifier: abilityModifier(scoresOf(hero).wis) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0),
     dc: SECRET_DC,
     edge: hero.class === 'rogue' || race.clueAdvantage ? 'advantage' : 'normal',
     rerollOnes: race.rerollOnes,
@@ -242,13 +242,13 @@ function opens(door: Door, floor: Floor, to: number, hero: HeroWithItems, partne
 }
 
 /** Rangers always know a lying Clue; Rogues and Elves (with advantage) may see through one. Stable per Door. */
-function seesThrough(hero: Hero, floor: number, door: Door, from: number): boolean {
+function seesThrough(hero: HeroWithItems, floor: number, door: Door, from: number): boolean {
   const race = RACE_DEFS[hero.race as RaceId];
   if (hero.class === 'ranger') return true;
   if (hero.class !== 'rogue' && !race.clueAdvantage) return false;
   const rng = createRng(`${hero.id}:clue:${floor}:${door.a}-${door.b}:${from}`);
   return check(rng, {
-    modifier: abilityModifier(hero.wis) + proficiencyBonus(hero.level),
+    modifier: abilityModifier(scoresOf(hero).wis) + proficiencyBonus(hero.level),
     dc: CLUE_DC,
     edge: race.clueAdvantage ? 'advantage' : 'normal',
     rerollOnes: race.rerollOnes,
@@ -319,7 +319,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       smoke: stackTotal(hero, 'bomb-smoke'),
     },
     features: heroFeatures({
-      class: hero.class as ClassId, level: hero.level, path: hero.path as PathId | null, int: hero.int, wis: hero.wis,
+      class: hero.class as ClassId, level: hero.level, path: hero.path as PathId | null, int: scoresOf(hero).int, wis: scoresOf(hero).wis,
       spellUses: hero.spellUses, healUses: hero.healUses,
     }),
     // What the Bag lends the belt, in the order a Run reaches for it.

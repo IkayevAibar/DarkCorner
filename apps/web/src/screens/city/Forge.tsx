@@ -119,6 +119,7 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
       {up && (
         <div className="grid gap-2">
           <span className="sub-heading">{t('forge.upgrade', { n: up.to, p: up.chance })}</span>
+          <UpgradeGains from={q.item} to={up.preview} level={up.to} />
           <Cost cost={up.cost} gold={gold} />
           {up.risky && (
             <p className="m-0 text-sm text-[#ff9a8a]">{t('forge.risky')}</p>
@@ -221,6 +222,33 @@ function CraftRow({ recipe, hero, onDone }: { recipe: { id: string; makes: { nam
       </div>
       <Cost cost={{ gold: 0, materials: recipe.materials }} gold={hero.gold} />
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+    </div>
+  );
+}
+
+/** What the next Upgrade level changes: base damage or armor, and each Bonus stat that grows. */
+function UpgradeGains({ from, to, level }: { from: ItemView; to: ItemView; level: number }) {
+  const { t } = useI18n();
+  const text = useText();
+  const gains: string[] = [];
+  const was = from.gear;
+  const now = to.gear;
+  // A weapon's dice grow every level, even when its rounded range doesn't show it yet.
+  if (was?.damage && now?.damage && was.damage.percent !== now.damage.percent) {
+    gains.push(t('forge.gainDice', { from: was.damage.percent, to: now.damage.percent }));
+  }
+  if (was?.damage && now?.damage && (was.damage.min !== now.damage.min || was.damage.max !== now.damage.max)) {
+    gains.push(t('forge.gainDamage', { from: `${was.damage.min}–${was.damage.max}`, to: `${now.damage.min}–${now.damage.max}` }));
+  }
+  if (was?.armor && now?.armor && was.armor.ac !== now.armor.ac) gains.push(t('forge.gainArmor', { from: was.armor.ac, to: now.armor.ac }));
+  (from.bonusStats ?? []).forEach((line, i) => {
+    const next = to.bonusStats?.[i];
+    if (next && text(next) !== text(line)) gains.push(`${text(line)} → ${text(next)}`);
+  });
+  return (
+    <div className="grid gap-0.5 text-sm">
+      <span className="text-muted">{t('forge.gains', { n: level })}</span>
+      {gains.length > 0 ? gains.map((g) => <span key={g}>{g}</span>) : <span className="text-muted">{t('forge.noGain', { n: level })}</span>}
     </div>
   );
 }

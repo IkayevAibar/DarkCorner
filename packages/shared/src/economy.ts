@@ -32,6 +32,8 @@ export type ShopOffer = z.infer<typeof shopOfferSchema>;
 export const shopViewSchema = z.object({
   basics: z.array(shopOfferSchema),
   stock: z.array(shopOfferSchema),
+  /** What the Shops pay this Hero for an Item: its Buyback price (`worth`) times this, a Haggler's and Charisma's better deal in. */
+  sellRate: z.number(),
   /** When today's gear changes. */
   restocksAt: z.string(),
   hero: heroSchema,
@@ -81,6 +83,8 @@ export const forgeQuoteSchema = z.object({
     /** A failure could destroy the Item (past +5); a Protection scroll prevents that. */
     risky: z.boolean(),
     protectionScrolls: z.number().int(),
+    /** The Item as it would be at `to`: its numbers, for showing what the level changes. */
+    preview: itemViewSchema,
   }).nullable(),
   reforge: forgeCostSchema.nullable(),
   salvage: z.object({ base: z.string(), name: localizedTextSchema, min: z.number().int(), max: z.number().int() }).nullable(),

@@ -28,6 +28,7 @@ export function toItemView(item: Item): ItemView {
       identified: true,
       quality: null,
       bonusStats: null,
+      bonusStatIds: null,
       power: null,
       radiant: null,
       upgrade: 0,
@@ -47,6 +48,7 @@ export function toItemView(item: Item): ItemView {
     uniqueId: item.uniqueId,
     bonusStats: item.bonusStats as unknown as BonusStats,
     radiant: item.radiant,
+    upgrade: item.upgrade,
     tier,
     itemLevel: item.itemLevel,
   };
@@ -67,6 +69,7 @@ export function toItemView(item: Item): ItemView {
     identified: known,
     quality: known ? item.quality : null,
     bonusStats: known ? bonusLines(roll) : null,
+    bonusStatIds: known ? roll.bonusStats.map((b) => b.stat) : null,
     power: known && unique ? unique.power : item.bond ? bondPower(item.bondWith) : null,
     radiant: known ? item.radiant : null,
     upgrade: item.upgrade,

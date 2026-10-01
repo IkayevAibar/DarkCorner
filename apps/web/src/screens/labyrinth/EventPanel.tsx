@@ -137,7 +137,7 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
             onClick={() => pickFromBag(
               t('event.merchant.sell'),
               (i) => i.tier !== 'relic',
-              (i) => t('hero.gold', { n: i.worth * event.buysAt }),
+              (i) => t('hero.gold', { n: Math.round(i.worth * event.buysAt) }),
               (i) => ({ action: 'sell', itemId: i.id }),
             )}
           >

@@ -53,7 +53,8 @@ async function makeHero(cls: 'fighter' | 'rogue') {
     portrait: cls === 'rogue' ? 'halfling-rogue-1' : 'human-fighter-1', banner: '#9e2a2a', set: 0,
   });
   heroId = (await prisma.hero.findFirstOrThrow({ where: { retiredAt: null, class: cls } })).id;
-  await prisma.hero.update({ where: { id: heroId }, data: { maxHp: 500, hp: 500, level: 10 } });
+  // Charisma 10: plain prices at the merchant.
+  await prisma.hero.update({ where: { id: heroId }, data: { maxHp: 500, hp: 500, level: 10, cha: 10 } });
 }
 
 beforeAll(async () => {

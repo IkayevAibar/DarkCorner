@@ -3,7 +3,7 @@ import { type Combatant, type FightReplay, type Foe, type ItemView, type Localiz
 import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightEvent, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT,
   type MonsterInstance, type PathId, RELIC_CHANCE, type RaceId, type SideResult, type StanceId, type TalentId, type ThreatId, weakeningAt,
-  type DeedCounts, type GearRoll, KILL_METRIC, monsterStrike, weaponStrike, bondedStats, createRng, dropOdds, duoEncounter, fireBomb, heroCombat, monsterById, restUses,
+  type DeedCounts, KILL_METRIC, monsterStrike, weaponStrike, createRng, dropOdds, duoEncounter, fireBomb, heroCombat, monsterById, restUses,
   simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
@@ -137,7 +137,7 @@ export function combatOf(hero: HeroWithItems, partner: HeroWithItems | null = nu
   const joined = partner ? joinedBonds(hero.items, partner.items) : new Set<string>();
   const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => ({
     base: i.base, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
-    bonusStats: bondedStats(i.bonusStats as unknown as GearRoll['bonusStats'], i.bond !== null && joined.has(i.bond)), uniqueId: i.uniqueId,
+    bonusStats: i.bonusStats as { stat: string; value: number }[], uniqueId: i.uniqueId, joined: i.bond !== null && joined.has(i.bond),
   }));
   return heroCombat({
     name: hero.name, class: hero.class as ClassId, race: hero.race as RaceId, level: hero.level,

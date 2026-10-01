@@ -68,7 +68,7 @@ export async function forgeQuote(player: Player, itemId: string): Promise<ForgeQ
     upgrade: item.upgrade < MAX_UPGRADE
       ? {
         to, chance: upgradeChance(to, omenOf(await currentSeason())?.upgrade ?? 0), cost: costView(hero, upgradeCost(tier, to)),
-        risky: to > UPGRADE_SAFE_UNTIL, protectionScrolls: stackTotal(hero, PROTECTION),
+        risky: to > UPGRADE_SAFE_UNTIL, protectionScrolls: stackTotal(hero, PROTECTION), preview: toItemView({ ...item, upgrade: to }),
       }
       : null,
     reforge: canReforge(tier) ? costView(hero, REFORGE_COST[tier]!) : null,
@@ -134,7 +134,7 @@ export async function reforgeItem(player: Player, itemId: string): Promise<Refor
     const bonusStats = rollBonusStats(createRng(seed), tier, item.itemLevel, bonusPoolOf(item.base));
     await tx.rollLog.create({ data: { playerId: player.id, kind: 'reforge', seed, detail: { itemId: item.id, before, after: bonusStats } } });
     const updated = await tx.item.update({ where: { id: item.id }, data: { bonusStats: bonusStats as unknown as Prisma.InputJsonValue } });
-    return { heroId: hero.id, updated, before: bonusLines({ bonusStats: before as never, radiant: item.radiant }) };
+    return { heroId: hero.id, updated, before: bonusLines({ bonusStats: before as never, radiant: item.radiant, upgrade: item.upgrade }) };
   });
   return { item: toItemView(r.updated), before: r.before, hero: await heroView(r.heroId) };
 }

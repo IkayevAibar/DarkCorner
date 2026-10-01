@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-stats',
+    date: '2026-10-01',
+    title: t('Every stat pulls its weight', 'Каждый бонус в деле'),
+    items: [
+      t('Tap any line on an Item card to see what it does. The Character sheet now counts your gear in your ability scores and adds up what it gives you.',
+        'Нажмите на любую строку карточки предмета, чтобы узнать, что она даёт. Лист героя теперь учитывает снаряжение в характеристиках и складывает всё, что оно даёт.'),
+      t('Abilities on gear now count in every Check too: Shrines, traps, secret Doors, lying Clues. Charisma finally does something: better prices at the Shops and with the Wandering merchant.',
+        'Характеристики со снаряжения теперь работают и в проверках: святилища, ловушки, потайные двери, лживые подсказки. А харизма наконец полезна: лучшие цены в лавках и у странствующего торговца.'),
+      t('Forge Upgrades now help every Item: Bonus stats grow with each level, and at +5 and +10 abilities, armor and life steal gain +1. The Forge shows what the next level gives.',
+        'Улучшения в кузнице теперь полезны любому предмету: бонусы растут с каждым уровнем, а на +5 и +10 характеристики, броня и вампиризм получают +1. Кузница показывает, что даст следующий уровень.'),
+    ],
+  },
+  {
     id: '2026-10-01-twin-doors',
     date: '2026-10-01',
     title: t('Doors that open for two', 'Двери, что открываются двоим'),
