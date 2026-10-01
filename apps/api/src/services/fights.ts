@@ -10,7 +10,7 @@ import { newSeed } from '../lib/seed.js';
 import { feed } from './feed.js';
 import { giveStarterKit, portraitUrlOf } from './heroes.js';
 import type { HeroWithItems, Tx } from './ledger.js';
-import { addBadLuck, dropChest, dropGear, dropStack, withGoldFind } from './loot.js';
+import { type Drop, addBadLuck, dropChest, dropGear, dropStack, rollDrop, withGoldFind } from './loot.js';
 import { boostedXp, gainXp } from './progression.js';
 import { grantRelic } from './relics.js';
 import { trackBounties } from './bounties.js';
@@ -70,7 +70,7 @@ export async function heroFloor(tx: Tx, heroId: string, floor: number): Promise<
   return tx.heroFloor.upsert({ where: { heroId_floor: { heroId, floor } }, create: { heroId, floor }, update: {} });
 }
 
-const clearedAt = (hf: HeroFloor | null, room: number): Date | null => {
+export const clearedAt = (hf: HeroFloor | null, room: number): Date | null => {
   const iso = (hf?.cleared as Record<string, string> | undefined)?.[String(room)];
   return iso ? new Date(iso) : null;
 };
@@ -197,7 +197,7 @@ export interface Fought {
  */
 export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', side: SideResult, fought: Fought, monsters: MonsterInstance[],
   season: Season, floor: Floor, roomId: number, kind: FightKind, out: Outcome,
-  opts: { bonusDrops?: number; clears?: boolean; threat?: ThreatId | null; share?: number }) {
+  opts: { bonusDrops?: number; clears?: boolean; threat?: ThreatId | null; share?: number; pool?: Drop[] }) {
   const now = new Date();
   const omen = omenOf(season, now);
   const suffix = key === 'hero' ? '' : `:${key}`;
@@ -292,7 +292,9 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
   const drops = (kind === 'fight' ? (rng.chance(LOOT.fightDrop) ? 1 : 0) : LOOT.minibossItems) + elites + (opts.bonusDrops ?? 0);
   // The Twin Wardens' hoard has the odds of two Floors deeper (their Bond rings come apart: twins.ts).
   const odds = kind === 'twin' ? { odds: dropOdds(Math.min(10, floor.number + 2)) } : {};
-  if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind, ...odds }, out);
+  // Items for a Duo Chest are rolled with this Hero's luck and split later (trust.ts).
+  if (opts.pool) for (let i = 0; i < drops; i++) opts.pool.push(await rollDrop(tx, hero, season, { floor: floor.number, source: kind, ...odds }));
+  else if (drops > 0) await dropGear(tx, hero, season, { floor: floor.number, count: drops, source: kind, ...odds }, out);
   if (kind === 'fight' && rng.chance(LOOT.fightKey)) await dropStack(tx, hero, season, 'key-iron', 1, out);
   if (kind === 'miniboss' && rng.chance(LOOT.minibossChest)) await dropChest(tx, hero, season, floor.number, out);
   if (kind === 'miniboss' && floor.number >= DEEP_FLOOR && rng.chance(RELIC_CHANCE.deepMiniboss)) {

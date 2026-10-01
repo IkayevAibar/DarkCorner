@@ -483,7 +483,7 @@ Small goals give each session a reason to go down today *(v0)*.
 | Fight | ~50% of a Floor | A group of monsters. Personal: every Hero meets its own. Its Door shows them and their Threat first (Before a fight). A Room a Hero has cleared stays clear for that Hero for 24 hours. |
 | Empty | ~15% | Nothing happens, or just a line of description. |
 | Event room | ~15% | See the table below. Personal. |
-| Treasure | ~7% | Loose loot, sometimes a Chest. Personal. |
+| Treasure | ~7% | Loose loot, sometimes a Chest. Personal; a Duo's Items go into one Duo Chest (Trust and greed). |
 | Camp | 3–5 per Floor | Safe place to leave a waiting Hero. |
 | Stairs | 2–4 per Floor | Lead down to the next Floor, and back up. |
 | Waypoint | 1 per Floor | Once reached, you can enter or leave the Labyrinth here. |
@@ -491,6 +491,7 @@ Small goals give each session a reason to go down today *(v0)*.
 | Mini-boss | 1 per Floor | Special room: see below. |
 | Hidden room | 1–2 per Floor (not the lair) | Behind a secret Door: see below. Personal. |
 | Twin Wardens | 1 per Floor (not the lair) | Behind a Twin door, for a Duo: see Duos → Twin doors. Personal. |
+| Oathstone | 1 per Floor (not the lair) | A quiet Room where a Duo swears in secret to share or take: see Duos → Trust and greed. |
 
 ### Event rooms (Season 0)
 
@@ -734,7 +735,7 @@ Two friends walk the Labyrinth together, while both are online.
   - **Guard:** until the Guard's next turn, blows meant for the partner come to it instead.
   - **A fallen partner** stays down and makes a death save on each of its turns, until it is stable, dead, or back up. **Pull up** stands it with a quarter of its health on a WIS check against 10 *(v0)*, Clerics adding their proficiency; a Cleric's Cure wounds raises it too. Still down when the Duo wins, it is hauled up and shares the win.
   - **Together:** a Rogue gets its full Sneak attack on a monster its partner went for this round, and a Hunter's mark counts for both Heroes.
-- **Rewards:** each Hero takes 65% of the fight's XP and of its gold *(v0)*, rolls its own drops, and finds its own Treasure, event, Vault and hidden hoard in a Room.
+- **Rewards:** each Hero takes 65% of the fight's XP and of its gold *(v0)*, rolls its own drops, and finds its own event, Vault and hidden hoard in a Room. Treasure found together goes into one Duo Chest (Trust and greed, below).
 - **Sneaking:** a group Check: each Hero rolls, and one success takes both past. A Smoke bomb covers both. Past a Mini-boss only if both could Sneak past it alone.
 - **Home:** leaving by a Waypoint or the entrance takes both home, still a Duo. Each Hero's Run is its own.
 - **The Boss** is faced alone: a Duo can't go into the lair *(v0)*.
@@ -751,7 +752,23 @@ Two friends walk the Labyrinth together, while both are online.
 - **On Auto,** a Hero goes for the healthier Warden, so both wear down together; played by hand, the Players can do better.
 - **The prize:** each Hero takes its share of the fight's XP and gold (ten times a fight Room's, like a Mini-boss), 2 Items with the odds of two Floors deeper, and, when both stand at the end, a half of a pair of **Bond rings**. The Feed tells everyone.
 - **Coming back:** the Wardens wake for a Hero a week after it beat them. A Duo meets them while either Hero hasn't beaten them this week, and both are paid.
+- **The hoard is shared:** when both Heroes stand at the end, the Wardens' hoard (2 Items each) goes into one Duo Chest (Trust and greed, below).
 - **Bond rings:** a pair of one Tier, Rare or Epic (as the odds two Floors deeper weigh those two), identified, each half with its own Quality and Bonus stats from the ones that count in a fight (abilities but Charisma, armor, damage, critical chance, spell power, healing, life steal). While the two Heroes of a Duo each wear a half of one pair, the halves count their Bonus stats **twice** in their fights; otherwise each is a ring of its Tier. A Bond ring goes into the Bag even when it is full, never drops or sells at random, and keeps to its stats when Reforged or offered at the Cursed altar.
+
+#### Trust and greed *(v0)*
+
+Two things a Duo decides between its own two Players.
+
+- **Oathstones:** one quiet Room on every Floor from 1 to 9 holds an Oathstone, placed apart from the rest like the Twin doors (its Clues are true). Alone, it is silent. A Duo standing at it swears by it in secret: each Player chooses **Share** or **Take**, neither sees the other's oath until both have sworn, and a sworn oath stands.
+  - **Both share:** each Hero gets a gift, an Item of Rare or better with the odds of three Floors deeper.
+  - **One takes:** the taker gets both gifts, the other nothing, and the Feed tells everyone.
+  - **Both take:** the stone cracks and curses them both. The Oathbreaker's curse takes the Blessing's place for 3 hours (half the gold, −25% magic find), driving out any Blessing.
+  - A Hero swears at a given stone once a week; it answers a Duo while neither has sworn there this week. The Feed also tells of oaths kept and stones cracked.
+- **Duo Chests:** Treasure a Duo walks in on together, and the Twin Wardens' hoard when both stand at the end, goes into one Duo Chest.
+  - Each Hero rolls its own share as it would alone (its magic find, the Bad-luck meter) and keeps its own gold and Chest drops. Only the Items are pooled.
+  - The Players pick in turns, a coin deciding who goes first. A pick left 30 seconds takes the best Item left (Tier, then item level) for that Player.
+  - A Hero whose Bag is full is skipped; once neither can carry more, the rest stays behind.
+  - Walking on, going home, reading a portal or the Duo ending picks the rest in turn.
 
 ### Rankings
 

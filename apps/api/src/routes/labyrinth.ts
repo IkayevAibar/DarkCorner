@@ -1,10 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import {
-  type LabyrinthResult, enterRequestSchema, eventActionSchema, faceActionSchema, fightActionRequestSchema, moveRequestSchema, stanceRequestSchema,
+  type LabyrinthResult, chestPickRequestSchema, enterRequestSchema, eventActionSchema, faceActionSchema, fightActionRequestSchema, moveRequestSchema,
+  oathRequestSchema, stanceRequestSchema,
 } from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import {
-  actInEvent, actInFight, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, readPortal, setStance, shortRest,
+  actInEvent, actInFight, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, pickFromChest, readPortal, setStance,
+  shortRest, swearOath,
 } from '../services/labyrinth.js';
 
 export async function labyrinthRoutes(app: FastifyInstance) {
@@ -27,6 +29,12 @@ export async function labyrinthRoutes(app: FastifyInstance) {
   /** A choice for the Hero's turn in a fight played turn by turn. */
   app.post('/api/labyrinth/fight', guard, async (request): Promise<LabyrinthResult> =>
     actInFight(request.player!, fightActionRequestSchema.parse(request.body).action));
+  /** A secret oath at an Oathstone: share, or take. */
+  app.post('/api/labyrinth/oath', guard, async (request): Promise<LabyrinthResult> =>
+    swearOath(request.player!, oathRequestSchema.parse(request.body).choice));
+  /** A pick from the Duo Chest, on this Player's turn. */
+  app.post('/api/labyrinth/chest', guard, async (request): Promise<LabyrinthResult> =>
+    pickFromChest(request.player!, chestPickRequestSchema.parse(request.body).index));
   app.post('/api/labyrinth/stance', guard, async (request): Promise<LabyrinthResult> =>
     setStance(request.player!, stanceRequestSchema.parse(request.body).stance));
   app.post('/api/labyrinth/descend', guard, async (request): Promise<LabyrinthResult> => descend(request.player!));

@@ -389,6 +389,14 @@ _Avoid_: twins, guardians
 One half of a pair of rings the Twin Wardens leave, one for each Hero of the Duo. Worn by both Heroes of a Duo, the halves count their Bonus stats twice in fights.
 _Avoid_: couple ring, friendship ring
 
+**Oathstone** (камень клятв):
+A standing stone where the two Players of a Duo each swear in secret to share or to take.
+_Avoid_: trust stone, the shrine (a different event)
+
+**Duo Chest** (сундук дуэта):
+Items a Duo finds together, split between its two Heroes by picking in turns.
+_Avoid_: shared loot, group chest
+
 **Dodge** (уклонение), **Help** (помощь), **Guard** (прикрытие), **Pull up** (поднять):
 Choices for a Hero's turn: blows at it have disadvantage until its next turn; its partner's next attack has advantage; blows meant for its partner come to it; a fallen partner stands up.
 

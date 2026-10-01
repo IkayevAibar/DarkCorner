@@ -64,7 +64,7 @@ export function generateLabyrinth(seed: string): Labyrinth {
   const floors: Floor[] = [];
   for (let n = 1; n <= FLOOR_COUNT; n++) {
     const floor = hideRooms(createRng(`${seed}:floor:${n}:secrets`), generateFloor(createRng(`${seed}:floor:${n}`), n));
-    floors.push(twinRooms(createRng(`${seed}:floor:${n}:twins`), laterEvents(seed, floor)));
+    floors.push(oathstones(createRng(`${seed}:floor:${n}:oathstones`), twinRooms(createRng(`${seed}:floor:${n}:twins`), laterEvents(seed, floor))));
   }
   return { seed, floors };
 }
@@ -182,6 +182,30 @@ function twinRooms(rng: Rng, floor: Floor): Floor {
     doors: floor.doors.map((d) => {
       if (d.b === twin) return { ...d, kind: 'twin', clueFromA: clue() };
       if (d.a === twin) return { ...d, kind: 'twin', clueFromB: clue() };
+      return d;
+    }),
+  };
+}
+
+/**
+ * One quiet Room per Floor (not the lair, which no Duo enters) holds an Oathstone (v0),
+ * where a Duo swears to share or take. It runs on its own RNG after the Twin Wardens, so
+ * it changes only that Room and the Clues that point at it.
+ */
+function oathstones(rng: Rng, floor: Floor): Floor {
+  if (floor.number >= FLOOR_COUNT) return floor;
+  const x = (id: number) => id % floor.width;
+  const y = (id: number) => Math.floor(id / floor.width);
+  const candidates = floor.rooms.filter((r) => r.type === 'empty' && Math.abs(r.x - x(floor.landing)) + Math.abs(r.y - y(floor.landing)) >= 3);
+  if (candidates.length === 0) return floor;
+  const stone = rng.pick(candidates).id;
+  const clue = (): Clue => ({ text: rng.pick(cluesFor('oathstone', floor.theme)), lie: false });
+  return {
+    ...floor,
+    rooms: floor.rooms.map((r) => (r.id === stone ? { ...r, type: 'oathstone' } : r)),
+    doors: floor.doors.map((d) => {
+      if (d.b === stone) return { ...d, clueFromA: clue() };
+      if (d.a === stone) return { ...d, clueFromB: clue() };
       return d;
     }),
   };

@@ -4,7 +4,7 @@ import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 import { omenViewSchema, seasonStatusSchema } from './season.js';
 
 export const ROOM_TYPES = [
-  'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss', 'hidden', 'twin',
+  'landing', 'stairs', 'waypoint', 'camp', 'fight', 'empty', 'event', 'treasure', 'vault', 'miniboss', 'boss', 'hidden', 'twin', 'oathstone',
 ] as const;
 export const roomTypeSchema = z.enum(ROOM_TYPES);
 export type RoomTypeId = z.infer<typeof roomTypeSchema>;
@@ -441,6 +441,43 @@ export const KIT_BASES = ['potion', 'bomb-fire', 'bomb-smoke', 'scroll-portal'] 
 export const kitItemSchema = z.object({ base: z.enum(KIT_BASES), count: z.number().int(), name: localizedTextSchema, about: localizedTextSchema });
 export type KitItemView = z.infer<typeof kitItemSchema>;
 
+// ─── Trust and greed ──────────────────────────────────────────────────────
+
+export const OATHS = ['share', 'take'] as const;
+export const oathSchema = z.enum(OATHS);
+export type OathChoice = z.infer<typeof oathSchema>;
+
+/**
+ * An Oathstone as its Player sees it: `silent` alone (it answers only a Duo); `open` while
+ * the two swear (each sees only its own oath, and whether the partner has sworn); `spent`
+ * when either has sworn here this week (`until`: when it answers them again).
+ */
+export const oathViewSchema = z.object({
+  state: z.enum(['silent', 'open', 'spent']),
+  mine: oathSchema.nullable(),
+  partnerSwore: z.boolean(),
+  until: z.string().nullable(),
+});
+export type OathView = z.infer<typeof oathViewSchema>;
+
+/** POST /api/labyrinth/oath: this Player's secret oath at an Oathstone. */
+export const oathRequestSchema = z.object({ choice: oathSchema });
+
+/** A Duo Chest as its Player sees it: the Items, who took which, and whose pick it is. */
+export const duoChestSchema = z.object({
+  items: z.array(z.object({ item: itemViewSchema, takenBy: z.enum(['me', 'partner']).nullable() })),
+  /** Whose pick it is; null once neither can carry more. */
+  turn: z.enum(['me', 'partner']).nullable(),
+  /** This Player's Bag is full: its turns pass to its partner until it makes room. */
+  full: z.boolean().default(false),
+  /** When the pick goes to the best Item left. */
+  deadline: z.string(),
+});
+export type DuoChestView = z.infer<typeof duoChestSchema>;
+
+/** POST /api/labyrinth/chest: take an Item from the Duo Chest, by its place in `items`. */
+export const chestPickRequestSchema = z.object({ index: z.number().int().min(0) });
+
 /** The other Hero of a Duo, as its partner sees it. */
 export const duoPartnerSchema = z.object({
   heroId: z.string(),
@@ -522,6 +559,8 @@ export const labyrinthViewSchema = z.object({
     vault: z.object({ state: z.enum(['open', 'sealed', 'claimed']), opensAt: z.string().nullable() }).nullable(),
     /** Monsters waiting to be fought, snuck past or retreated from; the other Doors are shut until then. */
     facing: facingSchema.nullable(),
+    /** An Oathstone: what this Player and its partner have sworn (docs/design.md → Trust and greed). */
+    oath: oathViewSchema.nullable().default(null),
   }).nullable(),
   exits: z.array(exitSchema),
   /** The Hero's own Map of this Floor: Rooms stood in, the Rooms next to them, and the Doors between. */
@@ -531,6 +570,8 @@ export const labyrinthViewSchema = z.object({
   duo: duoPartnerSchema.nullable().default(null),
   /** A fight being played turn by turn: nothing else happens until it ends. */
   fight: liveFightSchema.nullable().default(null),
+  /** A Duo Chest being split, pick by pick. */
+  chest: duoChestSchema.nullable().default(null),
 });
 export type LabyrinthView = z.infer<typeof labyrinthViewSchema>;
 

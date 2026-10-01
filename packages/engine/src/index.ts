@@ -17,6 +17,7 @@ export * from './content/portraits.js';
 export * from './combat.js';
 export * from './economy.js';
 export * from './events.js';
+export * from './trust.js';
 export * from './season.js';
 export * from './content/monsters.js';
 export * from './content/stances.js';

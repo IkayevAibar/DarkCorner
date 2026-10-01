@@ -14,6 +14,8 @@ import {
 import type { HeroWithItems, Tx } from './ledger.js';
 import { omenOf } from './omens.js';
 import { grantBondRings } from './twins.js';
+import type { Drop } from './loot.js';
+import { openDuoChest } from './trust.js';
 
 // Room fights played turn by turn (docs/design.md → Manual fights). A Fight row keeps
 // what the engine needs to play the fight again from its first die: the seed, the input
@@ -169,13 +171,18 @@ async function finish(tx: Tx, fight: Fight, result: FightResult, choices: HeroCh
   }
 
   const fought = { seed: fight.seed, events: result.events, xp: result.xp, defeated: result.defeated };
-  const opts = { threat: context.threat, share: ally ? DUO.share : 1 };
+  // The Twin Wardens' hoard, both Heroes standing: one Duo Chest for the pair to split.
+  const pool = kind === 'twin' && ally && result.outcome === 'victory' && ally.side.outcome === 'victory' ? [] as Drop[] : undefined;
+  const opts = { threat: context.threat, share: ally ? DUO.share : 1, pool };
   await settle(tx, heroes.hero, 'hero', result, fought, monsters, season, floor, fight.room, kind, heroOut, opts);
   if (ally && allyOut) await settle(tx, ally.hero, 'ally', ally.side, fought, monsters, season, floor, fight.room, kind, allyOut, opts);
   if (kind === 'boss' && result.outcome === 'victory') await bossVictory(tx, heroes.hero, season, floor.number, fight.room, heroOut);
   // The Twin Wardens broken with both Heroes standing: the pair's Bond rings.
   if (kind === 'twin' && ally && allyOut && result.outcome === 'victory' && ally.side.outcome === 'victory') {
     await grantBondRings(tx, season, floor.number, [[heroes.hero, heroOut], [ally.hero, allyOut]]);
+  }
+  if (pool && ally && allyOut) {
+    await openDuoChest(tx, season, floor, fight.room, [heroes.hero, ally.hero], pool, new Map([[heroes.hero.id, heroOut], [ally.hero.id, allyOut]]), new Date());
   }
 
   if (ally && allyOut) {

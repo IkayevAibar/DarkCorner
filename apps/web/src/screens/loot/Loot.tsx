@@ -103,7 +103,7 @@ function Luck({ hero }: { hero: HeroView }) {
         <span className="chip">{t('loot.goldFind', { n: luck.goldFind })}</span>
       </div>
       {luck.blessing && (
-        <span className="text-sm text-gold">
+        <span className={`text-sm ${luck.blessing.curse ? 'text-[#ff9a8a]' : 'text-gold'}`}>
           {text(luck.blessing.name)} · {t('temple.left', { time: formatDuration(t, new Date(luck.blessing.until).getTime() - now) })}
         </span>
       )}

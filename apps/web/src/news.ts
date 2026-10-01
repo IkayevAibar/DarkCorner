@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-trust',
+    date: '2026-10-01',
+    title: t('Trust and greed', 'Доверие и жадность'),
+    items: [
+      t('Every Floor from 1 to 9 has an Oathstone. In a Duo, each of you swears by it in secret: share, or take. Both share: a fine gift each. One takes: both gifts, and everyone hears of it. Both take: the stone cracks and curses you both.',
+        'На каждом этаже с 1-го по 9-й стоит Камень клятв. В дуэте каждый втайне клянётся им: поделиться или забрать. Оба делятся — каждому щедрый дар. Один забирает — ему оба дара, и об этом узнают все. Оба забирают — камень трескается и проклинает обоих.'),
+      t('Treasure a Duo finds together, and the Twin Wardens’ hoard, now comes as a Duo Chest: you pick its Items in turns, half a minute a pick.',
+        'Клад, найденный дуэтом, и сокровища стражей-близнецов теперь лежат в сундуке дуэта: предметы выбираете по очереди, по полминуты на выбор.'),
+    ],
+  },
+  {
     id: '2026-10-01-twin-art',
     date: '2026-10-01',
     title: t('The Wardens’ bond', 'Узы стражей'),

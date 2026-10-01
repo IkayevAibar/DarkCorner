@@ -126,6 +126,43 @@ model DuoInvite {
   @@index([toId])
 }
 
+/// A Duo's oaths at an Oathstone, kept until both have sworn (docs/design.md → Trust and greed).
+model Oath {
+  id        String   @id @default(cuid())
+  seasonId  String
+  floor     Int
+  room      Int
+  /// The pair, in id order, and what each swore: 'share' or 'take' (null: not yet).
+  heroAId   String
+  heroBId   String
+  choiceA   String?
+  choiceB   String?
+  createdAt DateTime @default(now())
+
+  @@unique([seasonId, floor, room, heroAId, heroBId])
+}
+
+/// Treasure a Duo found together, split by picking in turns until it is empty.
+model DuoChest {
+  id        String   @id @default(cuid())
+  seasonId  String
+  floor     Int
+  room      Int
+  /// The Hero who picks first, and its partner.
+  heroAId   String
+  heroBId   String
+  /// The Items, rolled but not yet made: [{ roll, seed, floor, source, forced }].
+  items     Json
+  /// Picks so far, in order: [{ heroId, index }].
+  picks     Json     @default("[]")
+  /// When the current pick began: it runs out after 30 seconds.
+  turnAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@index([heroAId])
+  @@index([heroBId])
+}
+
 /// A phone or browser that gets the Player's push notifications.
 model PushSubscription {
   id        String    @id @default(cuid())

@@ -23,6 +23,7 @@ import { play, playTier } from '../../sound';
 import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
+import { ChestPanel, OathPanel } from './Trust';
 import { EliteBadge } from '../../components/EliteBadge';
 import { THREAT_TONE, ThreatChip } from '../../components/ThreatChip';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
@@ -107,7 +108,8 @@ export function Labyrinth() {
   const poll = useCallback(async () => {
     if (inDuo && !busy && !playing && !ending) await load(true);
   }, [inDuo, busy, playing, ending, load]);
-  useRefresh(poll, duoFight ? 2_000 : 4_000);
+  // A Duo Chest's picks come every few seconds too.
+  useRefresh(poll, duoFight || view?.chest ? 2_000 : 4_000);
   // A Duo turn's deadline: look again as it passes.
   useAt(duoFight && !view?.fight?.mine ? view?.fight?.deadline : null, refresh);
 
@@ -325,17 +327,27 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
   const facing = room.facing;
   const event = room.eventView;
   const eventOpen = event !== null && !event.done;
+  // An Oathstone waiting for this Player's oath comes up like an event; a Duo Chest whenever one is open.
+  const oath = room.oath;
+  const oathOpen = oath !== null && oath.state === 'open' && oath.mine === null;
+  const [oathPeek, setOathPeek] = useState(false);
+  const [chestAside, setChestAside] = useState(false);
+  const chest = view.chest;
   useEffect(() => {
     setAside(false);
     setPeek(false);
     setFoe(null);
-  }, [floor.number, room.id, facing !== null, eventOpen]);
+    setOathPeek(false);
+  }, [floor.number, room.id, facing !== null, eventOpen, oathOpen]);
+  useEffect(() => setChestAside(false), [chest !== null, room.id]);
   // A new Room: back up to the stage, since the Door was often tapped below it.
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [floor.number, room.id]);
   const facingCard = facing !== null && !aside;
   const eventCard = !facing && event !== null && (eventOpen ? !aside : peek);
+  const oathCard = !facing && !chest && oath !== null && (oathOpen ? !aside : oathPeek);
+  const chestCard = chest !== null && !chestAside;
 
   /** The Door the Player chose while a Camp's rest was under way, waiting for a yes. */
   const [leaving, setLeaving] = useState<number | null>(null);
@@ -462,6 +474,13 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         </section>
       )}
 
+      {((oath && !oathCard) || (chest && chestAside)) && (
+        <section className="grid gap-2">
+          {chest && chestAside && <button type="button" className="btn btn-primary" onClick={() => setChestAside(false)}>{t('lab.openChest')}</button>}
+          {oath && !oathCard && !chest && <button type="button" className="btn" onClick={() => setOathPeek(true)}>{t('lab.openOath')}</button>}
+        </section>
+      )}
+
       {view.graves.length > 0 && <Graves view={view} busy={busy} act={act} />}
 
       {facingCard && <FacingCard facing={facing} view={view} busy={busy} act={act} onAside={() => setAside(true)} onFoe={setFoe} />}
@@ -475,6 +494,28 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           width={420}
         >
           <EventPanel event={event} view={view} busy={busy} act={act} />
+        </CenterModal>
+      )}
+      {oathCard && (
+        <CenterModal
+          label={t('room.oathstone')}
+          head={<span className="sub-heading">{t('room.oathstone')}</span>}
+          onClose={() => (oathOpen ? setAside(true) : setOathPeek(false))}
+          closeLabel={oathOpen ? t('lab.lookAround') : t('close')}
+          width={420}
+        >
+          <OathPanel view={view} busy={busy} act={act} />
+        </CenterModal>
+      )}
+      {chestCard && (
+        <CenterModal
+          label={t('chest.title')}
+          head={<span className="sub-heading">{t('chest.title')}</span>}
+          onClose={() => setChestAside(true)}
+          closeLabel={t('lab.lookAround')}
+          width={460}
+        >
+          <ChestPanel chest={chest} view={view} busy={busy} act={act} />
         </CenterModal>
       )}
       {popup === 'map' && (

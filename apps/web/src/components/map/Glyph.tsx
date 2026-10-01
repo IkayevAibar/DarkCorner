@@ -15,6 +15,7 @@ export function Glyph({ type }: { type: MapRoom['type'] }) {
     case 'vault': return <><path d="M-11-11 H11 V11 H-11 Z M-7-7 H7 V7 H-7 Z" /><circle r="3" /><path d="M0-5 V5 M-5 0 H5" /></>;
     case 'hidden': return <><path d="M-13 0 Q0-15 13 0 Q0 15-13 0 Z" /><path d="M0-6 L4 0 0 6-4 0 Z" /></>;
     case 'twin': return <><path d="M-13 14H13M-10 11H10" /><g transform="translate(-12 -14)"><TwinMark /></g></>;
+    case 'oathstone': return <><path d="M-7 12 V-5 Q0-15 7-5 V12 Z" /><circle cx="-2.6" cy="-2" r="1.7" /><circle cx="2.6" cy="-2" r="1.7" /><path d="M-11 13 H11" /></>;
     case 'miniboss': return <><path d="M-8 1 Q-13-12 0-11 Q13-12 8 1 L5 4 V10 H-5 V4 Z" /><path d="M-5-2 H-2 M2-2 H5 M0 4 V10" /></>;
     case 'boss': return <><path d="M-3 11 L-10 2-13-10-5-5 0-13 5-5 13-10 10 2 3 11 Z" /><path d="M-7-1 L-3 1 M3 1 L7-1 M0 4 V9" /></>;
     default: return null;

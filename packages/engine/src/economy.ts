@@ -260,7 +260,9 @@ export const marketPayout = (price: number, tax = MARKET_TAX): number => price -
 // ─── Blessings ────────────────────────────────────────────────────────────
 
 export const BLESSING_IDS = ['fortune', 'greed', 'providence'] as const;
-export type BlessingId = (typeof BLESSING_IDS)[number];
+/** Curses take a Blessing's place (driving any out), but nobody prays for one or buys one. */
+export const CURSE_IDS = ['oathbroken'] as const;
+export type BlessingId = (typeof BLESSING_IDS)[number] | (typeof CURSE_IDS)[number];
 
 export interface BlessingDef {
   id: BlessingId;
@@ -272,6 +274,8 @@ export interface BlessingDef {
   goldFind: number;
   /** Multiplies what the Bad-luck meter gains. */
   badLuck: number;
+  /** A curse, from a cracked Oathstone. */
+  curse?: true;
 }
 
 /** A Blessing lasts this long, and a new one replaces the old. */
@@ -287,6 +291,11 @@ export const BLESSINGS: Record<BlessingId, BlessingDef> = {
     id: 'greed', name: text('Blessing of Greed', 'Благословение алчности'),
     description: text('+50% gold find for 3 hours.', '+50% к золоту на 3 часа.'),
     price: 100, magicFind: 0, goldFind: 50, badLuck: 1,
+  },
+  oathbroken: {
+    id: 'oathbroken', name: text('Oathbreaker’s curse', 'Проклятие клятвопреступника'),
+    description: text('Half the gold and −25% magic find for 3 hours: the price of a cracked Oathstone.', 'Вдвое меньше золота и −25% к удаче в добыче на 3 часа: цена расколотого Камня клятв.'),
+    price: 0, magicFind: -25, goldFind: -50, badLuck: 1, curse: true,
   },
   providence: {
     id: 'providence', name: text('Blessing of Providence', 'Благословение провидения'),

@@ -78,6 +78,8 @@ export type HeroDraft = z.infer<typeof heroDraftSchema>;
 
 export const BLESSING_IDS = ['fortune', 'greed', 'providence'] as const;
 export const blessingIdSchema = z.enum(BLESSING_IDS);
+/** Curses take a Blessing's place: a cracked Oathstone's. */
+export const CURSE_IDS = ['oathbroken'] as const;
 export type BlessingIdView = z.infer<typeof blessingIdSchema>;
 
 /** Everything that tilts the Hero's drops: gear, a Blessing, and the Bad-luck meter. */
@@ -88,8 +90,10 @@ export const luckViewSchema = z.object({
   /** Percent, from gear and the Blessing. */
   magicFind: z.number().int(),
   goldFind: z.number().int(),
+  /** The Blessing on the Hero now, or a curse in its place. */
   blessing: z.object({
-    id: blessingIdSchema, name: localizedTextSchema, description: localizedTextSchema, until: z.string(),
+    id: z.enum([...BLESSING_IDS, ...CURSE_IDS]), name: localizedTextSchema, description: localizedTextSchema, until: z.string(),
+    curse: z.boolean().default(false),
   }).nullable(),
 });
 export type LuckView = z.infer<typeof luckViewSchema>;

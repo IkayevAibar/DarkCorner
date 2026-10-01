@@ -1,13 +1,13 @@
 import type { Fight, Hero, HeroFloor, Player, Season } from '@prisma/client';
 import {
   type Direction, type EventAction, type Exit, type FaceAction, type Facing, type HeroActionView, KIT_BASES, type LabyrinthResult, type LabyrinthView,
-  type LiveFight, type Stance,
+  type LiveFight, type OathChoice, type Stance,
 } from '@dark/shared';
 import {
   BAG_SLOTS, type ClassId, type Door, breaksWalls, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
   type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
   PATH_MASTERY, type HeroKey, InvalidChoice, type MonsterInstance, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
-  threatOf, tierRank, baseById, heroFeatures, itemAbout, CAMP_REST_MS, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById,
+  threatOf, tierRank, baseById, heroFeatures, itemAbout, CAMP_REST_MS, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById, OATH_MS,
 } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
@@ -32,6 +32,7 @@ import { countDeeds } from './deeds.js';
 import { newRun, tallyRun, tallyRunIn } from './runs.js';
 import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
+import { chestOf, chestView, duoTreasure, oathView, swear, takeTurns } from './trust.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 /** Clues: a WIS Check against this sees through a lie (v0). */
@@ -341,7 +342,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
   };
 
   if (hero.location === 'CITY' || hero.floor === null || hero.room === null) {
-    return { ...base, location: 'city', floor: null, room: null, exits: [], map: null, graves: [] };
+    return { ...base, location: 'city', floor: null, room: null, exits: [], map: null, graves: [], chest: null };
   }
 
   const lab = labyrinthFor(season);
@@ -420,12 +421,46 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       eventView: room.type === 'event' ? await eventView(tx, hero, season, floor, room.id, now) : null,
       vault: room.type === 'vault' ? await vaultView(tx, season, floor.number, room.id, now) : null,
       facing: waiting ? facingView(hero, waiting === 'boss' ? null : together, season, floor, room.id, waiting, now) : null,
+      oath: room.type === 'oathstone' ? await oathView(tx, hero, together, season, floor, room.id, now) : null,
     },
     exits,
     map: { rooms, doors: [...doors.values()] },
     graves: graves.map((g) => ({ id: g.id, owner: g.ownerName, items: g.items.length, gold: g.gold, expiresAt: g.expiresAt.toISOString() })),
     fight: live,
+    chest: await chestFor(tx, hero),
   };
+}
+
+/** The Duo Chest this Hero is splitting, as its Player sees it. */
+async function chestFor(tx: Tx, hero: HeroWithItems) {
+  const chest = await chestOf(tx, hero.id);
+  if (!chest) return null;
+  const otherId = chest.heroAId === hero.id ? chest.heroBId : chest.heroAId;
+  const other = await tx.hero.findUniqueOrThrow({ where: { id: otherId }, include: { items: true } });
+  return chestView(chest, hero.id, new Map([[hero.id, hero], [other.id, other]]));
+}
+
+/**
+ * Brings the Hero's Duo Chest up to date (a pick left 30 seconds goes to the best Item left),
+ * or, with `finish`, picks what is left in turn: the Duo moves on, or is no more. The other
+ * Hero's part goes into `partnerOut` when it is the Duo partner here, or else into its news.
+ */
+async function tendChest(tx: Tx, hero: HeroWithItems, partner: HeroWithItems | null, season: Season, now: Date, out: Outcome,
+  opts: { finish?: boolean; partnerOut?: Outcome; pick?: number } = {}) {
+  const chest = await chestOf(tx, hero.id);
+  if (!chest) {
+    if (opts.pick !== undefined) throw ApiError.conflict('no_chest', 'There is no Duo Chest here');
+    return;
+  }
+  const otherId = chest.heroAId === hero.id ? chest.heroBId : chest.heroAId;
+  const other = partner?.id === otherId ? partner : await tx.hero.findUniqueOrThrow({ where: { id: otherId }, include: { items: true } });
+  const otherOut = partner?.id === otherId && opts.partnerOut ? opts.partnerOut : emptyOutcome();
+  // A Duo no longer together at its chest can't split it: what is left is picked for them.
+  const together = partner?.id === otherId && [hero, other].every((h) => h.location === 'LABYRINTH' && h.floor === chest.floor && h.room === chest.room);
+  await takeTurns(tx, chest, new Map([[hero.id, hero], [other.id, other]]), season, new Map([[hero.id, out], [other.id, otherOut]]), now, {
+    finish: opts.finish || !together, ...(opts.pick !== undefined ? { pick: { heroId: hero.id, index: opts.pick } } : {}),
+  });
+  if (otherOut !== opts.partnerOut) await addNews(tx, other.id, otherOut);
 }
 
 /** The fight this Hero is in, as its Player sees it now; null when there is none. */
@@ -543,6 +578,7 @@ export async function labyrinthState(player: Player): Promise<LabyrinthResult> {
     }
     await restIfDue(tx, h, now, outcome);
     if (h.location === 'LABYRINTH' && h.floor !== null) await stillFacing(tx, h, partner, season, floorOf(labyrinthFor(season), h.floor), now, outcome);
+    await tendChest(tx, h, partner, season, now, outcome);
     return h;
   });
   return respond(hero.id, season, outcome);
@@ -624,6 +660,7 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
     await noFight(tx, hero.id);
+    await tendChest(tx, hero, partner, season, now, outcome, { finish: true, partnerOut });
     const { floor, room: from } = whereIs(hero, lab);
     await restIfDue(tx, hero, now, outcome);
     if (partner) await restIfDue(tx, partner, now, partnerOut);
@@ -686,8 +723,10 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
       w.hero.facing = waiting !== null;
     }
 
+    // Treasure a Duo walks in on together goes into one Duo Chest.
+    const shared = partner !== null && target.type === 'treasure';
     for (const w of walkers) {
-      if (!waiting) await resolveRoom(tx, w.hero, season, floor, to, w.hf, now, w.out);
+      if (!waiting && !shared) await resolveRoom(tx, w.hero, season, floor, to, w.hf, now, w.out);
       // A sharp eye catches a way into a hidden room.
       const seenNow = new Set([...w.hf.seen, to]);
       for (const { door } of doorsOf(floor, to)) {
@@ -697,6 +736,7 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
         }
       }
     }
+    if (!waiting && shared) await duoTreasure(tx, [hero, partner], season, floor, to, now, new Map([[hero.id, outcome], [partner.id, partnerOut]]));
     if (partner) await tellPartner(tx, partner, partnerOut, now);
     return hero.id;
   });
@@ -715,6 +755,15 @@ async function resolveRoom(tx: Tx, hero: HeroWithItems, season: Season, floor: F
       break;
     case 'twin':
       out.notices.push(t('The Twin Wardens stand still as stone. They wake a week after you beat them.', 'Стражи-близнецы стоят неподвижно, как камень. Они проснутся через неделю после вашей победы.'));
+      break;
+    case 'oathstone':
+      if (isCleared(hf, roomId, now, OATH_MS)) {
+        out.notices.push(t('The Oathstone is quiet: you have sworn by it this week.', 'Камень клятв молчит: на этой неделе вы уже клялись им.'));
+      } else {
+        out.notices.push(hero.partnerId
+          ? t('An Oathstone. Each of you swears by it in secret: share, or take.', 'Камень клятв. Каждый из вас втайне клянётся им: поделиться или забрать.')
+          : t('An Oathstone stands here, silent: it answers only two who swear together.', 'Здесь стоит Камень клятв, безмолвный: он отвечает только двоим, кто клянётся вместе.'));
+      }
       break;
     case 'waypoint':
       if (!hero.waypoints.includes(floor.number)) {
@@ -940,6 +989,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
     await noFight(tx, hero.id);
+    await tendChest(tx, hero, partner, season, now, outcome, { finish: true, partnerOut });
     const { floor, room } = whereIs(hero, lab);
     if (floor.rooms[room]!.type !== 'stairs' || floor.number >= FLOOR_COUNT) {
       throw ApiError.conflict('no_stairs', 'There are no stairs down here');
@@ -1009,6 +1059,7 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
     await noFight(tx, hero.id);
+    await tendChest(tx, hero, partner, season, now, outcome, { finish: true, partnerOut });
     const { floor, room: at } = whereIs(hero, lab);
     if (floor.number === 1 || at !== floor.landing) throw ApiError.conflict('no_stairs_up', 'There are no stairs up here');
     const above = floorOf(lab, floor.number - 1);
@@ -1065,6 +1116,7 @@ export async function leaveByWaypoint(player: Player): Promise<LabyrinthResult> 
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, now, outcome);
     await noFight(tx, hero.id);
+    await tendChest(tx, hero, partner, season, now, outcome, { finish: true, partnerOut });
     const { floor, room: at } = whereIs(hero, lab);
     const room = floor.rooms[at]!;
     const atEntrance = floor.number === 1 && room.type === 'landing';
@@ -1127,6 +1179,7 @@ export async function readPortal(player: Player): Promise<LabyrinthResult> {
   const heroId = await prisma.$transaction(async (tx) => {
     const { hero, partner } = await actors(tx, player, season, new Date(), outcome, true);
     await noFight(tx, hero.id);
+    await tendChest(tx, hero, partner, season, new Date(), outcome, { finish: true });
     if (hero.location !== 'LABYRINTH' || hero.floor === null || hero.room === null) throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
     const scroll = stackIn(hero, 'scroll-portal');
     if (!scroll) throw ApiError.conflict('no_scroll', 'You have no Town Portal scroll');
@@ -1226,6 +1279,41 @@ export async function actInFight(player: Player, action: HeroActionView): Promis
       }
     }
     await deliver(tx, step, fight, hero.id, outcome, now);
+    return hero.id;
+  });
+  return respond(heroId, season, outcome);
+}
+
+/** A Player's secret oath at the Oathstone where its Duo stands (docs/design.md → Trust and greed). */
+export async function swearOath(player: Player, choice: OathChoice): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const lab = labyrinthFor(season);
+  const now = new Date();
+  const outcome = emptyOutcome();
+  const partnerOut = emptyOutcome();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const { hero, partner } = await actors(tx, player, season, now, outcome, true);
+    await noFight(tx, hero.id);
+    const { floor, room } = whereIs(hero, lab);
+    const together = partner && partner.floor === hero.floor && partner.room === hero.room ? partner : null;
+    await swear(tx, hero, together, season, floor, room, choice, now, outcome, partnerOut);
+    if (together) await tellPartner(tx, together, partnerOut, now);
+    return hero.id;
+  });
+  return respond(heroId, season, outcome);
+}
+
+/** This Player's pick from the Duo Chest, on its turn. */
+export async function pickFromChest(player: Player, index: number): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const now = new Date();
+  const outcome = emptyOutcome();
+  const partnerOut = emptyOutcome();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const { hero, partner } = await actors(tx, player, season, now, outcome, true);
+    await noFight(tx, hero.id);
+    await tendChest(tx, hero, partner, season, now, outcome, { pick: index, partnerOut });
+    if (partner) await tellPartner(tx, partner, partnerOut, now);
     return hero.id;
   });
   return respond(heroId, season, outcome);

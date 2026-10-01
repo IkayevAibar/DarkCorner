@@ -200,7 +200,10 @@ function luckView(hero: HeroWithItems, now: Date): HeroView['luck'] {
     magicFind: luck.magicFind,
     goldFind: luck.goldFind,
     blessing: blessing
-      ? { id: blessing, name: BLESSINGS[blessing].name, description: BLESSINGS[blessing].description, until: hero.blessingUntil!.toISOString() }
+      ? {
+        id: blessing, name: BLESSINGS[blessing].name, description: BLESSINGS[blessing].description, until: hero.blessingUntil!.toISOString(),
+        curse: BLESSINGS[blessing].curse === true,
+      }
       : null,
   };
 }

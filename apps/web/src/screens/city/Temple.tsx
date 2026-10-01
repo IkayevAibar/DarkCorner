@@ -22,7 +22,7 @@ export function Temple() {
     <Building title={t('city.temple')} blurb={t('temple.blurb')} hero={hero}>
       {current && (
         <div className="panel grid gap-0.5 p-3">
-          <span className="font-head text-lg font-extrabold text-gold">{text(current.name)}</span>
+          <span className={`font-head text-lg font-extrabold ${current.curse ? 'text-[#ff9a8a]' : 'text-gold'}`}>{text(current.name)}</span>
           <span className="text-sm">{text(current.description)}</span>
           <span className="text-xs text-muted">{t('temple.left', { time: formatDuration(t, new Date(current.until).getTime() - now) })}</span>
         </div>

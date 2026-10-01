@@ -126,6 +126,8 @@ describe('Twin doors', () => {
     expect(endA!.loot.some((l) => l.base === 'bond-ring' && l.power?.en.includes('Mira'))).toBe(true);
     expect(endB!.loot.some((l) => l.base === 'bond-ring')).toBe(true);
     expect(await prisma.feedEvent.count({ where: { kind: 'twin' } })).toBe(1);
+    // Their hoard, two Items for each Hero, is one Duo Chest for the pair to split.
+    expect((await look(a.cookie)).view.chest?.items).toHaveLength(4);
 
     // Worn by both, the halves are joined: twice their Bonus stats in a fight together.
     for (const ring of rings) await prisma.item.update({ where: { id: ring.id }, data: { place: 'WORN', slot: 'ring1' } });
