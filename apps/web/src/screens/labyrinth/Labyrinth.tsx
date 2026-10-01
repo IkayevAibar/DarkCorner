@@ -1,4 +1,5 @@
-import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { useTrustText } from './trust/messages';
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { NavLink } from 'react-router';
 import {
   STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
@@ -24,6 +25,11 @@ import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
 import { ChestPanel, OathPanel } from './Trust';
+import { OathStone } from './trust/OathScene';
+import { ChestProp } from './trust/ChestScene';
+import { OathReveal } from './trust/OathReveal';
+import { ClosedChest } from './trust/ClosedChest';
+import { initialPresentation, resultPresentation } from './resultPresentation';
 import { EliteBadge } from '../../components/EliteBadge';
 import { THREAT_TONE, ThreatChip } from '../../components/ThreatChip';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
@@ -43,15 +49,16 @@ type Act = (call: () => Promise<LabyrinthResult>) => Promise<void>;
  */
 export function Labyrinth() {
   const { t } = useI18n();
-  const [view, setView] = useState<LabyrinthView | null>(null);
+  const [{ view, scene, report }, dispatch] = useReducer(resultPresentation, initialPresentation);
   const [status, setStatus] = useState<'loading' | 'ready' | 'noHero' | 'failed'>('loading');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  /** A result whose fight is being played back; its view shows once the fight is over. */
-  const [playing, setPlaying] = useState<LabyrinthResult | null>(null);
-  /** The end of a fight played turn by turn: its last blows show on the board, then the report. */
-  const [ending, setEnding] = useState<LabyrinthResult | null>(null);
-  const [report, setReport] = useState<LabyrinthResult | null>(null);
+  const playing = scene?.kind === 'fight' ? scene.result : null;
+  const ending = scene?.kind === 'ending' ? scene.result : null;
+  const trustScene = scene?.kind === 'oath' || scene?.kind === 'chest';
+  const { closeSheet } = useSheet();
+  useEffect(() => { if (scene) closeSheet(); }, [scene, closeSheet]);
+  const sceneOver = useCallback(() => { if (scene) dispatch({ type: 'finish', scene }); }, [scene]);
 
   useEffect(() => { void preloadFightScene().catch(() => { /* Playback can retry or show its fallback. */ }); }, []);
 
@@ -64,22 +71,12 @@ export function Labyrinth() {
    * the last blows there before the report; a fight fought on its own at once plays in
    * the fight scene. News that comes while a report is open joins it rather than hiding it.
    */
-  const present = useCallback((result: LabyrinthResult, polled = false) => {
+  const present = useCallback((result: LabyrinthResult, polled = false, clearReport = false) => {
     const at = result.view.floor && result.view.room ? `${result.view.floor.number}:${result.view.room.id}` : null;
     if (polled && place.current !== null && at !== place.current && !live.current) play('door', { rate: 0.9 });
     place.current = at;
-    const wasLive = live.current;
     live.current = result.view.fight !== null;
-    if (result.fight && wasLive) {
-      setEnding(result);
-      return;
-    }
-    if (result.fight) {
-      setPlaying(result);
-      return;
-    }
-    setView(result.view);
-    if (hasNews(result)) setReport((open) => (open ? joinReports(open, result) : result));
+    dispatch({ type: 'receive', result, clearReport });
   }, []);
 
   const load = useCallback(async (polled = false) => {
@@ -97,7 +94,7 @@ export function Labyrinth() {
 
   // Stamina ticks back and Camps finish resting on the server's clock: look again then.
   const refresh = () => {
-    if (!busy && !playing && !ending) void load();
+    if (!busy && !scene) void load();
   };
   useAt(view?.hero.staminaNextAt, refresh);
   useAt(view?.room?.restedAt, refresh);
@@ -106,20 +103,20 @@ export function Labyrinth() {
   const inDuo = view?.duo != null;
   const duoFight = inDuo && view?.fight != null;
   const poll = useCallback(async () => {
-    if (inDuo && !busy && !playing && !ending) await load(true);
-  }, [inDuo, busy, playing, ending, load]);
+    if (inDuo && !busy && !scene) await load(true);
+  }, [inDuo, busy, scene, load]);
   // A Duo Chest's picks come every few seconds too.
   useRefresh(poll, duoFight || view?.chest ? 2_000 : 4_000);
   // A Duo turn's deadline: look again as it passes.
   useAt(duoFight && !view?.fight?.mine ? view?.fight?.deadline : null, refresh);
 
   const act: Act = async (call) => {
+    if (scene) return;
     setBusy(true);
     setError(null);
     try {
       const result = await call();
-      setReport(null);
-      present(result);
+      present(result, false, true);
     } catch (e) {
       setError(describeError(t, e));
       void load();
@@ -127,19 +124,6 @@ export function Labyrinth() {
       setBusy(false);
     }
   };
-
-  const fightOver = () => {
-    if (!playing) return;
-    setView(playing.view);
-    setReport(playing);
-    setPlaying(null);
-  };
-  const endingOver = useCallback(() => {
-    if (!ending) return;
-    setView(ending.view);
-    setReport(ending);
-    setEnding(null);
-  }, [ending]);
 
   if (status === 'loading') return <p className="text-center text-muted">{t('loading')}</p>;
   if (status === 'noHero') {
@@ -161,55 +145,46 @@ export function Labyrinth() {
 
   return (
     <div className="grid gap-3">
-      {report && <Report result={report} onClose={() => setReport(null)} />}
-      {view.location === 'city' && !ending ? (
-        <Gate view={view} busy={busy} error={error} act={act} onDuo={() => void load()} />
-      ) : view.fight || ending ? (
-        <>
-          <LiveFightPanel
-            fight={ending?.fight ? endedBoard(ending.fight) : liveBoard(view.fight!)}
-            at={view.floor && view.room ? { floor: view.floor.number, room: view.room.id } : undefined}
-            busy={busy}
-            onChoose={(action) => void act(() => api.fightAction(action))}
-            onDone={endingOver}
-          />
-          {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
-        </>
-      ) : (
-        <Inside view={view} busy={busy} error={error} act={act} />
-      )}
+      {!scene && report && <Report result={report} onClose={() => dispatch({ type: 'dismiss' })} />}
+      <div className="grid gap-3" inert={trustScene || undefined}>
+        {view.location === 'city' && !ending ? (
+          <Gate view={view} busy={busy} error={error} act={act} onDuo={() => void load()} />
+        ) : view.fight || ending ? (
+          <>
+            <LiveFightPanel
+              fight={ending?.fight ? endedBoard(ending.fight) : liveBoard(view.fight!)}
+              at={view.floor && view.room ? { floor: view.floor.number, room: view.room.id } : undefined}
+              busy={busy}
+              onChoose={(action) => void act(() => api.fightAction(action))}
+              onDone={sceneOver}
+            />
+            {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
+          </>
+        ) : (
+          <Inside view={view} busy={busy || !!scene} covered={trustScene} error={error} act={act} />
+        )}
+      </div>
+      {scene?.kind === 'oath' && scene.result.oath && <OathReveal
+        key={scene.id}
+        result={scene.result.oath} hero={scene.before?.hero ?? scene.result.view.hero}
+        partner={scene.before?.duo ?? scene.result.view.duo} notices={scene.result.notices} onDone={sceneOver}
+      />}
+      {scene?.kind === 'chest' && scene.result.closedChest && <ClosedChest
+        key={scene.id}
+        chest={scene.result.closedChest} previousChest={scene.before?.chest ?? undefined}
+        hero={scene.before?.hero ?? scene.result.view.hero} partner={scene.before?.duo ?? scene.result.view.duo} onDone={sceneOver}
+      />}
       {playing?.fight && (
         <FightScene
+          key={scene?.id}
           replay={playing.fight}
           room={view?.floor && view.room ? { floor: view.floor.number, room: view.room.id } : undefined}
-          onDone={fightOver}
+          onDone={sceneOver}
         />
       )}
     </div>
   );
 }
-
-const hasNews = (r: LabyrinthResult) =>
-  r.fight !== null || r.loot.length > 0 || r.gold > 0 || r.xp > 0 || r.levelUp !== null || r.died || r.notices.length > 0
-  || r.checks.length > 0 || r.duel !== null || r.run !== null || r.deeds.length > 0 || r.oath !== null || r.closedChest !== null;
-
-/** Two results in one report, the newer's fight and view winning. */
-const joinReports = (a: LabyrinthResult, b: LabyrinthResult): LabyrinthResult => ({
-  view: b.view,
-  fight: b.fight ?? a.fight,
-  loot: [...a.loot, ...b.loot],
-  gold: a.gold + b.gold,
-  xp: a.xp + b.xp,
-  levelUp: b.levelUp ?? a.levelUp,
-  died: a.died || b.died,
-  notices: [...a.notices, ...b.notices],
-  checks: [...a.checks, ...b.checks],
-  duel: b.duel ?? a.duel,
-  run: b.run ?? a.run,
-  deeds: [...a.deeds, ...b.deeds],
-  oath: b.oath ?? a.oath,
-  closedChest: b.closedChest ?? a.closedChest,
-});
 
 /** Drinks one Healing potion from the Bag, then shows the Labyrinth again. */
 async function drinkPotion(): Promise<LabyrinthResult> {
@@ -313,7 +288,8 @@ type Popup = 'map' | 'bag' | BeltPick;
  * and where to go next below it. Anything that needs the Player (monsters in
  * the doorway, an event, the Map, the belt's details) comes up in the middle.
  */
-function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act }) {
+function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthView; busy: boolean; error: string | null; act: Act; covered?: boolean }) {
+  const trustText = useTrustText();
   const { t, locale } = useI18n();
   const now = useNow();
   const floor = view.floor!;
@@ -386,7 +362,9 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           <FacingTokens facing={facing} view={view} onFoe={setFoe} />
         ) : (
           <>
-            <div className="absolute inset-0 grid place-items-center">
+            {oath && <div className="oath-room-prop"><OathStone active={oath.state === 'open'} /></div>}
+            {chest && <div className="duo-chest-room-prop"><ChestProp /></div>}
+            <div className={oath || chest ? 'oath-room-pair' : 'absolute inset-0 grid place-items-center'}>
               <Pair view={view} size={86} />
             </div>
             {exits.map((exit) => (
@@ -396,7 +374,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
         )}
         <div className="absolute top-[70px] left-3 grid max-w-[40%] rounded-[2px] border border-[#4a3a26] bg-[rgb(22_18_14/0.88)] px-2.5 py-1 leading-tight">
           <span className="font-head text-[13px] font-bold text-bone">{label}</span>
-          {room.cleared && room.type !== 'empty' && <span className="text-[11px] text-muted">{t(room.type === 'twin' ? 'room.clearedWeek' : 'room.cleared')}</span>}
+          {room.cleared && room.type !== 'empty' && <span className="text-[11px] text-muted">{t(room.type === 'twin' || room.type === 'oathstone' ? 'room.clearedWeek' : 'room.cleared')}</span>}
         </div>
         {facing && (
           <div className="absolute top-[70px] right-3">
@@ -485,9 +463,9 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
 
       {view.graves.length > 0 && <Graves view={view} busy={busy} act={act} />}
 
-      {facingCard && <FacingCard facing={facing} view={view} busy={busy} act={act} onAside={() => setAside(true)} onFoe={setFoe} />}
-      {facing && foe && <FoeCard facing={facing} monsterKey={foe} onClose={() => setFoe(null)} />}
-      {eventCard && (
+      {!covered && facingCard && <FacingCard facing={facing} view={view} busy={busy} act={act} onAside={() => setAside(true)} onFoe={setFoe} />}
+      {!covered && facing && foe && <FoeCard facing={facing} monsterKey={foe} onClose={() => setFoe(null)} />}
+      {!covered && eventCard && (
         <CenterModal
           label={t(`event.${event.kind}` as MessageKey)}
           head={<span className="sub-heading">{t(`event.${event.kind}` as MessageKey)}</span>}
@@ -498,7 +476,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           <EventPanel event={event} view={view} busy={busy} act={act} />
         </CenterModal>
       )}
-      {oathCard && (
+      {!covered && oathCard && (
         <CenterModal
           label={t('room.oathstone')}
           head={<span className="sub-heading">{t('room.oathstone')}</span>}
@@ -509,10 +487,10 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           <OathPanel view={view} busy={busy} act={act} />
         </CenterModal>
       )}
-      {chestCard && (
+      {!covered && chestCard && (
         <CenterModal
-          label={t('chest.title')}
-          head={<span className="sub-heading">{t('chest.title')}</span>}
+          label={trustText('chest.title')}
+          head={<span className="sub-heading">{trustText('chest.title')}</span>}
           onClose={() => setChestAside(true)}
           closeLabel={t('lab.lookAround')}
           width={460}
@@ -520,7 +498,7 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           <ChestPanel chest={chest} view={view} busy={busy} act={act} />
         </CenterModal>
       )}
-      {popup === 'map' && (
+      {!covered && popup === 'map' && (
         <CenterModal
           label={t('lab.map', { n: floor.number })}
           head={<span className="sub-heading">{t('lab.map', { n: floor.number })}</span>}
@@ -539,8 +517,8 @@ function Inside({ view, busy, error, act }: { view: LabyrinthView; busy: boolean
           />
         </CenterModal>
       )}
-      {popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
-      {leaving !== null && room.restedAt && (
+      {!covered && popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
+      {!covered && leaving !== null && room.restedAt && (
         <CenterModal label={t('camp.leave.title')} onClose={() => setLeaving(null)} head={<span className="sub-heading">{t('camp.leave.title')}</span>}>
           <p className="m-0 text-[15px] leading-snug">
             {t('camp.leave.body', {

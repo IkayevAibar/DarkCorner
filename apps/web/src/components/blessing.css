@@ -1,0 +1,50 @@
+.blessing-status {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #625033;
+  background: radial-gradient(ellipse at left,#48382055,transparent 70%),#15120f;
+  color: #d6b879;
+  border-radius: 3px;
+}
+
+.blessing-status>svg {
+  width: 36px;
+  min-width: 36px;
+  height: 46px;
+  margin-top: 4px;
+}
+
+.blessing-status>div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.blessing-status small {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.blessing-status strong {
+  font: 700 20px/1.15 var(--font-head);
+}
+
+.blessing-status p {
+  margin: 0;
+  font-size: 14px;
+  color: #d4c6b8;
+}
+
+.blessing-status span {
+  font-size: 12px;
+  color: #ab9c8c;
+}
+
+.blessing-status[data-curse] {
+  color: #eaa58d;
+  border-color: #744032;
+  background: linear-gradient(112deg,#4d272450,transparent 65%),#17100f;
+  box-shadow: inset 3px 0 #9b4a39;
+}

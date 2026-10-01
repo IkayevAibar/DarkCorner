@@ -8,7 +8,7 @@ import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
-import { formatDuration, useNow } from '../../time';
+import { BlessingStatus } from '../../components/BlessingStatus';
 import { NeedHero } from '../city/NeedHero';
 import { ChestSpin } from '../../components/loot/ChestSpin';
 import { IdentifyReveal } from '../../components/loot/IdentifyReveal';
@@ -81,8 +81,6 @@ export function Loot() {
 
 function Luck({ hero }: { hero: HeroView }) {
   const { t } = useI18n();
-  const text = useText();
-  const now = useNow(30_000);
   const { luck } = hero;
   const percent = Math.min(100, (100 * luck.badLuck) / luck.badLuckMax);
   return (
@@ -99,14 +97,10 @@ function Luck({ hero }: { hero: HeroView }) {
         <span className="text-xs text-muted">{t('loot.badLuckHint', { n: luck.badLuckMax })}</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
-        <span className="chip">{t('loot.magicFind', { n: luck.magicFind })}</span>
-        <span className="chip">{t('loot.goldFind', { n: luck.goldFind })}</span>
+        <span className="chip">{t('loot.magicFind', { n: luck.magicFind >= 0 ? `+${luck.magicFind}` : luck.magicFind })}</span>
+        <span className="chip">{t('loot.goldFind', { n: luck.goldFind >= 0 ? `+${luck.goldFind}` : luck.goldFind })}</span>
       </div>
-      {luck.blessing && (
-        <span className={`text-sm ${luck.blessing.curse ? 'text-[#ff9a8a]' : 'text-gold'}`}>
-          {text(luck.blessing.name)} · {t('temple.left', { time: formatDuration(t, new Date(luck.blessing.until).getTime() - now) })}
-        </span>
-      )}
+      {luck.blessing && <BlessingStatus blessing={luck.blessing} />}
     </section>
   );
 }

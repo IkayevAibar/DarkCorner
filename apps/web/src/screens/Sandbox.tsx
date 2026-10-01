@@ -4,6 +4,7 @@ import { CityPreview } from './sandbox/CityPreview';
 import { LootPreview } from './sandbox/LootPreview';
 import { TurnPreview } from './sandbox/TurnPreview';
 import { TwinPreview } from './sandbox/TwinPreview';
+import { TrustPreview } from './sandbox/TrustPreview';
 import { MapPreview } from './sandbox/MapPreview';
 import type { FightReplay } from '@dark/shared';
 import { useI18n } from '../i18n';
@@ -24,6 +25,7 @@ export function Sandbox() {
       <h1 className="sub-heading m-0">{t('sandbox.title')}</h1>
       <p className="m-0 text-muted">{t('sandbox.body')}</p>
 
+      <TrustPreview />
       <TwinPreview onFight={setFight} />
       <TavernPreview />
       <CityPreview />

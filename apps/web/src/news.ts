@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-oaths',
+    date: '2026-10-01',
+    title: t('What the two hands reveal', 'Что откроют две руки'),
+    items: [
+      t('The Oathstone has two carved palms. When both oaths are sworn, the hands turn together: warm light for trust, a fracture for betrayal, darkness for two grasping hands.',
+        'На камне клятв высечены две ладони. Когда обе клятвы скреплены, руки раскрываются вместе: тёплый свет за доверие, трещина за предательство и тьма за две жадные руки.'),
+      t('Duo Chests open into a tray of Items. The portraits and timer show whose pick comes next; each claimed Item flies to its Hero. Curses have their own scarred mark in Loot and the Temple.',
+        'Сундук дуэта раскрывает свои предметы. Портреты и таймер показывают, чей сейчас выбор; каждый предмет летит к своему герою. У проклятия теперь свой треснувший знак в добыче и храме.'),
+    ],
+  },
+  {
     id: '2026-10-01-trust',
     date: '2026-10-01',
     title: t('Trust and greed', 'Доверие и жадность'),
