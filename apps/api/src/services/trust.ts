@@ -87,7 +87,8 @@ async function settleOaths(tx: Tx, season: Season, floor: Floor, room: number, p
     // The reveal, for the screen: both oaths, from this Hero's side.
     out.oath = { mine: oaths[i]!, partner: oaths[1 - i]! };
     for (let g = 0; g < gifts[i]!; g++) {
-      await giveDrop(tx, hero, season, await rollDrop(tx, hero, season, { floor: floor.number, odds: oathOdds(floor.number), source: 'oathstone' }), out);
+      // A gift the stone gives goes into the Bag even when it is full.
+      await giveDrop(tx, hero, season, await rollDrop(tx, hero, season, { floor: floor.number, odds: oathOdds(floor.number), source: 'oathstone' }), out, true);
     }
     if (cursed) {
       const curse = { blessing: 'oathbroken', blessingUntil: new Date(now.getTime() + BLESSING_MS) };

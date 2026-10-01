@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { type Floor, doorsOf, generateLabyrinth, tierRank } from '@dark/engine';
+import { BAG_SLOTS, type Floor, doorsOf, generateLabyrinth, tierRank } from '@dark/engine';
 import { labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
@@ -91,6 +91,17 @@ describe('Oathstones', () => {
     expect(spent.state).toBe('spent');
     expect(new Date(spent.until!).getTime()).toBeGreaterThan(Date.now() + 6 * 24 * 3600_000);
     expect((await swear(b.cookie, 'take')).json()).toMatchObject({ error: 'oath_spent' });
+  });
+
+  it('put a gift in the Bag even when it is full', async () => {
+    const { a, b } = await duoAt(stone);
+    const season = await prisma.season.findFirstOrThrow();
+    const used = await prisma.item.count({ where: { heroId: a.hero.id, place: 'BAG' } });
+    await prisma.item.createMany({ data: Array.from({ length: BAG_SLOTS - used }, () => ({ seasonId: season.id, heroId: a.hero.id, place: 'BAG' as const, base: 'scrap', tier: 'common' })) });
+    await act(a.cookie, '/api/labyrinth/oath', { choice: 'share' });
+    const r = await act(b.cookie, '/api/labyrinth/oath', { choice: 'share' });
+    expect(r.oath).toEqual({ mine: 'share', partner: 'share' });
+    expect(await prisma.item.count({ where: { heroId: a.hero.id, place: 'BAG' } })).toBe(BAG_SLOTS + 1);
   });
 
   it('give a lone taker both gifts, and tell the Feed', async () => {

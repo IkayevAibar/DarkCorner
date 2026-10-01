@@ -760,7 +760,7 @@ Two friends walk the Labyrinth together, while both are online.
 Two things a Duo decides between its own two Players.
 
 - **Oathstones:** one quiet Room on every Floor from 1 to 9 holds an Oathstone, placed apart from the rest like the Twin doors (its Clues are true). Alone, it is silent. A Duo standing at it swears by it in secret: each Player chooses **Share** or **Take**, neither sees the other's oath until both have sworn, and a sworn oath stands.
-  - **Both share:** each Hero gets a gift, an Item of Rare or better with the odds of three Floors deeper.
+  - **Both share:** each Hero gets a gift, an Item of Rare or better with the odds of three Floors deeper. A gift goes into the Bag even when it is full.
   - **One takes:** the taker gets both gifts, the other nothing, and the Feed tells everyone.
   - **Both take:** the stone cracks and curses them both. The Oathbreaker's curse takes the Blessing's place for 3 hours (half the gold, −25% magic find), driving out any Blessing.
   - A Hero swears at a given stone once a week; it answers a Duo while neither has sworn there this week. The Feed also tells of oaths kept and stones cracked.

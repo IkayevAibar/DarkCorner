@@ -57,9 +57,13 @@ export async function rollDrop(tx: Tx, hero: HeroWithItems, season: Season, opts
   return { roll, seed, floor: opts.floor, source: opts.source, forced };
 }
 
-/** Puts a rolled piece of gear in the Hero's Bag (a full Bag leaves it behind), with the Feed and Broadcasts a great find brings. */
-export async function giveDrop(tx: Tx, hero: HeroWithItems, season: Season, drop: Drop, haul: Haul): Promise<boolean> {
-  const place = freePlace(hero);
+/**
+ * Puts a rolled piece of gear in the Hero's Bag, with the Feed and Broadcasts a great find
+ * brings. A full Bag leaves it behind, unless it `overflows` into the Bag anyway (a gift
+ * too dear to lose, as a Relic or a Bond ring is).
+ */
+export async function giveDrop(tx: Tx, hero: HeroWithItems, season: Season, drop: Drop, haul: Haul, overflows = false): Promise<boolean> {
+  const place = freePlace(hero) ?? (overflows ? 'BAG' : null);
   if (!place) {
     haul.notices.push(BAG_FULL);
     return false;
