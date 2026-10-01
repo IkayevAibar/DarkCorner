@@ -75,7 +75,7 @@ A Player checks in 2–3 times a day and spends about 20 Moves each time. Those 
   - Restless dead: more undead, and Clerics shine
   - Merchant's day: Wandering merchants everywhere
 
-### 6. More to find (done: secret Doors and four Event rooms; the riddling statue is left for later)
+### 6. More to find (done)
 
 - **Secret Doors:** a WIS Check when entering a Room, in the same way Clues are seen through. Behind one there is always something good.
 - **New Event rooms:**

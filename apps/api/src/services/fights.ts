@@ -4,7 +4,7 @@ import {
   BAD_LUCK_PER_FIGHT, BAD_LUCK_PER_MINIBOSS, type ClassId, DEEP_FLOOR, type FightEvent, type FightInput, type Floor, GILDED_GOLD, type HeroCombat, LOOT,
   type MonsterInstance, type PathId, RELIC_CHANCE, type RaceId, type SideResult, type StanceId, type TalentId, type ThreatId, weakeningAt,
   type DeedCounts, KILL_METRIC, type Oath, monsterStrike, weaponStrike, createRng, dropOdds, duoEncounter, fireBomb, heroCombat, monsterById, restUses,
-  simulateFight, spawnEncounter,
+  partnerRaises, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { feed } from './feed.js';
@@ -261,6 +261,8 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
   if (fought.events.some((e) => e.type === 'down' && mine(e))) {
     await countDeeds(tx, hero, { saved: 1, rose: fought.events.some((e) => e.type === 'rise' && mine(e)) ? 1 : 0 }, out);
   }
+  // So is standing a fallen partner back up.
+  await countDeeds(tx, hero, { raised: partnerRaises(fought.events, key) }, out);
 
   if (side.outcome === 'survived') {
     out.notices.push(t('Barely alive, you crawl back to the last safe Room.', 'Едва живы, вы отползаете в последнюю безопасную комнату.'));
@@ -316,7 +318,9 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
     const metric = KILL_METRIC[kin];
     if (metric) kills[metric] = (kills[metric] ?? 0) + 1;
   }
-  await countDeeds(tx, hero, { ...kills, minibosses: kind === 'miniboss' ? 1 : 0, elites, deadly: opts.threat === 'deadly' ? 1 : 0 }, out);
+  await countDeeds(tx, hero, {
+    ...kills, minibosses: kind === 'miniboss' ? 1 : 0, twins: kind === 'twin' ? 1 : 0, elites, deadly: opts.threat === 'deadly' ? 1 : 0,
+  }, out);
 }
 
 /**

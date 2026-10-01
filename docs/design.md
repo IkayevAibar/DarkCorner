@@ -223,6 +223,10 @@ A **Deed** is a feat a Hero works toward all Season. The moment one is done, its
 | Legend-seeker | Find a Legendary Item (a Relic counts). | 300 |
 | Sellsword | Finish 20 Bounties. | 500 |
 | Well-diver | Win all six Rooms of the Daily Delve three times. | 500 |
+| Guardian angel | Stand your partner back up in a fight 5 times (Pull up, or a Cleric's Cure wounds). | 300 |
+| Twin-breaker | Defeat the Twin Wardens 3 times. | 500 |
+| Oathkeeper | Share at an Oathstone 5 times while your partner shares too. | 300 |
+| Oathbreaker | Take at an Oathstone while your partner shares. | 100 |
 
 ### Retiring
 

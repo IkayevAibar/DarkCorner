@@ -37,6 +37,19 @@ export function duoEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss'
   });
 }
 
+/** How many times `key` stood its fallen partner back up in a fight: pulled up, or healed while down. */
+export function partnerRaises(events: FightEvent[], key: string): number {
+  const down = new Set<string>();
+  let raised = 0;
+  for (const e of events) {
+    if (e.type === 'down') down.add(e.actor ?? 'hero');
+    else if (e.type === 'rise') down.delete(e.actor ?? 'hero');
+    else if (e.type === 'revive' && e.success && down.delete(e.target) && (e.actor ?? 'hero') === key) raised++;
+    else if (e.type === 'heal' && down.delete(e.actor) && e.by === key) raised++;
+  }
+  return raised;
+}
+
 const swap = (key: string): string => (key === 'hero' ? 'ally' : key === 'ally' ? 'hero' : key);
 
 /** An event's implicit subject (the Hero when no `actor` is given), seen from the other side. */

@@ -4,6 +4,7 @@ import { BLESSING_MS, type Floor, LOOT, OATH_MS, type Oath, PICK_MS, bestLeft, c
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { trackBounties } from './bounties.js';
+import { countDeeds } from './deeds.js';
 import { feed } from './feed.js';
 import { type Outcome, clearedAt, heroFloor, isCleared, markCleared, t } from './fights.js';
 import { rollView } from './items.js';
@@ -96,18 +97,20 @@ async function settleOaths(tx: Tx, season: Season, floor: Floor, room: number, p
       Object.assign(hero, curse);
     }
     await markCleared(tx, await heroFloor(tx, hero.id, floor.number), room, now);
+    // Both sharing is a kept oath for each; taking from a partner who shares, a broken one.
+    await countDeeds(tx, hero, { 'oaths-kept': !cursed && gifts[0] === 1 ? 1 : 0, 'oaths-broken': gifts[i] === 2 ? 1 : 0 }, out);
   }
   const [a, b] = pair;
   const said = (h: HeroWithItems, other: HeroWithItems, en: string, ru: string) => outs.get(h.id)!.notices.push(t(en.replaceAll('{other}', other.name), ru.replaceAll('{other}', other.name)));
   if (!cursed && gifts[0] === 1) {
     for (const [h, other] of [[a, b], [b, a]] as const) {
-      said(h, other, 'You both shared. The stone keeps faith with you and {other}: a gift for each.', 'Вы оба делитесь. Камень верен вам и герою {other}: каждому по дару.');
+      said(h, other, 'You both shared. The stone keeps faith with you and {other}: a gift for each.', 'Вы с героем {other} делитесь. Камень верен вам двоим: каждому по дару.');
     }
     await feed(tx, season, a, 'oath-kept', { partner: b.name, floor: floor.number });
   } else if (cursed) {
     for (const [h, other] of [[a, b], [b, a]] as const) {
       said(h, other, 'You and {other} both reached to take. The Oathstone cracks, and its curse falls on you both: half the gold and dimmer luck for 3 hours.',
-        'Вы и {other} оба тянетесь забрать. Камень клятв трескается, и проклятие падает на обоих: вдвое меньше золота и меньше удачи на 3 часа.');
+        'Вы и {other} тянетесь забрать. Камень клятв трескается, и проклятие падает на вас двоих: вдвое меньше золота и меньше удачи на 3 часа.');
     }
     await feed(tx, season, a, 'oath-cracked', { partner: b.name, floor: floor.number });
   } else {

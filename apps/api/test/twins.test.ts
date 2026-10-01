@@ -126,6 +126,7 @@ describe('Twin doors', () => {
     expect(endA!.loot.some((l) => l.base === 'bond-ring' && l.power?.en.includes('Mira'))).toBe(true);
     expect(endB!.loot.some((l) => l.base === 'bond-ring')).toBe(true);
     expect(await prisma.feedEvent.count({ where: { kind: 'twin' } })).toBe(1);
+    for (const name of ['Garrick', 'Mira']) expect((await prisma.hero.findFirstOrThrow({ where: { name } })).deedCounts).toMatchObject({ twins: 1 });
     // Their hoard, two Items for each Hero, is one Duo Chest for the pair to split.
     expect((await look(a.cookie)).view.chest?.items).toHaveLength(4);
 

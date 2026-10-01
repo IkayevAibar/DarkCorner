@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-duo-deeds',
+    date: '2026-10-01',
+    title: t('Deeds for two', 'Подвиги на двоих'),
+    items: [
+      t('Four new Deeds for Duos: Guardian angel (stand your partner back up 5 times), Twin-breaker (defeat the Twin Wardens 3 times) and Oathkeeper (share at an Oathstone 5 times while your partner shares too).',
+        'Четыре новых подвига для дуэтов: «Ангел-хранитель» (пять раз поставить напарника на ноги), «Сокрушитель близнецов» (трижды победить стражей-близнецов) и «Хранитель клятв» (пять раз поделиться у камня клятв, когда делится и напарник).'),
+      t('And Oathbreaker, for taking at an Oathstone while your partner shares. Wear that Title with pride, or with shame.',
+        'И «Клятвопреступник» — за дары, забранные у камня клятв, когда напарник делится. Носите этот титул с гордостью или со стыдом.'),
+    ],
+  },
+  {
     id: '2026-10-01-duo-mini-boss',
     date: '2026-10-01',
     title: t('A Mini-boss for two', 'Мини-босс на двоих'),

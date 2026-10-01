@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, type ClassId, DUO, type FightEvent, type FightInput, type HeroCombat, createRng, duoEncounter, forAlly, heroCombat, restUses,
+  CLASS_DEFS, type ClassId, DUO, type FightEvent, type FightInput, type HeroCombat, createRng, duoEncounter, forAlly, heroCombat, partnerRaises, restUses,
   simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
@@ -64,6 +64,23 @@ describe('Duo fights', () => {
     // The Mini-boss itself is hardier and hits harder than the monsters at its side.
     expect(boss[0]!.maxHp).toBeGreaterThan(alone[0]!.maxHp * DUO.hp);
     expect(boss[0]!.damageFactor).toBeGreaterThan(alone[0]!.damageFactor * DUO.damage);
+  });
+
+  it('count each time a Hero stands its fallen partner back up', () => {
+    const events: FightEvent[] = [
+      { type: 'down', actor: 'ally' },
+      { type: 'revive', actor: 'hero', target: 'ally', natural: 4, total: 6, dc: 10, success: false, hp: 0 },
+      { type: 'revive', actor: 'hero', target: 'ally', natural: 15, total: 17, dc: 10, success: true, hp: 5 },
+      { type: 'down' },
+      { type: 'heal', actor: 'hero', ability: 'cure-wounds', amount: 6, hp: 6, by: 'ally' },
+      { type: 'down', actor: 'ally' },
+      { type: 'rise', actor: 'ally', hp: 1 },
+      { type: 'heal', actor: 'ally', ability: 'potion', amount: 7, hp: 8 },
+    ];
+    expect(partnerRaises(events, 'hero')).toBe(1);
+    expect(partnerRaises(events, 'ally')).toBe(1);
+    // A partner healed while standing isn't raised.
+    expect(partnerRaises([{ type: 'heal', actor: 'hero', ability: 'cure-wounds', amount: 6, hp: 9, by: 'ally' }], 'ally')).toBe(0);
   });
 
   it('shows the partner the same fight with the Heroes trading places', () => {

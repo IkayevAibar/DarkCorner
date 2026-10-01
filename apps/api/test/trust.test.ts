@@ -87,6 +87,8 @@ describe('Oathstones', () => {
     }
     expect(await prisma.feedEvent.count({ where: { kind: 'oath-kept' } })).toBe(1);
     expect(await prisma.oath.count()).toBe(0);
+    // A kept oath counts toward the Oathkeeper's Deed for each.
+    for (const h of [a.hero, b.hero]) expect((await prisma.hero.findUniqueOrThrow({ where: { id: h.id } })).deedCounts).toMatchObject({ 'oaths-kept': 1 });
     const spent = (await look(a.cookie)).view.room!.oath!;
     expect(spent.state).toBe('spent');
     expect(new Date(spent.until!).getTime()).toBeGreaterThan(Date.now() + 6 * 24 * 3600_000);
@@ -115,6 +117,9 @@ describe('Oathstones', () => {
     expect(await bagGear(b.hero.id)).toHaveLength(before.b + 2);
     const line = await prisma.feedEvent.findFirstOrThrow({ where: { kind: 'oath-broken' } });
     expect(line.data).toMatchObject({ hero: 'Mira', partner: 'Garrick' });
+    // The taker earns a Title to wear for it.
+    expect(r.deeds.map((d) => d.id)).toContain('oathbreaker');
+    expect(Object.keys((await prisma.hero.findUniqueOrThrow({ where: { id: a.hero.id } })).deeds ?? {})).not.toContain('oathbreaker');
     // The first to swear sees the reveal on its next look, from its own side.
     const seen = await look(a.cookie);
     expect(seen.notices.map((n) => n.en).join(' ')).toContain('Mira took both gifts');

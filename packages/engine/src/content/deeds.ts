@@ -11,7 +11,8 @@ export type DeedMetric =
   | 'minibosses' | 'elites' | 'dragon' | 'deadly'
   | 'saved' | 'rose'
   | 'depth' | 'rooms' | 'hidden' | 'events' | 'riddles' | 'bargains' | 'sarcophagi'
-  | 'banked' | 'chests' | 'legendary' | 'bounties' | 'delves';
+  | 'banked' | 'chests' | 'legendary' | 'bounties' | 'delves'
+  | 'raised' | 'twins' | 'oaths-kept' | 'oaths-broken';
 
 export interface DeedDef {
   id: string;
@@ -51,6 +52,11 @@ export const DEEDS: DeedDef[] = [
   deed('legend-seeker', 'legendary', 1, 300, text('Legend-seeker', 'Искатель легенд'), text('Find a Legendary Item.', 'Найдите легендарный предмет.')),
   deed('sellsword', 'bounties', 20, 500, text('Sellsword', 'Наёмник'), text('Finish 20 Bounties.', 'Выполните 20 заданий.')),
   deed('well-diver', 'delves', 3, 500, text('Well-diver', 'Покоритель колодца'), text('Win all six Rooms of the Daily Delve three times.', 'Трижды пройдите все шесть комнат спуска дня.')),
+  // Done in a Duo.
+  deed('guardian-angel', 'raised', 5, 300, text('Guardian angel', 'Ангел-хранитель'), text('Stand your partner back up in a fight 5 times.', 'Пять раз поставьте напарника на ноги в бою.')),
+  deed('twin-breaker', 'twins', 3, 500, text('Twin-breaker', 'Сокрушитель близнецов'), text('Defeat the Twin Wardens 3 times.', 'Трижды победите стражей-близнецов.')),
+  deed('oathkeeper', 'oaths-kept', 5, 300, text('Oathkeeper', 'Хранитель клятв'), text('Share at an Oathstone 5 times while your partner shares too.', 'Пять раз поделитесь у камня клятв, когда делится и напарник.')),
+  deed('oathbreaker', 'oaths-broken', 1, 100, text('Oathbreaker', 'Клятвопреступник'), text('Take at an Oathstone while your partner shares.', 'Заберите дары у камня клятв, пока напарник делится.')),
 ];
 
 export const deedById = (id: string): DeedDef | undefined => DEEDS.find((d) => d.id === id);
