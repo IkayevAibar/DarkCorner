@@ -24,6 +24,16 @@ import { openDuoChest } from './trust.js';
 /** In a Duo, a Player has this long for a turn before the AI takes it (v0). */
 export const TURN_MS = 30_000;
 
+/**
+ * A Duo turn's clock starts once the moves before it can have played on screen: the
+ * waiting Player's next look (the web looks every 2 seconds in a Duo fight), then about
+ * PLAYBACK_MS for each event, never more than PLAYBACK_CAP_MS in all (v0).
+ */
+export const PLAYBACK_MS = 800;
+const LOOK_MS = 2_000;
+const PLAYBACK_CAP_MS = 12_000;
+const playback = (events: number): number => Math.min(PLAYBACK_CAP_MS, LOOK_MS + Math.max(0, events) * PLAYBACK_MS);
+
 /** What paying out needs, kept with the fight. */
 interface Context {
   spawnSeed: string;
@@ -84,34 +94,43 @@ export async function startFight(tx: Tx, hero: HeroWithItems, partner: HeroWithI
   const context: Context = {
     spawnSeed: spawned.spawnSeed ?? '', threat: opts.threat ?? null, bomb: Boolean(opts.bomb), surprise: opts.surprise ?? null, stance: input.stance ?? 'steady',
   };
+  const seed = newSeed();
+  // A Duo's first turn waits for what happens before it (monsters quicker than both Heroes) to play out.
+  const opening = partner ? playback(playFight(createRng(seed), input, { manual, choices: [] }).events.length) : 0;
   return tx.fight.create({
     data: {
-      seasonId: season.id, heroId: hero.id, partnerId: partner?.id ?? null, floor: floor.number, room: roomId, kind, seed: newSeed(),
-      input: input as unknown as Prisma.InputJsonValue, context: context as unknown as Prisma.InputJsonValue, manual, turnAt: now,
+      seasonId: season.id, heroId: hero.id, partnerId: partner?.id ?? null, floor: floor.number, room: roomId, kind, seed,
+      input: input as unknown as Prisma.InputJsonValue, context: context as unknown as Prisma.InputJsonValue, manual,
+      turnAt: new Date(now.getTime() + opening),
     },
   });
 }
 
 /**
  * Brings a fight up to date and plays `add` (a Player's choice) into it. In a Duo a turn
- * left TURN_MS goes to the AI, and a Player no longer online hands its Hero over for the
- * rest. Then the fight waits for the next choice, or it is over and both Heroes are paid.
+ * left TURN_MS (once the moves before it have played) goes to the AI, and a Player no
+ * longer online hands its Hero over for the rest. Then the fight waits for the next
+ * choice, or it is over and both Heroes are paid.
  * Throws InvalidChoice for a choice it can't take.
  */
 export async function advance(tx: Tx, fight: Fight, heroes: FightHeroes, season: Season, floor: Floor, now: Date, add?: HeroChoice): Promise<FightStep> {
   let choices = choicesOf(fight);
   let turnAt = fight.turnAt;
-  if (add) {
-    choices = [...choices, add];
-    turnAt = now;
-  }
   const replay = () => playFight(createRng(fight.seed), inputOf(fight), { manual: fight.manual as HeroKey[], choices });
   let r = replay();
+  if (add) {
+    const before = r.events.length;
+    choices = [...choices, add];
+    r = replay();
+    turnAt = new Date(now.getTime() + playback(r.events.length - before));
+  }
   while (isPaused(r) && fight.partnerId && now.getTime() - turnAt.getTime() >= TURN_MS) {
     const waiting = r.turn.hero === 'hero' ? heroes.hero : heroes.ally!;
+    const before = r.events.length;
     choices = [...choices, { hero: r.turn.hero, action: { kind: isOnline(waiting.player, now) ? 'ai' : 'auto' } }];
-    turnAt = new Date(Math.min(now.getTime(), turnAt.getTime() + TURN_MS));
+    const taken = Math.min(now.getTime(), turnAt.getTime() + TURN_MS);
     r = replay();
+    turnAt = new Date(taken + playback(r.events.length - before));
   }
   if (isPaused(r)) {
     if (choices.length !== choicesOf(fight).length) {

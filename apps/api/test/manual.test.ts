@@ -160,6 +160,8 @@ describe('Fights played turn by turn', () => {
     const mine = started.view.fight!;
     expect(mine.ally?.name.en).toBe('Mira');
     expect(mine.deadline).not.toBeNull();
+    // The clock starts once the opening moves can have played on screen.
+    expect(new Date(mine.deadline!).getTime()).toBeGreaterThan(Date.now() + 31_000);
     const theirs = (await look(b.cookie)).view.fight!;
     expect(theirs.hero.name.en).toBe('Mira');
     expect(theirs.ally?.name.en).toBe('Garrick');
@@ -169,6 +171,11 @@ describe('Fights played turn by turn', () => {
     // Out of turn: refused.
     const waiting = mine.mine ? b.cookie : a.cookie;
     expect((await choose(waiting, { kind: 'attack' })).json()).toMatchObject({ error: 'not_your_turn' });
+
+    // A choice gives the next turn its 30 seconds after the moves it set off have played.
+    const [who, view] = mine.mine ? [a.cookie, mine] : [b.cookie, theirs];
+    const next = labyrinthResultSchema.parse((await choose(who, { kind: 'attack', target: view.turn.targets[0] })).json());
+    if (next.view.fight) expect(new Date(next.view.fight.deadline!).getTime()).toBeGreaterThan(Date.now() + 31_000);
 
     const [endA, endB] = await playOut(a.cookie, b.cookie);
     expect(endA!.fight?.outcome).toBe('victory');
