@@ -57,7 +57,7 @@ export const en = {
   'guide.daily.title': 'Every day',
   'guide.daily.body': 'The Tavern has three bounties a day, one a week, and the whole server’s weekly Hunt. Each day brings an Omen that bends the Labyrinth. Look for Waypoints: once woken, you can enter the Labyrinth there.',
   'guide.season.title': 'The Season',
-  'guide.season.body': 'Ten Floors down waits the Dragon. The Boss gate opens on day 14; the first to slay it becomes Champion, and three days later the Season ends with a Wipe. Glory in the Hall of Fame lasts.',
+  'guide.season.body': 'Ten Floors down waits the Dragon. The Boss gate opens weeks into the Season, and the Tavern counts down to it; the first to slay the Dragon becomes Champion, and three days later the Season ends with a Wipe. Glory in the Hall of Fame lasts.',
   'account.title': 'Account',
   'account.language': 'Language',
   'account.admin': 'Admin: Players',

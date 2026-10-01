@@ -8,7 +8,7 @@ const start = new Date('2026-11-06T16:00:00Z');
 const day = (n: number) => new Date(start.getTime() + n * DAY_MS);
 
 describe('the Season clock', () => {
-  it('opens the Boss gate on day 14', () => {
+  it('opens the Boss gate on day 28', () => {
     expect(bossGateAt(start).getTime() - start.getTime()).toBe(BOSS_GATE_DAYS * DAY_MS);
   });
 

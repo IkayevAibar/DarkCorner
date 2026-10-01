@@ -1,7 +1,7 @@
 import type { Prisma, Season } from '@prisma/client';
 import type { SeasonView } from '@dark/shared';
 import {
-  FINALE_MS, RELICS, VAULT_ANNOUNCE_CHANCE, VAULT_MIN_HEROES, VAULT_OPEN_HOUR, bossGateAt, createRng, weakeningAt,
+  BOSS_GATE_DAYS, FINALE_MS, RELICS, VAULT_ANNOUNCE_CHANCE, VAULT_MIN_HEROES, VAULT_OPEN_HOUR, bossGateAt, createRng, weakeningAt,
   weakeningDates,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -62,8 +62,8 @@ export async function startSeason(now = new Date()): Promise<Season> {
     await schedule(tx, 'vault-plan', nextLocalHour(now, VAULT_PLAN_HOUR, env.SERVER_TIMEZONE), { seasonId: season.id });
     await schedule(tx, 'omen', nextOmenAt(now), { seasonId: season.id });
     await broadcast(tx, {
-      en: `🕯️ Season ${season.number} of Dark Corner begins! The Labyrinth is open. The Boss gate opens in 14 days.`,
-      ru: `🕯️ Начинается сезон ${season.number} «Тёмного уголка»! Лабиринт открыт. Врата босса откроются через 14 дней.`,
+      en: `🕯️ Season ${season.number} of Dark Corner begins! The Labyrinth is open. The Boss gate opens on day ${BOSS_GATE_DAYS}.`,
+      ru: `🕯️ Начинается сезон ${season.number} «Тёмного уголка»! Лабиринт открыт. Врата босса откроются на ${BOSS_GATE_DAYS}-й день.`,
     });
     return started;
   });

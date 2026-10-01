@@ -32,7 +32,7 @@ Every feature serves at least one of these:
 ## Seasons
 
 - **Length:** a Season lasts about 4–6 weeks. It starts with a newly generated Labyrinth and ends with a Wipe.
-- **Boss gate:** opens on day 14 *(v0)*. Until then nobody can reach the Boss.
+- **Boss gate:** opens on day 28 *(v0)*. Until then nobody can reach the Boss. A Hero built to beat the Dragon (Fireproof, high armor) can do it at full strength the day the gate opens, so the gate's day sets how long a Season runs: about a month. Season 0 opened it on day 14.
 - **Champion and Finale:** the first Player to defeat the Boss becomes Champion. Duos face the Boss alone for now; once a Duo can go in together (a later Season), it can win together and both become Champions. The victory starts the **Finale**: 72 hours in which others can still beat the Boss for 2nd and 3rd place, and make last trades and gambles. Every attempt at the Boss is a separate fight against a Boss at full health.
 - **Weakening:** from day 29 (week 5) *(v0)*, the Boss loses 10% of its health and damage every week, up to −40%. This stops a Season from dragging on.
 - **The podium** *(v0)*: each Player can take one place. Beating the Boss also pays its hoard (3 Items from Floor 10, a Gold Chest, 800–1,500 gold), and then its lair stays quiet for that Hero for a day.

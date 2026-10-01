@@ -90,7 +90,7 @@ describe('the Season', () => {
     expect(r.statusCode).toBe(200);
     const view = r.json();
     expect(view.season.status).toBe('active');
-    expect(new Date(view.season.bossGateAt).getTime() - new Date(view.season.startsAt).getTime()).toBe(14 * DAY_MS);
+    expect(new Date(view.season.bossGateAt).getTime() - new Date(view.season.startsAt).getTime()).toBe(28 * DAY_MS);
     const kinds = (await prisma.job.findMany()).map((j) => j.kind).sort();
     expect(kinds).toEqual(['boss-gate', 'broadcast', 'omen', 'vault-plan', 'weaken', 'weaken', 'weaken', 'weaken']);
     expect((await prisma.job.findFirstOrThrow({ where: { kind: 'broadcast' } })).doneAt).not.toBeNull();

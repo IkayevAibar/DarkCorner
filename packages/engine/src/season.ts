@@ -7,8 +7,12 @@ import type { Rng } from './rng.js';
 export const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
 
-/** The Boss gate opens this many days after the Season starts. */
-export const BOSS_GATE_DAYS = 14;
+/**
+ * The Boss gate opens this many days after the Season starts: late enough that a Season
+ * runs about a month even when someone is ready for the Dragon the day it opens (Season 0
+ * opened it on day 14, and playtest bots built to beat it were there by day 18).
+ */
+export const BOSS_GATE_DAYS = 28;
 /** From day 29 the Boss weakens by 10% every week, down to −40%. */
 export const WEAKEN_FROM_DAYS = 28;
 export const WEAKEN_STEP = 0.1;

@@ -46,7 +46,7 @@ Everything is on the admin page (the account sheet → Admin → **Season**). Th
 
 | Task | How |
 |---|---|
-| Start a Season | **Start the Season**. Heroes made before the start keep playing; the Labyrinth opens now and the Boss gate in 14 days. |
+| Start a Season | **Start the Season**. Heroes made before the start keep playing; the Labyrinth opens now and the Boss gate on day 28. |
 | Broadcasts | Set `DISCORD_WEBHOOK_URL` in `.env` (then `docker compose up -d`). The Season tab warns when it is missing. |
 | Test the Dragon early | **Open the Boss gate now**. |
 | Test a Vault race | **Announce a Vault** with the minutes until it opens. |

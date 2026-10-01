@@ -25,6 +25,8 @@ export const NEWS: NewsEntry[] = [
     items: [
       t('The Ancient Dragon has grown: twice the health, and harder blows. At full strength it is a gamble for even the mightiest Hero, until it starts to weaken on day 29 of the Season, a little more every week.',
         'Древний дракон окреп: вдвое больше здоровья и удары тяжелее. В полной силе он опасен даже для сильнейшего героя, пока с 29-го дня сезона не начнёт слабеть, понемногу каждую неделю.'),
+      t('From Season 1, the Boss gate opens on day 28, so a Season runs about a month. This Season’s gate still opens on October 11.',
+        'Начиная с 1-го сезона врата босса открываются на 28-й день, и сезон длится около месяца. В этом сезоне врата по-прежнему откроются 11 октября.'),
     ],
   },
   {
