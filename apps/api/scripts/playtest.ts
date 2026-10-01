@@ -346,16 +346,54 @@ function nextStep(bot: Bot, view: LabyrinthView, goal: (id: number) => boolean):
   return null;
 }
 
+/** How far off a Player's tap lands, either way (ms). */
+const TAP_SLOP = 90;
+
+/** Picks a lock by hand, a tap a pin: aimed at each pin's spot, a little early or late. */
+async function pickLock(bot: Bot, view: LabyrinthView): Promise<boolean> {
+  let shown = view;
+  for (let guard = 0; guard < 12; guard++) {
+    const e = shown.room?.eventView;
+    if (e?.kind !== 'lockpicking' || e.done || !e.lock) return true;
+    const pin = e.lock.pins[e.lock.set]!;
+    const aim = ((((pin.center / 2 - pin.phase) % 1) + 1) % 1) * pin.period;
+    const tap = Math.max(0, Math.round(aim + (Math.random() * 2 - 1) * TAP_SLOP));
+    const r = await act(bot, '/api/labyrinth/event', { action: 'pick-lock', tap }, shown);
+    if (!r) return false;
+    shown = r.view;
+  }
+  return true;
+}
+
+/** A tenth of the gold carried on the goblin's cups: the gem followed most of the time, and a palm called when seen. */
+async function playCups(bot: Bot, view: LabyrinthView): Promise<boolean> {
+  const e = view.room!.eventView!;
+  if (e.kind !== 'gambler' || !e.cups || e.cups.maxBet < 1) return false;
+  const amount = Math.max(1, Math.min(e.cups.maxBet, Math.round(view.hero.carriedGold / 10)));
+  const down = await act(bot, '/api/labyrinth/event', { action: 'cups-bet', amount }, view);
+  const after = down?.view.room?.eventView;
+  if (!down || after?.kind !== 'gambler' || !after.cups?.game) return false;
+  const game = after.cups.game;
+  let at = game.start;
+  for (const [a, b] of game.swaps) at = at === a ? b : at === b ? a : at;
+  const pick = game.palmed ? 'cheat' : Math.random() < 0.7 ? at : Math.floor(Math.random() * 3);
+  return (await act(bot, '/api/labyrinth/event', { action: 'cups-pick', pick }, down.view)) !== null;
+}
+
 async function eventAction(bot: Bot, view: LabyrinthView): Promise<boolean> {
   const e = view.room!.eventView!;
   const key = `${view.floor!.number}:${view.room!.id}`;
   if (e.done || bot.handled.has(key)) return false;
   bot.handled.add(key);
+  if (e.kind === 'lockpicking' || e.kind === 'gambler') {
+    bot.stats.events++;
+    bot.doing = `event ${e.kind}`;
+    return e.kind === 'lockpicking' ? pickLock(bot, view) : playCups(bot, view);
+  }
   const action = (() => {
     switch (e.kind) {
       case 'three-chests': return { action: 'pick', chest: Math.floor(Math.random() * 3) };
       case 'shrine': return { action: 'pray' };
-      case 'lockpicking': return { action: 'pick-lock' };
       case 'locked-cache': return e.canOpen ? { action: 'open' } : null;
       case 'prisoner': return e.canOpen ? { action: 'free' } : null;
       case 'fountain': return view.hero.hp < view.hero.maxHp ? { action: 'drink' } : null;
