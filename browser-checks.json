@@ -1,0 +1,234 @@
+[
+  {
+    "kind": "room-map-bag",
+    "locale": "en",
+    "passed": true
+  },
+  {
+    "kind": "room-map-bag",
+    "locale": "ru",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": false,
+    "speed": 1,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": false,
+    "speed": 1,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": false,
+    "speed": 2,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": false,
+    "speed": 2,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": true,
+    "speed": 1,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": true,
+    "speed": 1,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": true,
+    "speed": 2,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "en",
+    "reduced": true,
+    "speed": 2,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": false,
+    "speed": 1,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": false,
+    "speed": 1,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": false,
+    "speed": 2,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": false,
+    "speed": 2,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": true,
+    "speed": 1,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": true,
+    "speed": 1,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": true,
+    "speed": 2,
+    "side": "hero",
+    "passed": true
+  },
+  {
+    "kind": "auto",
+    "locale": "ru",
+    "reduced": true,
+    "speed": 2,
+    "side": "ally",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "en",
+    "reduced": false,
+    "id": "duo-twin-wardens",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "en",
+    "reduced": false,
+    "id": "duo-twin-wardens-partner",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "en",
+    "reduced": false,
+    "id": "twin-rise",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "en",
+    "reduced": true,
+    "id": "duo-twin-wardens",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "en",
+    "reduced": true,
+    "id": "duo-twin-wardens-partner",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "en",
+    "reduced": true,
+    "id": "twin-rise",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "ru",
+    "reduced": false,
+    "id": "duo-twin-wardens",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "ru",
+    "reduced": false,
+    "id": "duo-twin-wardens-partner",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "ru",
+    "reduced": false,
+    "id": "twin-rise",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "ru",
+    "reduced": true,
+    "id": "duo-twin-wardens",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "ru",
+    "reduced": true,
+    "id": "duo-twin-wardens-partner",
+    "passed": true
+  },
+  {
+    "kind": "live",
+    "locale": "ru",
+    "reduced": true,
+    "id": "twin-rise",
+    "passed": true
+  },
+  {
+    "kind": "width",
+    "width": 320,
+    "passed": true
+  },
+  {
+    "kind": "width",
+    "width": 1440,
+    "passed": true
+  }
+]

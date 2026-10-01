@@ -1,0 +1,19 @@
+{
+  "baseline": "287df6b",
+  "metrics": {
+    "js": {
+      "before": 476720,
+      "after": 476718,
+      "beforeGzip": 157557,
+      "afterGzip": 157566
+    },
+    "css": {
+      "before": 45746,
+      "after": 45746,
+      "beforeGzip": 10066,
+      "afterGzip": 10066
+    }
+  },
+  "initialCodeUnchangedApartFromBuildMetadataAndNewsId": true,
+  "totalDelta": -2
+}

@@ -1,0 +1,15 @@
+# Warden token prompts
+
+Generated with the built-in imagegen tool, with transparent backgrounds. Exported to 384 × 384 WebP (quality 88), preserving alpha.
+
+Final assets:
+- apps/web/public/art/tokens/dawn-warden.webp
+- apps/web/public/art/tokens/dusk-warden.webp
+
+## Dawn Warden
+
+Use case: stylized-concept. Asset type: a transparent square monster portrait token for Dark Corner, a dark fantasy browser game, readable in a tiny circular crop. Primary request: the DAWN WARDEN, an ancient carved stone guardian, head and broad shoulders filling the square, centered front-facing, massive weathered limestone face with stern chiseled human features, heavy temple-like stone armor carved from the same rock, a simple broken circular crest behind the head. One of a matching pair of stone guardians: this one is lit like morning, pale bone-white stone planes cut by deep black shadows, narrow warm amber light in its eyes and cracks, touches of tarnished brass on the carved crest. Input image is STYLE reference only, not the subject: match its gritty ink contours, cross-hatching, severe contrasts and close token crop. Style: dark fantasy ink illustration, gothic comic-book feel, heavy black ink linework, rough cross-hatching, visible dry brush texture, aged stone and muted charcoal, bone white, faded sepia. Composition: symmetrical chest-up, head large, shoulders cropped by bottom edge; no full body, face and eyes inside the central circular safe area. Background: true transparent alpha around silhouette. No frame, text, letters, numbers, logos, UI, watermark, background scene or photorealism. This is a statue come to life, NOT a skeleton or flesh human. Square image.
+
+## Dusk Warden
+
+Use case: stylized-concept. Asset type: transparent square monster portrait token for Dark Corner, readable inside a tiny circular crop. Primary request: create the DUSK WARDEN, the shadow twin of the Dawn Warden shown in the reference. Reference role: matching character design and ink style, not an edit of Dawn. The same ancient stone guardian lineage: stern chiseled stone face, towering carved helmet, heavy stone shoulders, broken circular crest behind the head. This one is made of dark weathered basalt, with cold grey edge light, deep charcoal shadows, narrow pale lavender light in the eyes and a few cracks; old dark silver accents instead of gold. Give the crest a subtly crescent-like broken upper edge and different fractures, while preserving the strong family resemblance. Keep the FACE READABLE: mid-grey nose, cheekbones and forehead, deep black crosshatching at sides. Gothic comic-book ink illustration, heavy black contours, rough etched cross-hatching and dry brush texture; no smooth airbrush. Centered symmetric head-and-shoulders composition, same large head scale and crop as reference, shoulders fill bottom. True transparent alpha outside the silhouette. No frame, words, text, letters, numbers, logos, UI, background scenery, watermark, full body, skeleton or flesh. Square image.
