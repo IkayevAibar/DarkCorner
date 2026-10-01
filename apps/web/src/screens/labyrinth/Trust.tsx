@@ -45,7 +45,7 @@ export function OathChoices({ view, busy, onSwear }: { view: LabyrinthView; busy
 export function ChestPanel({ chest, view, busy, act }: { chest: DuoChestView; view: LabyrinthView; busy: boolean; act: Act }) {
   return <ChestScene chest={chest} hero={view.hero} partner={view.duo} busy={busy} onPick={index => void act(async () => {
     const result = await api.pickFromChest(index);
-    // Ownership on the tray is the receipt; automatic picks still retain their report.
-    return { ...result, loot: [] };
+    // While picking, ownership on the tray is the receipt. Keep the closing report intact.
+    return result.closedChest ? result : { ...result, loot: [] };
   })} />;
 }

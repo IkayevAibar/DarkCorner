@@ -9,6 +9,7 @@ import { useNow } from '../../../time';
 import { useI18n } from '../../../i18n';
 import { TrustPortrait, type TrustPair } from './OathScene';
 import { useTrustCopy } from './copy';
+import { newChestPicks, PICK_FLIGHT_MS } from './chestPicks';
 import './trust.css';
 
 export function ChestProp() {
@@ -26,20 +27,23 @@ export function ChestProp() {
 type Flight = { item: ItemView; side: 'me' | 'partner'; x: number; y: number; dx: number; dy: number };
 
 /** Server snapshots own every pick. The scene only animates new takenBy transitions. */
-export function ChestScene({ chest, hero, partner, busy, onPick }: TrustPair & { chest: DuoChestView; busy: boolean; onPick: (index: number) => void }) {
+export function ChestScene({ chest, hero, partner, busy, onPick, closed = false, previousChest }: TrustPair & {
+  chest: DuoChestView; busy: boolean; onPick: (index: number) => void;
+  closed?: boolean; previousChest?: DuoChestView;
+}) {
   const trustText = useTrustText();
   const { t, locale } = useI18n(), text = useText(), copy = useTrustCopy(), reduced = useReducedMotion(), now = useNow(1000);
   const { openSheet } = useSheet();
-  const root = useRef<HTMLDivElement>(null), previous = useRef(chest), [flights, setFlights] = useState<Flight[]>([]);
+  const root = useRef<HTMLDivElement>(null), previous = useRef(closed ? previousChest : chest), [flights, setFlights] = useState<Flight[]>([]);
   const pending = useRef(false);
   const seconds = Math.max(0, Math.ceil((Date.parse(chest.deadline) - now) / 1000));
   const empty = chest.items.every(entry => entry.takenBy !== null);
-  useEffect(() => { const id = requestAnimationFrame(() => play('latch', { rate: .8 })); return () => cancelAnimationFrame(id); }, []);
+  useEffect(() => { if (closed) return; const id = requestAnimationFrame(() => play('latch', { rate: .8 })); return () => cancelAnimationFrame(id); }, [closed]);
   useLayoutEffect(() => {
     pending.current = false;
     const before = previous.current;
     previous.current = chest;
-    const changed = chest.items.flatMap((entry, index) => entry.takenBy && before.items[index]?.item.id === entry.item.id && before.items[index]?.takenBy === null ? [{ ...entry, index, side: entry.takenBy }] : []);
+    const changed = newChestPicks(chest, before);
     const box = root.current?.getBoundingClientRect();
     if (!box || !changed.length) return;
     playTier(changed[0]!.item.tier);
@@ -55,26 +59,26 @@ export function ChestScene({ chest, hero, partner, busy, onPick }: TrustPair & {
   }, [chest, reduced]);
   useEffect(() => { if (!busy) pending.current = false; }, [busy]);
   const pick = (index: number) => {
-    if (pending.current || busy || chest.turn !== 'me' || chest.full || seconds === 0 || chest.items[index]?.takenBy !== null) return;
+    if (closed || pending.current || busy || chest.turn !== 'me' || chest.full || seconds === 0 || chest.items[index]?.takenBy !== null) return;
     pending.current = true;
     onPick(index);
   };
   const mine = chest.turn === 'me' && !chest.full;
-  return <div ref={root} className="duo-chest-scene" data-chest-turn={chest.turn ?? 'done'}>
+  return <div ref={root} className="duo-chest-scene" data-chest-turn={chest.turn ?? 'done'} data-closed={closed || undefined} style={{ '--flight-duration': `${PICK_FLIGHT_MS}ms` } as CSSProperties}>
     <div className="trust-portraits">{(['me', 'partner'] as const).map(side => <div key={side} data-chest-portrait={side} data-active={chest.turn === side}><TrustPortrait person={side === 'me' ? hero : partner} label={side === 'me' ? copy.you : copy.partner} /></div>)}</div>
     <div className="duo-chest-stage"><ChestProp /></div>
     <div className="duo-chest-turn" data-mine={mine}>
-      <strong role="status">{empty ? copy.empty : chest.turn === null ? trustText('chest.full') : seconds === 0 ? copy.picking : mine ? copy.turn : copy.theirs}</strong>
+      <strong role="status">{empty ? copy.empty : closed ? copy.closed : chest.turn === null ? trustText('chest.full') : seconds === 0 ? copy.picking : mine ? copy.turn : copy.theirs}</strong>
       {chest.turn !== null && !empty && <span className="duo-countdown" data-urgent={seconds <= 5} style={{ '--clock': `${Math.min(100, seconds / 30 * 100)}%` } as CSSProperties}>{seconds}<small>{locale === 'ru' ? 'с' : 's'}</small></span>}
     </div>
     {chest.full && !empty && <p className="duo-bag-full">{trustText('chest.bagFull')}</p>}
     <div className="duo-chest-items">{chest.items.map(({ item, takenBy }, index) => <article key={item.id} data-chest-item={index} data-taken={takenBy ?? undefined} style={{ '--item-tier': `var(--color-tier-${item.tier})` } as CSSProperties}>
-      <div className="duo-item-art"><ItemChip item={item} size={58} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} /></div>
+      <div className="duo-item-art" inert={closed || undefined}><ItemChip item={item} size={58} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} /></div>
       <span className="duo-item-name">{text(item.name)}</span>
       <small>{t(`tier.${item.tier}`)}</small>
-      {takenBy ? <div className="duo-item-owner"><span>✓ {copy.claimed}</span><strong>{takenBy === 'me' ? hero.name : partner?.name ?? copy.partner}</strong></div> : <button type="button" className="btn btn-small" disabled={busy || !mine || seconds === 0} onClick={() => pick(index)}>{trustText('chest.take')}</button>}
+      {takenBy ? <div className="duo-item-owner"><span>✓ {copy.claimed}</span><strong>{takenBy === 'me' ? hero.name : partner?.name ?? copy.partner}</strong></div> : closed ? <div className="duo-item-owner">{copy.leftBehind}</div> : <button type="button" className="btn btn-small" disabled={busy || !mine || seconds === 0} onClick={() => pick(index)}>{trustText('chest.take')}</button>}
     </article>)}</div>
-    <p className="duo-chest-hint">{trustText('chest.hint')}</p>
+    {!closed && <p className="duo-chest-hint">{trustText('chest.hint')}</p>}
     {flights.map(flight => <div key={flight.item.id} className="duo-item-flight" data-flight-to={flight.side} aria-hidden="true" inert style={{ left: flight.x, top: flight.y, '--flight-x': `${flight.dx}px`, '--flight-y': `${flight.dy}px` } as CSSProperties} onAnimationEnd={() => setFlights(current => current.filter(f => f !== flight))}><ItemChip item={flight.item} size={58} /></div>)}
   </div>;
 }

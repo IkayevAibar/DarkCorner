@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { OathChoice, OathView } from '@dark/shared';
+import type { LabyrinthResult, OathView } from '@dark/shared';
 import { PALM, FIST } from '../../../components/OathMark';
 import { Token } from '../../../components/Token';
 import type { HeroPortrait } from '../../../components/BondedPortraits';
@@ -9,7 +9,7 @@ import { useTrustCopy } from './copy';
 import './trust.css';
 
 /** Settled choices only. The waiting scene never receives the partner's secret. */
-export type SettledOath = { mine: OathChoice; partner: OathChoice };
+export type SettledOath = NonNullable<LabyrinthResult['oath']>;
 export type TrustPair = { hero: HeroPortrait; partner: HeroPortrait | null };
 
 export function OathStone({ result, active = false }: { result?: SettledOath; active?: boolean }) {
