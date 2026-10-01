@@ -393,7 +393,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 | Temple | Season 0 | Where Heroes wake after death. Sells Blessings. You Retire your Hero here. |
 | Labyrinth gate | Season 0 | Enter the Labyrinth at the entrance or at any Waypoint your Hero has reached. |
 | Academy | Season 0 | From level 12, learn one more Talent at a time for City gold, any the Hero doesn't know: 2,000 gold, then 6,000, then 15,000, three in all *(v0)*. They are the Hero's like any other Talent (death never takes them) and leave with it when it Retires. |
-| Training grounds | later | Train an ability score for a few hours while you're away. It costs gold, and the Hero can't enter the Labyrinth meanwhile. |
+| Training grounds | Season 0 | Train one ability score at a time for City gold: 1,000, then 3,000, then 8,000, three in all *(v0)*. After 8 hours it rises by 1 (never above 20), even while the Player is away, and a Notification says so. Meanwhile the Hero stays in the City: no Labyrinth and no Well, for its Duo either. |
 | Houses | later | Bought with gold. They give more Storage and a trophy wall friends can visit. |
 | Arena | later | Tournaments with nothing to lose: the loser is simply knocked out. |
 | Guild hall | later | Small Guilds. |

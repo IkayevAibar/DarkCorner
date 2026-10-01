@@ -21,10 +21,12 @@ export const NEWS: NewsEntry[] = [
   {
     id: '2026-10-02-academy',
     date: '2026-10-02',
-    title: t('The Academy opens', 'Академия открыта'),
+    title: t('The Academy and the Training grounds', 'Академия и плац'),
     items: [
       t('From level 12, the masters of the new Academy teach one more Talent at a time for gold: 2,000, then 6,000, then 15,000, three in all. Fireproof before the Dragon, perhaps?',
         'С 12-го уровня мастера новой академии учат ещё одному таланту за раз за золото: 2000, затем 6000, затем 15 000, всего три. Может, огнеупорность перед встречей с драконом?'),
+      t('And at the new Training grounds, any Hero can drill one ability for 8 hours, away from the Labyrinth, for +1: 1,000 gold, then 3,000, then 8,000. A Notification says when it lands.',
+        'А на новом плацу любой герой может 8 часов гонять одну характеристику, не заходя в лабиринт, ради +1: 1000 золота, затем 3000, затем 8000. Когда +1 засчитается, придёт уведомление.'),
     ],
   },
   {

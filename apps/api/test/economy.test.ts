@@ -5,6 +5,7 @@ import { type GearRoll, createRng, rollGear } from '@dark/engine';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
 import { gearData } from '../src/services/items.js';
+import { runDueJobs } from '../src/services/scheduler.js';
 import { devLogin, resetDatabase } from './helpers.js';
 
 let app: FastifyInstance;
@@ -260,6 +261,47 @@ describe('the Academy', () => {
     const { cookie, hero } = await makeHero('Truant');
     await prisma.hero.update({ where: { id: hero.id }, data: { level: 12, gold: 5000, location: 'LABYRINTH', floor: 1, room: 0 } });
     expect((await post(cookie, '/api/academy/learn', { talent: 'fireproof' })).json().error).toBe('not_in_city');
+  });
+});
+
+describe('the Training grounds', () => {
+  it('trains one ability at a time: eight hours away from the Labyrinth and the Well, then +1', async () => {
+    const { cookie, hero } = await makeHero('Drill');
+    await setGold(hero.id, 20_000);
+    const view = (await post(cookie, '/api/training/start', { ability: 'str' })).json();
+    expect(view).toMatchObject({ trained: [], price: 1000, current: { ability: 'str' } });
+    expect(new Date(view.current.until).getTime()).toBeGreaterThan(Date.now() + 7.9 * 3600_000);
+    expect(view.hero.training).toMatchObject({ ability: 'str' });
+    expect(await gold(hero.id)).toBe(19_000);
+    // Meanwhile: no Labyrinth, no Well, and no second training.
+    expect((await post(cookie, '/api/labyrinth/enter', { floor: 1 })).json().error).toBe('training');
+    expect((await post(cookie, '/api/delve/start')).json().error).toBe('training');
+    expect((await post(cookie, '/api/training/start', { ability: 'dex' })).json().error).toBe('already_training');
+    // The hours pass: the +1 lands on the next look, once.
+    await prisma.hero.update({ where: { id: hero.id }, data: { trainingUntil: new Date(Date.now() - 1000) } });
+    const done = (await get(cookie, '/api/training')).json();
+    expect(done).toMatchObject({ trained: ['str'], price: 3000, current: null });
+    expect(done.hero.abilities.str).toBe(hero.str + 1);
+    expect((await get(cookie, '/api/training')).json().hero.abilities.str).toBe(hero.str + 1);
+    expect((await post(cookie, '/api/labyrinth/enter', { floor: 1 })).statusCode).toBe(200);
+  });
+
+  it('lands the +1 by itself when the hours are up', async () => {
+    const { cookie, hero } = await makeHero('Sleeper');
+    await setGold(hero.id, 1000);
+    await post(cookie, '/api/training/start', { ability: 'con' });
+    await runDueJobs(new Date(Date.now() + 8 * 3600_000 + 1000));
+    const after = await prisma.hero.findUniqueOrThrow({ where: { id: hero.id } });
+    expect(after).toMatchObject({ con: hero.con + 1, trained: ['con'], training: null, trainingUntil: null });
+  });
+
+  it('stops at 20 and after three trainings, and only in the City', async () => {
+    const { cookie, hero } = await makeHero('Maxed');
+    await prisma.hero.update({ where: { id: hero.id }, data: { gold: 50_000, str: 20, trained: ['dex', 'dex', 'con'] } });
+    expect((await post(cookie, '/api/training/start', { ability: 'str' })).json().error).toBe('ability_max');
+    expect((await post(cookie, '/api/training/start', { ability: 'wis' })).json().error).toBe('training_done');
+    await prisma.hero.update({ where: { id: hero.id }, data: { trained: [], location: 'LABYRINTH', floor: 1, room: 0 } });
+    expect((await post(cookie, '/api/training/start', { ability: 'wis' })).json().error).toBe('not_in_city');
   });
 });
 

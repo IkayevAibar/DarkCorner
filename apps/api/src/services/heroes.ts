@@ -1,7 +1,7 @@
 import type { Hero, Item, Player, Prisma } from '@prisma/client';
 import type {
   AbilitySetView, CreateHeroRequest, CreationOptions, GrowRequest, HeroDraft, HeroView, LevelUpRequest, LevelUpResponse, LevelUpView, MyHeroResponse,
-  PathView, SlotId,
+  PathView, SlotId, AbilityId,
 } from '@dark/shared';
 import {
   ABILITY_REROLLS, type AbilitySet, BAD_LUCK_MAX, BAG_SLOTS, BANNER_COLORS, BLESSINGS, type BlessingId, CLASS_DEFS, CLASSES,
@@ -142,6 +142,8 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     bagSlots: BAG_SLOTS,
     storageSlots: STORAGE_SLOTS,
     inCity: hero.location === 'CITY',
+    training: hero.training && hero.trainingUntil && hero.trainingUntil > now
+      ? { ability: hero.training as AbilityId, until: hero.trainingUntil.toISOString() } : null,
     luck: luckView(hero, now),
     ...growthView(hero),
     deeds: deedViews(hero),

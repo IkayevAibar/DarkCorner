@@ -179,6 +179,8 @@ export const heroSchema = z.object({
   storageSlots: z.number().int(),
   /** City buildings and Storage only work while the Hero is in the City. */
   inCity: z.boolean(),
+  /** Away at the Training grounds until `until`: no Labyrinth and no Well meanwhile. Null when not. */
+  training: z.object({ ability: abilityIdSchema, until: z.string() }).nullable().default(null),
   luck: luckViewSchema,
   /** The Path chosen at level 3. */
   path: pathViewSchema.nullable(),

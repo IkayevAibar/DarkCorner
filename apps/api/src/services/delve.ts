@@ -21,6 +21,7 @@ import { type HeroWithItems, type Tx, dayNumber, earnGold, giveStack, lockHero }
 import { omenOf } from './omens.js';
 import { notify } from './push.js';
 import { currentSeason } from './seasons.js';
+import { finishTraining, requireNotTraining } from './training.js';
 
 // The Daily Delve (docs/design.md → The Daily Delve): once a day, a Player takes
 // their Hero down the same six Rooms as everyone else, each deeper than the last.
@@ -185,6 +186,8 @@ export async function startDelve(player: Player): Promise<DelveResult> {
   const now = new Date();
   return prisma.$transaction(async (tx) => {
     const hero = await lockHero(tx, player, season.id);
+    await finishTraining(tx, hero, now);
+    requireNotTraining(hero, now);
     const day = dayNumber(now);
     if (await tx.delve.findUnique({ where: { playerId_day: { playerId: player.id, day } }, select: { id: true } })) {
       throw ApiError.conflict('delve_taken', 'One Delve a day; come back tomorrow');

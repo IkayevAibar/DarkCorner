@@ -33,6 +33,7 @@ import { newRun, tallyRun, tallyRunIn } from './runs.js';
 import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
 import { chestOf, chestView, duoTreasure, oathView, swear, takeTurns } from './trust.js';
+import { finishTraining, requireNotTraining } from './training.js';
 
 const HOUR_MS = 60 * 60 * 1000;
 /** Clues: a WIS Check against this sees through a lie (v0). */
@@ -327,6 +328,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
     kit: KIT_BASES.map((base) => ({ base, count: stackTotal(hero, base), name: baseById(base).name, about: itemAbout(base)! }))
       .filter((k) => k.count > 0),
     shortRests: { left: hero.shortRests, of: SHORT_RESTS, backAt: restsBackAt(hero, now) },
+    trainingUntil: hero.trainingUntil && hero.trainingUntil > now ? hero.trainingUntil.toISOString() : null,
   };
   const base = {
     hero: heroPart,
@@ -598,6 +600,9 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
     const now = new Date();
     const { hero, partner } = await actors(tx, player, season, now, outcome);
     if (hero.location !== 'CITY') throw ApiError.conflict('already_inside', 'Already in the Labyrinth');
+    // Away at the Training grounds: no going in until the +1 lands (for either of a Duo).
+    for (const h of partner ? [hero, partner] : [hero]) await finishTraining(tx, h, now);
+    requireNotTraining(hero, now, partner);
     if (season.status === 'PLANNED') throw ApiError.conflict('season_not_started', 'The Season has not started yet');
     if (partner) {
       if (viaPortal) throw ApiError.conflict('duo_portal', 'A Town Portal takes one Hero: leave the Duo to step through');

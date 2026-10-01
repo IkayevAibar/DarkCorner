@@ -598,6 +598,8 @@ export const labyrinthViewSchema = z.object({
      * when a Run starts, from `backAt` on (null when none are used or they are due already).
      */
     shortRests: z.object({ left: z.number().int(), of: z.number().int(), backAt: z.string().nullable() }),
+    /** Away at the Training grounds until this moment: the gate stays shut for it. Null when not. */
+    trainingUntil: z.string().nullable().default(null),
   }),
   /** The Labyrinth opens when the Season starts; the Boss gate opens later. */
   season: z.object({ status: seasonStatusSchema, bossGateAt: z.string().nullable(), omen: omenViewSchema.nullable() }),

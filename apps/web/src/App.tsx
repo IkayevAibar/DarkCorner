@@ -22,6 +22,7 @@ const Forge = screen(() => import('./screens/city/Forge'), 'Forge');
 const Market = screen(() => import('./screens/city/Market'), 'Market');
 const Temple = screen(() => import('./screens/city/Temple'), 'Temple');
 const Academy = screen(() => import('./screens/city/Academy'), 'Academy');
+const TrainingGrounds = screen(() => import('./screens/city/TrainingGrounds'), 'TrainingGrounds');
 const Tavern = screen(() => import('./screens/city/Tavern'), 'Tavern');
 const Delve = screen(() => import('./screens/city/Delve'), 'Delve');
 const Admin = screen(() => import('./screens/Admin'), 'Admin');
@@ -57,6 +58,7 @@ export function App() {
         <Route path="/city/market" element={page(Market)} />
         <Route path="/city/temple" element={page(Temple)} />
         <Route path="/city/academy" element={page(Academy)} />
+        <Route path="/city/training" element={page(TrainingGrounds)} />
         <Route path="/city/tavern" element={page(Tavern)} />
         <Route path="/city/delve" element={page(Delve)} />
         <Route path="/labyrinth" element={page(Labyrinth)} />

@@ -41,7 +41,7 @@ export const LOOT_HERO: HeroView = {
   portrait: 'elf-wizard-1', portraitUrl: '/art/portraits/elf-wizard-1.webp', banner: '#7758a4',
   level: 4, xp: 0, xpNext: 100, abilities: { str: 10, dex: 14, con: 12, int: 18, wis: 12, cha: 10 },
   maxHp: 30, hp: 30, armorClass: 12, gold: 1000, stamina: 10, staminaMax: 10,
-  worn: [], bag: [], storage: [], bagSlots: 24, storageSlots: 40, inCity: true,
+  worn: [], bag: [], storage: [], bagSlots: 24, storageSlots: 40, inCity: true, training: null,
   luck: { badLuck: 8, badLuckMax: 100, magicFind: 0, goldFind: 0, blessing: null },
   path: null, pathChoices: null, pendingGrowth: [], talentOffer: null, levelUp: null, deeds: [], title: null,
   gear: { abilities: { str: 0, dex: 3, con: 0, int: 0, wis: 0, cha: 0 }, stats: { magicFind: 9 }, critFrom: 20, escape: 0, charm: 0 },

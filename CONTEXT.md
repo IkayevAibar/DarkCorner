@@ -301,6 +301,10 @@ _Avoid_: coins, money
 The City Building where a Hero from level 12 learns more Talents for gold.
 _Avoid_: school, library, trainer
 
+**Training grounds**:
+The City Building where a Hero trains an ability score +1 for gold, away for hours.
+_Avoid_: gym, barracks, trainer
+
 **Market**:
 The City board where Players list Items at their own price, for anyone to buy at any time.
 _Avoid_: auction house, trading post, bazaar

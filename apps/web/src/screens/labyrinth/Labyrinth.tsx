@@ -98,6 +98,7 @@ export function Labyrinth() {
   };
   useAt(view?.hero.staminaNextAt, refresh);
   useAt(view?.room?.restedAt, refresh);
+  useAt(view?.hero.trainingUntil, refresh);
   // In a Duo either Player can lead, so look every few seconds for what the other did;
   // in a Duo fight, more often, for the partner's turns (and a turn that ran out).
   const inDuo = view?.duo != null;
@@ -207,6 +208,8 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
   const woken = view.waypoints.filter((n) => n !== 1).sort((a, b) => a - b);
   const floors = [1, ...woken.filter((n) => !duo || duo.waypoints.includes(n))];
   const shut = view.season.status === 'planned';
+  // Away at the Training grounds: the gate opens again when the +1 lands.
+  const training = view.hero.trainingUntil;
   const hero = view.hero;
   const enter = (floor: number, portal = false) => {
     play('door', { rate: portal ? 1.2 : 0.8 });
@@ -225,6 +228,7 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
       <div className="grid gap-1 px-1 text-sm text-muted">
         {view.bestFloor > 0 && <span>{t('lab.bestFloor', { n: view.bestFloor })}</span>}
         {shut && <span className="font-bold text-[#ff9a8a]">{t('lab.notStarted')}</span>}
+        {training && <span className="font-bold text-gold">{t('lab.training', { time: formatClock(locale, training) })}</span>}
       </div>
       {view.season.omen && <OmenNote omen={view.season.omen} />}
 
@@ -239,7 +243,7 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
           </div>
         )}
         {floors.map((n) => (
-          <button key={n} type="button" className={`btn ${n === 1 && (!view.portal || duo) ? 'btn-primary' : ''}`} disabled={busy || shut} onClick={() => enter(n)}>
+          <button key={n} type="button" className={`btn ${n === 1 && (!view.portal || duo) ? 'btn-primary' : ''}`} disabled={busy || shut || training !== null} onClick={() => enter(n)}>
             {duo ? (n === 1 ? t('duo.enter') : t('duo.enterWaypoint', { n })) : n === 1 ? t('lab.enter') : t('lab.enterWaypoint', { n })}
           </button>
         ))}

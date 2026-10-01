@@ -5,7 +5,7 @@ import { REVEALS } from './lootFixtures';
 const t = (en: string, ru: string) => ({ en, ru });
 export const TRUST_VIEW: LabyrinthView = {
   location: 'labyrinth', hero: { name: 'Garrick', portraitUrl: '/art/portraits/human-fighter-1.webp', banner: '#9e2a2a', hp: 45, maxHp: 60, level: 5, xp: 20, xpNext: 100,
-    stamina: 18, staminaMax: 20, staminaNextAt: null, carriedGold: 40, spells: 0, heals: 0, potions: 0, portalScrolls: 0, stance: 'steady', bombs: { fire: 0, smoke: 0 }, features: [], kit: [], shortRests: { left: 2, of: 2, backAt: null } },
+    stamina: 18, staminaMax: 20, staminaNextAt: null, carriedGold: 40, spells: 0, heals: 0, potions: 0, portalScrolls: 0, stance: 'steady', bombs: { fire: 0, smoke: 0 }, features: [], kit: [], shortRests: { left: 2, of: 2, backAt: null }, trainingUntil: null },
   duo: { heroId: 'preview-partner', name: 'Ilyra', portraitUrl: '/art/portraits/elf-wizard-1.webp', banner: '#3b5fa8', class: 'wizard', level: 5, hp: 42, maxHp: 42, stamina: 18, online: true, seenAt: null, waypoints: [1], bonded: false },
   season: { status: 'active', bossGateAt: null, omen: null }, waypoints: [1], portal: null, bestFloor: 3,
   floor: { number: 3, name: t('The crypts', 'Склепы'), theme: 'crypt', width: 5, height: 5 },

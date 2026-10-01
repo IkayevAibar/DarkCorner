@@ -25,6 +25,7 @@ const BUILDINGS: Building[] = [
   { id: 'market', to: '/city/market', name: 'city.market', blurb: 'city.market.blurb', x: .23, y: .385 },
   { id: 'temple', to: '/city/temple', name: 'city.temple', blurb: 'city.temple.blurb', x: .63, y: .125 },
   { id: 'academy', to: '/city/academy', name: 'city.academy', blurb: 'city.academy.blurb', x: .39, y: .19 },
+  { id: 'training', to: '/city/training', name: 'city.training', blurb: 'city.training.blurb', x: .57, y: .67 },
   { id: 'well', to: '/city/delve', name: 'city.well', blurb: 'city.well.blurb', x: .865, y: .6 },
   { id: 'gate', to: '/labyrinth', name: 'city.gate', blurb: 'city.gate.blurb', x: .5, y: .795 },
 ];

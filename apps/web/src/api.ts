@@ -4,7 +4,7 @@ import type {
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
-  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView, OathChoice, AcademyView, TalentId
+  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView, OathChoice, AcademyView, TalentId, TrainingView, AbilityId
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -115,6 +115,8 @@ export const api = {
   temple: () => request<TempleView>('GET', '/api/temple'),
   academy: () => request<AcademyView>('GET', '/api/academy'),
   learnTalent: (talent: TalentId) => request<AcademyView>('POST', '/api/academy/learn', { talent }),
+  training: () => request<TrainingView>('GET', '/api/training'),
+  startTraining: (ability: AbilityId) => request<TrainingView>('POST', '/api/training/start', { ability }),
   bless: (blessing: BlessingIdView) => request<TempleView>('POST', '/api/temple/bless', { blessing }),
 
   tavern: () => request<TavernView>('GET', '/api/tavern'),
