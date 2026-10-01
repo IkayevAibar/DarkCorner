@@ -65,6 +65,8 @@ export const NEWS: NewsEntry[] = [
     items: [
       t('A Mini-boss that meets a Duo now has more than twice the health and hits harder: two Heroes no longer brush it aside. A pair still dies about as often as a Hero alone.',
         'Мини-босс, встретивший дуэт, теперь больше чем вдвое крепче и бьёт сильнее: вдвоём его уже не смести походя. Погибают в дуэте по-прежнему не чаще, чем в одиночку.'),
+      t('In a Duo fight, your 30 seconds now start once the moves before your turn have played out on screen.',
+        'В бою дуэтом ваши 30 секунд теперь начинаются, когда ходы перед вашим уже показаны на экране.'),
     ],
   },
   {
