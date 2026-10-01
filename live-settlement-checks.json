@@ -1,0 +1,89 @@
+{
+  "source": "actual Labyrinth screen with one-shot intercepted API results",
+  "records": [
+    {
+      "locale": "en",
+      "width": 320,
+      "reduced": false,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "width": 320,
+      "reduced": true,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "width": 375,
+      "reduced": false,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "width": 375,
+      "reduced": true,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "reduced": false,
+      "passed": true
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "reduced": true,
+      "passed": true
+    },
+    {
+      "locale": "ru",
+      "width": 320,
+      "reduced": false,
+      "passed": true
+    },
+    {
+      "locale": "ru",
+      "width": 320,
+      "reduced": true,
+      "passed": true
+    },
+    {
+      "locale": "ru",
+      "width": 375,
+      "reduced": false,
+      "passed": true
+    },
+    {
+      "locale": "ru",
+      "width": 375,
+      "reduced": true,
+      "passed": true
+    },
+    {
+      "locale": "ru",
+      "width": 1440,
+      "reduced": false,
+      "passed": true
+    },
+    {
+      "locale": "ru",
+      "width": 1440,
+      "reduced": true,
+      "passed": true
+    }
+  ],
+  "checks": [
+    "initiating POST double tap sends once",
+    "all four receiving-side oath outcomes via action/poll",
+    "report follows reveal without lost rewards",
+    "last manual pick flies despite null view.chest",
+    "empty looks never replay receipts",
+    "partner final pick keeps previous Duo portraits after going home/disbanding",
+    "left-behind Items never fly",
+    "initial-load receipt catches up assigned Items",
+    "phone/desktop bounds and reduced motion"
+  ],
+  "pageErrors": []
+}

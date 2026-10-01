@@ -1,31 +1,27 @@
 # Task 18: Trust and greed — visual review
 
-Implementation: `codex/trust-greed`, commit `0e4a0127448d2f042a217497e740e438b9b54c7c`, based on main `6d3091e`.
+Implementation: `codex/trust-greed`, commit `15bfe959e8b57b65feec2100920813aa06379cdb`, rebased on main `494426d`.
 
-This is an **orphan evidence branch**. Never merge it into main. The implementation contains only `apps/web` changes and the optimized Oathstone asset.
+This is a separate **orphan evidence branch**. Never merge it into main. The implementation changes only `apps/web`.
 
-## Status and contract handoff
+## Connected settlement flow
 
-The painted Oathstone, waiting choices, shared Map glyph, Duo Chest tray, ordinary confirmed pick flights, Curse panels and Tavern symbols are connected to the existing screens. The reveal component and all four choice combinations work in `/sandbox`.
+Both contract payloads are connected. An action or partner look with `oath` opens the paired reveal with the receiving Player's exact choices and original notices. A `closedChest` result holds the final tray through its confirmed Item flights before the report, even though `view.chest` is already null. The previous Room and portraits remain available when the result has moved the Duo home or ended it. An initial-load receipt without history shows all assigned Items going to the supplied sides; a missing former partner uses a neutral portrait.
 
-**Draft: two missing payloads prevent completing the live reveal and final Chest flight.** No notice text is parsed, and no hidden choice or ownership is guessed.
+Incoming results queue behind the current picture, then join the report without losing rewards or notices. Old completion callbacks cannot skip the next picture. Empty subsequent looks do not replay one-shot receipts. Unclaimed Items stay behind. The final manual pick keeps its loot in the report; non-final picks use the tray as their receipt. Auto and Manual fights keep their existing scenes and show their last blows before their report.
 
-1. The second oath deletes the stored choices and returns `OathView { state: 'spent', mine: null, partnerSwore: false }`. Add a structured settled-oath payload to `LabyrinthResult`, proposed `oath: { mine: 'share' | 'take', partner: 'share' | 'take' } | null`. Send it once to the initiating Player and in the partner's `duoNews`, with the two sides reversed. Keep `OathView` private while either oath is pending. `OathReveal` already accepts those choices, the two portraits and the result's original notices. Once the contract lands, connect it in `Labyrinth.present()` before showing the report and keep incoming results from interrupting it.
-2. `takeTurns()` deletes a Chest immediately after its final pick or once neither Hero can carry more. `view.chest === null` loses the final `takenBy` values, especially for the polled partner and automatic picks. Add a final Chest snapshot to the action result and partner's news, proposed `closedChest: DuoChestView | null`, retaining every Item's `takenBy` from each Player's perspective. Then keep `ChestScene` mounted through its final 900 ms flights before dismissing it/showing the report. Do not reconstruct the other Player's choices from which Items disappeared. Current non-final live picks and turns already animate from the real `DuoChestView` updates.
+No contract, API, engine or gameplay rule changes are included.
 
-The shared contract, API, engine and gameplay rules are unchanged in this PR.
+## Current recording and screenshots
 
-## Review media
+- [24-second live-screen phone recording in Russian](trust-greed-live-phone-ru.webm): the actual `/labyrinth` route submits an oath, reveals it, receives a cracked oath through partner news, shows a normal Chest pick, then the partner's final pick with `view.chest: null`, its flight and the report. Desktop Chrome at 375 × 900 (VP8 encodes 374 × 900), sound disabled. API responses are intercepted contract-shaped fixtures; this is not a physical-device or full server end-to-end recording. No sandbox presentation controls drive these scenes.
+- [Settled oath on a short 375 × 667 phone](live-settled-oath-ru.png), [complete final tray on the short phone](live-last-pick-ru.png).
+- [Kept oath](live-oath-reveal-phone-ru.png), [cracked oath](live-oath-cracked-phone-ru.png), [partner's final Item in flight](live-final-flight-phone-ru.png).
+- [Closing after going home and ending the Duo](live-closed-chest-desktop-en.png): English desktop, previous partner retained, unclaimed Items labelled "Left behind".
+- [Waiting oath](live-oath-wait-ru.png), [normal confirmed pick](live-chest-pick-ru.png), [Curse in Loot](loot-curse-ru.png), [Curse in the Temple](temple-curse-ru.png).
+- [Three Tavern oath symbols](tavern-oaths-ru.png), [Room stage](phone-room-ru.png), [choice card](phone-oath-ru.png).
 
-- [24-second phone recording in Russian](trust-greed-phone-ru.webm): Room, oath card, kept/broken/cracked reveals, alternating Chest picks, final pick and Curse. Desktop Chrome emulation at 375 × 900; VP8 encodes it at 374 × 900. Sound disabled. The reveal/final-pick portion uses explicit presentation fixtures, not live server outcomes. Sandbox-only Chest controls are hidden in the recording; the script advances the partner fixture behind the scene. Production uses the server snapshots.
-- [Oathstone on the Room stage](phone-room-ru.png)
-- [Unsworn choice card](phone-oath-ru.png)
-- [Both Share](phone-kept-ru.png), [one Takes](phone-taken-ru.png), [both Take](phone-cracked-ru.png)
-- [Duo Chest](phone-chest-ru.png), [confirmed Item in flight](phone-flight-ru.png), [final ownership](phone-chest-done-ru.png)
-- [Live-screen waiting oath](live-oath-wait-ru.png), [live-screen confirmed pick](live-chest-pick-ru.png): actual Labyrinth screen against intercepted shared-shaped API responses.
-- [Curse in Loot](loot-curse-ru.png), [Curse in the Temple](temple-curse-ru.png): actual screens; negative luck values render as −25%/−50%, without a spurious preceding plus.
-- [Three Tavern oath symbols](tavern-oaths-ru.png): other Feed rows and fixed page chrome hidden only for this component capture.
-- [Desktop Chest in English](desktop-chest-en.png), [desktop oath in English](desktop-oath-en.png)
+The older `trust-greed-phone-ru.webm` and `phone-*` / `desktop-*` screenshots remain as original sandbox evidence; use the **live-screen recording above** to review the completed integration.
 
 ## Validation
 
@@ -33,28 +29,32 @@ All required root commands pass:
 
 ```text
 npm run typecheck
-npm test              445 tests: API 158, web 44, engine 243
+npm test              458 tests: API 158, web 57, engine 243
 npm run build
 ```
 
-API tests used the isolated local PostgreSQL database `dark_corner_codex_twin_test`, so the owner's concurrent work cannot reset the same test data.
+API tests used the isolated local PostgreSQL database `dark_corner_codex_twin_test` to avoid the owner's concurrent tests resetting the same data.
 
-[Browser checks](browser-checks.json): 12 configurations (EN/RU × 320/375/1440 px × normal/reduced motion). Verified hidden partner choices, sealed own choice, all four reveal combinations, both hands flipping, fracture states, keyboard focus, silent/spent stones, your/their turns, both flight destinations, Item inspection, expiry, full Bags, final pick and component bounds. The 375 px case uses a short 667 px viewport. These are browser checks, not a physical-device performance measurement. The sandbox's older unrelated sections still determine its full-page minimum width at 320 px; the new scenes fit.
+- [Live settlement browser checks](live-settlement-checks.json): EN/RU × 320/375/1440 px × normal/reduced motion, all 12 configurations pass. Covers initiating POST and partner news, all four oath combinations, original notices/rewards, duplicate taps, null `view.chest`, both flight destinations, retained portraits after home/disband, initial-load catch-up, left-behind Items, no repeated receipts, short-phone bounds, and no page errors.
+- [Fight regression checks](fight-regression.json): actual Labyrinth Auto replay before report; Manual ending retains the same board, finishes its events, then shows the report with XP preserved.
+- Thirteen new unit cases cover receipt sequencing, queued news, duplicate callbacks, both fight modes and confirmed ownership changes.
+- [Existing API boundary checks](api-ui-checks.json), rerun after integration: secret partner oath, one POST after rapid double taps, normal pick/poll updates, Curse in Loot/Temple, correct negative luck values.
+- [Original presentation browser checks](browser-checks.json): all four sandbox outcomes, keyboard focus, silent/spent stones, Item inspection, expiry, full Bags, and both languages/motion settings.
 
-[API boundary checks](api-ui-checks.json): actual Labyrinth/Loot/Temple screens with intercepted response fixtures. A rapid double tap sends one oath POST and one Chest POST, the selected `choice`/`index` are preserved, the partner's secret remains hidden, and a polled partner pick updates ownership and the next turn. All three oath Feed icons have distinct paths. No browser page errors.
+These are desktop browser checks with phone-sized viewports, not physical-phone performance measurements.
 
 ## First-load bundle
 
-Compared a production build of unmodified main `6d3091e` with the implementation:
+[Production asset comparison](bundle-comparison.json), against unmodified main `494426d`:
 
 | Initial asset | Main | Branch | Change |
 | --- | ---: | ---: | ---: |
 | JavaScript | 495,512 B | 491,930 B | −3,582 B |
 | CSS | 45,994 B | 45,970 B | −24 B |
-| Total | 541,506 B | 537,900 B | −3,606 B |
+| Total | 541,506 B | 537,900 B | **−3,606 B** |
 
-Oath/Chest copy moved from the global EN/RU dictionaries into the Labyrinth chunk. Every old news entry retains its literal id; `LATEST_NEWS_ID` points at the new top entry. The new painted prop (91,880 B) loads only when shown. It is not requested by the City first load.
+The gzip total is also smaller by 1,154 B. Oath/Chest copy loads with the Labyrinth rather than the initial dictionaries. News entries keep their literal ids; `LATEST_NEWS_ID` matches the top entry. The 91,880 B Oathstone prop loads only when shown.
 
 ## Art
 
-Built-in imagegen produced a transparent Oathstone, resized to 640 × 640 WebP with its alpha preserved. Project path: `apps/web/public/art/props/oathstone.webp`. [Exact prompt and generation mode](oathstone-prompt.txt). The interactive hands, crack, falling shard, Chest and symbols remain native SVG/CSS. Existing Chest Spin primitives supply Item chips/details, Tier sounds and reduced-motion behavior.
+Built-in imagegen produced the transparent Oathstone, optimized to 640 × 640 WebP with alpha preserved: `apps/web/public/art/props/oathstone.webp`. [Exact prompt and mode](oathstone-prompt.txt). Hands, fractures, shard, Chest and symbols use native SVG/CSS; Items reuse Item chips/details, Tier sounds and reduced motion.

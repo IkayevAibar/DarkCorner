@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "Solo Auto initial receipt plays before report",
+    "Manual ending keeps same board",
+    "last blows complete before report",
+    "XP preserved"
+  ],
+  "pageErrors": []
+}

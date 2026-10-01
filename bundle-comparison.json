@@ -1,0 +1,16 @@
+{
+  "js": {
+    "main": 495512,
+    "branch": 491930,
+    "change": -3582,
+    "mainGzip": 163804,
+    "branchGzip": 162655
+  },
+  "css": {
+    "main": 45994,
+    "branch": 45970,
+    "change": -24,
+    "mainGzip": 10126,
+    "branchGzip": 10121
+  }
+}
