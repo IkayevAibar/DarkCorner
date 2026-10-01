@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type HeroCombat, createRng, duoEncounter, forAlly, heroCombat, restUses,
+  CLASS_DEFS, type ClassId, DUO, type FightEvent, type FightInput, type HeroCombat, createRng, duoEncounter, forAlly, heroCombat, restUses,
   simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
@@ -61,7 +61,9 @@ describe('Duo fights', () => {
     }
     const boss = duoEncounter(createRng('boss'), 3, 'miniboss');
     const alone = spawnEncounter(createRng('boss'), 3, 'miniboss');
-    expect(boss[0]!.maxHp).toBeGreaterThan(alone[0]!.maxHp);
+    // The Mini-boss itself is hardier and hits harder than the monsters at its side.
+    expect(boss[0]!.maxHp).toBeGreaterThan(alone[0]!.maxHp * DUO.hp);
+    expect(boss[0]!.damageFactor).toBeGreaterThan(alone[0]!.damageFactor * DUO.damage);
   });
 
   it('shows the partner the same fight with the Heroes trading places', () => {

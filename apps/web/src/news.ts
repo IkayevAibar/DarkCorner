@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-01-duo-mini-boss',
+    date: '2026-10-01',
+    title: t('A Mini-boss for two', 'Мини-босс на двоих'),
+    items: [
+      t('A Mini-boss that meets a Duo now has more than twice the health and hits harder: two Heroes no longer brush it aside. A pair still dies about as often as a Hero alone.',
+        'Мини-босс, встретивший дуэт, теперь больше чем вдвое крепче и бьёт сильнее: вдвоём его уже не смести походя. Погибают в дуэте по-прежнему не чаще, чем в одиночку.'),
+    ],
+  },
+  {
     id: '2026-10-01-oaths',
     date: '2026-10-01',
     title: t('What the two hands reveal', 'Что откроют две руки'),
