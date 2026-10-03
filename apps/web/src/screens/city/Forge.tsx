@@ -9,6 +9,7 @@ import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';
+import { BulkPanel } from './BulkPanel';
 import { NeedHero } from './NeedHero';
 
 /** What an Upgrade sounds like once the hammer lands. */
@@ -53,6 +54,8 @@ export function Forge() {
         note={(item) => (worn.has(item.id) ? t('forge.worn') : item.upgrade > 0 ? `+${item.upgrade}` : null)}
         onPick={(item) => openSheet({ title: text(item.name), body: <ForgeSheet item={item} worn={worn.has(item.id)} onChanged={() => void reload()} /> })}
       />
+
+      <BulkPanel mode="salvage" bag={hero.bag} onDone={() => void reload()} />
 
       <section className="grid gap-2">
         <span className="sub-heading">{t('forge.craft')}</span>

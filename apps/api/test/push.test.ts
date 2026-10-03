@@ -113,6 +113,8 @@ describe('push notifications', () => {
     const { cookie, hero } = await makeHero('Borin');
     await device(cookie, 'https://push.example/tokyo', 'Asia/Tokyo');
     await prisma.hero.update({ where: { id: hero.id }, data: { stamina: 0, staminaAt: new Date(NOON.getTime() - 9 * 60 * 60_000) } });
+    // Last seen before the bar filled, whatever today's date: a Player seen since needs no word.
+    await prisma.player.updateMany({ data: { lastSeenAt: new Date(NOON.getTime() - 9 * 60 * 60_000) } });
     const night = new Date('2026-10-02T17:00:00Z'); // 02:00 in Tokyo
     expect(await pushSweep(night)).toBe(0);
     expect((await prisma.hero.findUniqueOrThrow({ where: { id: hero.id } })).staminaPushAt).toBeNull();

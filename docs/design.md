@@ -387,7 +387,7 @@ The City is an inked town map seen from above, with Buildings you can tap. Nothi
 | Building | When | What it does |
 |---|---|---|
 | Tavern | Season 0 | Where Heroes appear. Your room here holds your Storage. Shows who is online, rumors about the Labyrinth, the Feed, the Rankings, and your bounties. Lodging: a bed for the night, for City gold, fills Stamina and brings back the short rests, one night a day (the day turns at midnight UTC). The first night costs 50 gold, and each night after costs half again as much as the one before, all Season *(v0)*. Later you can also play tavern games here. |
-| Shops | Season 0 | Sell Common and Uncommon gear, potions, scrolls (Identify, Town Portal, Protection) and Keys. Buy any Item at its Buyback price. |
+| Shops | Season 0 | Sell Common and Uncommon gear, potions, scrolls (Identify, Town Portal, Protection) and Keys. Buy any Item at its Buyback price, one at a time or every Bag Item up to a chosen Tier at once (Epic at most; never anything Unidentified, Upgraded or Radiant, or a Bond ring), after a look at what goes. |
 | Forge | Season 0 | Upgrade, Reforge, Salvage, and craft Keys and scrolls from Materials. |
 | Market | Season 0 | Players list Items at their own price, and anyone can buy at any time. |
 | Temple | Season 0 | Where Heroes wake after death. Sells Blessings. You Retire your Hero here. |
@@ -664,7 +664,7 @@ Keys are sold in Shops, crafted at the Forge from Materials, and occasionally dr
   - A successful +10 is Broadcast.
   - Cost *(v0)*: 20 × (the new level)² gold, times 1 (Common), 1.5, 2.5, 4, 7, 12 or 15 (Relic). Plus Scrap for +1 to +3 (2–4), Essence for +4 to +7 (2–5), Soulstone for +8 to +10 (1–3).
 - **Reforge:** rerolls all Bonus stats. Tier, Quality, Radiant and the unique power stay the same. Cost *(v0)*: Uncommon 100 gold + 3 Scrap, Rare 250 + 1 Essence, Epic 600 + 3 Essence, Legendary 2,000 + 1 Soulstone, Mythic 6,000 + 3 Soulstone, Relic 10,000 + 5 Soulstone.
-- **Salvage:** breaks an Item into Materials *(v0)*, plus one more for every 3 Upgrade levels. Relics can't be salvaged.
+- **Salvage:** breaks an Item into Materials *(v0)*, plus one more for every 3 Upgrade levels. Relics can't be salvaged. The Forge can also salvage every Bag Item up to a chosen Tier at once, with the same limits as selling in bulk (Shops).
   - Common: 1–2 Scrap. Uncommon: 2–4 Scrap.
   - Rare: 1–2 Essence. Epic: 2–4 Essence.
   - Legendary: 1 Soulstone. Mythic: 2–3 Soulstone.

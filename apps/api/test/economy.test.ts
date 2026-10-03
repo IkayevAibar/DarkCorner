@@ -305,6 +305,66 @@ describe('the Training grounds', () => {
   });
 });
 
+describe('selling and Salvage in bulk', () => {
+  /** A Bag holding what a bulk sale up to Rare takes, and what it must leave. */
+  async function mixedBag(heroId: string) {
+    const roll = (tier: 'common' | 'uncommon' | 'rare' | 'epic', identified = true) =>
+      rollGear(createRng(`bulk-${tier}-${Math.random()}`), { tier, itemLevel: 2, identified });
+    const taken = [await giveGear(heroId, roll('common')), await giveGear(heroId, roll('uncommon')), await giveGear(heroId, roll('rare'))];
+    const above = await giveGear(heroId, roll('epic'));
+    const unseen = await giveGear(heroId, roll('rare', false));
+    const upgraded = await giveGear(heroId, roll('common'));
+    const radiant = await giveGear(heroId, roll('uncommon'));
+    const ring = await giveGear(heroId, roll('rare'));
+    const stored = await giveGear(heroId, roll('common'), 'STORAGE');
+    await prisma.item.update({ where: { id: upgraded.id }, data: { upgrade: 2 } });
+    await prisma.item.update({ where: { id: radiant.id }, data: { radiant: true } });
+    await prisma.item.update({ where: { id: ring.id }, data: { base: 'bond-ring' } });
+    const potions = await giveStack(heroId, 'potion', 3);
+    return { taken, kept: [above, unseen, upgraded, radiant, ring, stored, potions] };
+  }
+  const left = (ids: { id: string }[]) => prisma.item.count({ where: { id: { in: ids.map((i) => i.id) } } });
+
+  it('sells every Bag Item up to a Tier for what the screen shows, and leaves the rest', async () => {
+    const { cookie, hero } = await makeHero('Hoarder');
+    await setGold(hero.id, 0);
+    const { taken, kept } = await mixedBag(hero.id);
+    const shop = (await get(cookie, '/api/shop')).json();
+    const shown = (shop.hero.bag as { id: string; worth: number }[])
+      .filter((i) => taken.some((t) => t.id === i.id))
+      .reduce((sum, i) => sum + Math.round(i.worth * shop.sellRate), 0);
+    const r = (await post(cookie, '/api/shop/sell-bulk', { upTo: 'rare' })).json();
+    expect(r.sold).toBe(3);
+    expect(r.gold).toBe(shown);
+    expect(await gold(hero.id)).toBe(shown);
+    expect(await left(taken)).toBe(0);
+    expect(await left(kept)).toBe(kept.length);
+  });
+
+  it('salvages every Bag Item up to a Tier into Materials, and leaves the rest', async () => {
+    const { cookie, hero } = await makeHero('Smelter');
+    const { taken, kept } = await mixedBag(hero.id);
+    const r = (await post(cookie, '/api/forge/salvage-bulk', { upTo: 'rare' })).json();
+    expect(r.salvaged).toBe(3);
+    expect(await left(taken)).toBe(0);
+    expect(await left(kept)).toBe(kept.length);
+    // A Common and an Uncommon give 3–6 Scrap; a Rare 1–2 Essence.
+    const got = Object.fromEntries((r.got as { base: string; quantity: number }[]).map((g) => [g.base, g.quantity]));
+    expect(got.scrap).toBeGreaterThanOrEqual(3);
+    expect(got.scrap).toBeLessThanOrEqual(6);
+    expect(got.essence).toBeGreaterThanOrEqual(1);
+    expect(got.essence).toBeLessThanOrEqual(2);
+    expect(await count(hero.id, 'scrap')).toBe(got.scrap);
+  });
+
+  it('never reaches past Epic, and works only in the City', async () => {
+    const { cookie, hero } = await makeHero('Careful');
+    expect((await post(cookie, '/api/shop/sell-bulk', { upTo: 'legendary' })).statusCode).toBe(400);
+    await prisma.hero.update({ where: { id: hero.id }, data: { location: 'LABYRINTH', floor: 1, room: 0 } });
+    expect((await post(cookie, '/api/forge/salvage-bulk', { upTo: 'common' })).json().error).toBe('not_in_city');
+  });
+});
+
 describe('nothing can be duplicated', () => {
   it('sells one listing to exactly one of two racing buyers', async () => {
     const seller = await makeHero('Sly');

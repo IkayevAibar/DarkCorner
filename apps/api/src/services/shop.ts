@@ -1,5 +1,5 @@
 import { Prisma, type Hero, type Player, type Season } from '@prisma/client';
-import type { ShopView, TradeResult } from '@dark/shared';
+import { type BulkSellResult, type BulkTier, type ShopView, type TradeResult, takenInBulk } from '@dark/shared';
 import {
   type ClassId, SHOP_BASICS, SHOP_GEAR_MARKUP, buybackPrice, createRng, isGear, baseById, sellValue, shopBuyPrice, shopDeal,
   shopSellPrice, shopStock,
@@ -86,6 +86,24 @@ export async function buyFromShop(player: Player, offer: string, quantity: numbe
 }
 
 /** Sells an Item (or part of a stack) from the Bag or Storage at the Buyback price. */
+/** Sells every Bag Item a bulk sale up to `upTo` takes, each at the price it would fetch alone. */
+export async function sellInBulk(player: Player, upTo: BulkTier): Promise<BulkSellResult> {
+  const season = await currentSeason();
+  const r = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    requireCity(hero);
+    const items = hero.items.filter((i) => i.place === 'BAG' && takenInBulk({ ...i, tier: i.tier as never, gear: isGear(baseById(i.base)) }, upTo));
+    let gold = 0;
+    for (const item of items) {
+      gold += shopSellPrice(sellValue({ ...item, tier: item.tier as never, quantity: 1 }), deal(hero));
+      await destroyItem(tx, hero, item);
+    }
+    if (gold > 0) await earnGold(tx, hero, gold);
+    return { heroId: hero.id, sold: items.length, gold };
+  });
+  return { sold: r.sold, gold: r.gold, hero: await heroView(r.heroId) };
+}
+
 export async function sellToShop(player: Player, itemId: string, quantity?: number): Promise<TradeResult> {
   const season = await currentSeason();
   const { heroId, earned } = await prisma.$transaction(async (tx) => {

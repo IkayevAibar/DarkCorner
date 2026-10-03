@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-03-bulk',
+    date: '2026-10-03',
+    title: t('Clear the Bag in one go', 'Сумка за один раз'),
+    items: [
+      t('You asked for it: the Shops buy, and the Forge salvages, every Item in your Bag up to a Tier you choose, in one go. You see what goes first, and Unidentified, Upgraded and Radiant Items and Bond rings always stay.',
+        'Вы просили — сделано: лавки покупают, а кузница разбирает все предметы из сумки до выбранного ранга за один раз. Сначала видно, что уйдёт, а неопознанные, улучшенные и сияющие предметы и кольца уз всегда остаются.'),
+    ],
+  },
+  {
     id: '2026-10-02-academy',
     date: '2026-10-02',
     title: t('The Academy and the Training grounds', 'Академия и плац'),

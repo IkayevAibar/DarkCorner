@@ -1,6 +1,7 @@
 import type { Item, Player, Prisma } from '@prisma/client';
-import type {
-  ForgeCost, ForgeQuote, ForgeView, HeroView, ReforgeResult, SalvageResult, UpgradeResult,
+import {
+  type BulkSalvageResult, type BulkTier, type ForgeCost, type ForgeQuote, type ForgeView, type HeroView, type ReforgeResult, type SalvageResult,
+  type UpgradeResult, takenInBulk,
 } from '@dark/shared';
 import {
   type ForgeCost as EngineCost, MAX_UPGRADE, RECIPES, REFORGE_COST, type Tier, UPGRADE_SAFE_UNTIL, baseById, upgradeChance,
@@ -155,6 +156,35 @@ export async function salvageItem(player: Player, itemId: string): Promise<Salva
     return { heroId: hero.id, got };
   });
   return { got: { ...r.got, name: baseById(r.got.base).name }, hero: await heroView(r.heroId) };
+}
+
+/** Salvages every Bag Item a bulk Salvage up to `upTo` takes, one roll each, and sums what they give. */
+export async function salvageInBulk(player: Player, upTo: BulkTier): Promise<BulkSalvageResult> {
+  const season = await currentSeason();
+  const r = await prisma.$transaction(async (tx) => {
+    const hero = await lockHero(tx, player, season.id);
+    requireCity(hero);
+    const items = hero.items.filter((i) => i.place === 'BAG' && takenInBulk({ ...i, tier: i.tier as never, gear: isGear(baseById(i.base)) }, upTo));
+    const seed = newSeed();
+    const rng = createRng(seed);
+    const got = new Map<string, number>();
+    for (const item of items) {
+      const one = rollSalvage(rng, item.tier as Tier, item.upgrade);
+      if (!one) continue;
+      got.set(one.base, (got.get(one.base) ?? 0) + one.quantity);
+      await destroyItem(tx, hero, item);
+    }
+    for (const [base, quantity] of got) await giveStack(tx, hero, season.id, base, quantity);
+    await tx.rollLog.create({
+      data: { playerId: player.id, kind: 'salvage', seed, detail: { upTo, items: items.map((i) => ({ itemId: i.id, tier: i.tier })), got: Object.fromEntries(got) } },
+    });
+    return { heroId: hero.id, salvaged: items.length, got };
+  });
+  return {
+    salvaged: r.salvaged,
+    got: [...r.got].map(([base, quantity]) => ({ base, quantity, name: baseById(base).name })),
+    hero: await heroView(r.heroId),
+  };
 }
 
 export async function forgeView(player: Player): Promise<ForgeView> {

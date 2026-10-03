@@ -9,6 +9,7 @@ import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';
 import { formatDuration, useNow } from '../../time';
+import { BulkPanel } from './BulkPanel';
 import { NeedHero } from './NeedHero';
 
 /** What the Shops pay: the Buyback price times the Hero's rate (a Haggler's and Charisma's better deal, from the server). */
@@ -58,6 +59,8 @@ export function Shop() {
           if (!offer.soldOut) showOffer(offer, false);
         }}
       />
+
+      <BulkPanel mode="sell" bag={hero.bag} rate={data.sellRate} onDone={() => void reload()} />
 
       <ItemPicker
         title={t('shop.sell')}

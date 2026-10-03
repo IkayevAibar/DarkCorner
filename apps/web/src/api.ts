@@ -4,7 +4,7 @@ import type {
   CreationOptions, DevLoginRequest, EventAction, FaceAction, ForgeQuote, ForgeView, HeroDraft, HeroResponse, HeroView, IdentifyResult,
   LabyrinthResult, LogoutResponse, MarketView, MeResponse, MoveItemRequest, MyHeroResponse, OpenChestResult, ReforgeResult,
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
-  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView, OathChoice, AcademyView, TalentId, TrainingView, AbilityId
+  BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView, OathChoice, AcademyView, TalentId, TrainingView, AbilityId, BulkTier, BulkSellResult, BulkSalvageResult
 } from '@dark/shared';
 
 export class ApiRequestError extends Error {
@@ -103,6 +103,8 @@ export const api = {
   upgrade: (id: string, protect: boolean) => request<UpgradeResult>('POST', `/api/items/${encodeURIComponent(id)}/upgrade`, { protect }),
   reforge: (id: string) => request<ReforgeResult>('POST', `/api/items/${encodeURIComponent(id)}/reforge`),
   salvage: (id: string) => request<SalvageResult>('POST', `/api/items/${encodeURIComponent(id)}/salvage`),
+  sellBulk: (upTo: BulkTier) => request<BulkSellResult>('POST', '/api/shop/sell-bulk', { upTo }),
+  salvageBulk: (upTo: BulkTier) => request<BulkSalvageResult>('POST', '/api/forge/salvage-bulk', { upTo }),
 
   shop: () => request<ShopView>('GET', '/api/shop'),
   shopBuy: (offer: string, quantity = 1) => request<TradeResult>('POST', '/api/shop/buy', { offer, quantity }),

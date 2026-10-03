@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { abilityIdSchema, blessingIdSchema, heroSchema, talentIdSchema } from './heroes.js';
-import { itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
+import { TIERS, type Tier, itemViewSchema, localizedTextSchema, tierSchema } from './items.js';
 
 // The City's trades: Shops, the Forge, the Market and the Temple, plus Chests
 // and identifying. Every action answers with the whole Hero, so screens redraw
@@ -46,6 +46,38 @@ export const sellRequestSchema = z.object({ quantity: z.number().int().min(1).op
 /** Buying or selling: the gold that changed hands (negative when spent). */
 export const tradeResultSchema = z.object({ gold: z.number().int(), hero: heroSchema });
 export type TradeResult = z.infer<typeof tradeResultSchema>;
+
+// ─── Selling and Salvage in bulk ──────────────────────────────────────────
+
+/** The highest Tier a bulk sale or Salvage can reach: never Legendary or better. */
+export const BULK_TIERS = ['common', 'uncommon', 'rare', 'epic'] as const;
+export const bulkTierSchema = z.enum(BULK_TIERS);
+export type BulkTier = z.infer<typeof bulkTierSchema>;
+
+/**
+ * Whether a bulk sale or Salvage up to `upTo` takes this Bag Item: gear of that Tier or
+ * lower that the Hero has seen, and nothing worth a look one by one (an Upgrade, Radiant,
+ * a Bond ring). The server decides with it; the screen shows what will go with it.
+ */
+export function takenInBulk(
+  item: { gear: boolean; tier: Tier; identified: boolean; upgrade: number; radiant: boolean | null; base: string }, upTo: BulkTier,
+): boolean {
+  return item.gear && TIERS.indexOf(item.tier) <= TIERS.indexOf(upTo) && item.identified && item.upgrade === 0
+    && !item.radiant && item.base !== 'bond-ring';
+}
+
+/** POST /api/shop/sell-bulk and /api/forge/salvage-bulk. */
+export const bulkRequestSchema = z.object({ upTo: bulkTierSchema });
+
+export const bulkSellResultSchema = z.object({ sold: z.number().int(), gold: z.number().int(), hero: heroSchema });
+export type BulkSellResult = z.infer<typeof bulkSellResultSchema>;
+
+export const bulkSalvageResultSchema = z.object({
+  salvaged: z.number().int(),
+  got: z.array(z.object({ base: z.string(), name: localizedTextSchema, quantity: z.number().int() })),
+  hero: heroSchema,
+});
+export type BulkSalvageResult = z.infer<typeof bulkSalvageResultSchema>;
 
 // ─── Chests and identifying ───────────────────────────────────────────────
 

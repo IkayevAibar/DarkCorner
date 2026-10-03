@@ -1,14 +1,15 @@
 import type { FastifyInstance } from 'fastify';
 import {
   type AcademyView, type ForgeView, type HeroResponse, type MarketView, type ShopView, type TempleView, type TradeResult, type TrainingView,
-  blessRequestSchema, craftRequestSchema, learnTalentRequestSchema, listRequestSchema, shopBuyRequestSchema, trainRequestSchema,
+  type BulkSalvageResult, type BulkSellResult, blessRequestSchema, bulkRequestSchema, craftRequestSchema, learnTalentRequestSchema,
+  listRequestSchema, shopBuyRequestSchema, trainRequestSchema,
 } from '@dark/shared';
 import { academyView, learnTalent } from '../services/academy.js';
 import { startTraining, trainingView } from '../services/training.js';
 import { requireApproved } from '../lib/session.js';
-import { craft, forgeView } from '../services/forge.js';
+import { craft, forgeView, salvageInBulk } from '../services/forge.js';
 import { buyListing, cancelListing, listItem, marketView } from '../services/market.js';
-import { buyFromShop, shopView } from '../services/shop.js';
+import { buyFromShop, sellInBulk, shopView } from '../services/shop.js';
 import { buyBlessing, templeView } from '../services/temple.js';
 
 /** The City's buildings: Shops, the Forge, the Market, the Temple, the Academy and the Training grounds. */
@@ -23,6 +24,10 @@ export async function cityRoutes(app: FastifyInstance) {
   });
 
   app.get('/api/forge', guard, async (request): Promise<ForgeView> => forgeView(request.player!));
+  app.post('/api/forge/salvage-bulk', guard, async (request): Promise<BulkSalvageResult> =>
+    salvageInBulk(request.player!, bulkRequestSchema.parse(request.body).upTo));
+  app.post('/api/shop/sell-bulk', guard, async (request): Promise<BulkSellResult> =>
+    sellInBulk(request.player!, bulkRequestSchema.parse(request.body).upTo));
   app.post('/api/forge/craft', guard, async (request): Promise<HeroResponse> => {
     const { recipe, quantity } = craftRequestSchema.parse(request.body);
     return { hero: await craft(request.player!, recipe, quantity) };
