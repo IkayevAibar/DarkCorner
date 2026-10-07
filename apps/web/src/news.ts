@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-07-rage',
+    date: '2026-10-07',
+    title: t('Barbarians, a little less unstoppable', 'Варвары уже не так несокрушимы'),
+    items: [
+      t('Rage is one point smaller: +1 damage on every hit and 1 less from every blow (2 from level 9, 3 from 16). A Berserker’s Frenzy now comes once it is below half health. Barbarians won nearly every Mini-boss fight; they stay the sturdiest Class, as the most health should make them, but a Mini-boss can win now.',
+        'Ярость стала на единицу слабее: +1 к урону каждого удара и на 1 меньше от каждого удара по варвару (2 с 9-го уровня, 3 с 16-го). Бешенство берсерка теперь приходит, когда здоровья меньше половины. Варвары выигрывали почти любой бой с мини-боссом; они по-прежнему самые стойкие, как и положено при самом большом здоровье, но теперь мини-босс может и победить.'),
+    ],
+  },
+  {
     id: '2026-10-07-uncanny',
     date: '2026-10-07',
     title: t('Rogues, a little less untouchable', 'Плуты чуть уязвимее'),

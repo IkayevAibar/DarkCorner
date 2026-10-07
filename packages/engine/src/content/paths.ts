@@ -155,7 +155,10 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
     name: text('Berserker', 'Берсерк'),
     blurb: text('Rage with nothing held back.', 'Ярость, в которой нет удержу.'),
     features: [
-      feature(3, text('Frenzy', 'Бешенство'), text('While raging, attack once more each turn.', 'В ярости — на одну атаку за ход больше.')),
+      feature(3, text('Frenzy', 'Бешенство'), text(
+        'While raging and below half health, attack once more each turn.',
+        'В ярости, когда здоровья меньше половины, — на одну атаку за ход больше.',
+      )),
       feature(9, text('Mindless rage', 'Слепая ярость'), text(
         'While raging, fear and paralysis can’t take hold of you.',
         'В ярости вас не берут ни страх, ни паралич.',

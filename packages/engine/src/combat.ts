@@ -886,9 +886,9 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     markDefeated();
   };
 
-  /** Attacks an 'attack' makes this turn: Extra Attack, a Berserker's Frenzy, a master Hunter, a Stalker's first round. */
+  /** Attacks an 'attack' makes this turn: Extra Attack, a Berserker's Frenzy (raging and below half health), a master Hunter, a Stalker's first round. */
   const attacksFor = (s: Side) => attacksPerTurn(s.c.class, s.c.level, s.c.path)
-    + (s.raging && s.path('berserker') ? 1 : 0)
+    + (s.raging && s.path('berserker') && s.c.hp < s.c.maxHp / 2 ? 1 : 0)
     + (s.path('hunter', PATH_MASTERY) ? 1 : 0)
     + (currentRound === 1 && s.path('stalker') ? 1 : 0);
   /** A light weapon in the off-hand adds a blow to every 'attack' (spells cast with neither hand). */

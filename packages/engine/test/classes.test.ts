@@ -30,7 +30,7 @@ describe('the Barbarian', () => {
 
   it('Rages as many times a rest as the SRD says, harder as it grows, and attacks twice from level 5', () => {
     expect([1, 3, 6, 12, 17].map(rages)).toEqual([2, 3, 4, 5, 6]);
-    expect([1, 9, 16].map(rageDamage)).toEqual([2, 3, 4]);
+    expect([1, 9, 16].map(rageDamage)).toEqual([1, 2, 3]);
     expect(restUses('barbarian', 6)).toEqual({ spells: 4, heals: 0 });
     expect([4, 5].map((l) => attacksPerTurn('barbarian', l, null))).toEqual([1, 2]);
   });
@@ -51,7 +51,7 @@ describe('the Barbarian', () => {
   });
 
   it('takes the Rage’s edge off every blow while raging', () => {
-    // The same fight with and without Rage uses: every blow after the Rage is 2 lighter (never below 1).
+    // The same fight with and without Rage uses: every blow after the Rage is 1 lighter (never below 1).
     const hero = { ...starter('barbarian', 1), hp: 999, maxHp: 999 };
     const monsters = goblins(2, 3);
     const raging = simulateFight(createRng('edge'), input(hero, monsters));
@@ -66,7 +66,7 @@ describe('the Barbarian', () => {
     const belt = heroFeatures({ class: 'barbarian', level: 5, path: null, int: 10, wis: 10, spellUses: 1, healUses: 0 });
     expect(belt.map((f) => f.id)).toEqual(['rage', 'danger-sense', 'extra-attack', 'path']);
     expect(belt[0]).toMatchObject({ kind: 'rest', uses: { left: 1, of: 3 } });
-    expect(belt[0]!.now.en).toContain('+2 damage');
+    expect(belt[0]!.now.en).toContain('+1 damage');
     expect(levelGains({ class: 'barbarian', race: 'human', path: null, level: 5, con: 14, talents: [] }).map((g) => g.en))
       .toContain('Rages a rest: 3 → 4');
   });

@@ -1,5 +1,5 @@
 /** Kept separate so the navigation's unread dot does not load every patch note. */
-export const LATEST_NEWS_ID = '2026-10-07-uncanny';
+export const LATEST_NEWS_ID = '2026-10-07-rage';
 const SEEN_KEY = 'dc.news.seen';
 
 export function newsUnread(): boolean {

@@ -45,11 +45,11 @@ export function restUses(cls: ClassId, level: number, path: PathId | null = null
 export const rages = (level: number): number => (level >= 17 ? 6 : level >= 12 ? 5 : level >= 6 ? 4 : level >= 3 ? 3 : 2);
 
 /**
- * Rage's edge (SRD numbers): +2 damage on every hit, and 2 less from every blow that
- * lands (the SRD halves it, which here made Barbarians far too hard to kill); 3 from
- * level 9, 4 from 16.
+ * Rage's edge (v0): +1 damage on every hit, and 1 less from every blow that lands; 2 from
+ * level 9, 3 from 16. The SRD halves the blows, and its +2/+3/+4 here still left Barbarians
+ * all but unbeatable by Mini-bosses (balance:par).
  */
-export const rageDamage = (level: number): number => (level >= 16 ? 4 : level >= 9 ? 3 : 2);
+export const rageDamage = (level: number): number => (level >= 16 ? 3 : level >= 9 ? 2 : 1);
 
 /** A Ranger's Hunter's marks a rest: 2, and one more at 5, 9, 13 and 17 (v0). */
 export const marks = (level: number): number => 2 + Math.floor((level - 1) / 4);
