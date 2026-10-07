@@ -1,11 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import {
-  type LabyrinthResult, chestPickRequestSchema, enterRequestSchema, eventActionSchema, faceActionSchema, fightActionRequestSchema, moveRequestSchema,
+  type LabyrinthResult, chestPickRequestSchema, enterRequestSchema, eventActionSchema, faceActionSchema, fightActionRequestSchema, moveRequestSchema, walkRequestSchema,
   oathRequestSchema, stanceRequestSchema,
 } from '@dark/shared';
 import { requireApproved } from '../lib/session.js';
 import {
-  actInEvent, actInFight, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, pickFromChest, readPortal, setStance,
+  actInEvent, actInFight, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, pickFromChest, readPortal, setStance, walkRoute,
   shortRest, swearOath,
 } from '../services/labyrinth.js';
 
@@ -22,6 +22,12 @@ export async function labyrinthRoutes(app: FastifyInstance) {
   app.post('/api/labyrinth/move', guard, async (request): Promise<LabyrinthResult> => {
     const { to } = moveRequestSchema.parse(request.body);
     return moveTo(request.player!, to);
+  });
+
+  /** A Route picked on the Map, walked Door by Door until it ends or something happens. */
+  app.post('/api/labyrinth/walk', guard, async (request): Promise<LabyrinthResult> => {
+    const { route } = walkRequestSchema.parse(request.body);
+    return walkRoute(request.player!, route);
   });
 
   app.post('/api/labyrinth/face', guard, async (request): Promise<LabyrinthResult> =>

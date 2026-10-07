@@ -38,6 +38,8 @@ import { LiveFightPanel, endedBoard, liveBoard } from './LiveFight';
 import { FloorMap } from './FloorMap';
 import { FirstSteps } from '../../components/FirstSteps';
 import { MiniMap } from '../../components/map/MiniMap';
+import { findRoute } from '../../components/map/route';
+import { RoutePanel, useRouteGoal } from './RoutePanel';
 import { roomArt } from './roomArt';
 import { TierBurst } from '../../components/loot/TierBurst';
 
@@ -331,25 +333,41 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
   const oathCard = !facing && !chest && oath !== null && (oathOpen ? !aside : oathPeek);
   const chestCard = chest !== null && !chestAside;
 
-  /** The Door the Player chose while a Camp's rest was under way, waiting for a yes. */
-  const [leaving, setLeaving] = useState<number | null>(null);
+  /** The Door, or the Route, the Player chose while a Camp's rest was under way, waiting for a yes. */
+  const [leaving, setLeaving] = useState<number[] | null>(null);
   const hero = view.hero;
   const resting = room.type === 'camp' && room.restedAt !== null && new Date(room.restedAt).getTime() > now
     && (hero.hp < hero.maxHp || hero.stamina < hero.staminaMax || hero.shortRests.left < hero.shortRests.of);
-  const go = (to: number) => {
+  // A Route picked on the Map (docs/design.md → Routes): its goal outlives a fight on the way.
+  const [goal, setGoal] = useRouteGoal(floor.number);
+  const route = goal !== null && view.map ? findRoute(view.map, room.id, goal) : null;
+  // Arrived: the Route is done.
+  useEffect(() => {
+    if (goal === room.id) setGoal(null);
+  }, [goal, room.id]);
+  const next = route?.rooms[0] ?? null;
+  /** One Door, or a whole Route Door by Door. */
+  const go = (rooms: number[]) => {
     setPopup(null);
     setLeaving(null);
-    play(exits.find((e) => e.to === to)?.kind === 'open' ? 'door' : 'creak');
-    void act(() => api.moveTo(to));
-  };
-  const move = (to: number) => {
-    if (resting) {
-      setPopup(null);
-      setLeaving(to);
+    if (rooms.length === 1) {
+      play(exits.find((e) => e.to === rooms[0])?.kind === 'open' ? 'door' : 'creak');
+      void act(() => api.moveTo(rooms[0]!));
       return;
     }
-    go(to);
+    play('step');
+    play('step', { delay: 260 });
+    void act(() => api.walk(rooms));
   };
+  const travel = (rooms: number[]) => {
+    if (resting) {
+      setPopup(null);
+      setLeaving(rooms);
+      return;
+    }
+    go(rooms);
+  };
+  const move = (to: number) => travel([to]);
   const walk = (call: () => Promise<LabyrinthResult>) => {
     play('step');
     play('step', { delay: 260 });
@@ -372,7 +390,7 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
               <Pair view={view} size={86} />
             </div>
             {exits.map((exit) => (
-              <DoorMarker key={exit.to} exit={exit} disabled={busy} onMove={move} />
+              <DoorMarker key={exit.to} exit={exit} disabled={busy} onMove={move} next={exit.to === next} />
             ))}
           </>
         )}
@@ -388,7 +406,7 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
         {/* The corner above the belt: clear of every Door arrow, the monsters and the Hero. */}
         {view.map && (
           <div className="absolute right-3 bottom-[66px]">
-            <MiniMap key={floor.number} map={view.map} current={room.id} banner={hero.banner} exits={exits} onOpen={() => setPopup('map')} />
+            <MiniMap key={floor.number} map={view.map} current={room.id} banner={hero.banner} exits={exits} route={route?.rooms} picked={goal} onOpen={() => setPopup('map')} />
           </div>
         )}
       </Stage>
@@ -433,7 +451,7 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
         <section className="grid gap-2">
           <span className="sub-heading">{t('lab.whereNext')}</span>
           {exits.map((exit) => (
-            <ExitButton key={exit.to} exit={exit} disabled={busy} onMove={move} out={room.type === 'twin'} />
+            <ExitButton key={exit.to} exit={exit} disabled={busy} onMove={move} out={room.type === 'twin'} next={exit.to === next} />
           ))}
         </section>
       )}
@@ -518,7 +536,12 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
             exits={exits}
             disabled={busy || facing !== null}
             onMove={move}
-          />
+            route={route?.rooms}
+            picked={goal}
+            onPick={(id) => setGoal(id === goal ? null : id)}
+          >
+            <RoutePanel view={view} goal={goal} route={route} busy={busy || facing !== null} onWalk={() => route && travel(route.rooms)} onClear={() => setGoal(null)} />
+          </FloorMap>
         </CenterModal>
       )}
       {!covered && popup && popup !== 'map' && <BeltPopup popup={popup} view={view} busy={busy} act={act} onClose={() => setPopup(null)} />}
@@ -1007,10 +1030,15 @@ function RestCard({ view, busy, act, onClose }: { view: LabyrinthView; busy: boo
 }
 
 /** `out`: the Door leads out of the Twin Wardens' Room, which anyone may do. */
-function ExitButton({ exit, disabled, onMove, out = false }: { exit: Exit; disabled: boolean; onMove: (to: number) => void; out?: boolean }) {
+function ExitButton({ exit, disabled, onMove, out = false, next = false }: {
+  exit: Exit; disabled: boolean; onMove: (to: number) => void; out?: boolean;
+  /** The first step of the Route being followed. */
+  next?: boolean;
+}) {
   const { t } = useI18n();
   const text = useText();
   const notes: { key: string; line: string; tone: string }[] = [];
+  if (next) notes.push({ key: 'route', line: t('route.next'), tone: 'text-gold font-bold' });
   if (exit.kind === 'locked') {
     notes.push({ key: 'lock', line: exit.passable ? t('lab.exit.lockedOpen') : t('lab.exit.lockedShut'), tone: 'text-[#e8cf9a]' });
   }
@@ -1023,7 +1051,7 @@ function ExitButton({ exit, disabled, onMove, out = false }: { exit: Exit; disab
   return (
     <button
       type="button"
-      className="btn grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0.5 text-left font-body font-normal"
+      className={`btn grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-0.5 text-left font-body font-normal ${next ? 'border-gold shadow-[0_0_0_1px_var(--color-gold)]' : ''}`}
       disabled={disabled || !exit.passable}
       onClick={() => onMove(exit.to)}
     >

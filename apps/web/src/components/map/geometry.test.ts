@@ -25,7 +25,7 @@ describe('Floor map framing and motion', () => {
     expect(canSlide(map, 44, 15)).toBe(false);
     expect(canSlide(map, 45, 35)).toBe(false);
     expect(canSlide(map, 44, 999)).toBe(false);
-    expect(doorKey({ a: 44, b: 45, kind: 'locked' })).toBe(doorKey({ a: 45, b: 44, kind: 'locked' }));
+    expect(doorKey({ a: 44, b: 45, kind: 'locked', passable: true, key: true })).toBe(doorKey({ a: 45, b: 44, kind: 'locked', passable: true, key: true }));
   });
   it('unrolls a winding lair path from the Hero, all within 350 ms', () => {
     const example = MAPS[3]!;

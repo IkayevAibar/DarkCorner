@@ -29,6 +29,16 @@
 .map-room:not(.map-visited):not(.map-exit) .map-glyph-boss { fill: #8e5741; }
 .map-revealed { stroke: #baac8a; stroke-width: 1; stroke-dasharray: 2 2; }
 .map-free-dot { fill: #d9d7a6; stroke: #303429; stroke-width: 1; }
+.map-done circle { fill: #26321f; stroke: #a9c27a; stroke-width: 1.2; }
+.map-done path { fill: none; stroke: #dff0b9; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.map-waits circle { fill: #6b2a14; stroke: #f0b25a; stroke-width: 1.2; }
+.map-waits path { fill: none; stroke: #ffe2a8; stroke-width: 2; stroke-linecap: round; }
+.map-route-line { pointer-events: none; }
+.map-route, .map-route-edge { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: .1 10; animation: map-route-march 900ms linear infinite; }
+.map-route { stroke: #f6db8a; stroke-width: 5; }
+.map-route-edge { stroke: #0c0b08; stroke-width: 8; }
+.map-goal { fill: none; stroke: #f1d27a; stroke-width: 2.5; stroke-dasharray: 4 3; pointer-events: none; }
+@keyframes map-route-march { to { stroke-dashoffset: -10.1; } }
 .map-hit { fill: transparent; cursor: pointer; outline: none; }
 .map-hit[aria-disabled=true] { cursor: default; }
 .map-hit:focus-visible { stroke: #fff0b7; stroke-width: 2; stroke-dasharray: 2 2; }
@@ -50,7 +60,6 @@
 .map-legend-body svg, .map-legend-body i { width: 23px; height: 23px; flex: 0 0 23px; }
 .map-legend-token { border: 4px solid #17150f; outline: 1px solid #7b6949; border-radius: 50%; transform: scale(.7); }
 .map-legend-unknown { border: 1px dashed #4a4c3d; background: #25251e; transform: scale(.7); }
-.map-legend-cleared { font-size: 27px; color: #706449; text-align: center; opacity: .5; font-style: normal; }
 .map-legend-revealed { border-bottom: 2px dotted #665537; transform: scale(.8); }
 .map-legend-free { background: #d9d7a6; border: 2px solid #303429; border-radius: 50%; transform: scale(.4); }
 .mini-map { display: block; position: relative; width: 104px; height: 104px; padding: 0; border: 2px solid #8b7957; border-radius: 4px 9px 3px 6px; background: #161713; cursor: pointer; overflow: hidden; opacity: .88; box-shadow: 0 2px 8px #000b; }

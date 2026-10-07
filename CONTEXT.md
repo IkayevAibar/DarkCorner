@@ -234,6 +234,10 @@ The free basic gear a Hero receives when it is created and after every death.
 The worn slot for the hand without the main weapon: a shield, a focus (orb or holy symbol), or a dagger, whose extra blow each turn is the off-hand strike.
 _Avoid_: left hand, second hand
 
+**Route**:
+The way to a Room picked on the Map, through Rooms the Hero knows; walking it is the same as tapping each Door in turn.
+_Avoid_: path (a Path is a Class's choice at level 3), navigation, auto-walk
+
 **Two-handed**:
 A weapon that fills both hands, so the Off-hand stays empty: greatswords, greataxes, mauls and bows. Its Bonus stats count twice.
 _Avoid_: 2H, big weapon

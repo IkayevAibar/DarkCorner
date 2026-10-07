@@ -4,7 +4,8 @@ import { DoorGlyph, Glyph } from './Glyph';
 import { useMapText } from './text';
 import './map.css';
 
-type DrawingProps = Pick<MapProps, 'map' | 'current' | 'banner' | 'exits'> & Partial<Pick<MapProps, 'width' | 'height' | 'disabled' | 'onMove'>> & { mini?: boolean };
+type DrawingProps = Pick<MapProps, 'map' | 'current' | 'banner' | 'exits'> & Partial<Pick<MapProps, 'width' | 'height' | 'disabled' | 'onMove' | 'route' | 'picked' | 'onPick'>>
+  & { mini?: boolean };
 
 function useMotion(map: MapView, current: number) {
   const [snapshot, setSnapshot] = useState({ map, current, revision: 0, slide: false,
@@ -22,7 +23,7 @@ function useMotion(map: MapView, current: number) {
   return snapshot;
 }
 
-export function MapDrawing({ map, current, banner, exits, width = 10, height = 10, disabled, onMove, mini = false }: DrawingProps) {
+export function MapDrawing({ map, current, banner, exits, width = 10, height = 10, disabled, onMove, route, picked = null, onPick, mini = false }: DrawingProps) {
   const { t } = useMapText();
   const id = useId().replace(/:/g, '');
   const svg = useRef<SVGSVGElement>(null);
@@ -41,8 +42,14 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
   const point = here ? center(here) : { x: CELL / 2, y: CELL / 2 };
   const canvas = mini ? { x: 0, y: 0, w: CELL * 4, h: CELL * 4 }
     : { x: view.x * CELL, y: view.y * CELL, w: view.w * CELL, h: view.h * CELL };
-  const hitRadius = Math.max(20, 22 * Math.max(canvas.w / Math.max(1, pixels.width), canvas.h / Math.max(1, pixels.height)));
+  // Picking any Room keeps each tap target inside its own cell; Doors alone may reach further.
+  const hitRadius = onPick ? CELL / 2 : Math.max(20, 22 * Math.max(canvas.w / Math.max(1, pixels.width), canvas.h / Math.max(1, pixels.height)));
   const move = (to: number) => { if (!disabled && exitTo.get(to)?.passable) onMove?.(to); };
+  const tap = (to: number) => (onPick ? onPick(to) : move(to));
+  // The Route being followed, from the Hero's Room to its goal.
+  const routeLine = route?.length ? [current, ...route].map((id) => byId.get(id)).filter((r) => r !== undefined)
+    .map((r) => `${center(r).x},${center(r).y}`).join(' ') : null;
+  const goal = picked === null ? undefined : byId.get(picked);
   return <svg ref={svg} className={`floor-drawing${mini ? ' floor-drawing-mini' : ''}`}
     viewBox={`${canvas.x} ${canvas.y} ${canvas.w} ${canvas.h}`}
     role={mini ? undefined : 'group'} aria-hidden={mini || undefined} aria-label={mini ? undefined : t('lab.mapLabel')}>
@@ -83,11 +90,15 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
             {r.type && <g className={`map-glyph map-glyph-${r.type}${dim ? ' map-cleared' : ''}`}><Glyph type={r.type} /></g>}
             {!r.visited && r.type && <path className="map-revealed" d="M-12 14 H12" />}
             {exit?.free && <circle className="map-free-dot" cx="-14" cy="-14" r="2.5" />}
+            {/* Done for now, or something new waits again: what a Route walks past for free, or stops at. */}
+            {r.visited && r.cleared && <g className="map-done"><circle cx="11" cy="11" r="6" /><path d="M8 11 L10.2 13.4 L14.2 8.4" /></g>}
+            {r.visited && !r.free && r.id !== current && <g className="map-waits"><circle cx="11" cy="-11" r="6" /><path d="M11-14.6 V-10.4 M11-7.9 V-7.6" /></g>}
           </g>
-          {!mini && <title>{roomLabel}{dim ? ` · ${t(r.type === 'twin' || r.type === 'oathstone' ? 'room.clearedWeek' : 'room.cleared')}` : ''}</title>}
-          {!mini && exit && <circle className="map-hit" r={hitRadius} role="button" tabIndex={active ? 0 : -1}
-            aria-disabled={!active} aria-label={`${t(`dir.${exit.direction}`)} · ${roomLabel}${exit.free ? ` · ${t('free')}` : ''}`}
-            onClick={() => move(r.id)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); move(r.id); } }} />}
+          {!mini && <title>{roomLabel}{dim ? ` · ${t(r.type === 'twin' || r.type === 'oathstone' ? 'room.clearedWeek' : 'room.cleared')}` : ''}{r.visited && !r.free && r.id !== current ? ` · ${t('waits')}` : ''}</title>}
+          {!mini && (onPick || exit) && <circle className="map-hit" r={hitRadius} role="button" tabIndex={onPick || active ? 0 : -1}
+            aria-disabled={!onPick && !active} aria-pressed={onPick ? picked === r.id : undefined}
+            aria-label={exit ? `${t(`dir.${exit.direction}`)} · ${roomLabel}${exit.free ? ` · ${t('free')}` : ''}` : roomLabel}
+            onClick={() => tap(r.id)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tap(r.id); } }} />}
         </g>;
       })}
       {/* The split seal sits over the wall edges so neither half disappears in a narrow passage. */}
@@ -97,6 +108,8 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
         const p = center(a), q = center(b);
         return <g key={doorKey(d)} className="map-overlay" transform={`translate(${(p.x + q.x) / 2} ${(p.y + q.y) / 2})`}><DoorGlyph kind="twin" /></g>;
       })}
+      {routeLine && <g className="map-route-line"><polyline className="map-route-edge" points={routeLine} /><polyline className="map-route" points={routeLine} /></g>}
+      {goal && <circle className="map-goal" cx={center(goal).x} cy={center(goal).y} r="23" />}
       {here && <g className={`map-token${mini && motion.slide ? ' map-walking' : ''}`}
         style={{ transform: `translate(${point.x + 13}px, ${point.y - 13}px)` }} data-current={current}>
         <g key={mini && !motion.slide ? motion.revision : 'walk'} className={mini && !motion.slide ? 'map-arrival' : undefined}>

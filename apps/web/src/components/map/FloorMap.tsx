@@ -1,11 +1,12 @@
 import { ROOM_TYPES } from '@dark/shared';
-import { useId } from 'react';
+import { type ReactNode, useId } from 'react';
 import { DoorGlyph, Glyph } from './Glyph';
 import { MapDrawing } from './MapDrawing';
 import type { MapProps } from './geometry';
 import { useMapText } from './text';
 
-export function FloorMap(props: MapProps) {
+/** The whole Floor's Map; `children` (a Route's details) sit between it and the Doors. */
+export function FloorMap({ children, ...props }: MapProps & { children?: ReactNode }) {
   const { t } = useMapText();
   const legendId = useId();
   return <div className="floor-map">
@@ -20,13 +21,16 @@ export function FloorMap(props: MapProps) {
             </li>)}
             <li><i className="map-legend-token" style={{ background: props.banner }} /><span>{t('here')}</span></li>
             <li><i className="map-legend-unknown" /><span>{t('unknown')}</span></li>
-            <li><i className="map-legend-cleared">×</i><span>{t('cleared')}</span></li>
+            <li><svg viewBox="0 0 34 34" className="map-done" aria-hidden="true"><g transform="translate(6 6)"><circle cx="11" cy="11" r="6" /><path d="M8 11 L10.2 13.4 L14.2 8.4" /></g></svg><span>{t('cleared')}</span></li>
+            <li><svg viewBox="0 0 34 34" className="map-waits" aria-hidden="true"><g transform="translate(6 28)"><circle cx="11" cy="-11" r="6" /><path d="M11-14.6 V-10.4 M11-7.9 V-7.6" /></g></svg><span>{t('waits')}</span></li>
+            <li><svg viewBox="0 0 34 34" aria-hidden="true"><path className="map-route-edge" d="M3 17 H31" /><path className="map-route" d="M3 17 H31" /></svg><span>{t('route')}</span></li>
             <li><i className="map-legend-revealed" /><span>{t('revealed')}</span></li>
             <li><i className="map-legend-free" /><span>{t('free')}</span></li>
           </ul>
         </div>
       </details>
     </div>
+    {children}
     <nav className="map-exits" aria-label={t('exits')}>
       {props.exits.map(exit => <button type="button" key={exit.to} className="map-exit-button" disabled={props.disabled || !exit.passable}
         onClick={() => props.onMove(exit.to)}>

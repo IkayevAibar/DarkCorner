@@ -2,8 +2,9 @@ import type { Exit, RoomTypeId } from '@dark/shared';
 import type { MapView } from '../../components/map/geometry';
 
 export interface MapExample { id: 'fresh' | 'half' | 'full' | 'lair'; width: number; height: number; current: number; map: MapView; revealed: MapView }
-const room = (id: number, width: number, type: RoomTypeId | null, visited = true, cleared = false) => ({ id, x: id % width, y: Math.floor(id / width), type, visited, cleared });
-const door = (a: number, b: number, kind: MapView['doors'][number]['kind'] = 'open') => ({ a, b, kind });
+const room = (id: number, width: number, type: RoomTypeId | null, visited = true, cleared = false) =>
+  ({ id, x: id % width, y: Math.floor(id / width), type, visited, cleared, free: visited, back: null });
+const door = (a: number, b: number, kind: MapView['doors'][number]['kind'] = 'open') => ({ a, b, kind, passable: kind !== 'twin', key: kind === 'locked' });
 const fresh: MapView = { rooms: [room(44, 10, 'landing'), ...[34, 43, 45, 54].map(id => room(id, 10, null, false))], doors: [34, 43, 45, 54].map(id => door(44, id)) };
 const half: MapView = {
   rooms: [room(31, 10, 'landing'), room(32, 10, 'fight', true, true), room(33, 10, 'camp'), room(23, 10, 'event'), room(13, 10, 'treasure', true, true), room(14, 10, 'empty'), room(15, 10, 'waypoint'), room(25, 10, 'fight'), room(35, 10, 'miniboss'), room(43, 10, 'empty'), room(44, 10, 'waypoint'), room(45, 10, 'vault', false), room(54, 10, null, false), room(53, 10, 'hidden', false), room(65, 10, 'stairs', false)],

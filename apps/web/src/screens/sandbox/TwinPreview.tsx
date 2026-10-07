@@ -24,8 +24,12 @@ const HERO = { name: 'Garrick', portraitUrl: '/art/portraits/human-fighter-1.web
 const PARTNER: DuoPartner = { heroId: 'preview-partner', name: 'Ilyra', portraitUrl: '/art/portraits/elf-wizard-1.webp', banner: '#3b5fa8', class: 'wizard', level: 5,
   hp: 42, maxHp: 42, stamina: 18, online: true, seenAt: null, waypoints: [1], bonded: true };
 const MAP: MapView = {
-  rooms: [{ id: 11, x: 1, y: 2, type: 'treasure', visited: true, cleared: false }, { id: 12, x: 2, y: 2, type: 'empty', visited: true, cleared: true }, { id: 13, x: 3, y: 2, type: 'twin', visited: true, cleared: false }],
-  doors: [{ a: 11, b: 12, kind: 'locked' }, { a: 12, b: 13, kind: 'twin' }],
+  rooms: [
+    { id: 11, x: 1, y: 2, type: 'treasure', visited: true, cleared: false, free: true, back: null },
+    { id: 12, x: 2, y: 2, type: 'empty', visited: true, cleared: true, free: true, back: null },
+    { id: 13, x: 3, y: 2, type: 'twin', visited: true, cleared: false, free: false, back: null },
+  ],
+  doors: [{ a: 11, b: 12, kind: 'locked', passable: true, key: true }, { a: 12, b: 13, kind: 'twin', passable: true, key: false }],
 };
 const RINGS: ItemView[] = ['rare', 'epic'].map((tier, i) => ({ ...REVEALS.rare, id: `preview-bond-${i}`, base: 'bond-ring', tier: tier as 'rare' | 'epic',
   name: { en: 'Bond ring', ru: 'Кольцо уз' }, bonusStats: [{ en: '+2 Strength', ru: '+2 к силе' }, { en: '+3 Damage', ru: '+3 к урону' }],

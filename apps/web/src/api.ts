@@ -81,6 +81,7 @@ export const api = {
   labyrinth: () => request<LabyrinthResult>('GET', '/api/labyrinth'),
   enterLabyrinth: (floor: number, portal = false) => request<LabyrinthResult>('POST', '/api/labyrinth/enter', { floor, portal }),
   moveTo: (to: number) => request<LabyrinthResult>('POST', '/api/labyrinth/move', { to }),
+  walk: (route: number[]) => request<LabyrinthResult>('POST', '/api/labyrinth/walk', { route }),
   descend: () => request<LabyrinthResult>('POST', '/api/labyrinth/descend'),
   ascend: () => request<LabyrinthResult>('POST', '/api/labyrinth/ascend'),
   leaveLabyrinth: () => request<LabyrinthResult>('POST', '/api/labyrinth/leave'),

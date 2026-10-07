@@ -10,7 +10,7 @@ export const TRUST_VIEW: LabyrinthView = {
   season: { status: 'active', bossGateAt: null, omen: null }, waypoints: [1], portal: null, bestFloor: 3,
   floor: { number: 3, name: t('The crypts', 'Склепы'), theme: 'crypt', width: 5, height: 5 },
   room: { id: 12, type: 'oathstone', event: null, map: 'crypt-3', cleared: false, restedAt: null, eventView: null, vault: null, facing: null, oath: { state: 'open', mine: null, partnerSwore: false, until: null } },
-  exits: [], map: { rooms: [{ id: 12, x: 2, y: 2, type: 'oathstone', visited: true, cleared: false }], doors: [] }, graves: [], fight: null, chest: null,
+  exits: [], map: { rooms: [{ id: 12, x: 2, y: 2, type: 'oathstone', visited: true, cleared: false, free: true, back: null }], doors: [] }, graves: [], fight: null, chest: null,
 };
 
 export function trustChest(now = Date.now()): DuoChestView {

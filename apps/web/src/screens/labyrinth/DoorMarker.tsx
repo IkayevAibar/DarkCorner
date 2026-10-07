@@ -11,17 +11,22 @@ const MARKER_PLACE: Record<Direction, string> = {
 const ARROW: Record<Direction, string> = { n: 'M6 15l6-6 6 6', s: 'M6 9l6 6 6-6', e: 'M9 6l6 6-6 6', w: 'M15 6l-6 6 6 6' };
 
 /** A Door on the Room map itself, where the art has its openings. */
-export function DoorMarker({ exit, disabled, onMove }: { exit: Exit; disabled: boolean; onMove: (to: number) => void }) {
+export function DoorMarker({ exit, disabled, onMove, next = false }: {
+  exit: Exit; disabled: boolean; onMove: (to: number) => void;
+  /** The first step of the Route being followed: it glows. */
+  next?: boolean;
+}) {
   const { t } = useMapText();
   return (
     <button
       type="button"
-      aria-label={`${t(`dir.${exit.direction}`)}${exit.kind === 'twin' ? ` · ${t('twin')}` : ''}`}
+      aria-label={`${t(`dir.${exit.direction}`)}${exit.kind === 'twin' ? ` · ${t('twin')}` : ''}${next ? ` · ${t('route')}` : ''}`}
       disabled={disabled || !exit.passable}
       onClick={() => onMove(exit.to)}
       className={`absolute grid size-11 place-items-center rounded-full border-2 bg-black/70 p-0 shadow-[0_0_0_1px_#000] transition-transform active:scale-95 disabled:opacity-40 ${
         MARKER_PLACE[exit.direction]
-      } ${exit.kind === 'secret' ? 'border-dashed border-tier-epic text-tier-epic' : exit.kind === 'locked' || exit.kind === 'twin' ? 'border-[#c9a24a] text-[#e8cf9a]' : exit.visited ? 'border-bone/40 text-bone/70' : 'border-gold text-gold'}`}
+      } ${exit.kind === 'secret' ? 'border-dashed border-tier-epic text-tier-epic' : exit.kind === 'locked' || exit.kind === 'twin' ? 'border-[#c9a24a] text-[#e8cf9a]' : exit.visited ? 'border-bone/40 text-bone/70' : 'border-gold text-gold'}${
+        next ? ' route-next' : ''}`}
     >
       <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         {exit.kind === 'twin' ? <TwinMark /> : <path d={ARROW[exit.direction]} />}

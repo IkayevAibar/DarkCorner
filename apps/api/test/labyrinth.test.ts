@@ -561,3 +561,93 @@ describe('walking back and resting', () => {
   });
 
 });
+
+describe('Routes on the Map', () => {
+  /** Rooms a Route can pass without anything stopping it once they are done for the day. */
+  const QUIET = new Set(['landing', 'empty', 'fight', 'treasure', 'camp', 'waypoint', 'stairs']);
+  /** The farthest Room from the landing over ordinary Doors and quiet Rooms, and the way there. */
+  const far = (() => {
+    const prev = new Map<number, number>([[floor1.landing, floor1.landing]]);
+    const queue = [floor1.landing];
+    for (let i = 0; i < queue.length; i++) {
+      for (const { door, to } of doorsOf(floor1, queue[i]!)) {
+        if (door.kind !== 'open' || prev.has(to) || !QUIET.has(floor1.rooms[to]!.type)) continue;
+        prev.set(to, queue[i]!);
+        queue.push(to);
+      }
+    }
+    const goal = queue[queue.length - 1]!;
+    const route: number[] = [];
+    for (let cur = goal; cur !== floor1.landing; cur = prev.get(cur)!) route.unshift(cur);
+    return route;
+  })();
+  /** The Hero has walked the Route before and done everything in it today. */
+  async function known(rooms: number[], cleared = rooms) {
+    const now = new Date().toISOString();
+    await prisma.heroFloor.updateMany({
+      data: { seen: [floor1.landing, ...rooms], cleared: Object.fromEntries(cleared.map((r) => [String(r), now])) },
+    });
+  }
+
+  it('marks done Rooms with when they fill again, and walks a known Route for free', async () => {
+    expect(far.length).toBeGreaterThanOrEqual(3);
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await known(far);
+    await refill();
+    await prisma.hero.updateMany({ data: { stamina: 5, staminaAt: new Date() } });
+    const look = labyrinthResultSchema.parse((await get('/api/labyrinth')).json()).view.map!;
+    for (const id of far) {
+      const room = look.rooms.find((r) => r.id === id)!;
+      expect(room).toMatchObject({ visited: true, free: true });
+      const lasts = ['fight', 'treasure'].includes(floor1.rooms[id]!.type);
+      expect(room.cleared).toBe(lasts);
+      if (lasts) expect(new Date(room.back!).getTime()).toBeGreaterThan(Date.now() + 23 * 3600_000);
+      else expect(room.back).toBeNull();
+    }
+    expect(look.doors.every((d) => d.kind !== 'open' || (d.passable && !d.key))).toBe(true);
+
+    const walked = await act('/api/labyrinth/walk', { route: far });
+    expect(walked.view.room!.id).toBe(far[far.length - 1]);
+    expect(walked.view.hero.stamina).toBe(5);
+    // Only the goal speaks: a Camp passed on the way keeps quiet.
+    const camps = far.slice(0, -1).filter((r) => floor1.rooms[r]!.type === 'camp').length;
+    if (camps > 0) expect(walked.notices.length).toBeLessThanOrEqual(1);
+  });
+
+  it('stops where monsters are back, paying the Stamina that Room costs', async () => {
+    const fightAt = far.findIndex((r) => floor1.rooms[r]!.type === 'fight');
+    const route = fightAt >= 0 && fightAt < far.length - 1 ? far : [...path(floor1, floor1.landing, fightNextToLanding), floor1.landing];
+    const stop = route.findIndex((r) => floor1.rooms[r]!.type === 'fight');
+    await act('/api/labyrinth/enter', { floor: 1 });
+    // Everything done but that fight Room: its monsters are back today.
+    await known(route.filter((r) => r !== floor1.landing), route.filter((_, i) => i !== stop));
+    await prisma.hero.updateMany({ data: { stamina: 5, staminaAt: new Date() } });
+    const walked = await act('/api/labyrinth/walk', { route });
+    expect(walked.view.room!.id).toBe(route[stop]);
+    expect(walked.view.room!.facing).not.toBeNull();
+    expect(walked.view.hero.stamina).toBe(4);
+  });
+
+  it('answers a first Door that leads nowhere as a move would, and stops before a later one', async () => {
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await known(far);
+    const nowhere = floor1.rooms.find((r) => !doorsOf(floor1, floor1.landing).some((d) => d.to === r.id) && r.id !== floor1.landing)!.id;
+    expect((await post('/api/labyrinth/walk', { route: [nowhere] })).json().error).toBe('no_door');
+    const unreachable = floor1.rooms.find((r) => !doorsOf(floor1, far[0]!).some((d) => d.to === r.id) && r.id !== far[0])!.id;
+    const walked = await act('/api/labyrinth/walk', { route: [far[0]!, unreachable] });
+    expect(walked.view.room!.id).toBe(far[0]);
+    expect(walked.notices.map((n) => n.en)).toContain('The way on is shut: the walk stops here.');
+    expect((await post('/api/labyrinth/walk', { route: [] })).statusCode).toBe(400);
+  });
+
+  it('tells which Doors this Hero gets through, and which cost an Iron key', async () => {
+    // A known Room with a locked Door: a Fighter needs a key for it.
+    const locked = floor1.rooms.find((r) => doorsOf(floor1, r.id).some(({ door }) => door.kind === 'locked'))!.id;
+    await act('/api/labyrinth/enter', { floor: 1 });
+    await prisma.heroFloor.updateMany({ data: { seen: [floor1.landing, locked] } });
+    const lock = async () => labyrinthResultSchema.parse((await get('/api/labyrinth')).json()).view.map!.doors.find((d) => d.kind === 'locked')!;
+    expect(await lock()).toMatchObject({ passable: false, key: true });
+    await give('key-iron', 1);
+    expect(await lock()).toMatchObject({ passable: true, key: true });
+  });
+});

@@ -6,6 +6,12 @@ export type MapDoor = MapView['doors'][number];
 export interface MapProps {
   width: number; height: number; map: MapView; current: number; banner: string;
   exits: Exit[]; disabled: boolean; onMove: (to: number) => void;
+  /** A Route being followed: the Rooms after the current one, its goal last (route.ts). */
+  route?: number[] | null;
+  /** The Room picked as a Route's goal, reachable or not. */
+  picked?: number | null;
+  /** Given, a tap on any Room picks it as a Route's goal instead of walking next door. */
+  onPick?: (room: number) => void;
 }
 export const CELL = 48;
 export const center = (r: MapRoom) => ({ x: (r.x + .5) * CELL, y: (r.y + .5) * CELL });

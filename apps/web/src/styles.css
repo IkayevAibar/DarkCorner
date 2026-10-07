@@ -207,7 +207,18 @@
 .anim-pop {
   animation: pop-in 0.25s ease-out;
 }
+/* The Door a Route goes through next, on the Room's stage. */
+@keyframes route-glow {
+  50% { box-shadow: 0 0 0 1px #000, 0 0 14px 3px rgb(241 210 122 / 0.75); }
+}
+.route-next {
+  border-color: #f1d27a;
+  color: #f1d27a;
+  opacity: 1;
+  box-shadow: 0 0 0 1px #000, 0 0 6px 1px rgb(241 210 122 / 0.5);
+  animation: route-glow 1.6s ease-in-out infinite;
+}
 @media (prefers-reduced-motion: reduce) {
-  .anim-shake, .anim-pop, .screen-in { animation: none; }
+  .anim-shake, .anim-pop, .screen-in, .route-next { animation: none; }
   .anim-float { animation-duration: 0.01s; }
 }

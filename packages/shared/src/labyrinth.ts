@@ -284,7 +284,12 @@ export const mapRoomSchema = z.object({
   /** Known once the Hero has stood in it. */
   type: roomTypeSchema.nullable(),
   visited: z.boolean(),
+  /** Beaten, taken or done, and not back yet: a day for most Rooms, a week for a hoard, the Twin Wardens and an Oathstone. */
   cleared: z.boolean(),
+  /** Walking in costs no Stamina: the Hero has stood in it and nothing new waits there now. */
+  free: z.boolean().default(false),
+  /** A cleared Room: when what it holds comes back (monsters, a Treasure, an event, a hoard). */
+  back: z.string().nullable().default(null),
 });
 
 export const exitSchema = z.object({
@@ -302,7 +307,15 @@ export const exitSchema = z.object({
 });
 export type Exit = z.infer<typeof exitSchema>;
 
-export const mapDoorSchema = z.object({ a: z.number().int(), b: z.number().int(), kind: doorKindSchema });
+export const mapDoorSchema = z.object({
+  a: z.number().int(),
+  b: z.number().int(),
+  kind: doorKindSchema,
+  /** This Hero (with its partner beside it) gets through: a lock needs a Rogue or an Iron key, a Twin door a Duo. */
+  passable: z.boolean().default(true),
+  /** Going through takes one Iron key: a locked Door and no Rogue to pick it. */
+  key: z.boolean().default(false),
+});
 
 // ─── Event rooms ──────────────────────────────────────────────────────────
 
@@ -702,3 +715,10 @@ export type LabyrinthResult = z.infer<typeof labyrinthResultSchema>;
 /** `portal`: step back through the open Town Portal instead (then `floor` is ignored). */
 export const enterRequestSchema = z.object({ floor: z.number().int().min(1).default(1), portal: z.boolean().default(false) });
 export const moveRequestSchema = z.object({ to: z.number().int().min(0) });
+
+/**
+ * POST /api/labyrinth/walk — a Route picked on the Map: the Rooms to walk through, in order, the
+ * last one the goal. The Hero walks it Door by Door as if each were tapped, and stops early
+ * wherever something happens (monsters, an event, loot, a discovery) or the way on is shut.
+ */
+export const walkRequestSchema = z.object({ route: z.array(z.number().int().min(0)).min(1).max(100) });

@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-07-routes',
+    date: '2026-10-07',
+    title: t('Routes on the Map', 'Маршруты на карте'),
+    items: [
+      t('You asked for it: the Map marks every Room you have cleared with a check until it fills again (tap it to see when), and a "!" where something waits again.',
+        'Вы просили — сделано: карта отмечает галочкой каждую зачищенную комнату, пока она снова не наполнится (нажмите на неё — будет видно, когда), а «!» — там, где снова что-то ждёт.'),
+      t('Tap any Room on the Map to plan a Route there: the cheapest known way, round monsters and locks when it can, drawn on the Map with the next Door glowing in the Room. "Walk there" walks it Door by Door and stops wherever something happens.',
+        'Нажмите на любую комнату на карте — и маршрут туда готов: самый дешёвый известный путь, по возможности в обход монстров и замков. Он нарисован на карте, а следующая дверь светится в комнате. «Идти туда» проводит по нему дверь за дверью и останавливается, как только что-то случается.'),
+    ],
+  },
+  {
     id: '2026-10-07-hands',
     date: '2026-10-07',
     title: t('A dagger in each hand', 'По кинжалу в каждую руку'),

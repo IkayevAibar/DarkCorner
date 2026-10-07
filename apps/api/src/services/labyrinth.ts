@@ -20,7 +20,7 @@ import { feed } from './feed.js';
 import { type PartnerRow, activePartner, addNews, endDuo, loadActors, mergeOutcomes, partnerView, takeNews } from './duo.js';
 import {
   DAY_MS, type FightKind, type Outcome, WARDENS_MS, combatOf, combatant, duoInput, duoMonstersFor, emptyOutcome, fallBack, fight, fightInput, foeOf,
-  heroFloor, isCleared, markCleared, monstersFor, t,
+  clearedAt, heroFloor, isCleared, markCleared, monstersFor, t,
 } from './fights.js';
 import { fullHealth, portraitUrlOf, scoresOf } from './heroes.js';
 import { toItemView } from './items.js';
@@ -42,6 +42,15 @@ const CLUE_DC = 13;
 const SECRET_DC = 14;
 /** A hidden room's hoard comes back a week after it is taken (v0). */
 const HOARD_MS = 7 * DAY_MS;
+
+/**
+ * How long a Room stays done once its monsters are beaten or its prize taken (docs/design.md):
+ * a day, and a week for a hidden hoard, the Twin Wardens and an Oathstone. Other Rooms hold
+ * nothing that comes back.
+ */
+const DONE_FOR: Partial<Record<string, number>> = {
+  fight: DAY_MS, miniboss: DAY_MS, boss: DAY_MS, treasure: DAY_MS, event: DAY_MS, hidden: HOARD_MS, twin: WARDENS_MS, oathstone: OATH_MS,
+};
 
 /** XP for setting foot on a Floor for the first time, per Floor number (v0). */
 const NEW_FLOOR_XP = 50;
@@ -382,13 +391,16 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
   // The Map: every Room stood in, plus the unknown Rooms next to them (the edge of the
   // fog), and the Doors of the Rooms stood in. Only Fighters and Barbarians see cracked walls.
   const known = new Set(seen);
-  const doors = new Map<string, { a: number; b: number; kind: Door['kind'] }>();
+  const doors = new Map<string, { a: number; b: number; kind: Door['kind']; passable: boolean; key: boolean }>();
+  // A Route on the Map goes only where this Hero (or the Duo together) gets through, and spares the Keys a lock costs.
+  const passable = (door: Door) => (door.kind === 'twin' ? together !== null : canPass(door, hero) || (together !== null && canPass(door, together)));
+  const picks = hero.class === 'rogue' || together?.class === 'rogue';
   for (const id of seen) {
     for (const { door, to } of doorsOf(floor, id)) {
       if (door.kind === 'cracked' && !breaks) continue;
       if (door.kind === 'secret' && !spots(door)) continue;
       known.add(to);
-      doors.set(`${door.a}-${door.b}`, { a: door.a, b: door.b, kind: door.kind });
+      doors.set(`${door.a}-${door.b}`, { a: door.a, b: door.b, kind: door.kind, passable: passable(door), key: door.kind === 'locked' && !picks });
     }
   }
   // The Eye of the Abyss shows every Special room on the Floor.
@@ -398,7 +410,15 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
   const rooms = [...known].sort((a, b) => a - b).map((id) => {
     const r = floor.rooms[id]!;
     const shown = seen.has(id) || (eye && special(r.type));
-    return { id, x: r.x, y: r.y, type: shown ? r.type : null, visited: seen.has(id), cleared: isCleared(hf, id, now) };
+    // Done for now, and when it fills again: what the Map marks, and its Route walks through for free.
+    const lasts = DONE_FOR[r.type];
+    const at = lasts ? clearedAt(hf, id) : null;
+    const done = lasts !== undefined && at !== null && now.getTime() - at.getTime() < lasts;
+    return {
+      id, x: r.x, y: r.y, type: shown ? r.type : null, visited: seen.has(id), cleared: done,
+      free: seen.has(id) && freeToEnter(floor, id, hf, now, pf),
+      back: done ? new Date(at!.getTime() + lasts!).toISOString() : null,
+    };
   });
 
   const live = await liveFightOf(tx, hero, floor);
@@ -658,6 +678,23 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
  * and a Door either can get through lets both through.
  */
 export async function moveTo(player: Player, to: number): Promise<LabyrinthResult> {
+  return walkRoute(player, [to]);
+}
+
+/** Everything an Outcome has brought so far but its notices: a step that changes it ends a walk. */
+const brought = (o: Outcome): string => JSON.stringify([
+  o.loot.length, o.gold, o.xp, o.checks.length, o.levelUp, o.died, o.deeds.length, o.depth,
+  o.fight !== null, o.duel !== null, o.oath !== null, o.closedChest !== null, o.runEnd !== null,
+]);
+
+/**
+ * Walks a Route picked on the Map, Door by Door as if each were tapped (a single move is a
+ * Route of one). Past a Room it goes on only while the walk is quiet: no Stamina spent,
+ * nothing waiting, nothing found, no secret Door spotted; the lines a known Room always
+ * says (a quiet lair, a Camp) go unsaid on the way. A Door further on that won't open, or
+ * Stamina running out, ends the walk where it stands rather than undoing it.
+ */
+export async function walkRoute(player: Player, route: number[]): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const lab = labyrinthFor(season);
   const now = new Date();
@@ -668,86 +705,122 @@ export async function moveTo(player: Player, to: number): Promise<LabyrinthResul
     const { hero, partner } = await actors(tx, player, season, now, outcome);
     await noFight(tx, hero.id);
     await tendChest(tx, hero, partner, season, now, outcome, { finish: true, partnerOut });
-    const { floor, room: from } = whereIs(hero, lab);
+    const { floor } = whereIs(hero, lab);
     await restIfDue(tx, hero, now, outcome);
     if (partner) await restIfDue(tx, partner, now, partnerOut);
     if (await stillFacing(tx, hero, partner, season, floor, now, outcome)) {
       throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
     }
-    const exit = doorsOf(floor, from).find((d) => d.to === to);
-    if (!exit) throw ApiError.badRequest('no_door', 'No Door leads there');
-    const walkers = [{ hero, out: outcome, hf: await heroFloor(tx, hero.id, floor.number) }];
-    if (partner) walkers.push({ hero: partner, out: partnerOut, hf: await heroFloor(tx, partner.id, floor.number) });
-    if (exit.door.kind === 'secret' && !walkers.some((w) => spotsSecret(w.hero, floor, exit.door, new Set(w.hf.seen), now))) {
-      throw ApiError.badRequest('no_door', 'No Door leads there');
-    }
-    if (!opens(exit.door, floor, to, hero, partner)) {
-      if (exit.door.kind === 'twin') throw ApiError.conflict('twin_door', 'The Twin door opens only for a Duo');
-      throw ApiError.conflict(exit.door.kind === 'cracked' ? 'wall' : 'locked', 'You cannot get through that Door');
-    }
-    const target = floor.rooms[to]!;
-    if (target.type === 'boss' && (!season.bossGateAt || season.bossGateAt > now)) {
-      throw ApiError.conflict('boss_gate_closed', 'The Boss gate is still sealed');
-    }
-    if (target.type === 'boss' && partner) throw ApiError.conflict('duo_boss', 'The Dragon is faced alone: leave the Duo first');
-    // Walking back through known Rooms is free, unless something new waits in one today.
-    const costs = walkers.map((w, i) => ({
-      free: freeToEnter(floor, to, w.hf, now, partner ? walkers[1 - i]!.hf : undefined),
-      stamina: currentStamina(w.hero.stamina, w.hero.staminaAt, now),
-    }));
-    if (!costs[0]!.free && costs[0]!.stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
-    if (partner && !costs[1]!.free && costs[1]!.stamina.stamina < 1) {
-      throw ApiError.conflict('partner_no_stamina', `${partner.name} is out of Stamina`);
-    }
-
-    // A locked Door without a Rogue costs one Iron key: the mover's, or else its partner's.
-    if (exit.door.kind === 'locked' && walkers.every((w) => w.hero.class !== 'rogue')) {
-      const holder = walkers.find((w) => stackIn(w.hero, 'key-iron'))!.hero;
-      const key = stackIn(holder, 'key-iron')!;
-      if (key.quantity > 1) await tx.item.update({ where: { id: key.id }, data: { quantity: key.quantity - 1 } });
-      else await tx.item.delete({ where: { id: key.id } });
-      if (holder !== hero) partnerOut.notices.push(t(`${hero.name} opens the Door with one of your Iron keys.`, `${hero.name} открывает дверь вашим железным ключом.`));
-    }
-
-    // Monsters stop the Hero (or Duo) in the doorway: the Player sees them and chooses (face()).
-    // Any other Room becomes the last safe one.
-    const waiting = await pairWaiting(tx, hero, partner, season, floor, to, now);
-    for (const [i, w] of walkers.entries()) {
-      if (!w.hf.seen.includes(to)) {
-        await tx.heroFloor.update({ where: { id: w.hf.id }, data: { seen: { push: to } } });
-        w.out.explored++;
-        await countDeeds(tx, w.hero, { rooms: 1 }, w.out);
+    for (const [i, to] of route.entries()) {
+      const before = { mine: brought(outcome), theirs: brought(partnerOut), notices: outcome.notices.length, told: partnerOut.notices.length };
+      let step: Step;
+      try {
+        step = await stepTo(tx, hero, partner, season, floor, to, now, outcome, partnerOut);
+      } catch (e) {
+        // The first Door answers as a tap would; one further on that won't open ends the walk there.
+        if (i === 0 || !(e instanceof ApiError)) throw e;
+        outcome.notices.push(e.code === 'no_stamina' || e.code === 'partner_no_stamina'
+          ? t('Out of Stamina: the walk stops here.', 'Выносливость кончилась: путь обрывается здесь.')
+          : t('The way on is shut: the walk stops here.', 'Дальше не пройти: путь обрывается здесь.'));
+        break;
       }
-      const { free, stamina } = costs[i]!;
-      await tx.hero.update({
-        where: { id: w.hero.id },
-        data: {
-          ...(free ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }), room: to, campSince: target.type === 'camp' ? now : null,
-          facing: waiting !== null, ...(waiting ? {} : { prevRoom: to }),
-        },
-      });
-      w.hero.room = to;
-      w.hero.facing = waiting !== null;
+      if (i === route.length - 1) break;
+      const quiet = step.free && !step.spotted && !hero.facing && brought(outcome) === before.mine && brought(partnerOut) === before.theirs;
+      if (!quiet) break;
+      outcome.notices.length = before.notices;
+      partnerOut.notices.length = before.told;
     }
-
-    // Treasure a Duo walks in on together goes into one Duo Chest.
-    const shared = partner !== null && target.type === 'treasure';
-    for (const w of walkers) {
-      if (!waiting && !shared) await resolveRoom(tx, w.hero, season, floor, to, w.hf, now, w.out);
-      // A sharp eye catches a way into a hidden room.
-      const seenNow = new Set([...w.hf.seen, to]);
-      for (const { door } of doorsOf(floor, to)) {
-        const hidden = floor.rooms[door.a]!.type === 'hidden' ? door.a : door.b;
-        if (door.kind === 'secret' && !seenNow.has(hidden) && spotsSecret(w.hero, floor, door, seenNow, now)) {
-          w.out.notices.push(t('A thin draft through a crack in the stones: a secret Door!', 'Тонкий сквозняк из трещины в камнях: потайная дверь!'));
-        }
-      }
-    }
-    if (!waiting && shared) await duoTreasure(tx, [hero, partner], season, floor, to, now, new Map([[hero.id, outcome], [partner.id, partnerOut]]));
     if (partner) await tellPartner(tx, partner, partnerOut, now);
     return hero.id;
   });
   return respond(heroId, season, outcome);
+}
+
+/** What one step brought the walk: whether it was free of Stamina, and whether a secret Door showed itself. */
+interface Step { free: boolean; spotted: boolean }
+
+/**
+ * One step through a Door into `to`, for the Hero and its partner when in a Duo: the Door
+ * must open for them, Stamina is paid unless the Room is free to walk into, monsters stop
+ * them in the doorway, and any other Room does what it does.
+ */
+async function stepTo(
+  tx: Tx, hero: HeroWithItems, partner: HeroWithItems | null, season: Season, floor: Floor, to: number, now: Date, outcome: Outcome, partnerOut: Outcome,
+): Promise<Step> {
+  const from = hero.room!;
+  const exit = doorsOf(floor, from).find((d) => d.to === to);
+  if (!exit) throw ApiError.badRequest('no_door', 'No Door leads there');
+  const walkers = [{ hero, out: outcome, hf: await heroFloor(tx, hero.id, floor.number) }];
+  if (partner) walkers.push({ hero: partner, out: partnerOut, hf: await heroFloor(tx, partner.id, floor.number) });
+  if (exit.door.kind === 'secret' && !walkers.some((w) => spotsSecret(w.hero, floor, exit.door, new Set(w.hf.seen), now))) {
+    throw ApiError.badRequest('no_door', 'No Door leads there');
+  }
+  if (!opens(exit.door, floor, to, hero, partner)) {
+    if (exit.door.kind === 'twin') throw ApiError.conflict('twin_door', 'The Twin door opens only for a Duo');
+    throw ApiError.conflict(exit.door.kind === 'cracked' ? 'wall' : 'locked', 'You cannot get through that Door');
+  }
+  const target = floor.rooms[to]!;
+  if (target.type === 'boss' && (!season.bossGateAt || season.bossGateAt > now)) {
+    throw ApiError.conflict('boss_gate_closed', 'The Boss gate is still sealed');
+  }
+  if (target.type === 'boss' && partner) throw ApiError.conflict('duo_boss', 'The Dragon is faced alone: leave the Duo first');
+  // Walking back through known Rooms is free, unless something new waits in one today.
+  const costs = walkers.map((w, i) => ({
+    free: freeToEnter(floor, to, w.hf, now, partner ? walkers[1 - i]!.hf : undefined),
+    stamina: currentStamina(w.hero.stamina, w.hero.staminaAt, now),
+  }));
+  if (!costs[0]!.free && costs[0]!.stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
+  if (partner && !costs[1]!.free && costs[1]!.stamina.stamina < 1) {
+    throw ApiError.conflict('partner_no_stamina', `${partner.name} is out of Stamina`);
+  }
+
+  // A locked Door without a Rogue costs one Iron key: the mover's, or else its partner's.
+  if (exit.door.kind === 'locked' && walkers.every((w) => w.hero.class !== 'rogue')) {
+    const holder = walkers.find((w) => stackIn(w.hero, 'key-iron'))!.hero;
+    const key = stackIn(holder, 'key-iron')!;
+    if (key.quantity > 1) await tx.item.update({ where: { id: key.id }, data: { quantity: key.quantity - 1 } });
+    else await tx.item.delete({ where: { id: key.id } });
+    if (holder !== hero) partnerOut.notices.push(t(`${hero.name} opens the Door with one of your Iron keys.`, `${hero.name} открывает дверь вашим железным ключом.`));
+  }
+
+  // Monsters stop the Hero (or Duo) in the doorway: the Player sees them and chooses (face()).
+  // Any other Room becomes the last safe one.
+  const waiting = await pairWaiting(tx, hero, partner, season, floor, to, now);
+  for (const [i, w] of walkers.entries()) {
+    if (!w.hf.seen.includes(to)) {
+      await tx.heroFloor.update({ where: { id: w.hf.id }, data: { seen: { push: to } } });
+      w.out.explored++;
+      await countDeeds(tx, w.hero, { rooms: 1 }, w.out);
+    }
+    const { free, stamina } = costs[i]!;
+    await tx.hero.update({
+      where: { id: w.hero.id },
+      data: {
+        ...(free ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }), room: to, campSince: target.type === 'camp' ? now : null,
+        facing: waiting !== null, ...(waiting ? {} : { prevRoom: to }),
+      },
+    });
+    w.hero.room = to;
+    w.hero.facing = waiting !== null;
+  }
+
+  // Treasure a Duo walks in on together goes into one Duo Chest.
+  const shared = partner !== null && target.type === 'treasure';
+  let spotted = false;
+  for (const w of walkers) {
+    if (!waiting && !shared) await resolveRoom(tx, w.hero, season, floor, to, w.hf, now, w.out);
+    // A sharp eye catches a way into a hidden room.
+    const seenNow = new Set([...w.hf.seen, to]);
+    for (const { door } of doorsOf(floor, to)) {
+      const hidden = floor.rooms[door.a]!.type === 'hidden' ? door.a : door.b;
+      if (door.kind === 'secret' && !seenNow.has(hidden) && spotsSecret(w.hero, floor, door, seenNow, now)) {
+        w.out.notices.push(t('A thin draft through a crack in the stones: a secret Door!', 'Тонкий сквозняк из трещины в камнях: потайная дверь!'));
+        spotted = true;
+      }
+    }
+  }
+  if (!waiting && shared) await duoTreasure(tx, [hero, partner], season, floor, to, now, new Map([[hero.id, outcome], [partner.id, partnerOut]]));
+  return { free: costs.every((c) => c.free), spotted };
 }
 
 /** What a Room without monsters in the way does when the Hero walks in. */
