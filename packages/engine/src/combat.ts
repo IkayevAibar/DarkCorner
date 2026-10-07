@@ -28,6 +28,8 @@ export interface WornForCombat extends StatGear {
   quality: number | null;
   upgrade: number;
   uniqueId: string | null;
+  /** The worn slot: which hand holds a weapon. Without it, the first weapon worn is the main one. */
+  slot?: string | null;
 }
 
 export interface HeroCombat {
@@ -44,6 +46,8 @@ export interface HeroCombat {
   hp: number;
   ac: number;
   weapon: { base: GearBase; factor: number } | null;
+  /** A light weapon in the off-hand: it strikes once more each turn (docs/design.md → Hands). */
+  offHand?: { base: GearBase; factor: number } | null;
   damagePct: number;
   critChance: number;
   spellPower: number;
@@ -95,16 +99,17 @@ export function heroCombat(input: {
   const scores = gearScores(input.scores, input.worn);
   const bonus = (stat: BonusStatId) => statTotal(input.worn, stat);
 
-  const weaponGear = input.worn.find((w) => {
+  const armed = (w: WornForCombat) => {
     const b = baseById(w.base);
-    return isGear(b) && b.slot === 'main' && b.damage;
-  });
-  const weapon = weaponGear
-    ? {
-      base: baseById(weaponGear.base) as GearBase,
-      factor: gearFactor(weaponGear),
-    }
-    : null;
+    return isGear(b) && b.damage !== undefined;
+  };
+  const held = (w: WornForCombat | undefined) => (w ? { base: baseById(w.base) as GearBase, factor: gearFactor(w) } : null);
+  const sorted = input.worn.some((w) => w.slot);
+  // Worn slots say which hand holds what; a dagger alone in the off-hand fights as the main weapon.
+  const mainGear = sorted ? input.worn.find((w) => w.slot === 'main' && armed(w)) : input.worn.find((w) => armed(w) && (baseById(w.base) as GearBase).slot === 'main');
+  const offGear = sorted ? input.worn.find((w) => w.slot === 'off' && armed(w)) : undefined;
+  const weapon = held(mainGear ?? offGear);
+  const offHand = mainGear ? held(offGear) : null;
 
   const maxHp = maxHealth(input.maxHp, input.worn);
   return {
@@ -120,6 +125,7 @@ export function heroCombat(input: {
     hp: Math.min(input.hp, maxHp),
     ac: armorClass(scores.dex, input.worn) + talentArmor(input.talents),
     weapon,
+    offHand,
     damagePct: bonus('damage'),
     critChance: bonus('crit'),
     spellPower: bonus('spellPower'),
@@ -269,7 +275,7 @@ export type FightEvent =
   | { type: 'initiative'; order: string[] }
   /** That side was caught off guard and loses its turns in the first round. */
   | { type: 'surprise'; side: 'hero' | 'monsters' }
-  | { type: 'attack'; actor: string; target: string; natural: number; total: number; hit: boolean; crit: boolean; damage: number; targetHp: number; kind: 'weapon' | 'spell' }
+  | { type: 'attack'; actor: string; target: string; natural: number; total: number; hit: boolean; crit: boolean; damage: number; targetHp: number; kind: 'weapon' | 'spell'; hand?: 'off' }
   /** A blow turned aside: by the Ashen Aegis, or by a Wizard's Shield. */
   | { type: 'blocked'; actor: string; by: 'aegis' | 'shield'; target?: string }
   | { type: 'burst'; actor: string; source: 'spell' | 'bomb'; targets: { key: string; damage: number; hp: number }[] }
@@ -768,7 +774,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     events.push({ type: 'heal', actor: to.key, ability, amount: gained, hp: to.c.hp, ...(by && by !== to ? { by: by.key } : {}) });
   };
 
-  const heroAttack = (s: Side, at?: MonsterInstance, prefer?: string) => {
+  /** One attack; `offHand`: the extra blow of a light weapon in the off-hand. */
+  const heroAttack = (s: Side, at?: MonsterInstance, prefer?: string, offHand = false) => {
     const targets = alive();
     if (targets.length === 0) return;
     const { c } = s;
@@ -815,12 +822,16 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         if (c.uniques.includes('lantern-of-the-deep') && (targetDef.kin === 'undead' || targetDef.kin === 'demon')) damage *= 1.25;
         if (ember) damage *= 2;
       } else {
-        const [n, sides_] = c.weapon?.base.damage ?? [1, 4];
+        const weapon = offHand ? c.offHand : c.weapon;
+        const [n, sides_] = weapon?.base.damage ?? [1, 4];
         const once = () => sum(rollDice(rng, crit ? n * 2 : n, sides_));
         let dice = once();
         if (c.talents.includes('savage-attacker')) dice = Math.max(dice, once());
-        damage = dice * (c.weapon?.factor ?? 1) + s.mod(s.attackAbility);
-        if (s.sneakReady) {
+        // The off-hand's blow adds no ability modifier, unless that is a penalty (SRD two-weapon fighting).
+        const mod = s.mod(s.attackAbility);
+        damage = dice * (weapon?.factor ?? 1) + (offHand ? Math.min(0, mod) : mod);
+        // The off-hand's quick blow is no Sneak attack: it waits for a proper hit.
+        if (s.sneakReady && !offHand) {
           // The fight's first hit, or an Assassin's every round, gets the full dice; other rounds a sixth of the level.
           // A master Thief has studied its prey by the fourth round: from then on, a third of the level.
           const full = !s.openedFight || s.path('assassin') || flanked;
@@ -832,7 +843,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         }
         // Bones break under blunt weapons, and arrows and points slip between them.
         if (powerOf(target, 'brittle')) {
-          const hits = c.weapon?.base.hits ?? 'bludgeon';
+          const hits = weapon?.base.hits ?? 'bludgeon';
           damage *= hits === 'bludgeon' ? 1.5 : hits === 'pierce' ? 0.75 : 1;
         }
       }
@@ -853,7 +864,10 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       damage = Math.max(1, Math.round(damage));
       after = wound(target, damage, crit);
     }
-    events.push({ type: 'attack', actor: s.key, target: target.key, natural: roll.natural, total, hit, crit, damage, targetHp: target.hp, kind: s.caster ? 'spell' : 'weapon' }, ...after);
+    events.push({
+      type: 'attack', actor: s.key, target: target.key, natural: roll.natural, total, hit, crit, damage, targetHp: target.hp, kind: s.caster ? 'spell' : 'weapon',
+      ...(offHand ? { hand: 'off' as const } : {}),
+    }, ...after);
     if (hit && crit && c.uniques.includes('ember-fang') && target.hp > 0) {
       burning.set(target.key, { ...EMBER_BURN });
       events.push({ type: 'status', target: target.key, status: 'burning', turns: EMBER_BURN.turns });
@@ -875,6 +889,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     + (s.raging && s.path('berserker') ? 1 : 0)
     + (s.path('hunter', PATH_MASTERY) ? 1 : 0)
     + (currentRound === 1 && s.path('stalker') ? 1 : 0);
+  /** A light weapon in the off-hand adds a blow to every 'attack' (spells cast with neither hand). */
+  const offHanded = (s: Side) => Boolean(s.c.offHand) && !s.caster;
 
   /**
    * Where a turn stands: its first choice, or a second after Preserve life's free Cure
@@ -908,7 +924,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       targets: up.map((mm) => mm.key), cure: cure.map((x) => x.key),
       rage: stage === 'start' && s.c.class === 'barbarian' && !s.raging && s.uses.spells > 0,
       mark: stage === 'start' && s.c.class === 'ranger' && s.marked === null && s.uses.spells > 0 && up.length > 0,
-      attacks: attacksFor(s), spells: s.uses.spells, heals: s.uses.heals, potions,
+      attacks: attacksFor(s) + (offHanded(s) ? 1 : 0), spells: s.uses.spells, heals: s.uses.heals, potions,
     };
   };
 
@@ -921,7 +937,9 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     }
     const [n, sides_] = c.weapon?.base.damage ?? [1, 4];
     const each = ((n * (sides_ + 1)) / 2) * (c.weapon?.factor ?? 1) + s.mod(s.attackAbility) + (s.raging ? rageDamage(c.level) : 0);
-    return each * (1 + c.damagePct / 100) * attacksFor(s);
+    const [on, osides] = c.offHand?.base.damage ?? [0, 0];
+    const off = offHanded(s) ? ((on * (osides + 1)) / 2) * (c.offHand?.factor ?? 1) + Math.min(0, s.mod(s.attackAbility)) : 0;
+    return (each * attacksFor(s) + off) * (1 + c.damagePct / 100);
   };
   /** About what a Burst of fire deals each monster. */
   const burstOf = (s: Side): number => (burstDice(s.c.level) * 3.5 + (s.path('evoker') ? 2 * s.intMod : 0)) * (1 + s.c.spellPower / 100);
@@ -1106,6 +1124,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         default: {
           const attacks = attacksFor(s);
           for (let i = 0; i < attacks && alive().length > 0 && c.hp > 0; i++) heroAttack(s, undefined, action.target);
+          if (offHanded(s) && alive().length > 0 && c.hp > 0) heroAttack(s, undefined, action.target, true);
           return;
         }
       }

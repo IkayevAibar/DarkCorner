@@ -166,6 +166,8 @@ function GearFacts({ gear, hero, barred, explain = null }: { gear: GearFactsView
     lines.push({ line: `${t('item.damage', { min: d.min, max: d.max })} (${dice}), ${t(`item.hits.${d.hits}`)}`, info: 'weapon' });
     if (hero && !casts(hero)) lines.push({ line: t('item.plus', { ability: t(`ability.${attackAbility(gear, hero)}`) }), info: null });
   }
+  if (gear.hands === 2) lines.push({ line: t('item.twoHanded'), info: 'twoHanded' });
+  if (gear.light) lines.push({ line: t('item.light'), info: 'offHand' });
   if (gear.armor) {
     const { ac, body, maxDex } = gear.armor;
     lines.push({
@@ -179,7 +181,7 @@ function GearFacts({ gear, hero, barred, explain = null }: { gear: GearFactsView
   return (
     <div className="grid gap-0.5 text-[15px]">
       <span className="text-sm text-muted">
-        {t(`slot.${gear.slot === 'ring' ? 'ring1' : gear.slot}`)}
+        {gear.hands === 2 ? t('slot.both') : gear.light ? t('slot.either') : t(`slot.${gear.slot === 'ring' ? 'ring1' : gear.slot}`)}
         {kind && gear.group && ` · ${t(`item.${kind}.${gear.group}` as MessageKey)}`}
       </span>
       {lines.map(({ line, info }) => (explain && info ? <div key={line}>{explain(info, info, <span>{line}</span>)}</div> : <span key={line}>{line}</span>))}

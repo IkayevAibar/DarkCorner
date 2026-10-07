@@ -1,4 +1,4 @@
-import { type GearBase, GEAR_BASES, baseById, isGear } from './content/bases.js';
+import { type GearBase, GEAR_BASES, baseById, isGear, isTwoHanded } from './content/bases.js';
 import {
   BOND_STATS, BONUS_COUNT, BONUS_STATS, type BonusStatDef, type BonusStatId, BUYBACK_BASE, DROP_ODDS, IDENTIFIED_BELOW, RADIANT_BOOST, RADIANT_CHANCE,
   SUFFIXES, type Tier, tierRank, uniqueById, uniquesOfTier,
@@ -159,6 +159,9 @@ export function rollBondRings(rng: Rng, floor: number): [GearRoll, GearRoll] {
 /** Bond rings (v0): while the two Heroes of a Duo each wear a half of one pair, each half's Bonus stats count this many times in their fights. */
 export const BOND_FACTOR = 2;
 
+/** A two-handed weapon fills the off-hand too (v0): its Bonus stats count this many times, like a weapon and an off-hand together. */
+export const TWO_HANDED_FACTOR = 2;
+
 /**
  * Forge Upgrades and Bonus stats (v0): every level adds this share to a piece's percentage
  * and max-health Bonus stats, and at each milestone level its d20 ones (abilities, armor,
@@ -171,6 +174,8 @@ export const upgradeSteps = (upgrade: number): number => UPGRADE_MILESTONES.filt
 
 /** A piece of gear as far as its Bonus stats go. */
 export interface StatGear {
+  /** Its base: a two-handed weapon's Bonus stats count twice. */
+  base?: string;
   bonusStats: { stat: string; value: number }[];
   radiant: boolean;
   upgrade?: number;
@@ -180,15 +185,17 @@ export interface StatGear {
 
 /**
  * A piece's Bonus stats as they count everywhere (fights, Checks, health, luck, prices):
- * Radiant's +10%, then its Upgrades, and twice over for a joined Bond ring.
+ * Radiant's +10%, then its Upgrades, twice over for a two-handed weapon, and twice over
+ * for a joined Bond ring.
  */
 export function effectiveStats(gear: StatGear): { stat: BonusStatId; value: number }[] {
   const upgrade = gear.upgrade ?? 0;
+  const hands = gear.base !== undefined && isTwoHanded(gear.base) ? TWO_HANDED_FACTOR : 1;
   return gear.bonusStats.map(({ stat, value }) => {
     const id = stat as BonusStatId;
     const shown = gear.radiant ? Math.round(value * RADIANT_BOOST) : value;
     const grown = D20_STATS.includes(id) ? shown + upgradeSteps(upgrade) : Math.round(shown * (1 + UPGRADE_BONUS_STEP * upgrade));
-    return { stat: id, value: grown * (gear.joined ? BOND_FACTOR : 1) };
+    return { stat: id, value: grown * hands * (gear.joined ? BOND_FACTOR : 1) };
   });
 }
 
@@ -207,8 +214,8 @@ export function itemName(roll: Pick<GearRoll, 'base' | 'suffix' | 'uniqueId'>): 
   return { en: `${base.en} ${suffix.en}`, ru: `${base.ru} ${suffix.ru}` };
 }
 
-/** The Bonus stat lines as players read them, Radiant and Upgrades included. */
-export function bonusLines(roll: Pick<GearRoll, 'bonusStats' | 'radiant'> & { upgrade?: number }): Text[] {
+/** The Bonus stat lines as players read them, Radiant, Upgrades and two hands included. */
+export function bonusLines(roll: Pick<GearRoll, 'bonusStats' | 'radiant'> & { upgrade?: number; base?: string }): Text[] {
   return effectiveStats(roll).map(({ stat, value }) => {
     const def = BONUS_STATS.find((d) => d.id === stat)!;
     return { en: def.label.en.replace('{n}', String(value)), ru: def.label.ru.replace('{n}', String(value)) };

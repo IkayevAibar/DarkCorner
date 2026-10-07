@@ -5,7 +5,7 @@
  * Run: npm run balance:duo -w @dark/engine
  */
 import {
-  CLASS_DEFS, type ClassId, DUO, type HeroCombat, createRng, duoEncounter, heroCombat, restUses, simulateFight, spawnEncounter, startingHealth,
+  CLASS_DEFS, type ClassId, DUO, type HeroCombat, createRng, duoEncounter, heroCombat, kitSlots, restUses, simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
 // Try other tuning: npm run balance:duo -w @dark/engine -- <extra> <hp> <damage>
@@ -19,7 +19,9 @@ function starter(cls: ClassId, level: number): HeroCombat {
   const primary = CLASS_DEFS[cls].primary;
   const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, [primary]: 16 };
   const hp = startingHealth(cls, 'human', ['alert', 'tough'], scores.con) + (level - 1) * (Math.ceil(CLASS_DEFS[cls].hitDie / 2) + 5);
-  const worn = CLASS_DEFS[cls].starterKit.map((base) => ({ base, quality: 50, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }));
+  const kit = CLASS_DEFS[cls].starterKit;
+  const slots = kitSlots(kit);
+  const worn = kit.flatMap((base, i) => (slots[i] ? [{ base, slot: slots[i], quality: 50, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }] : []));
   const h = heroCombat({ name: 'T', class: cls, race: 'human', level, talents: ['alert', 'tough'], scores, maxHp: hp, hp, worn });
   return { ...h, hp: h.maxHp };
 }

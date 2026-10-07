@@ -95,10 +95,13 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
   const duo = names.ally !== undefined;
   switch (e.type) {
     case 'initiative': return t('fight.initiative', { list: e.order.map(n).join(', ') });
-    case 'attack':
-      if (!e.hit) return t('fight.miss', { actor: n(e.actor), target: n(e.target), d: e.natural });
-      if (e.crit) return t('fight.crit', { actor: n(e.actor), target: n(e.target), n: e.damage });
-      return t(e.kind === 'spell' ? 'fight.spell' : 'fight.hit', { actor: n(e.actor), target: n(e.target), n: e.damage });
+    case 'attack': {
+      // The off-hand dagger's extra blow says so.
+      const off = e.hand === 'off' ? t('fight.offHand') : '';
+      if (!e.hit) return t('fight.miss', { actor: n(e.actor), target: n(e.target), d: e.natural }) + off;
+      if (e.crit) return t('fight.crit', { actor: n(e.actor), target: n(e.target), n: e.damage }) + off;
+      return t(e.kind === 'spell' ? 'fight.spell' : 'fight.hit', { actor: n(e.actor), target: n(e.target), n: e.damage }) + off;
+    }
     case 'blocked': return t(e.by === 'shield' ? 'fight.shield' : 'fight.blocked', { actor: n(e.actor) });
     case 'burst': return t(e.source === 'bomb' ? 'fight.bomb' : 'fight.burst', { actor: n(e.actor), n: e.targets.reduce((s, x) => s + x.damage, 0) });
     case 'heal':

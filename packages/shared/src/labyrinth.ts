@@ -77,6 +77,8 @@ export const fightEventSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('attack'), actor: z.string(), target: z.string(), natural: z.number().int(), total: z.number().int(),
     hit: z.boolean(), crit: z.boolean(), damage: z.number().int(), targetHp: z.number().int(), kind: z.enum(['weapon', 'spell']),
+    /** The extra blow of a dagger in the off-hand (docs/design.md → Hands). Absent: the main hand. */
+    hand: z.literal('off').optional(),
   }),
   /** A blow turned aside: by the Ashen Aegis, or by a Wizard's Shield. */
   z.object({ type: z.literal('blocked'), actor: z.string(), by: z.enum(['aegis', 'shield']).default('aegis'), target: who }),
@@ -190,7 +192,7 @@ export const turnOptionsSchema = z.object({
   /** It can start a Rage, or place a Hunter's mark, before acting. */
   rage: z.boolean(),
   mark: z.boolean(),
-  /** Attacks an 'attack' makes this turn. */
+  /** Attacks an 'attack' makes this turn, an off-hand dagger's blow counted. */
   attacks: z.number().int(),
   spells: z.number().int(),
   heals: z.number().int(),

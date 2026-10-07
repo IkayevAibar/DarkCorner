@@ -32,6 +32,10 @@ export interface GearBase extends BaseCommon {
   maxDex?: number;
   /** Made only in pairs, never dropped or sold at random: Bond rings, from the Twin Wardens. */
   paired?: true;
+  /** Held in both hands: nothing goes in the off-hand beside it, and its Bonus stats count twice (items.ts). */
+  hands?: 2;
+  /** Light enough for either hand: one in the off-hand strikes once more each turn (combat.ts). */
+  light?: true;
 }
 
 export interface StackBase extends BaseCommon {
@@ -46,16 +50,16 @@ const stack = (b: StackBase): StackBase => b;
 
 export const BASES: ItemBase[] = [
   // Weapons
-  gear({ id: 'greatsword', name: text('Greatsword', 'Двуручный меч'), icon: 'sword', slot: 'main', weapon: 'heavy', damage: [2, 6], hits: 'slash' }),
-  gear({ id: 'greataxe', name: text('Greataxe', 'Секира'), icon: 'axe', slot: 'main', weapon: 'heavy', damage: [1, 12], hits: 'slash' }),
-  gear({ id: 'maul', name: text('Maul', 'Двуручный молот'), icon: 'mace', slot: 'main', weapon: 'heavy', damage: [2, 6], hits: 'bludgeon' }),
+  gear({ id: 'greatsword', name: text('Greatsword', 'Двуручный меч'), icon: 'sword', slot: 'main', weapon: 'heavy', damage: [2, 6], hits: 'slash', hands: 2 }),
+  gear({ id: 'greataxe', name: text('Greataxe', 'Секира'), icon: 'axe', slot: 'main', weapon: 'heavy', damage: [1, 12], hits: 'slash', hands: 2 }),
+  gear({ id: 'maul', name: text('Maul', 'Двуручный молот'), icon: 'mace', slot: 'main', weapon: 'heavy', damage: [2, 6], hits: 'bludgeon', hands: 2 }),
   gear({ id: 'longsword', name: text('Longsword', 'Длинный меч'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8], hits: 'slash' }),
   gear({ id: 'saber', name: text('Saber', 'Сабля'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8], hits: 'slash' }),
   gear({ id: 'rapier', name: text('Rapier', 'Рапира'), icon: 'sword', slot: 'main', weapon: 'blade', damage: [1, 8], hits: 'pierce' }),
-  gear({ id: 'dagger', name: text('Dagger', 'Кинжал'), icon: 'dagger', slot: 'main', weapon: 'dagger', damage: [1, 4], hits: 'pierce' }),
-  gear({ id: 'shortbow', name: text('Shortbow', 'Короткий лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 6], hits: 'pierce' }),
-  gear({ id: 'longbow', name: text('Longbow', 'Длинный лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 8], hits: 'pierce' }),
-  gear({ id: 'crossbow', name: text('Crossbow', 'Арбалет'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 10], hits: 'pierce' }),
+  gear({ id: 'dagger', name: text('Dagger', 'Кинжал'), icon: 'dagger', slot: 'main', weapon: 'dagger', damage: [1, 4], hits: 'pierce', light: true }),
+  gear({ id: 'shortbow', name: text('Shortbow', 'Короткий лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 6], hits: 'pierce', hands: 2 }),
+  gear({ id: 'longbow', name: text('Longbow', 'Длинный лук'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 8], hits: 'pierce', hands: 2 }),
+  gear({ id: 'crossbow', name: text('Crossbow', 'Арбалет'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 10], hits: 'pierce', hands: 2 }),
   gear({ id: 'mace', name: text('Mace', 'Булава'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 6], hits: 'bludgeon' }),
   gear({ id: 'warhammer', name: text('Warhammer', 'Боевой молот'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 8], hits: 'bludgeon' }),
   gear({ id: 'staff', name: text('Staff', 'Посох'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 6], hits: 'bludgeon' }),
@@ -125,7 +129,46 @@ export const STACK_TIER_HINT: Record<string, 'common' | 'uncommon' | 'rare' | 'e
   essence: 'rare', soulstone: 'legendary',
 };
 
-/** The worn slots a base can go into. */
+/** The worn slots a base can go into: either ring slot, and either hand for a light weapon. */
 export function slotsFor(base: GearBase): Slot[] {
-  return base.slot === 'ring' ? ['ring1', 'ring2'] : [base.slot];
+  return base.slot === 'ring' ? ['ring1', 'ring2'] : base.light ? ['main', 'off'] : [base.slot];
+}
+
+/** A weapon held in both hands (docs/design.md → Hands). */
+export const isTwoHanded = (id: string): boolean => {
+  const base = BY_ID.get(id);
+  return base?.kind === 'gear' && base.hands === 2;
+};
+
+/**
+ * Where a piece goes when it is put on, and which worn slots must be emptied for it:
+ * the slot itself when taken, the off-hand beside a two-handed weapon, and a two-handed
+ * weapon when something goes in the off-hand. Without a wish, a ring takes a free ring
+ * slot and a light weapon the main hand, or the off-hand when only that is free.
+ */
+export function wearPlan(base: GearBase, worn: ReadonlyMap<string, string>, wanted?: Slot): { slot: Slot; vacate: Slot[] } {
+  const fits = slotsFor(base);
+  const mainTwoHanded = worn.has('main') && isTwoHanded(worn.get('main')!);
+  const free = (s: Slot) => !worn.has(s) && !(s === 'off' && mainTwoHanded);
+  const slot = wanted ?? fits.find(free) ?? fits[0]!;
+  const vacate: Slot[] = worn.has(slot) ? [slot] : [];
+  if (slot === 'main' && base.hands === 2 && worn.has('off')) vacate.push('off');
+  if (slot === 'off' && mainTwoHanded) vacate.push('main');
+  return { slot, vacate };
+}
+
+/**
+ * Where each piece of a kit goes, in order: worn where it fits beside what is already
+ * on (`worn`: slot → base id) without taking anything off; otherwise null, the Bag.
+ */
+export function kitSlots(kit: readonly string[], worn: ReadonlyMap<string, string> = new Map()): (Slot | null)[] {
+  const on = new Map(worn);
+  return kit.map((id) => {
+    const base = BY_ID.get(id);
+    if (!base || base.kind !== 'gear') return null;
+    const { slot, vacate } = wearPlan(base, on);
+    if (vacate.length > 0) return null;
+    on.set(slot, id);
+    return slot;
+  });
 }

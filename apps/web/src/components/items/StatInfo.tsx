@@ -3,7 +3,7 @@ import type { AbilityId, BonusStatId, HeroView } from '@dark/shared';
 import { useI18n } from '../../i18n';
 
 /** What a line on an Item card or the Character sheet can explain. */
-export type InfoId = BonusStatId | 'quality' | 'level' | 'upgrade' | 'radiant' | 'weapon' | 'armorPiece' | 'bodyArmor';
+export type InfoId = BonusStatId | 'quality' | 'level' | 'upgrade' | 'radiant' | 'weapon' | 'armorPiece' | 'bodyArmor' | 'twoHanded' | 'offHand';
 
 const ABILITY_IDS: readonly string[] = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
 const isAbility = (id: InfoId): id is AbilityId => ABILITY_IDS.includes(id);

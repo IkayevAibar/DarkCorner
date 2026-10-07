@@ -82,13 +82,13 @@ describe('creating a Hero', () => {
     expect((await get('/api/heroes/me')).json()).toMatchObject({ canCreate: false, canRetire: true, draft: null });
   });
 
-  it('puts gear that finds no free slot into the Bag', async () => {
+  it('wears the whole Starter kit, a Rogue’s dagger in the off-hand', async () => {
     await post('/api/heroes/draft');
     const { hero } = (await post('/api/heroes', {
       ...garrick, name: 'Pip', race: 'halfling', class: 'rogue', talents: ['lucky-charm'], portrait: 'hooded',
     })).json();
-    expect(hero.worn.map((w: { slot: string }) => w.slot)).toEqual(['main', 'body']);
-    expect(hero.bag.map((i: { base: string }) => i.base).sort()).toEqual(['potion', 'shortbow']);
+    expect(hero.worn.map((w: { slot: string; item: { base: string } }) => `${w.slot}:${w.item.base}`)).toEqual(['main:rapier', 'off:dagger', 'body:leather']);
+    expect(hero.bag.map((i: { base: string }) => i.base)).toEqual(['potion']);
   });
 
   it('refuses choices that do not make a Hero', async () => {

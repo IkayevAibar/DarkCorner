@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-07-hands',
+    date: '2026-10-07',
+    title: t('A dagger in each hand', 'По кинжалу в каждую руку'),
+    items: [
+      t('You asked for it: a dagger now goes in either hand. In the off-hand, beside a weapon, it strikes once more each turn you attack. It is the weaker blow: no ability modifier, and never a Sneak attack. Rogues now start with a rapier and a dagger.',
+        'Вы просили — сделано: кинжал теперь можно взять в любую руку. Во второй руке рядом с оружием он бьёт ещё раз за каждый ход атаки. Это слабый удар: без модификатора характеристики и никогда со скрытой атакой. Плуты теперь начинают с рапирой и кинжалом.'),
+      t('Greatswords, greataxes, mauls and bows now fill both hands: no shield or focus beside them. In return their Bonus stats count twice, and their cards show them doubled. A shield held beside one is back in your Bag (or your Storage, if the Bag was full): choose your way to fight. Rangers now start with a longbow and no shield.',
+        'Двуручные мечи, секиры, молоты и луки теперь занимают обе руки: щит или фокус рядом не взять. Взамен их бонусы считаются дважды, и карточки показывают их удвоенными. Щит, который был рядом с таким оружием, вернулся в сумку (или в хранилище, если сумка была полна): выбирайте, как сражаться. Следопыты теперь начинают с длинным луком и без щита.'),
+    ],
+  },
+  {
     id: '2026-10-03-bulk',
     date: '2026-10-03',
     title: t('Clear the Bag in one go', 'Сумка за один раз'),

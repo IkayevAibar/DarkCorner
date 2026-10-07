@@ -49,7 +49,7 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
       title: text(item.name),
       body: (
         <div className="grid gap-4">
-          <ItemActions item={item} place={place} heroClass={hero.class} onIdentified={onChanged} onDone={() => { closeSheet(); onChanged(); }} />
+          <ItemActions item={item} place={place} heroClass={hero.class} worn={hero.worn} onIdentified={onChanged} onDone={() => { closeSheet(); onChanged(); }} />
         </div>
       ),
     });
@@ -154,10 +154,16 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
           >
             {EQUIP_AREAS.map(({ slot, area }) => {
               const item = worn.get(slot);
+              // A two-handed weapon fills the off-hand too: it shows there, dimmed.
+              const both = slot === 'off' && !item && worn.get('main')?.gear?.hands === 2 ? worn.get('main')! : null;
               return (
                 <div key={slot} className="flex flex-col items-center gap-0.5" style={{ gridArea: area }}>
                   {item ? (
                     <ItemChip item={item} onClick={() => showItem(item, 'worn')} />
+                  ) : both ? (
+                    <span className="opacity-35 grayscale" title={t('slot.offTaken')}>
+                      <ItemChip item={both} onClick={() => showItem(both, 'worn')} />
+                    </span>
                   ) : (
                     <span className="block size-[62px] rounded-[2px] border border-dashed border-bone/30" />
                   )}
@@ -215,7 +221,9 @@ function ItemGrid({ title, items, onPick }: { title: string; items: ItemView[]; 
   );
 }
 
-function ItemActions({ item, place, heroClass, onIdentified, onDone }: { item: ItemView; place: Place; heroClass: ClassId; onIdentified: () => void; onDone: () => void }) {
+function ItemActions({ item, place, heroClass, worn, onIdentified, onDone }: {
+  item: ItemView; place: Place; heroClass: ClassId; worn: HeroView['worn']; onIdentified: () => void; onDone: () => void;
+}) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -239,6 +247,22 @@ function ItemActions({ item, place, heroClass, onIdentified, onDone }: { item: I
   const wearable = item.kind === 'gear';
   // The card already says why; the server would refuse it anyway.
   const barred = item.gear?.classes != null && !item.gear.classes.includes(heroClass);
+  const text = useText();
+  const inHand = (slot: SlotId) => worn.find((w) => w.slot === slot)?.item ?? null;
+  // Hands (docs/design.md → Hands): what else comes off, beyond the piece it swaps with.
+  const putsAway = (slot: SlotId): ItemView[] => {
+    const main = inHand('main');
+    const off = inHand('off');
+    if (slot === 'main' && item.gear?.hands === 2 && off) return [off];
+    if (slot === 'off' && main?.gear?.hands === 2) return [main];
+    return [];
+  };
+  const wear = (slot?: SlotId) => act(async () => {
+    play('equip');
+    await api.equipItem(item.id, slot);
+  });
+  const homeSlot: SlotId = item.gear?.slot === 'ring' ? 'ring1' : (item.gear?.slot ?? 'main') as SlotId;
+  const away = item.gear?.light ? putsAway('off') : putsAway(homeSlot);
   if (revealed) return <IdentifyReveal before={item} after={revealed} onDone={onDone} />;
   return (
     <div className="grid gap-4">
@@ -252,13 +276,20 @@ function ItemActions({ item, place, heroClass, onIdentified, onDone }: { item: I
             {t('item.unequip')}
           </button>
         )}
-        {place !== 'worn' && wearable && item.identified && (
-          <button type="button" className="btn btn-primary flex-1" disabled={busy || barred} onClick={() => void act(async () => {
-            play('equip');
-            await api.equipItem(item.id);
-          })}>
+        {place !== 'worn' && wearable && item.identified && !item.gear?.light && (
+          <button type="button" className="btn btn-primary flex-1" disabled={busy || barred} onClick={() => void wear()}>
             {t('item.equip')}
           </button>
+        )}
+        {place !== 'worn' && wearable && item.identified && item.gear?.light && (
+          <>
+            <button type="button" className="btn btn-primary flex-1" disabled={busy || barred} onClick={() => void wear('main')}>
+              {t('item.equipMain')}
+            </button>
+            <button type="button" className="btn btn-primary flex-1" disabled={busy || barred} onClick={() => void wear('off')}>
+              {t('item.equipOff')}
+            </button>
+          </>
         )}
         {wearable && !item.identified && (
           <button type="button" className="btn btn-primary flex-1" disabled={busy} onClick={() => void act(async () => {
@@ -294,6 +325,12 @@ function ItemActions({ item, place, heroClass, onIdentified, onDone }: { item: I
           </button>
         )}
       </div>
+      {place !== 'worn' && wearable && item.identified && !barred && away.length > 0 && (
+        <p className="m-0 text-sm text-muted">
+          {item.gear?.light && `${t('item.equipOff')}: `}
+          {t('item.putsAway', { list: away.map((i) => text(i.name)).join(', ') })}
+        </p>
+      )}
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
     </div>
   );

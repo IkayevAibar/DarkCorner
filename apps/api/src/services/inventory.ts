@@ -1,6 +1,6 @@
 import type { Player } from '@prisma/client';
 import type { HeroView, SlotId } from '@dark/shared';
-import { BAG_SLOTS, type ClassId, type GearBase, STORAGE_SLOTS, baseById, canUse, isGear, slotsFor } from '@dark/engine';
+import { BAG_SLOTS, type ClassId, type GearBase, STORAGE_SLOTS, baseById, canUse, isGear, slotsFor, wearPlan } from '@dark/engine';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { toHeroView } from './heroes.js';
@@ -15,7 +15,9 @@ async function heroView(heroId: string): Promise<HeroView> {
 
 /**
  * Wears a piece of gear. If the slot is taken, the two swap: the old piece goes
- * where the new one came from, so the Bag and Storage never overflow.
+ * where the new one came from, so the Bag and Storage never overflow. A two-handed
+ * weapon takes the off-hand item off too, and an off-hand item a two-handed weapon
+ * (docs/design.md → Hands); when two pieces come off, the second needs room there.
  */
 export async function equipItem(player: Player, itemId: string, wanted?: SlotId): Promise<HeroView> {
   const season = await currentSeason();
@@ -30,14 +32,15 @@ export async function equipItem(player: Player, itemId: string, wanted?: SlotId)
 
     const fits = slotsFor(base as GearBase);
     if (wanted && !fits.includes(wanted)) throw ApiError.badRequest('wrong_slot', 'It does not go there');
-    const taken = new Map(hero.items.filter((w) => w.place === 'WORN').map((w) => [w.slot, w]));
-    const slot = wanted ?? fits.find((s) => !taken.has(s)) ?? fits[0]!;
-
-    const current = taken.get(slot);
-    if (current) {
-      // Out of the slot first: (heroId, slot) is unique.
-      await tx.item.update({ where: { id: current.id }, data: { place: item.place, slot: null } });
+    const on = hero.items.filter((w) => w.place === 'WORN' && w.slot);
+    const { slot, vacate } = wearPlan(base as GearBase, new Map(on.map((w) => [w.slot!, w.base])), wanted);
+    const off = on.filter((w) => (vacate as string[]).includes(w.slot!));
+    const from = item.place as 'BAG' | 'STORAGE';
+    if (off.length > 1 && hero.items.filter((i) => i.place === from).length - 1 + off.length > CAPACITY[from]) {
+      throw ApiError.conflict('hands_full', 'No room to put away what the two-handed weapon replaces');
     }
+    // Out of the slots first: (heroId, slot) is unique.
+    for (const w of off) await tx.item.update({ where: { id: w.id }, data: { place: from, slot: null } });
     await tx.item.update({ where: { id: item.id }, data: { place: 'WORN', slot } });
     return hero.id;
   });

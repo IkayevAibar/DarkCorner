@@ -135,7 +135,7 @@ export async function reforgeItem(player: Player, itemId: string): Promise<Refor
     const bonusStats = rollBonusStats(createRng(seed), tier, item.itemLevel, bonusPoolOf(item.base));
     await tx.rollLog.create({ data: { playerId: player.id, kind: 'reforge', seed, detail: { itemId: item.id, before, after: bonusStats } } });
     const updated = await tx.item.update({ where: { id: item.id }, data: { bonusStats: bonusStats as unknown as Prisma.InputJsonValue } });
-    return { heroId: hero.id, updated, before: bonusLines({ bonusStats: before as never, radiant: item.radiant, upgrade: item.upgrade }) };
+    return { heroId: hero.id, updated, before: bonusLines({ base: item.base, bonusStats: before as never, radiant: item.radiant, upgrade: item.upgrade }) };
   });
   return { item: toItemView(r.updated), before: r.before, hero: await heroView(r.heroId) };
 }

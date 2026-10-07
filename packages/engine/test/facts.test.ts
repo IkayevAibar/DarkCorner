@@ -13,7 +13,12 @@ describe('gear facts', () => {
       damage: { dice: 1, sides: 8, min: 1, max: 8, percent: 100, hits: 'slash' },
       armor: null,
       heavy: false,
+      hands: 1,
+      light: false,
     });
+    expect(gearFacts(gearBase('greatsword'), plain)).toMatchObject({ hands: 2, light: false });
+    expect(gearFacts(gearBase('longbow'), plain)).toMatchObject({ hands: 2, light: false });
+    expect(gearFacts(gearBase('dagger'), plain)).toMatchObject({ hands: 1, light: true });
     const upgraded = gearFacts(gearBase('greatsword'), { quality: 100, upgrade: 10, radiant: false }).damage!;
     expect(upgraded).toMatchObject({ dice: 2, sides: 6, percent: 161, min: 3, max: 19 });
   });
@@ -34,7 +39,7 @@ describe('gear facts', () => {
 
   it('says what a shield adds, and nothing for gear worn only for its Bonus stats', () => {
     expect(gearFacts(gearBase('shield'), plain)).toMatchObject({ group: 'shield', armor: { ac: 2, body: false }, damage: null });
-    expect(gearFacts(gearBase('ring'), plain)).toEqual({ slot: 'ring', group: null, classes: null, damage: null, armor: null, heavy: false });
+    expect(gearFacts(gearBase('ring'), plain)).toEqual({ slot: 'ring', group: null, classes: null, damage: null, armor: null, heavy: false, hands: 1, light: false });
   });
 });
 

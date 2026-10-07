@@ -69,7 +69,7 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
       'Picks locks, disarms traps, spots lying Clues, has the best odds on Escape rolls.',
       'Вскрывает замки, обезвреживает ловушки, замечает лживые подсказки, лучше всех убегает.',
     ),
-    starterKit: ['rapier', 'shortbow', 'leather'],
+    starterKit: ['rapier', 'dagger', 'leather'],
   },
   wizard: {
     id: 'wizard',
@@ -133,6 +133,6 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
       'Метко стреляет из лука. В тяжёлом бою помечает самого опасного врага и бьёт его сильнее, пока тот не падёт.',
     ),
     trick: text('Reads the tracks: always knows when a Clue lies.', 'Читает следы: всегда знает, когда подсказка лжёт.'),
-    starterKit: ['longbow', 'shield', 'studded'],
+    starterKit: ['longbow', 'studded'],
   },
 };

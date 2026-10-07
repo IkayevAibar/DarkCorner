@@ -8,7 +8,7 @@ import {
   DAY_MS, type GearBase, PORTRAITS, RACE_DEFS, type Tier, UNCOMMON_KIT_AFTER_DAYS, isGear, itemName, luckOf, tierRank,
   RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
   type ClassId, type Growth, type GrowthChoice, ORIGIN_TALENTS, PATH_DEFS, PATH_LEVEL, type PathId, type TalentId, createRng, currentStamina, maxHealth,
-  pathsOf, pendingGrowth, portraitById, portraitClass, portraitsFor, restUses, rollAbilitySet, rollGear, slotsFor, startingHealth, talentArmor, talentOffer,
+  pathsOf, pendingGrowth, portraitById, portraitClass, portraitsFor, restUses, rollAbilitySet, rollGear, kitSlots, startingHealth, talentArmor, talentOffer,
   validateGrowth, validateHeroChoices, MAX_LEVEL, XP_FOR_LEVEL, type RaceId, levelChoice, levelGains,
   ABILITIES, type AbilityScores, BONUS_STATS, charmOf, critFromOf, escapeSteps, gearScores, onPath, statTotal,
 } from '@dark/engine';
@@ -52,10 +52,10 @@ export const activeBlessing = (hero: Pick<Hero, 'blessing' | 'blessingUntil'>, n
   hero.blessing && hero.blessingUntil && hero.blessingUntil > now ? (hero.blessing as BlessingId) : null;
 
 /** Magic find, gold find and meter speed from worn gear and the Blessing. */
-/** The Hero's worn gear as far as its Bonus stats go (Radiant and Upgrades count; joined Bond rings only in a Duo's fights). */
+/** The Hero's worn gear as far as its Bonus stats go (Radiant, Upgrades and two hands count; joined Bond rings only in a Duo's fights). */
 const wornStats = (hero: Hero & { items: Item[] }) => hero.items
   .filter((i) => i.place === 'WORN')
-  .map((i) => ({ bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant, upgrade: i.upgrade, uniqueId: i.uniqueId }));
+  .map((i) => ({ base: i.base, bonusStats: i.bonusStats as { stat: string; value: number }[], radiant: i.radiant, upgrade: i.upgrade, uniqueId: i.uniqueId }));
 
 export function heroLuck(hero: Hero & { items: Item[] }, now = new Date()) {
   return luckOf({ worn: wornStats(hero), blessing: activeBlessing(hero, now), talents: hero.talents as TalentId[], path: hero.path as PathId | null, level: hero.level });
@@ -346,16 +346,17 @@ export async function createHero(player: Player, request: CreateHeroRequest): Pr
  * Common, or Uncommon once the Season is two weeks old (late joiners).
  */
 export async function giveStarterKit(tx: Prisma.TransactionClient, hero: Hero, seasonId: string): Promise<void> {
-  const worn = new Set(
-    (await tx.item.findMany({ where: { heroId: hero.id, place: 'WORN' }, select: { slot: true } })).map((i) => i.slot),
+  const worn = new Map(
+    (await tx.item.findMany({ where: { heroId: hero.id, place: 'WORN' }, select: { slot: true, base: true } })).map((i) => [i.slot ?? '', i.base]),
   );
   const season = await tx.season.findUnique({ where: { id: seasonId } });
   const late = season?.startsAt && Date.now() - season.startsAt.getTime() >= UNCOMMON_KIT_AFTER_DAYS * DAY_MS;
-  for (const baseId of CLASS_DEFS[hero.class as keyof typeof CLASS_DEFS].starterKit) {
+  const kit = CLASS_DEFS[hero.class as keyof typeof CLASS_DEFS].starterKit;
+  const slots = kitSlots(kit, worn);
+  for (const [i, baseId] of kit.entries()) {
     const seed = newSeed();
     const roll = rollGear(createRng(seed), { tier: late ? 'uncommon' : 'common', itemLevel: 1, baseId, identified: true, radiant: false, quality: 50 });
-    const slot = slotsFor(baseById(baseId) as GearBase).find((s) => !worn.has(s)) ?? null;
-    if (slot) worn.add(slot);
+    const slot = slots[i] ?? null;
     await tx.item.create({
       data: { ...gearData(roll, seed), seasonId, heroId: hero.id, place: slot ? 'WORN' : 'BAG', slot },
     });

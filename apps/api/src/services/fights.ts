@@ -142,7 +142,7 @@ export function joinedBonds(mine: Pick<Item, 'place' | 'bond'>[], theirs: Pick<I
 export function combatOf(hero: HeroWithItems, partner: HeroWithItems | null = null): HeroCombat {
   const joined = partner ? joinedBonds(hero.items, partner.items) : new Set<string>();
   const worn = hero.items.filter((i) => i.place === 'WORN').map((i) => ({
-    base: i.base, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
+    base: i.base, slot: i.slot, quality: i.quality, upgrade: i.upgrade, radiant: i.radiant,
     bonusStats: i.bonusStats as { stat: string; value: number }[], uniqueId: i.uniqueId, joined: i.bond !== null && joined.has(i.bond),
   }));
   return heroCombat({

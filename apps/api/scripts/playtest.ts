@@ -17,6 +17,7 @@ import { execSync } from 'node:child_process';
 import type {
   ClassId, ForgeQuote, HeroDraft, HeroView, LabyrinthResult, LabyrinthView, LodgingView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult,
 } from '@dark/shared';
+import type { GearBase } from '@dark/engine';
 import { TEST_DATABASE_URL } from '../test/test-db.js';
 
 // ─── A fake clock, installed before the app loads ─────────────────────────
@@ -174,16 +175,30 @@ async function grow(bot: Bot) {
 
 const rank = (tier: string) => TIERS.indexOf(tier as (typeof TIERS)[number]);
 
-/** Puts on whatever in the Bag beats what is worn (identified gear only). */
+/** How each Class holds its weapons (docs/design.md → Hands): a bot keeps to one way, as a Player would. */
+const HOLDS: Record<ClassId, { main: (b: GearBase) => boolean; off: (b: GearBase) => boolean }> = {
+  fighter: { main: (b) => b.weapon === 'blade' || b.weapon === 'mace', off: (b) => b.offHand === 'shield' },
+  barbarian: { main: (b) => b.weapon === 'heavy', off: () => false },
+  ranger: { main: (b) => b.weapon === 'bow', off: () => false },
+  rogue: { main: (b) => b.weapon === 'blade', off: (b) => b.weapon === 'dagger' },
+  cleric: { main: (b) => b.weapon === 'mace', off: (b) => b.offHand === 'shield' },
+  wizard: { main: (b) => b.weapon === 'staff', off: (b) => b.offHand === 'orb' },
+};
+
+/** Puts on whatever in the Bag beats what is worn (identified gear only), each weapon in the hand its Class holds it in. */
 async function equipBest(bot: Bot) {
   let hero = await me(bot);
   for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.identified)) {
     const base = baseById(item.base);
     if (!isGear(base) || !canUse(bot.cls, base)) continue;
-    const slot = base.slot === 'ring' ? (hero.worn.some((w) => w.slot === 'ring1') ? 'ring2' : 'ring1') : base.slot;
+    const hand = base.slot === 'main' || base.slot === 'off';
+    const slot = hand
+      ? (HOLDS[bot.cls].main(base) ? 'main' : HOLDS[bot.cls].off(base) ? 'off' : null)
+      : base.slot === 'ring' ? (hero.worn.some((w) => w.slot === 'ring1') ? 'ring2' : 'ring1') : base.slot;
+    if (!slot) continue;
     const worn = hero.worn.find((w) => w.slot === slot)?.item;
     if (!worn || rank(item.tier) > rank(worn.tier) || (rank(item.tier) === rank(worn.tier) && item.itemLevel > worn.itemLevel)) {
-      await call(bot, 'POST', `/api/items/${item.id}/equip`, {});
+      await call(bot, 'POST', `/api/items/${item.id}/equip`, hand ? { slot } : {});
       hero = await me(bot);
     }
   }

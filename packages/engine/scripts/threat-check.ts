@@ -5,7 +5,7 @@
  */
 import {
   CLASSES, CLASS_DEFS, type ClassId, THREATS, type ThreatId, createRng, fightOdds, heroCombat, restUses, simulateFight, spawnEncounter, startingHealth,
-  threatOf,
+  kitSlots, threatOf,
 } from '../src/index.js';
 
 const REAL = 2000;
@@ -18,7 +18,9 @@ for (const cls of CLASSES as readonly ClassId[]) {
         const primary = CLASS_DEFS[cls].primary;
         const scores = { str: 13, dex: 13, con: 13, int: 10, wis: 12, cha: 10, [primary]: 16 };
         const maxHp = startingHealth(cls, 'human', ['alert'], scores.con) + (level - 1) * (CLASS_DEFS[cls].hitDie / 2 + 1);
-        const worn = CLASS_DEFS[cls].starterKit.map((base) => ({ base, quality: 50, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }));
+        const kit = CLASS_DEFS[cls].starterKit;
+        const slots = kitSlots(kit);
+        const worn = kit.flatMap((base, i) => (slots[i] ? [{ base, slot: slots[i], quality: 50, upgrade: 0, radiant: false, bonusStats: [], uniqueId: null }] : []));
         const hero = heroCombat({ name: 'T', class: cls, race: 'human', level, talents: ['alert'], path: null, scores, maxHp, hp: maxHp, worn });
         const monsters = spawnEncounter(createRng(`${cls}-${floor}-${level}-${room}`), floor, 'fight');
         const input = { hero, monsters, uses: restUses(cls, level), potions: 1, runPowers: { deathless: false, lucky: false }, stance: 'bold' as const };

@@ -48,6 +48,10 @@ export const gearFactsSchema = z.object({
   armor: z.object({ ac: z.number().int(), body: z.boolean(), maxDex: z.number().int().nullable() }).nullable(),
   /** Heavy body armor: Sneaking at disadvantage. */
   heavy: z.boolean(),
+  /** Weapons: 2 when held in both hands, so nothing goes in the off-hand beside it (and its Bonus stats count twice). */
+  hands: z.union([z.literal(1), z.literal(2)]).default(1),
+  /** A light weapon (a dagger): it goes in either hand, and in the off-hand strikes once more each turn. */
+  light: z.boolean().default(false),
 });
 export type GearFactsView = z.infer<typeof gearFactsSchema>;
 

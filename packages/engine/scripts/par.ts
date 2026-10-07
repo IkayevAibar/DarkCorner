@@ -24,8 +24,19 @@ const suits = (cls: ClassId, b: GearBase) => canUse(cls, b)
   && !(cls === 'fighter' && (b.weapon === 'dagger' || b.weapon === 'bow'))
   && !(cls === 'ranger' && b.slot === 'main' && b.weapon !== 'bow');
 
-export function parHero(cls: ClassId, floor: number, level: number, pathIndex: number, seed: number, gearing?: Gearing): HeroCombat {
-  const rng = createRng(`par-${cls}-${floor}-${level}-${pathIndex}-${seed}`);
+/** What a par Hero holds, to compare one way of fighting with another: weapons for each hand (an empty off-hand: none fits). */
+export interface Build { main?: (b: GearBase) => boolean; off?: (b: GearBase) => boolean }
+
+/** The bases a par Hero picks from for a slot: its Class's usual gear, or a Build's; a Rogue's off-hand holds a dagger. */
+function choices(cls: ClassId, slot: (typeof SLOTS)[number], build?: Build): GearBase[] {
+  const usable = GEAR_BASES.filter((b) => canUse(cls, b));
+  if (slot === 'main' && build?.main) return usable.filter((b) => b.slot === 'main' && build.main!(b));
+  if (slot === 'off' && build?.off) return usable.filter((b) => (b.slot === 'off' || b.light) && build.off!(b));
+  if (slot === 'off') return usable.filter((b) => (b.slot === 'off' || (b.light && cls === 'rogue')) && suits(cls, b));
+  return usable.filter((b) => b.slot === slot && suits(cls, b));
+}
+
+export function parHero(cls: ClassId, floor: number, level: number, pathIndex: number, seed: number, gearing?: Gearing, build?: Build): HeroCombat {
   const def = CLASS_DEFS[cls];
   const primary = def.primary;
   const grown = GROWTH.filter((l) => l <= level).length;
@@ -37,25 +48,28 @@ export function parHero(cls: ClassId, floor: number, level: number, pathIndex: n
   const draws = gearing?.draws ?? 1 + floor;
   const worn: WornForCombat[] = [];
   let twoHanded = false;
+  let ring = 0;
   for (const slot of SLOTS) {
-    const bases = GEAR_BASES.filter((b) => b.slot === slot && suits(cls, b));
+    const bases = choices(cls, slot, build);
     if (bases.length === 0 || (slot === 'off' && twoHanded)) continue;
+    const into = slot === 'ring' ? (ring++ === 0 ? 'ring1' : 'ring2') : slot;
+    // Each slot rolls on its own, so holding other weapons leaves the rest of the gear as it was.
+    const rng = createRng(`par-${cls}-${floor}-${level}-${pathIndex}-${seed}-${into}`);
     let best: (WornForCombat & { rank: number }) | null = null;
     for (let d = 0; d < draws; d++) {
       const itemLevel = rng.int(from[0], from[1]);
       const tier = rollTier(rng, dropOdds(itemLevel));
       const unique = tier === 'legendary' || tier === 'mythic';
       const roll = rollGear(rng, { tier, itemLevel, baseId: unique ? undefined : rng.pick(bases).id });
-      const base = GEAR_BASES.find((b) => b.id === roll.base)!;
-      if (base.slot !== slot || !suits(cls, base)) continue;
+      if (!bases.some((b) => b.id === roll.base)) continue;
       const rank = tierRank(roll.tier) * 100 + roll.itemLevel;
       if (best === null || rank > best.rank) {
-        best = { base: roll.base, quality: roll.quality, upgrade: gearing?.upgrade ?? Math.floor(floor / 3), radiant: roll.radiant, bonusStats: roll.bonusStats, uniqueId: roll.uniqueId, rank };
+        best = { base: roll.base, slot: into, quality: roll.quality, upgrade: gearing?.upgrade ?? Math.floor(floor / 3), radiant: roll.radiant, bonusStats: roll.bonusStats, uniqueId: roll.uniqueId, rank };
       }
     }
     if (best) {
       worn.push(best);
-      if (slot === 'main' && GEAR_BASES.find((b) => b.id === best!.base)?.weapon === 'heavy') twoHanded = true;
+      if (slot === 'main' && GEAR_BASES.find((b) => b.id === best!.base)?.hands === 2) twoHanded = true;
     }
   }
   const path: PathId | null = level >= 3 ? pathsOf(cls)[pathIndex]!.id : null;
@@ -64,5 +78,5 @@ export function parHero(cls: ClassId, floor: number, level: number, pathIndex: n
 }
 
 /** A few par Heroes with different gear rolls, to even out luck. */
-export const heroesAt = (cls: ClassId, floor: number, level = parLevel(floor), pathIndex = 0, gearing?: Gearing, seeds = 3): HeroCombat[] =>
-  Array.from({ length: seeds }, (_, seed) => parHero(cls, floor, level, pathIndex, seed, gearing));
+export const heroesAt = (cls: ClassId, floor: number, level = parLevel(floor), pathIndex = 0, gearing?: Gearing, seeds = 3, build?: Build): HeroCombat[] =>
+  Array.from({ length: seeds }, (_, seed) => parHero(cls, floor, level, pathIndex, seed, gearing, build));

@@ -11,6 +11,7 @@
     "test": "vitest run",
     "balance:fights": "tsx scripts/fight-balance.ts",
     "balance:par": "tsx scripts/par-balance.ts",
+    "balance:hands": "tsx scripts/hands-balance.ts",
     "balance:delve": "tsx scripts/delve-balance.ts",
     "balance:duo": "tsx scripts/duo-balance.ts",
     "balance:twins": "tsx scripts/twin-balance.ts",

@@ -230,6 +230,14 @@ _Avoid_: stash, bank, vault
 **Starter kit**:
 The free basic gear a Hero receives when it is created and after every death.
 
+**Off-hand**:
+The worn slot for the hand without the main weapon: a shield, a focus (orb or holy symbol), or a dagger, whose extra blow each turn is the off-hand strike.
+_Avoid_: left hand, second hand
+
+**Two-handed**:
+A weapon that fills both hands, so the Off-hand stays empty: greatswords, greataxes, mauls and bows. Its Bonus stats count twice.
+_Avoid_: 2H, big weapon
+
 **Tier**:
 An Item's rarity: Common, Uncommon, Rare, Epic, Legendary or Mythic. Each Tier has its own color.
 _Avoid_: rarity, grade, quality

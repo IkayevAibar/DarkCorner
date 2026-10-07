@@ -6,7 +6,7 @@ const base: ItemView = {
   name: { en: 'Ring of the Watch', ru: 'Кольцо дозора' }, itemLevel: 4, identified: true,
   quality: 74, bonusStats: [{ en: '+3 Dexterity', ru: '+3 к ловкости' }, { en: '+9% Magic find', ru: '+9% к поиску магии' }], bonusStatIds: ['dex', 'magicFind'],
   power: null, radiant: false, upgrade: 0, serial: null, owners: null, art: null, worth: 120,
-  gear: { slot: 'ring', group: null, classes: null, damage: null, armor: null, heavy: false }, about: null,
+  gear: { slot: 'ring', group: null, classes: null, damage: null, armor: null, heavy: false, hands: 1, light: false }, about: null,
 };
 
 export const REVEALS = {

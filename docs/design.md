@@ -127,7 +127,16 @@ Weapons and armor come in types. Each Class can use some of the types, and the t
 | Light armor | ✓ | ✓ | | ✓ | ✓ | ✓ |
 | Robes | | | ✓ | ✓ | | |
 
-Starter kits: Fighter longsword, shield and chain mail; Rogue rapier, shortbow and leather; Wizard staff, orb and robes; Cleric mace, shield and breastplate; Barbarian greataxe and scale mail; Ranger longbow, shield and studded leather.
+Starter kits: Fighter longsword, shield and chain mail; Rogue rapier, a dagger in the off-hand and leather; Wizard staff, orb and robes; Cleric mace, shield and breastplate; Barbarian greataxe and scale mail; Ranger longbow and studded leather.
+
+### Hands
+
+What a Hero holds is a choice between ways of fighting: a weapon and a shield, one weapon in both hands, or a dagger beside the weapon.
+
+- **Two-handed** weapons fill both hands: greatswords, greataxes, mauls and every bow (shortbows, longbows, crossbows). The off-hand stays empty beside them, so their Bonus stats count twice *(v0)*, as a weapon's and an off-hand piece's would together; the Item card shows them doubled. Putting one on takes the off-hand piece off, and putting an off-hand piece on takes the two-handed weapon off. When both a weapon and an off-hand piece come off, the second needs room in the Bag (or Storage) the new weapon came from.
+- **Daggers** are light and go in either hand. A dagger in the off-hand, beside a weapon in the main hand, strikes once more every turn the Hero attacks: its own dice, without the ability modifier (a penalty still counts), and never with a Sneak attack *(v0)*. This weaker blow is the price of the second weapon. A dagger alone in the off-hand fights as the main weapon. Wizards and Clerics cast with neither hand, so for them a dagger counts only for its Bonus stats.
+- Shields, orbs and holy symbols go only in the off-hand; every other weapon only in the main hand.
+- Measured with par Heroes (`npm run balance:hands -w @dark/engine`): with doubled Bonus stats a two-hander stands level with a one-hander and a shield (without them it fell far behind), and a Rogue's blade and dagger, the strongest way for a Rogue, lands with the other Classes against the Dragon rather than above them.
 
 Robes are woven with wards: Armor Class 13 + the full DEX modifier *(v0)*, like the SRD's Mage armor, so a caster's body armor grows with Quality and Upgrades too.
 
@@ -576,7 +585,7 @@ Later: more minigames.
 
 ### Slots and space
 
-- **Worn:** main hand, off-hand, head, body, hands, feet, amulet and two rings.
+- **Worn:** main hand, off-hand, head, body, hands, feet, amulet and two rings. Which weapons go in which hand: Hands, above.
 - **Bag:** 20 slots *(v0)*. Potions, scrolls, Keys and Materials stack.
 - **Storage:** 60 slots *(v0)*. Houses add more later.
 

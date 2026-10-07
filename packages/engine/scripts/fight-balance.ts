@@ -12,7 +12,7 @@
  */
 import {
   CLASS_DEFS, type ClassId, type HeroCombat, type MonsterInstance, type PathId, STANCES, type StanceId, createRng, heroCombat, pathsOf, restUses,
-  simulateFight, spawnEncounter, startingHealth,
+  kitSlots, simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
 const stance = (process.argv[2] ?? 'steady') as StanceId;
@@ -32,9 +32,11 @@ function hero(cls: ClassId, level: number, gear: Gear = 'starter', path: PathId 
     decent: { quality: 70, upgrade: 3, bonusStats: [{ stat: 'damage', value: 12 }, { stat: 'spellPower', value: 12 }, { stat: 'maxHp', value: 20 }, { stat: 'armor', value: 1 }, { stat: 'crit', value: 3 }] },
     endgame: { quality: 90, upgrade: 7, bonusStats: [{ stat: 'damage', value: 40 }, { stat: 'spellPower', value: 40 }, { stat: 'maxHp', value: 90 }, { stat: 'armor', value: 4 }, { stat: 'crit', value: 10 }, { stat: 'con', value: 4 }] },
   }[gear];
-  const worn = CLASS_DEFS[cls].starterKit.map((base, i) => ({
-    base, quality: rolled.quality, upgrade: rolled.upgrade, radiant: false, bonusStats: i === 0 ? rolled.bonusStats : [], uniqueId: null,
-  }));
+  const kit = CLASS_DEFS[cls].starterKit;
+  const slots = kitSlots(kit);
+  const worn = kit.flatMap((base, i) => (slots[i] ? [{
+    base, slot: slots[i], quality: rolled.quality, upgrade: rolled.upgrade, radiant: false, bonusStats: i === 0 ? rolled.bonusStats : [], uniqueId: null,
+  }] : []));
   const h = heroCombat({ name: 'T', class: cls, race: 'human', level, talents: ['alert', 'tough'], path, scores, maxHp: hp, hp, worn });
   return { ...h, hp: h.maxHp };
 }

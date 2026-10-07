@@ -45,6 +45,10 @@ export interface GearFacts {
   armor: { ac: number; body: boolean; maxDex: number | null } | null;
   /** Heavy body armor: Sneaking at disadvantage. */
   heavy: boolean;
+  /** Weapons: 2 when held in both hands (nothing in the off-hand beside it). */
+  hands: 1 | 2;
+  /** A light weapon: it goes in either hand. */
+  light: boolean;
 }
 
 /** What a piece of gear does in a fight, by the numbers the fights use. */
@@ -64,6 +68,8 @@ export function gearFacts(base: GearBase, gear: Scaling): GearFacts {
         ? { ac: 10 + scaledArmor(base, gear, 10), body: true, maxDex: base.maxDex === undefined || base.maxDex === Infinity ? null : base.maxDex }
         : { ac: Math.max(1, scaledArmor(base, gear, 0)) + upgradeSteps(gear.upgrade), body: false, maxDex: null },
     heavy: base.slot === 'body' && base.armor === 'heavy',
+    hands: base.hands ?? 1,
+    light: base.light === true,
   };
 }
 
