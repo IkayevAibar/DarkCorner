@@ -545,8 +545,10 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       lastEmber: c.uniques.includes('last-ember'),
       /** Saint's Knuckle: the first Cure wounds of a fight gives its use back. */
       knuckle: c.uniques.includes('saints-knuckle'),
-      /** Rogue Uncanny dodge (from level 3, v0): the first hit each round deals half damage. */
-      dodges: c.class === 'rogue' && c.level >= UNCANNY_DODGE_LEVEL,
+      /**
+       * Rogue Uncanny dodge (from level 3, v0): the first hit of each fight deals half damage.
+       * Every round's first hit made Rogues all but unbeatable by Mini-bosses (balance:par).
+       */
       dodgeReady: c.class === 'rogue' && c.level >= UNCANNY_DODGE_LEVEL,
       /** Barbarian: in a Rage for the rest of the fight. */
       raging: false,
@@ -1375,7 +1377,6 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       currentRound = round;
       struckThisRound.clear();
       for (const s of sides) {
-        s.dodgeReady = s.dodges;
         s.riposteReady = s.path('guardian');
         // Rogues find another opening each round.
         if (s.c.class === 'rogue') s.sneakReady = true;

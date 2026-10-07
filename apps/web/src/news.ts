@@ -19,6 +19,15 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-07-uncanny',
+    date: '2026-10-07',
+    title: t('Rogues, a little less untouchable', 'Плуты чуть уязвимее'),
+    items: [
+      t('Uncanny dodge now halves the first hit on a Rogue in each fight, not in each round. It made Rogues all but unbeatable: they won nearly every Mini-boss fight, where the other Classes win from half to four in five. Sneak attack, the dagger in the off-hand and the Paths stay as they were.',
+        'Невероятное уклонение теперь вдвое ослабляет первый удар по плуту в каждом бою, а не в каждом раунде. Из-за него плуты были почти неуязвимы: выигрывали почти любой бой с мини-боссом, тогда как другие классы — от половины до четырёх из пяти. Скрытая атака, кинжал во второй руке и пути остаются как были.'),
+    ],
+  },
+  {
     id: '2026-10-07-routes',
     date: '2026-10-07',
     title: t('Routes on the Map', 'Маршруты на карте'),

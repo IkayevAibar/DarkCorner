@@ -15,7 +15,7 @@ describe('what a level gives', () => {
     expect(gains({ class: 'rogue', level: 2 })).toEqual([
       'Health: +5 to +8',
       'Sneak attack: 1d6 → 2d6',
-      'New: Uncanny dodge. The first hit on you each round deals half damage.',
+      'New: Uncanny dodge. The first hit on you in each fight deals half damage.',
       'Choose your Path.',
     ]);
   });

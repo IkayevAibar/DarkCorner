@@ -84,7 +84,7 @@ export const cureDice = (level: number): number => 1 + Math.floor(level / 4);
 /** A Rogue's Sneak attack on the fight's first hit: half the level in d6, rounded up. */
 export const sneakDice = (level: number): number => Math.ceil(level / 2);
 
-/** From this level a Rogue's Uncanny dodge halves the first hit each round. */
+/** From this level a Rogue's Uncanny dodge halves the first hit of each fight. */
 export const UNCANNY_DODGE_LEVEL = 3;
 
 /** One level's health: the Hit Die rolled, never below its average, plus CON, the Race's bonus and Tough. */
@@ -152,7 +152,7 @@ export function levelGains(hero: LevelingHero): Text[] {
   if (cls === 'rogue') {
     if (sneakDice(to) > sneakDice(from)) gains.push(change('Sneak attack', 'Скрытая атака', `${sneakDice(from)}d6`, `${sneakDice(to)}d6`));
     if (to === UNCANNY_DODGE_LEVEL) {
-      gains.push(text('New: Uncanny dodge. The first hit on you each round deals half damage.', 'Новое: невероятное уклонение. Первый удар по вам в каждом раунде наносит половину урона.'));
+      gains.push(text('New: Uncanny dodge. The first hit on you in each fight deals half damage.', 'Новое: невероятное уклонение. Первый удар по вам в каждом бою наносит половину урона.'));
     }
   }
 

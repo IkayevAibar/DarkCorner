@@ -153,7 +153,7 @@ export function heroFeatures(hero: FeatureHero): Feature[] {
       next: more ? atLevel(`${more.value}d6`, `${more.value}d6`, more.at) : null,
     }, {
       id: 'uncanny-dodge', icon: 'dodge', name: text('Uncanny dodge', 'Невероятное уклонение'), kind: dodges ? 'passive' : 'locked', uses: null,
-      now: text('The first hit on you each round deals half damage.', 'Первый удар по вам в каждом раунде наносит половину урона.'),
+      now: text('The first hit on you in each fight deals half damage.', 'Первый удар по вам в каждом бою наносит половину урона.'),
       next: dodges ? null : text(`Comes at level ${UNCANNY_DODGE_LEVEL}.`, `Приходит на ${UNCANNY_DODGE_LEVEL}-м уровне.`),
     }, {
       id: 'slip-away', icon: 'escape', name: text('Slip away', 'Ускользнуть'), kind: 'passive', uses: null,
