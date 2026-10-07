@@ -133,6 +133,6 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
       'Метко стреляет из лука. В тяжёлом бою помечает самого опасного врага и бьёт его сильнее, пока тот не падёт.',
     ),
     trick: text('Reads the tracks: always knows when a Clue lies.', 'Читает следы: всегда знает, когда подсказка лжёт.'),
-    starterKit: ['longbow', 'studded'],
+    starterKit: ['longbow', 'scale'],
   },
 };

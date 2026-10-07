@@ -74,7 +74,7 @@ describe('the Barbarian', () => {
 
 describe('the Ranger', () => {
   it('fights with DEX, a bow in its kit, and knows Clues', () => {
-    expect(CLASS_DEFS.ranger).toMatchObject({ hitDie: 10, primary: 'dex', offHands: ['shield'], starterKit: ['longbow', 'studded'] });
+    expect(CLASS_DEFS.ranger).toMatchObject({ hitDie: 10, primary: 'dex', offHands: ['shield'], starterKit: ['longbow', 'scale'] });
     expect([1, 5, 9, 13, 17].map(marks)).toEqual([2, 3, 4, 5, 6]);
   });
 
