@@ -12,6 +12,7 @@ const ICON: Record<HeroActionKind, Icon> = {
 };
 /** The Class power a turn can call before its action, by Class: its label and icon. */
 const POWER: Partial<Record<ClassId, { label: MessageKey; icon: Icon }>> = {
+  fighter: { label: 'live.power.fighter', icon: 'swords' },
   barbarian: { label: 'live.rage', icon: 'rage' },
   paladin: { label: 'live.power.paladin', icon: 'bolt' },
   monk: { label: 'live.power.monk', icon: 'swords' },

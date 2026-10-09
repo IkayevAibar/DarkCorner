@@ -97,7 +97,7 @@ export const fightEventSchema = z.discriminatedUnion('type', [
    * ward rises (`left`) or soaks `amount`, a Barbarian's Rage begins, a Ranger's Hunter's mark goes on `target`.
    */
   z.object({
-    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless', 'dodge', 'help', 'guard', 'smite', 'hex', 'flurry', 'wild-shape', 'inspiration', 'cutting-words', 'quickened']),
+    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless', 'dodge', 'help', 'guard', 'smite', 'hex', 'flurry', 'wild-shape', 'inspiration', 'cutting-words', 'quickened', 'action-surge']),
     amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(), target: z.string().optional(),
     actor: who,
   }),

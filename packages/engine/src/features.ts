@@ -3,7 +3,7 @@ import type { ClassId } from './content/classes.js';
 import { PATH_DEFS, PATH_LEVEL, PATH_MASTERY, type PathId, onPath } from './content/paths.js';
 import { type Text, text } from './content/text.js';
 import {
-  ARCHERY_BONUS, AURA_LEVEL, BEAST_TWIN_CLAWS, EVASION_LEVEL, FLURRY_STRIKES, MARK_DICE, MARTIAL_STRIKES, MAX_LEVEL, UNCANNY_DODGE_LEVEL, agathys,
+  ARCHERY_BONUS, AURA_LEVEL, BEAST_TWIN_CLAWS, EVASION_LEVEL, FLURRY_STRIKES, MARK_DICE, MARTIAL_STRIKES, MAX_LEVEL, UNCANNY_DODGE_LEVEL, actionSurges, agathys,
   attacksPerTurn, burstDice, cureDice, inspirationDie, layOnHands, martialDie, rageDamage, restUses, smiteDice, sneakDice, spellDice, wildShapeHealth,
 } from './levels.js';
 
@@ -123,10 +123,21 @@ export function heroFeatures(hero: FeatureHero): Feature[] {
   const out: Feature[] = [];
 
   if (hero.class === 'fighter') {
+    const surges = actionSurges(level);
+    const moreSurges = nextGrowth(level, actionSurges);
+    const times = (n: number) => (n === 1 ? text('Once', 'Раз') : text('Twice', 'Дважды'));
     out.push({
       id: 'second-wind', icon: 'wind', name: text('Second wind', 'Второе дыхание'), kind: 'fight', uses: null,
       now: text(`Once a fight, below 45% health: heals 1d10 + ${level}.`, `Раз за бой, когда здоровья меньше 45%: лечит 1d10 + ${level}.`),
       next: text('Heals 1 more with every level.', 'С каждым уровнем лечит на 1 больше.'),
+    }, {
+      id: 'action-surge', icon: 'swords', name: text('Action Surge', 'Всплеск действий'), kind: surges > 0 ? 'fight' : 'locked', uses: null,
+      now: surges > 0
+        ? text(`${times(surges).en} a fight, ${HARD_FIGHT.en}: every attack again in the same turn.`, `${times(surges).ru} за бой, ${HARD_FIGHT.ru}: все атаки ещё раз в тот же ход.`)
+        : text('Once a fight: every attack again in the same turn.', 'Раз за бой: все атаки ещё раз в тот же ход.'),
+      next: !moreSurges ? null
+        : surges === 0 ? text(`Comes at level ${moreSurges.at}.`, `Приходит на ${moreSurges.at}-м уровне.`)
+          : atLevel('Twice a fight', 'Дважды за бой', moreSurges.at),
     }, extraAttack(hero));
   }
 

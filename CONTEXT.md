@@ -365,6 +365,10 @@ _Avoid_: target, quarry
 A Warlock's curse that works like a Hunter's mark: the toughest monster of a hard fight, attacked first, hurt more by every hit, and the Hex moves on when it falls. A few a rest.
 _Avoid_: curse (a cursed Item is something else), mark (that's the Ranger's)
 
+**Action Surge** (всплеск действий):
+A Fighter's burst: every attack of a turn once more, once a fight (twice from level 17).
+_Avoid_: double turn, haste
+
 **Divine smite** (божественная кара):
 A Paladin's holy fire poured into the turn's first hit, worst for the undead and demons. A few a rest.
 _Avoid_: holy strike, smite (alone)

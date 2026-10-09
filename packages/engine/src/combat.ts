@@ -17,7 +17,7 @@ import { type Edge, rollD20, rollDice, sum } from './dice.js';
 import { type Rng, createRng } from './rng.js';
 import {
   ARCHERY_BONUS, AURA_LEVEL, EVASION_LEVEL, FLURRY_STRIKES, MARK_DICE, MARTIAL_STRIKES, type RestUses, agathys, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice,
-  BEAST_TWIN_CLAWS, inspirationDie, layOnHands, martialDie, proficiencyBonus, rageDamage, smiteDice, sneakDice, spellDice, wildShapeHealth,
+  BEAST_TWIN_CLAWS, actionSurges, inspirationDie, layOnHands, martialDie, proficiencyBonus, rageDamage, smiteDice, sneakDice, spellDice, wildShapeHealth,
 } from './levels.js';
 import { type WornGear, armorClass, gearFactor } from './stats.js';
 
@@ -332,8 +332,9 @@ export type FightEvent =
    * (a Warlock's Hex goes on `target`), `flurry` (a Monk's Flurry of blows), `wild-shape` (a
    * Druid becomes a beast with `left` health, or the beast soaks `amount` of a hit and has
    * `left`; 0 is its own shape again), `inspiration` (a Bard's die, `amount`, turns its missed
-   * spell into a hit), `cutting-words` (a Bard's die, `amount`, turns aside `target`'s blow)
-   * and `quickened` (a Sorcerer casts two attack spells this turn).
+   * spell into a hit), `cutting-words` (a Bard's die, `amount`, turns aside `target`'s blow),
+   * `quickened` (a Sorcerer casts two attack spells this turn) and `action-surge` (a Fighter
+   * makes every attack of the turn once more).
    */
   | {
     type: 'feature'; feature: FeatureEventId;
@@ -375,7 +376,7 @@ export type FightEvent =
 export type BlockedBy = 'aegis' | 'shield' | 'entropic-ward' | 'cloak-of-shadows';
 export type HealAbility = 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal' | 'lay-on-hands' | 'wholeness' | 'dark-blessing';
 export type FeatureEventId = 'survivor' | 'indomitable' | 'ward' | 'rage' | 'mark' | 'relentless' | 'dodge' | 'help' | 'guard'
-  | 'smite' | 'hex' | 'flurry' | 'wild-shape' | 'inspiration' | 'cutting-words' | 'quickened';
+  | 'smite' | 'hex' | 'flurry' | 'wild-shape' | 'inspiration' | 'cutting-words' | 'quickened' | 'action-surge';
 
 /** Which Hero an event is about: the one whose fight it is, or its Duo partner. */
 export type HeroKey = 'hero' | 'ally';
@@ -447,7 +448,7 @@ export type HeroActionKind = (typeof HERO_ACTIONS)[number];
  * before the action. `rage` is the Class's own power: a Barbarian starts its Rage, a
  * Paladin calls a Divine smite for this turn's first hit, a Monk a Flurry of blows for
  * this turn's attack, a Druid takes its Wild shape, a Sorcerer Quickens this turn's attack
- * spell. `mark` puts a Ranger's Hunter's mark
+ * spell, a Fighter makes an Action Surge (this turn's attacks twice). `mark` puts a Ranger's Hunter's mark
  * or a Warlock's Hex on that monster. 'auto' hands the Hero to the AI for the rest of the
  * fight; 'ai' lets the AI take just this turn (a Duo turn that ran out of time).
  */
@@ -476,7 +477,7 @@ export interface TurnOptions {
   targets: string[];
   /** Heroes its Cure wounds (or Lay on hands) can reach, a fallen partner too. */
   cure: HeroKey[];
-  /** It can call its Class's power (Rage, Divine smite, Flurry of blows, Wild shape, Quickened spell), or place a Hunter's mark or a Hex, before acting. */
+  /** It can call its Class's power (Rage, Divine smite, Flurry of blows, Wild shape, Quickened spell, Action Surge), or place a Hunter's mark or a Hex, before acting. */
   rage: boolean;
   mark: boolean;
   /** Attacks an 'attack' makes this turn. */
@@ -590,6 +591,10 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       potionsUsed: 0,
       goldLeft: from.gold ?? 0,
       secondWind: c.class === 'fighter',
+      /** Fighter, Action Surge: every attack of a turn once more, this many times a fight. */
+      surges: c.class === 'fighter' ? actionSurges(c.level) : 0,
+      /** Fighter: an Action Surge called for this turn, spent on its attack. */
+      surging: false,
       sneakReady: c.class === 'rogue',
       openedFight: false,
       firstHitCrit: c.uniques.includes('gravewhisper') || path('assassin', PATH_MASTERY),
@@ -1124,11 +1129,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     s.uses.heals <= 0 || stage === 'after-cure' ? []
       : sides.filter((x) => x.out === null && (x.down !== null || (x.c.hp > 0 && x.c.hp < x.c.maxHp)));
 
-  /** Whether a Hero can call its Class's power now: a Rage, a Divine smite, a Flurry of blows, a Wild shape, a Quickened spell. */
-  const powerReady = (s: Side): boolean => s.uses.spells > 0 && alive().length > 0 && (
+  /**
+   * Whether a Hero can call its Class's power now: a Rage, a Divine smite, a Flurry of blows, a Wild shape,
+   * a Quickened spell (uses a rest), or an Action Surge (its own few a fight).
+   */
+  const powerReady = (s: Side): boolean => alive().length > 0 && (s.c.class === 'fighter' ? s.surges > 0 : s.uses.spells > 0 && (
     s.c.class === 'barbarian' ? !s.raging
       : s.c.class === 'druid' ? !s.shaped
-        : s.c.class === 'paladin' || s.c.class === 'monk' || s.c.class === 'sorcerer');
+        : s.c.class === 'paladin' || s.c.class === 'monk' || s.c.class === 'sorcerer'));
 
   /** What a Hero can do at this point of its turn. */
   const options = (s: Side, stage: Stage): TurnOptions => {
@@ -1214,6 +1222,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         if ((c.class === 'barbarian' || c.class === 'druid') && (hardFight() || c.hp < c.maxHp / 2)) action.rage = true;
         if (c.class === 'paladin' && (big || (hardFight() && !s.smote))) action.rage = true;
         if (c.class === 'monk' && (big || (hardFight() && !s.smote))) action.rage = true;
+        // A Fighter surges as a hard fight starts (a second at once, from level 17, while the fight stays hard).
+        if (c.class === 'fighter' && hardFight()) action.rage = true;
         // A Sorcerer Bursts while two or more stand, and Quickens its spell on a lone hard foe (a master of Wild Magic Bursts that too).
         if (c.class === 'sorcerer' && hardFight() && alive().length === 1 && !loneBurst(s)) action.rage = true;
       }
@@ -1276,10 +1286,11 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     s.marked = key;
     events.push({ type: 'feature', feature: s.markFeature, target: key, ...tag(s) });
   };
-  /** The Class's own power, called before the action: a Rage, a Divine smite, a Flurry of blows, a Wild shape, a Quickened spell. */
+  /** The Class's own power, called before the action: a Rage, a Divine smite, a Flurry of blows, a Wild shape, a Quickened spell, an Action Surge. */
   const callPower = (s: Side) => {
     if (s.c.class === 'barbarian') startRage(s);
-    // A smite waits for the turn's first hit and a Flurry for its attack: neither is spent without one.
+    if (s.c.class === 'fighter') s.surging = true;
+    // A smite waits for the turn's first hit, and a Flurry or a Surge for its attack: none is spent without one.
     if (s.c.class === 'paladin') s.smiting = true;
     if (s.c.class === 'monk') s.flurry = true;
     if (s.c.class === 'sorcerer') s.quicken = true;
@@ -1310,6 +1321,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     s.smiting = false;
     s.flurry = false;
     s.quicken = false;
+    s.surging = false;
     // Vengeance, Vow of enmity: sworn against the toughest monster of a hard fight.
     if (s.path('vengeance') && s.vowed === null && hardFight()) s.vowed = toughest()?.key ?? null;
     let stage: Stage = 'start';
@@ -1404,6 +1416,12 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
             s.uses.spells--;
             attacks += 1;
             events.push({ type: 'feature', feature: 'quickened', ...tag(s) });
+          }
+          // Action Surge: every attack of the turn once more.
+          if (s.surging && s.surges > 0) {
+            s.surges--;
+            attacks += attacksFor(s);
+            events.push({ type: 'feature', feature: 'action-surge', ...tag(s) });
           }
           for (let i = 0; i < attacks && alive().length > 0 && c.hp > 0; i++) heroAttack(s, undefined, action.target);
           if (offHanded(s) && alive().length > 0 && c.hp > 0) heroAttack(s, undefined, action.target, true);

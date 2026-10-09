@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-action-surge',
+    date: '2026-10-10',
+    title: t('Action Surge for the Fighter', 'Всплеск действий для воина'),
+    items: [
+      t('From level 2, once a fight, a Fighter can make every attack again in the same turn; twice a fight from level 17. On Auto it surges as a hard fight starts; in a fight played by hand it has its own button.',
+        'Со 2-го уровня воин раз за бой может повторить все атаки в тот же ход, а с 17-го — дважды за бой. В авто-бою всплеск приходит в начале тяжёлого боя, а в бою по ходам у него своя кнопка.'),
+      t('The Fighter was the weakest Class against Mini-bosses. Now it sits in the middle.',
+        'Воин был слабее всех против мини-боссов. Теперь он в середине.'),
+    ],
+  },
+  {
     id: '2026-10-10-classes',
     date: '2026-10-10',
     title: t('Six new Classes', 'Шесть новых классов'),

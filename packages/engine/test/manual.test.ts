@@ -45,7 +45,8 @@ describe('Manual fights', () => {
     const input = solo(starter('fighter', 3), 2, 'stop');
     const first = playFight(createRng('stop'), input, { manual: ['hero'], choices: [] });
     if (!paused(first)) throw new Error('expected a pause');
-    expect(first.turn).toMatchObject({ hero: 'hero', continuing: false, rage: false, mark: false });
+    // A Fighter from level 2 can call its Action Surge before acting (the `rage` toggle); it has no mark.
+    expect(first.turn).toMatchObject({ hero: 'hero', continuing: false, rage: true, mark: false });
     expect(first.turn.actions).toEqual(expect.arrayContaining(['attack', 'second-wind', 'potion', 'escape', 'dodge']));
     expect(first.turn.actions).not.toContain('help');
     const target = first.turn.targets.at(-1)!;
@@ -63,8 +64,12 @@ describe('Manual fights', () => {
     expect(play({ kind: 'burst' })).toThrow(InvalidChoice);
     expect(play({ kind: 'attack', target: 'm9' })).toThrow(InvalidChoice);
     expect(play({ kind: 'help' })).toThrow(InvalidChoice);
-    expect(play({ kind: 'attack', rage: true })).toThrow(InvalidChoice);
+    expect(play({ kind: 'attack', mark: 'm0' })).toThrow(InvalidChoice);
     expect(play({ kind: 'attack' }, 'ally')).toThrow(/turn/);
+    // No Action Surge before level 2.
+    const early = solo(starter('fighter', 1), 2, 'refuse');
+    expect(() => playFight(createRng('refuse'), early, { manual: ['hero'], choices: [{ hero: 'hero', action: { kind: 'attack', rage: true } }] }))
+      .toThrow(InvalidChoice);
   });
 
   it('replay the same fight from the same seed and choices', () => {

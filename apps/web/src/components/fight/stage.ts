@@ -349,7 +349,8 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         case 'blocked': if (b) ring(b.x, b.y, event.by === 'shield' ? 0x94dcf4 : 0xe4c986, 100, 0); break;
         case 'feature': {
           if (event.feature === 'rage' || event.feature === 'mark' || event.feature === 'relentless' || event.feature === 'hex' || event.feature === 'smite'
-            || event.feature === 'flurry' || event.feature === 'inspiration' || event.feature === 'cutting-words' || event.feature === 'quickened') break;
+            || event.feature === 'flurry' || event.feature === 'inspiration' || event.feature === 'cutting-words' || event.feature === 'quickened'
+            || event.feature === 'action-surge') break;
           if (!a) break;
           if (event.feature === 'help' && b) { mend(a, b); ring(b.x, b.y, 0xaee6df, b.radius + 30); break; }
           if (event.feature === 'guard' || event.feature === 'dodge') {

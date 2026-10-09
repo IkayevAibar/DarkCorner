@@ -98,7 +98,7 @@ Season 0 started with the classic party of four; the Barbarian and the Ranger jo
 
 | Class | Hit die | In fights | In the Labyrinth |
 |---|---|---|---|
-| Fighter | d10 | Heavy armor, extra attacks. Second wind heals once per fight. | Smashes cracked walls to open shortcuts that only Fighters and Barbarians can use. |
+| Fighter | d10 | Heavy armor, extra attacks. Second wind heals once per fight. **Action Surge** *(v0, 2026-10-10)*, from level 2: once a fight (twice from level 17), every attack again in the same turn; the AI calls it as a hard fight starts. It lifted the Fighter from the weakest Class to the middle: par Fighters from Floor 3 died in 2.8% of Rooms instead of 5.1%, lost 34% of their health instead of 41%, and won 42% of Mini-boss fights instead of 26%. | Smashes cracked walls to open shortcuts that only Fighters and Barbarians can use. |
 | Rogue | d8 | Critical hits, strikes first. A full Sneak attack (half its level in d6) on the first hit of a fight, and a smaller one (a sixth of its level) on its first hit of each later round. **Uncanny dodge** (from level 3): the first hit on it in each fight deals half damage *(v0)*. It used to be every round's first hit, which made Rogues all but unbeatable by Mini-bosses (par Rogues won 95–100% of them, against 50–80% for most Classes). | Picks locks, disarms traps, spots lying Clues, has the best odds on Sneaking and Escape rolls. |
 | Wizard | d6 | Big spell damage but fragile. Limited spells per rest. **Shield:** the first blow of every fight that would hit is turned aside *(v0)*. | Senses traps and curses. Identifies Items for free. |
 | Cleric | d8 | Heals itself. Its spells are deadly to undead. | Rolls with advantage at Shrines. |
@@ -312,7 +312,7 @@ Every fight in a Room (monsters in the doorway, Mini-bosses, the Dragon) is play
   - **Dodge:** until its next turn, blows at it have disadvantage.
   - **Escape:** an Escape roll (alone only).
   - In a Duo: **Help**, **Guard** and **Pull up** (Duos, below).
-- **Free, before the action:** a Barbarian can start its Rage, a Druid take its Wild shape, a Paladin call a Divine smite for the turn's first hit, a Monk a Flurry of blows for its attack, and a Sorcerer Quicken its spell; a Ranger can put its Hunter's mark, and a Warlock its Hex, on a monster. A smite, a Flurry or a Quickened spell that the turn doesn't use costs nothing.
+- **Free, before the action:** a Fighter can make an Action Surge for its attack, a Barbarian start its Rage, a Druid take its Wild shape, a Paladin call a Divine smite for the turn's first hit, a Monk a Flurry of blows for its attack, and a Sorcerer Quicken its spell; a Ranger can put its Hunter's mark, and a Warlock its Hex, on a monster. A smite, a Flurry, a Quickened spell or an Action Surge that the turn doesn't use costs nothing.
 - **A second action:** Preserve life's free Cure wounds and a Thief's Fast hands potion give the turn another choice.
 - **Auto:** the Hero fights the rest on its own, the way it always has: the same AI plays fights in events and the Daily Delve. From the doorway, **Auto** fights the whole fight at once. On Auto, a Hero's Stance also decides when it tries to escape; played by hand, Escape is the Player's call.
 - **The dice:** the server rolls every one. It keeps each fight's seed and the choices made, and plays it again from the start to where it stands, so a fight looks the same to everyone and can't be rolled over.

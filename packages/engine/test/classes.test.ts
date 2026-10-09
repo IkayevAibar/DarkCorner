@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type HeroCombat, MARK_DICE, type MonsterInstance, type PathId, attacksPerTurn,
+  CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type HeroCombat, MARK_DICE, type MonsterInstance, type PathId, actionSurges, attacksPerTurn,
   breaksWalls, createRng, heroCombat, heroFeatures, instantiate, levelGains, marks, monsterById, pathsOf, portraitsFor, rageDamage, rages,
   restUses, simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
@@ -19,6 +19,43 @@ const input = (hero: HeroCombat, monsters: MonsterInstance[]): FightInput => ({
 });
 
 const goblins = (n: number, floor = 1) => Array.from({ length: n }, (_, i) => instantiate(monsterById('goblin'), floor, `m${i}`));
+
+describe('the Fighter', () => {
+  const sturdy = (h: HeroCombat): HeroCombat => ({ ...h, hp: 999, maxHp: 999 });
+  /** A Mini-boss that won't fall soon, so the Fighter's turns can be counted. */
+  const wall = (): MonsterInstance => ({ ...instantiate(monsterById('goblin-chieftain'), 1, 'm0'), hp: 999, maxHp: 999 });
+  const surges = (events: FightEvent[]) => events.filter((e) => e.type === 'feature' && e.feature === 'action-surge');
+  /** The Hero's attacks in its first turn: every one it makes before a monster's next. */
+  const firstTurn = (events: FightEvent[]) => {
+    const all = events.filter((e): e is Extract<FightEvent, { type: 'attack' }> => e.type === 'attack');
+    let n = 0;
+    for (let i = all.findIndex((e) => e.actor === 'hero'); i >= 0 && i < all.length && all[i]!.actor === 'hero'; i++) n++;
+    return n;
+  };
+
+  it('makes an Action Surge from level 2, twice a fight from level 17: every attack again in the same turn', () => {
+    expect([1, 2, 16, 17].map(actionSurges)).toEqual([0, 1, 1, 2]);
+    const at = (level: number) => simulateFight(createRng(`surge-${level}`), input(sturdy(starter('fighter', level)), [wall()]));
+    expect(surges(at(1).events)).toHaveLength(0);
+    expect(surges(at(2).events)).toHaveLength(1);
+    expect(surges(at(17).events)).toHaveLength(2);
+    // Level 5: two attacks, and two more on the turn it surges.
+    const r = at(5);
+    expect(firstTurn(r.events)).toBe(4);
+    expect(r.events[r.events.findIndex((e) => e.type === 'attack' && e.actor === 'hero') - 1]).toMatchObject({ type: 'feature', feature: 'action-surge' });
+  });
+
+  it('keeps its Surge for a hard fight: a lone goblin gets none', () => {
+    const r = simulateFight(createRng('surge-lone'), input(sturdy(starter('fighter', 5)), goblins(1)));
+    expect(surges(r.events)).toHaveLength(0);
+  });
+
+  it('says what level 2 and level 17 bring', () => {
+    const gains = (level: number) => levelGains({ class: 'fighter', race: 'human', path: null, level, con: 14, talents: [] }).map((g) => g.en);
+    expect(gains(1)).toContain('New: Action Surge. Once a fight, every attack again in the same turn.');
+    expect(gains(16).join(' | ')).toContain('Action Surges a fight');
+  });
+});
 
 describe('the Barbarian', () => {
   it('has the biggest Hit Die, STR, and an axe in its kit', () => {

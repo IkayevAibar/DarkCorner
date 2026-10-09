@@ -24,6 +24,7 @@ The events are in `packages/shared/src/labyrinth.ts` (`fightEventSchema`); the f
 | `feature: 'inspiration'` (`amount`) | A Bard's die lands its missed spell: the next event is that spell's hit. | nothing |
 | `feature: 'cutting-words'` (`amount`, `target`) | A Bard's die turns aside `target`'s blow: the next event is that monster's miss. | nothing |
 | `feature: 'quickened'` | A Sorcerer casts two attack spells this turn. | nothing |
+| `feature: 'action-surge'` | A Fighter's Action Surge: every attack of the turn once more. | nothing |
 | `blocked` with `by: 'entropic-ward'` or `'cloak-of-shadows'` | A Great Old One Warlock's or a Shadow Monk's first-blow ward. | the Aegis's gold ring |
 
 - Hero tokens carry their Class (`Combatant.class`), so a Warlock's beams, a Druid's claws (a weapon hit while it is a beast) and a Bard's mockery can look their own way too, as a Cleric's spells come down as light and a Wizard's fly as bolts.

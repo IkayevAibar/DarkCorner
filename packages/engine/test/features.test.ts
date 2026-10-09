@@ -18,6 +18,8 @@ describe('the belt’s class features', () => {
 
   it('shows what a level will bring as locked, and says when', () => {
     const fighter = byId({ class: 'fighter', level: 2 });
+    expect(fighter['action-surge']).toMatchObject({ kind: 'fight', next: { en: 'Twice a fight at level 17.' } });
+    expect(byId({ class: 'fighter', level: 1 })['action-surge']).toMatchObject({ kind: 'locked', next: { en: 'Comes at level 2.' } });
     expect(fighter['extra-attack']).toMatchObject({ kind: 'locked' });
     expect(fighter['extra-attack']!.next!.en).toBe('2 attacks a turn at level 5.');
     expect(fighter.path).toMatchObject({ kind: 'locked' });

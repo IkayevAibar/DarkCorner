@@ -61,6 +61,9 @@ export function restUses(cls: ClassId, level: number, path: PathId | null = null
   return { spells: spells[cls], heals: heals[cls] ?? 0 };
 }
 
+/** A Fighter's Action Surges a fight (v0): one from level 2, two from 17, as in the SRD (there a short rest brings them back). */
+export const actionSurges = (level: number): number => (level >= 17 ? 2 : level >= 2 ? 1 : 0);
+
 /** A Paladin's Divine smites a rest (v0): 2, and one more at 6, 12 and 18. */
 export const smites = (level: number): number => 2 + Math.floor(level / 6);
 /** Divine smite: this many d8 of holy fire on the hit (2, 3 from 9, 4 from 17), one more against undead and demons (v0); a master of Vengeance adds one. */
@@ -197,6 +200,11 @@ export function levelGains(hero: LevelingHero): Text[] {
   const more = (en: string, ru: string, kind: 'spells' | 'heals') => {
     if (uses[1][kind] > uses[0][kind]) gains.push(change(en, ru, uses[0][kind], uses[1][kind]));
   };
+  if (cls === 'fighter' && actionSurges(to) > actionSurges(from)) {
+    gains.push(actionSurges(from) === 0
+      ? text('New: Action Surge. Once a fight, every attack again in the same turn.', 'Новое: всплеск действий. Раз за бой — все атаки ещё раз в тот же ход.')
+      : change('Action Surges a fight', 'Всплесков действий за бой', actionSurges(from), actionSurges(to)));
+  }
   if (cls === 'paladin') {
     more('Divine smites a rest', 'Божественных кар за отдых', 'spells');
     if (smiteDice(to, hero.path) > smiteDice(from, hero.path)) gains.push(change('Divine smite', 'Божественная кара', `${smiteDice(from, hero.path)}d8`, `${smiteDice(to, hero.path)}d8`));

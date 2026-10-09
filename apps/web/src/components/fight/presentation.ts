@@ -152,6 +152,7 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
       if (e.feature === 'hex') return t('fight.feature.hex', { name: self, target: n(e.target ?? '') });
       if (e.feature === 'flurry') return t('fight.feature.flurry', { name: self });
       if (e.feature === 'quickened') return t('fight.feature.quickened', { name: self });
+      if (e.feature === 'action-surge') return t('fight.feature.actionSurge', { name: self });
       if (e.feature === 'inspiration') return t('fight.feature.inspiration', { name: self, n: e.amount ?? 0 });
       if (e.feature === 'cutting-words') return t('fight.feature.cuttingWords', { name: self, n: e.amount ?? 0, target: n(e.target ?? '') });
       if (e.feature === 'wild-shape') {
