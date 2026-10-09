@@ -103,6 +103,17 @@ describe('the Shops', () => {
     const epic = await giveGear(hero.id, rollGear(createRng('s1'), { tier: 'epic', itemLevel: 3, identified: true }));
     expect((await post(cookie, `/api/items/${epic.id}/sell`)).json().gold).toBe(Math.round(Math.round(250 * 1.3) * 1.08));
   });
+
+  it('deals a quarter better to a Hero wearing the Usurper’s Signet', async () => {
+    const { cookie, hero } = await makeHero('Usurper');
+    await prisma.item.create({
+      data: { ...gearData(rollGear(createRng('u1'), { tier: 'mythic', itemLevel: 5, uniqueId: 'usurpers-signet', identified: true }), 'test'), seasonId, heroId: hero.id, place: 'WORN', slot: 'ring1', bonusStats: [] },
+    });
+    const shop = (await get(cookie, '/api/shop')).json();
+    expect(shop.sellRate).toBeCloseTo(1.25);
+    const epic = await giveGear(hero.id, rollGear(createRng('s1'), { tier: 'epic', itemLevel: 3, identified: true }));
+    expect((await post(cookie, `/api/items/${epic.id}/sell`)).json().gold).toBe(Math.round(Math.round(250 * 1.3) * 1.25));
+  });
 });
 
 describe('identifying and Chests', () => {
@@ -311,8 +322,9 @@ describe('the Training grounds', () => {
 describe('selling and Salvage in bulk', () => {
   /** A Bag holding what a bulk sale up to Rare takes, and what it must leave. */
   async function mixedBag(heroId: string) {
+    // Never Radiant by chance (1 in 200): bulk selling keeps Radiant Items, which the test sets up on purpose below.
     const roll = (tier: 'common' | 'uncommon' | 'rare' | 'epic', identified = true) =>
-      rollGear(createRng(`bulk-${tier}-${Math.random()}`), { tier, itemLevel: 2, identified });
+      rollGear(createRng(`bulk-${tier}-${Math.random()}`), { tier, itemLevel: 2, identified, radiant: false });
     const taken = [await giveGear(heroId, roll('common')), await giveGear(heroId, roll('uncommon')), await giveGear(heroId, roll('rare'))];
     const above = await giveGear(heroId, roll('epic'));
     const unseen = await giveGear(heroId, roll('rare', false));

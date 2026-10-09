@@ -10,8 +10,10 @@ export type ItemKind = 'gear' | 'potion' | 'scroll' | 'bomb' | 'key' | 'chest' |
 interface BaseCommon {
   id: string;
   name: Text;
-  /** Icon key for the web (game-icons.net silhouettes later). */
+  /** Icon key for the web: a game-icons.net silhouette, shown until the base is painted. */
   icon: string;
+  /** Painted art under apps/web/public/art/gear (docs/art/gear-prompts.md); a unique's own painting wins over it. */
+  art?: string;
 }
 
 export interface GearBase extends BaseCommon {
@@ -64,17 +66,26 @@ export const BASES: ItemBase[] = [
   gear({ id: 'warhammer', name: text('Warhammer', 'Боевой молот'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 8], hits: 'bludgeon' }),
   gear({ id: 'staff', name: text('Staff', 'Посох'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 6], hits: 'bludgeon' }),
   gear({ id: 'wand', name: text('Wand', 'Жезл'), icon: 'staff', slot: 'main', weapon: 'staff', damage: [1, 4], hits: 'bludgeon' }),
+  // The second wave (2026-10-10): side-grades with their own feel, not straight upgrades.
+  gear({ id: 'flail', name: text('Flail', 'Цеп'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [2, 4], hits: 'bludgeon' }),
+  gear({ id: 'morningstar', name: text('Morningstar', 'Моргенштерн'), icon: 'mace', slot: 'main', weapon: 'mace', damage: [1, 8], hits: 'pierce' }),
+  gear({ id: 'halberd', name: text('Halberd', 'Алебарда'), icon: 'axe', slot: 'main', weapon: 'heavy', damage: [3, 4], hits: 'slash', hands: 2 }),
+  // A bow in one hand: smaller, but a shield or a dagger fits beside it.
+  gear({ id: 'hand-crossbow', name: text('Hand crossbow', 'Ручной арбалет'), icon: 'bow', slot: 'main', weapon: 'bow', damage: [1, 6], hits: 'pierce' }),
 
   // Off-hands
   gear({ id: 'shield', name: text('Shield', 'Щит'), icon: 'shield', slot: 'off', offHand: 'shield', ac: 2 }),
   gear({ id: 'orb', name: text('Orb', 'Сфера'), icon: 'orb', slot: 'off', offHand: 'orb' }),
   gear({ id: 'holy-symbol', name: text('Holy symbol', 'Священный символ'), icon: 'holy-symbol', slot: 'off', offHand: 'holy-symbol' }),
+  gear({ id: 'tome', name: text('Tome', 'Фолиант'), icon: 'scroll', slot: 'off', offHand: 'orb' }),
 
   // Body armor: base AC and how much DEX still counts
   gear({ id: 'plate', name: text('Plate armor', 'Латы'), icon: 'armor', slot: 'body', armor: 'heavy', ac: 18, maxDex: 0 }),
   gear({ id: 'chainmail', name: text('Chain mail', 'Кольчуга'), icon: 'armor', slot: 'body', armor: 'heavy', ac: 16, maxDex: 0 }),
   gear({ id: 'breastplate', name: text('Breastplate', 'Кираса'), icon: 'armor', slot: 'body', armor: 'medium', ac: 14, maxDex: 2 }),
   gear({ id: 'scale', name: text('Scale mail', 'Чешуйчатый доспех'), icon: 'armor', slot: 'body', armor: 'medium', ac: 14, maxDex: 2 }),
+  gear({ id: 'half-plate', name: text('Half plate', 'Полулаты'), icon: 'armor', slot: 'body', armor: 'medium', ac: 15, maxDex: 1 }),
+  gear({ id: 'splint', name: text('Splint mail', 'Наборный доспех'), icon: 'armor', slot: 'body', armor: 'heavy', ac: 17, maxDex: 0 }),
   gear({ id: 'leather', name: text('Leather armor', 'Кожаный доспех'), icon: 'armor', slot: 'body', armor: 'light', ac: 11, maxDex: Infinity }),
   gear({ id: 'studded', name: text('Studded leather', 'Проклёпанная кожа'), icon: 'armor', slot: 'body', armor: 'light', ac: 12, maxDex: Infinity }),
   // Robes are woven with wards (Mage armor): 13 + DEX, so a caster's body armor grows with Quality and Upgrades too.
@@ -88,6 +99,11 @@ export const BASES: ItemBase[] = [
   gear({ id: 'boots', name: text('Boots', 'Сапоги'), icon: 'boots', slot: 'feet' }),
   gear({ id: 'amulet', name: text('Amulet', 'Амулет'), icon: 'amulet', slot: 'amulet' }),
   gear({ id: 'ring', name: text('Ring', 'Кольцо'), icon: 'ring', slot: 'ring' }),
+  gear({ id: 'circlet', name: text('Circlet', 'Венец'), icon: 'helm', slot: 'head' }),
+  gear({ id: 'bracers', name: text('Bracers', 'Наручи'), icon: 'gloves', slot: 'hands' }),
+  gear({ id: 'greaves', name: text('Greaves', 'Поножи'), icon: 'boots', slot: 'feet' }),
+  gear({ id: 'talisman', name: text('Talisman', 'Талисман'), icon: 'amulet', slot: 'amulet' }),
+  gear({ id: 'signet', name: text('Signet ring', 'Перстень-печатка'), icon: 'ring', slot: 'ring' }),
   gear({ id: 'bond-ring', name: text('Bond ring', 'Кольцо уз'), icon: 'ring', slot: 'ring', paired: true }),
 
   // Stackables

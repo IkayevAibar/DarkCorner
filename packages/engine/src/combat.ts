@@ -465,6 +465,10 @@ const ROUND_LIMIT = 60;
 export const TWIN_RISE = 0.5;
 /** A sundering monster cracks this much Armor Class at most in one fight (v0). */
 export const SUNDER_MAX = 3;
+/** The Worldbreaker cracks this much of a monster's Armor Class at most in one fight. */
+export const WORLDBREAKER_MAX = 5;
+/** Trollheart: the share of full health back at the start of each turn. */
+export const TROLLHEART_SHARE = 0.03;
 /** Thief, Ghost: the round from which every round's Sneak attack gets the full dice (v0). */
 export const THIEF_STUDY_ROUND = 4;
 /** Ember Fang: a critical hit leaves the enemy burning (v0). */
@@ -554,6 +558,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
        * Every round's first hit made Rogues all but unbeatable by Mini-bosses (balance:par).
        */
       dodgeReady: c.class === 'rogue' && c.level >= UNCANNY_DODGE_LEVEL,
+      /** Bracers of the Bulwark: the first hit of each fight deals half damage. */
+      bracers: c.uniques.includes('bulwark-bracers'),
       /** Barbarian: in a Rage for the rest of the fight. */
       raging: false,
       /** Bear-heart, Relentless: the CON save that keeps a raging Hero up grows harder each time. */
@@ -612,6 +618,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   const stoodUp = new Set<string>();
   /** Monsters fire touched since their last turn: a regenerating one heals nothing then. */
   const scorched = new Set<string>();
+  /** Armor the Worldbreaker has cracked on each monster this fight. */
+  const cracked = new Map<string, number>();
   const enraged = new Set<string>();
 
   const alive = () => mons.filter((mm) => mm.hp > 0 && !fled.has(mm.key));
@@ -755,7 +763,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   for (const mm of alive().filter((x) => powerOf(x, 'mesmerize'))) {
     const gaze = powerOf(mm, 'mesmerize')!;
     for (const s of sides) {
-      if (s.held > 0) continue;
+      if (s.held > 0 || s.c.uniques.includes('circlet-of-calm')) continue;
       events.push({ type: 'power', actor: mm.key, power: 'mesmerize', target: s.key });
       if (!heroSave(s, 'wis', dcOf(mm, gaze.dc))) {
         s.held = 1;
@@ -768,6 +776,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   if (dread) {
     const fear = powerOf(dread, 'frighten')!;
     for (const s of sides) {
+      if (s.c.uniques.includes('circlet-of-calm')) continue;
       events.push({ type: 'power', actor: dread.key, power: 'frighten', target: s.key });
       if (!heroSave(s, 'wis', dcOf(dread, fear.dc))) {
         s.frightened = fear.rounds;
@@ -827,6 +836,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const total = roll.natural + s.prof + s.mod(s.attackAbility) + s.stance.toHit + s.archery;
     let crit = roll.natural >= s.critFrom;
     let hit = crit || (roll.natural !== 1 && total >= target.ac);
+    // The Unwritten Page: an attack spell finds its mark.
+    if (!hit && s.caster && c.uniques.includes('unwritten-page')) hit = true;
     const ember = !hit && s.caster && s.lastEmber;
     if (ember) {
       s.lastEmber = false;
@@ -867,6 +878,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
           s.sneakReady = false;
           s.openedFight = true;
         }
+        if (c.uniques.includes('dawnbringer') && targetDef.kin === 'undead') damage *= 1.5;
+        if (c.uniques.includes('titanfall') && (targetDef.role === 'miniboss' || targetDef.role === 'boss')) damage *= 1.25;
         // Bones break under blunt weapons, and arrows and points slip between them.
         if (powerOf(target, 'brittle')) {
           const hits = weapon?.base.hits ?? 'bludgeon';
@@ -906,6 +919,11 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       events.push({ type: 'power', actor: target.key, power: 'thorns', target: s.key, amount: prick, hp: c.hp }, ...pricked);
     }
     if (hit && c.lifeSteal > 0 && c.hp > 0) heal(s, 'life-steal', (damage * c.lifeSteal) / 100);
+    if (hit && !s.caster && c.uniques.includes('worldbreaker') && (cracked.get(target.key) ?? 0) < WORLDBREAKER_MAX) {
+      cracked.set(target.key, (cracked.get(target.key) ?? 0) + 1);
+      target.ac--;
+    }
+    if (hit && target.hp <= 0 && c.hp > 0 && c.uniques.includes('gravechain')) heal(s, 'life-steal', c.maxHp / 10);
     if (hit && crit && c.uniques.includes('wyrmfire')) {
       for (const other of alive()) {
         if (other === target) continue;
@@ -922,7 +940,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   const attacksFor = (s: Side) => attacksPerTurn(s.c.class, s.c.level, s.c.path)
     + (s.raging && s.path('berserker') && s.c.hp < s.c.maxHp / 2 ? 1 : 0)
     + (s.path('hunter', PATH_MASTERY) ? 1 : 0)
-    + (currentRound === 1 && s.path('stalker') ? 1 : 0);
+    + (currentRound === 1 && s.path('stalker') ? 1 : 0)
+    + (currentRound === 1 && s.c.uniques.includes('quickdraw') ? 1 : 0);
   /** A light weapon in the off-hand adds a blow to every 'attack' (spells cast with neither hand). */
   const offHanded = (s: Side) => Boolean(s.c.offHand) && !s.caster;
 
@@ -976,7 +995,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     return (each * attacksFor(s) + off) * (1 + c.damagePct / 100);
   };
   /** About what a Burst of fire deals each monster. */
-  const burstOf = (s: Side): number => (burstDice(s.c.level) * 3.5 + (s.path('evoker') ? 2 * s.intMod : 0)) * (1 + s.c.spellPower / 100);
+  const burstOf = (s: Side): number => (burstDice(s.c.level) * 3.5 + (s.path('evoker') ? 2 * s.intMod : 0))
+    * (s.c.uniques.includes('ember-codex') ? 1.5 : 1) * (1 + s.c.spellPower / 100);
 
   /**
    * Against the Twin Wardens a blow that fells one is wasted unless the other falls in
@@ -1130,7 +1150,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
           const lone = alive().length === 1 ? 2 : 1;
           const targets = alive().map((mm) => {
             const swarm = powerOf(mm, 'swarm') ? 2 : 1;
-            const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + empowered) * lone * swarm * (1 + c.spellPower / 100)));
+            const codex = c.uniques.includes('ember-codex') ? 1.5 : 1;
+            const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + empowered) * lone * swarm * codex * (1 + c.spellPower / 100)));
             scorched.add(mm.key);
             after.push(...wound(mm, damage, false));
             return { key: mm.key, damage, hp: mm.hp };
@@ -1172,7 +1193,9 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const roll = rollD20(rng, { edge: combine(combine(s.stance.defendEdge, pack ? 'advantage' : 'normal'), s.dodging ? 'disadvantage' : 'normal') });
     const total = roll.natural + mm.attack;
     const crit = roll.natural === 20 && !s.c.uniques.includes('drowned-crown');
-    const hit = roll.natural === 20 || (roll.natural !== 1 && total >= s.c.ac);
+    // Bastion of the Fallen: 3 more Armor Class once its wearer is below half health.
+    const ac = s.c.ac + (s.c.uniques.includes('bastion-plate') && s.c.hp < s.c.maxHp / 2 ? 3 : 0);
+    const hit = roll.natural === 20 || (roll.natural !== 1 && total >= ac);
     if (hit && (s.aegis || s.shield)) {
       const by = s.aegis ? 'aegis' : 'shield';
       if (s.aegis) s.aegis = false;
@@ -1187,6 +1210,10 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       damage = soften(s, Math.max(1, Math.round((sum(rollDice(rng, crit ? n * 2 : n, sides_)) + plus) * mm.damageFactor)), true);
       if (s.dodgeReady) {
         s.dodgeReady = false;
+        damage = Math.max(1, Math.floor(damage / 2));
+      }
+      if (s.bracers) {
+        s.bracers = false;
         damage = Math.max(1, Math.floor(damage / 2));
       }
       after = hurtHero(s, damage);
@@ -1330,6 +1357,12 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       events.push({ type: 'held', target: key });
       if (s.held === 0) events.push({ type: 'expire', target: key, status: 'paralyzed' });
       return false;
+    }
+    // Trollheart: 3% of full health back at the start of every turn.
+    if (s.c.uniques.includes('trollheart') && s.c.hp > 0 && s.c.hp < s.c.maxHp) {
+      const gained = Math.min(s.c.maxHp - s.c.hp, Math.max(1, Math.round(s.c.maxHp * TROLLHEART_SHARE)));
+      s.c.hp += gained;
+      events.push({ type: 'feature', feature: 'survivor', amount: gained, hp: s.c.hp, ...tag(s) });
     }
     // Champion, Survivor: a little health back each turn while below half.
     if (s.path('champion', PATH_MASTERY) && s.c.hp > 0 && s.c.hp < s.c.maxHp / 2) {
@@ -1507,7 +1540,8 @@ export const fireBomb = (floor: number) => ({ dice: 2, sides: 6, bonus: 2 * floo
 
 const escapeBonus = (hero: HeroCombat) =>
   abilityModifier(hero.scores.dex) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0) + escapeSteps(hero.escape)
-  + (hero.talents.includes('light-step') ? 2 : 0) + (onPath(hero, 'thief', PATH_MASTERY) ? 5 : 0);
+  + (hero.talents.includes('light-step') ? 2 : 0) + (onPath(hero, 'thief', PATH_MASTERY) ? 5 : 0)
+  + (hero.uniques.includes('long-road-greaves') ? 5 : 0);
 
 /** An Escape roll's difficulty (v0): the more monsters still standing, the harder. */
 export const escapeDc = (monsters: number): number => 8 + 2 * monsters;
@@ -1517,7 +1551,7 @@ export function escapeCheck(hero: HeroCombat, monsters: number, bonus = 0): Chec
   return {
     modifier: escapeBonus(hero) + bonus,
     dc: escapeDc(monsters),
-    edge: hero.class === 'rogue' ? 'advantage' : 'normal',
+    edge: hero.class === 'rogue' || hero.uniques.includes('long-road-greaves') ? 'advantage' : 'normal',
     rerollOnes: RACE_DEFS[hero.race].rerollOnes,
   };
 }

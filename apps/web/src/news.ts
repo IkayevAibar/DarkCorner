@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-armory',
+    date: '2026-10-10',
+    title: t('A fuller armory', 'Арсенал пополнился'),
+    items: [
+      t('Twelve new kinds of gear drop now: flails, morningstars, halberds, the hand crossbow (a bow for one hand, so a shield fits beside it), tomes for Wizards, half plate, splint mail, circlets, bracers, greaves, talismans and signet rings.',
+        'Теперь выпадают двенадцать новых видов снаряжения: цепы, моргенштерны, алебарды, ручной арбалет (лук для одной руки, так что рядом поместится щит), фолианты для волшебников, полулаты, наборный доспех, венцы, наручи, поножи, талисманы и перстни-печатки.'),
+      t('Thirteen new named uniques: seven Legendaries, four Mythics and two Relics, among them the Quickdraw, Gravechain, Trollheart, Titanfall and Worldbreaker. Each has its own power; tap one to read it.',
+        'Тринадцать новых именных предметов: семь легендарных, четыре мифических и две реликвии, среди них Скорострел, Цепь могильщика, Сердце тролля, Погибель титанов и Сокрушитель миров. У каждого своя сила — нажмите, чтобы прочитать.'),
+      t('Every kind of gear is being painted, so the Bag will soon be pictures instead of symbols. Until then the new Items wear the old icons.',
+        'Каждый вид снаряжения сейчас рисуется, так что скоро в сумке будут картины вместо значков. А пока новые предметы носят старые значки.'),
+    ],
+  },
+  {
     id: '2026-10-10-bestiary',
     date: '2026-10-10',
     title: t('Twenty-two new monsters', 'Двадцать два новых монстра'),

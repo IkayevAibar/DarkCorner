@@ -114,6 +114,8 @@ export const HAGGLE = 0.1;
 /** Charisma (v0): Shops and the Wandering merchant deal this much better per point of Charisma modifier; low Charisma costs nothing. */
 export const CHARM_STEP = 0.04;
 export const charmOf = (cha: number): number => CHARM_STEP * Math.max(0, abilityModifier(cha));
+/** The Usurper's Signet (Mythic): the Shops deal this much better to its wearer. */
+export const SIGNET_DEAL = 0.25;
 /** How much better a Hero's Shop deals are: a Haggler's 10% and its Charisma's, added. */
 export const shopDeal = (haggler: boolean, cha: number): number => (haggler ? HAGGLE : 0) + charmOf(cha);
 

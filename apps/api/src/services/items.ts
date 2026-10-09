@@ -34,7 +34,7 @@ export function toItemView(item: Item): ItemView {
       upgrade: 0,
       serial: null,
       owners: null,
-      art: null,
+      art: base.art ?? null,
       worth: sellValue({ ...item, tier: 'common' }),
       gear: null,
       about: itemAbout(item.base),
@@ -75,7 +75,8 @@ export function toItemView(item: Item): ItemView {
     upgrade: item.upgrade,
     serial: known && item.serial && serialOf ? { number: item.serial, of: serialOf } : null,
     owners: known && Array.isArray(item.owners) ? (item.owners as string[]) : null,
-    art: known ? (unique?.art ?? null) : null,
+    // A unique's own painting once it is known; otherwise its base's, when painted.
+    art: (known ? unique?.art : null) ?? base.art ?? null,
     worth: buybackPrice(roll),
     // Unidentified: the base type at an average Quality, so Quality and Radiant stay secret.
     gear: gearFacts(base, known ? item : { quality: null, upgrade: item.upgrade, radiant: false }),

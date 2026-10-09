@@ -37,3 +37,23 @@ For every image in this chat: a single fantasy item for a game inventory, in a d
 | `phylactery.png` | Relic | An amulet called the Lich's Phylactery: a small ornate box of black iron and bone on a chain, a crack in its lid leaking cold violet light, abstract rune shapes around the edge. |
 | `eye-of-the-abyss.png` | Relic | An orb called the Eye of the Abyss: a black sphere with a single slit-pupil eye of burning amber inside it, held in claws of dark iron, thin shadows curling off it like smoke. |
 | `first-kings-crown.png` | Relic | A crown called the Crown of the First King: a simple ancient crown of dull gold, dented and scratched by centuries, set with one great uncut stone that glows warm and bright. |
+
+## Batch 2: the second wave, 13 uniques
+
+Added on 2026-10-10 with the second wave of gear ([codex-23](../tasks/codex-23-armory-art.md)). Same style block, same steps; save them in `art/items/` as before. Each prompt shows the Item's power, so it reads at a glance.
+
+| File | Tier | Prompt |
+|---|---|---|
+| `quickdraw.png` | Legendary | A hand crossbow called the Quickdraw: a compact crossbow of dark walnut and blackened steel, a second bolt already sliding into the groove behind the first, a spring mechanism of tarnished brass, a faint blur along the string as if it never stops moving. |
+| `gravechain.png` | Legendary | A flail called Gravechain: two spiked iron heads on a chain of rusted grave-fence links, a handle of dark wood wrapped in a strip of burial shroud, a faint pale-green glow where the chain meets the heads. |
+| `dawnbringer.png` | Legendary | A morningstar called Dawnbringer: a spiked head of pale bright steel shaped like a rising sun, warm golden light glowing from between the spikes, a white leather grip, ash flaking off the spikes. |
+| `ember-codex.png` | Legendary | A tome called the Ember Codex: a thick book bound in scorched black leather with iron corners, its pages glowing orange from within like coals, small embers drifting up from the edges, a clasp shaped like a flame. |
+| `circlet-of-calm.png` | Legendary | A circlet called the Circlet of Calm: a thin band of cool silver with a single pale moonstone at the brow, its light soft and steady, the metal smooth as still water. |
+| `bulwark-bracers.png` | Legendary | Bracers called the Bracers of the Bulwark: a pair of heavy steel bracers with raised ridges like a castle wall, deep dents from old blows, worn leather straps, a faint protective glint along the ridges. |
+| `bastion-plate.png` | Legendary | Half plate armor called the Bastion of the Fallen: a battered breastplate and shoulder plates covered in scratched memorial marks (abstract shapes, never writing), a broken arrowhead still stuck in one plate, a faint warm light seeping from the cracks. |
+| `titanfall.png` | Mythic | A halberd called Titanfall: a long polearm with a massive crescent axe blade and a spike, the blade carved from dark grey stone veined with glowing orange, notched from felling giants. |
+| `long-road-greaves.png` | Mythic | Greaves called the Greaves of the Long Road: a pair of worn steel shin guards over travel-scuffed leather, dried mud and road dust on them, a faint wind-like silver shimmer around them. |
+| `trollheart.png` | Mythic | A talisman called Trollheart: a dark green, knotted, still-beating heart of stone and flesh bound in iron wire on a leather cord, its veins pulsing with a dull green glow. |
+| `usurpers-signet.png` | Mythic | A signet ring called the Usurper's Signet: a heavy gold ring with a flat seal of black stone, the seal's crest scratched out and recut (abstract shapes, never letters), a smear of red sealing wax, a faint golden gleam. |
+| `worldbreaker.png` | Relic | A maul called Worldbreaker: a colossal two-handed hammer whose head is a single block of dark meteoric iron, deep cracks glowing white-hot across it, the haft wrapped in iron bands, small shards floating off the head. |
+| `unwritten-page.png` | Relic | A tome called the Unwritten Page: a slim book bound in pale vellum, open to a single blank page that glows bright and clean, thin threads of light reaching out from the page like aim lines, the cover's edges dissolving into light. |

@@ -113,14 +113,14 @@ Weapons and armor come in types. Each Class can use some of the types, and the t
 
 | Type | Fighter | Rogue | Wizard | Cleric | Barbarian | Ranger |
 |---|:-:|:-:|:-:|:-:|:-:|:-:|
-| Heavy weapons (greatswords, greataxes, mauls) | ✓ | | | | ✓ | |
+| Heavy weapons (greatswords, greataxes, mauls, halberds) | ✓ | | | | ✓ | |
 | Blades (longswords, sabers, rapiers) | ✓ | ✓ | | | ✓ | ✓ |
 | Daggers | ✓ | ✓ | ✓ | | | ✓ |
-| Bows and crossbows | ✓ | ✓ | | | | ✓ |
-| Maces and hammers | ✓ | | | ✓ | ✓ | |
+| Bows, crossbows and hand crossbows | ✓ | ✓ | | | | ✓ |
+| Maces, hammers, flails and morningstars | ✓ | | | ✓ | ✓ | |
 | Staves and wands | | | ✓ | ✓ | | |
 | Shields | ✓ | | | ✓ | ✓ | ✓ |
-| Orbs (off-hand) | | | ✓ | | | |
+| Orbs and tomes (off-hand) | | | ✓ | | | |
 | Holy symbols (off-hand) | | | | ✓ | | |
 | Heavy armor | ✓ | | | | | |
 | Medium armor | ✓ | | | ✓ | ✓ | ✓ |
@@ -133,7 +133,7 @@ Starter kits: Fighter longsword, shield and chain mail; Rogue rapier, a dagger i
 
 What a Hero holds is a choice between ways of fighting: a weapon and a shield, one weapon in both hands, or a dagger beside the weapon.
 
-- **Two-handed** weapons fill both hands: greatswords, greataxes, mauls and every bow (shortbows d8, longbows d10, crossbows d12, a die bigger than before bows took both hands). The off-hand stays empty beside them, so their Bonus stats count twice *(v0)*, as a weapon's and an off-hand piece's would together; the Item card shows them doubled. Putting one on takes the off-hand piece off, and putting an off-hand piece on takes the two-handed weapon off. When both a weapon and an off-hand piece come off, the second needs room in the Bag (or Storage) the new weapon came from.
+- **Two-handed** weapons fill both hands: greatswords, greataxes, mauls, halberds and every bow but the hand crossbow (shortbows d8, longbows d10, crossbows d12, a die bigger than before bows took both hands). The hand crossbow (d6) is a bow for one hand: smaller, but a shield or a dagger fits beside it, and a Ranger's Archery still counts. The off-hand stays empty beside them, so their Bonus stats count twice *(v0)*, as a weapon's and an off-hand piece's would together; the Item card shows them doubled. Putting one on takes the off-hand piece off, and putting an off-hand piece on takes the two-handed weapon off. When both a weapon and an off-hand piece come off, the second needs room in the Bag (or Storage) the new weapon came from.
 - **Daggers** are light and go in either hand. A dagger in the off-hand, beside a weapon in the main hand, strikes once more every turn the Hero attacks: its own dice, without the ability modifier (a penalty still counts), and never with a Sneak attack *(v0)*. This weaker blow is the price of the second weapon. A dagger alone in the off-hand fights as the main weapon. Wizards and Clerics cast with neither hand, so for them a dagger counts only for its Bonus stats.
 - Shields, orbs and holy symbols go only in the off-hand; every other weapon only in the main hand.
 - Measured with par Heroes (`npm run balance:hands -w @dark/engine`): with doubled Bonus stats a two-hander stands level with a one-hander and a shield (without them it fell far behind), a bow with its bigger die level with a blade and a shield, and a Rogue's blade and dagger, the strongest way for a Rogue, lands with the other Classes against the Dragon rather than above them. A Ranger's Starter kit trades the shield for scale mail, which keeps its first Floors as safe as before.
@@ -630,7 +630,42 @@ Later: more minigames.
     - **Charisma** gets better prices: the Shops and the Wandering merchant pay more and charge less, 4% for each point of Charisma modifier *(v0)*. A low Charisma costs nothing.
     - **Critical chance** and **escape chance** add up across everything worn and count in steps: every full 5% of critical chance lets one more face of the d20 crit (19–20 at 5%, 18–20 at 10%, the most; a Champion one lower), and every full 5% of escape chance is +1 to Sneak Checks and Escape rolls.
     - **Damage** raises every hit, weapon or spell; **spell power** raises spells, Burst of fire included; **healing** raises potions and Cure wounds; **life steal** heals for a share of each hit; **gold find** and **magic find** raise gold and the odds of Rare and better drops; **armor** and **max health** add to Armor Class and full health.
-- **Unique power:** Legendary and Mythic Items also carry a named unique power.
+- **Unique power:** Legendary and Mythic Items also carry a named unique power. Relics too (below).
+- **The second wave of gear** (2026-10-10): flails (2d4, blunt) and morningstars (d8, piercing) among the maces, halberds (3d4, two-handed) among the heavy weapons, the hand crossbow (d6, one-handed) among the bows, the tome (a Wizard's focus), half plate (medium, AC 15, at most +1 DEX), splint mail (heavy, AC 17), and circlets, bracers, greaves, talismans and signet rings for anyone. They are side-grades with their own feel more than upgrades: the Floor-by-Floor numbers barely move with them in the drop pool (balance:par).
+- **Every named unique** *(v0)*:
+
+  | Item | Tier | Base | Power |
+  |---|---|---|---|
+  | Ember Fang | Legendary | longsword | Dragonfire: critical hits set the enemy ablaze for 3 turns. |
+  | Gravewhisper | Legendary | dagger | Your first hit in every fight is a critical hit. |
+  | Oathbreaker | Legendary | greataxe | +50% damage while below half health. |
+  | The Hollow Crown | Legendary | helm | Door Clues never lie to you. |
+  | Ashen Aegis | Legendary | shield | Blocks the first hit of every fight. |
+  | Warden’s Longbow | Legendary | longbow | You always strike first. |
+  | Lantern of the Deep | Legendary | orb | Spells deal +25% damage to undead and demons. |
+  | Saint’s Knuckle | Legendary | holy symbol | Healing spells also restore one use of an ability. |
+  | The Quickdraw | Legendary | hand crossbow | Your first turn in every fight brings one more attack. |
+  | Gravechain | Legendary | flail | Every monster your blows fell heals you for a tenth of your full health. |
+  | Dawnbringer | Legendary | morningstar | Weapon hits deal half again as much to undead. |
+  | The Ember Codex | Legendary | tome | Your Bursts of fire deal half again as much. |
+  | Circlet of Calm | Legendary | circlet | Neither fear nor a mesmerizing gaze can take hold of you. |
+  | Bracers of the Bulwark | Legendary | bracers | The first hit on you in every fight deals half damage. |
+  | Bastion of the Fallen | Legendary | half plate | +3 Armor Class while you are below half health. |
+  | Wyrmfire | Mythic | greatsword | Every critical hit also scorches all other enemies. |
+  | The Last Ember | Mythic | staff | Once per fight, a spell that would miss hits instead, for double damage. |
+  | Deathless Mail | Mythic | plate | Once per Run, survive a killing blow with 1 health. |
+  | Luckstone | Mythic | ring | Once per Run, reroll any d20 and keep the better roll. |
+  | Crown of the Drowned King | Mythic | helm | Monsters’ natural 20s are not critical hits against you. |
+  | Titanfall | Mythic | halberd | Weapon hits deal a quarter more to Mini-bosses and the Boss. |
+  | Greaves of the Long Road | Mythic | greaves | Escape rolls with advantage, and +5. |
+  | Trollheart | Mythic | talisman | At the start of each of your turns in a fight, you regain 3% of your full health. |
+  | The Usurper’s Signet | Mythic | signet | The Shops pay you a quarter more and charge you a quarter less. |
+  | The Dragonbone Blade | Relic | longsword | Dragonsbane: double damage to dragons and their kin. |
+  | The Lich’s Phylactery | Relic | amulet | +2 to every ability score. |
+  | Eye of the Abyss | Relic | orb | Shows every Special room on your Floor. |
+  | Crown of the First King | Relic | helm | Your Bad-luck meter fills twice as fast. |
+  | Worldbreaker | Relic | maul | Every weapon hit cracks the enemy’s armor: 1 less Armor Class for the rest of the fight, 5 at most. |
+  | The Unwritten Page | Relic | tome | Your attack spells never miss. |
 - **Radiant:** 1 in 200 Items of any Tier *(v0)*. It glows and gets +10% to all its numbers.
 - **Upgrade level:** from +0 to +10 *(v0)*. Each level adds 4% to base damage and body armor, and 5% to its percentage and max-health Bonus stats. At +5 and again at +10, each of its ability, armor and life-steal Bonus stats gains +1, and so does a helm's or shield's armor. So every Item gains from the Forge, though a small number grows only every few levels. The Forge shows what the next level changes.
 - **Trading:** everything can be traded, including Relics and worn gear.

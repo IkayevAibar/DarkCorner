@@ -86,7 +86,7 @@ export const itemViewSchema = z.object({
   serial: z.object({ number: z.number().int().min(1), of: z.number().int().min(1) }).nullable(),
   /** Relics only: display names of everyone who has owned this copy, oldest first. */
   owners: z.array(z.string()).nullable(),
-  /** Painted art for Legendary-and-above uniques; everything else uses an icon from `base`. */
+  /** Painted art: a unique's own once identified, otherwise its base's (every gear type is being painted); null falls back to an icon from `base`. */
   art: z.string().nullable(),
   /** What the Shops pay for it (the Buyback price), in gold. */
   worth: z.number().int().min(0),
