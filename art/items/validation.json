@@ -222,5 +222,291 @@
     "sampledMinAlpha": 0,
     "sampledMaxAlpha": 255,
     "bytes": 1578553
+  },
+  {
+    "file": "quickdraw.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      57,
+      51,
+      1229,
+      1192
+    ],
+    "bytes": 1343664,
+    "sha256": "ac7bcc1741e4950271d2b683ec3ba2277b8cc7616a1b8c7e3120d7aa60ae5445"
+  },
+  {
+    "file": "gravechain.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      36,
+      27,
+      1239,
+      1227
+    ],
+    "bytes": 1467705,
+    "sha256": "355382a26186eef1ba2915e3b6c16139ca3ddfe679f0a8814aa5e8aec7ac20a5"
+  },
+  {
+    "file": "dawnbringer.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      27,
+      18,
+      1231,
+      1235
+    ],
+    "bytes": 1240521,
+    "sha256": "21ec2381b021a1be7be4270822049205994c5ea7bc280f15a1e317a33242c4ab"
+  },
+  {
+    "file": "ember-codex.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      96,
+      58,
+      1180,
+      1200
+    ],
+    "bytes": 2398575,
+    "sha256": "7898df2cbf75430f9953a2f7e05308eddf3ab2d1b3fcbb0af27f7cb4b7a0eef9"
+  },
+  {
+    "file": "circlet-of-calm.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      38,
+      288,
+      1230,
+      967
+    ],
+    "bytes": 1023393,
+    "sha256": "427186170dc8c185f9355eb5f0b40e3a6a3597bdc1cf9b57d1a4915a176e0b00"
+  },
+  {
+    "file": "bulwark-bracers.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      68,
+      28,
+      1173,
+      1212
+    ],
+    "bytes": 2156374,
+    "sha256": "8fbdd197a7d99a3cfbda1d41a36c024eb51f217f2ab55be60496ce23f2701d66"
+  },
+  {
+    "file": "bastion-plate.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      43,
+      16,
+      1212,
+      1228
+    ],
+    "bytes": 2787894,
+    "sha256": "2e27217a361a2377a2a8a022c1c46394360e215441e153eb60c12014f6709882"
+  },
+  {
+    "file": "titanfall.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      118,
+      112,
+      1170,
+      1160
+    ],
+    "bytes": 705832,
+    "sha256": "b09a43c8cf8ec819144cf79824a6310023467b00c881e811138711a4f91440db"
+  },
+  {
+    "file": "long-road-greaves.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      107,
+      23,
+      1148,
+      1230
+    ],
+    "bytes": 2191000,
+    "sha256": "de4dfdb127bbd2c9247cbf22322ae5448ed29f5459e9b47839c4a79e1e8c5c7e"
+  },
+  {
+    "file": "trollheart.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      154,
+      27,
+      1204,
+      1218
+    ],
+    "bytes": 1806779,
+    "sha256": "9ae1aa87c1ec5b84e85d017e480d35f1d70d2345fff1706e19743cad88971476"
+  },
+  {
+    "file": "usurpers-signet.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      84,
+      62,
+      1176,
+      1198
+    ],
+    "bytes": 2445993,
+    "sha256": "d3869a7136df86a31e405287b64e18cc36f9630e65b2239bc2d65d4dc20cd9c4"
+  },
+  {
+    "file": "worldbreaker.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      55,
+      22,
+      1235,
+      1227
+    ],
+    "bytes": 1557952,
+    "sha256": "ec207e0b1de828e8baa5b49c348fd8a2860d808a5298eb3beace0661030b267a"
+  },
+  {
+    "file": "unwritten-page.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      106,
+      122,
+      1151,
+      1161
+    ],
+    "bytes": 1729239,
+    "sha256": "48970210a12e24b7244ca09197a282858d53507147ce4c25cbc575d7b72f3924"
   }
 ]
