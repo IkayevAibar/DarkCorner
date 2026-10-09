@@ -1,8 +1,38 @@
 # Season 0 unique Item gallery
 
-16 source Item images generated with the built-in image_gen tool from [the unique Item brief](../../docs/art/unique-prompts.md): eight Legendary, five Mythic and three Relic images. Dragonbone Blade already has look-test art and is outside this batch.
+29 source Item images across two batches, generated with the built-in image_gen tool from [the unique Item brief](../../docs/art/unique-prompts.md): 15 Legendary, nine Mythic and five Relic images. Dragonbone Blade already has look-test art and is outside this batch.
 
-All selected files are 1254 × 1254 PNGs with alpha transparency. [Exact generation prompts and the Ember Fang refinement](generation-prompts.json) and [file validation results](validation.json) are retained. Ember Fang was reframed to preserve its full silhouette; the earlier tight composition is preserved in [drafts](drafts/ember-fang-tight.png) and is not a delivery asset.
+All selected files are 1254 × 1254 PNGs with alpha transparency. [Exact generation and refinement prompts](generation-prompts.json) and [file validation results](validation.json) are retained. Ember Fang was reframed to preserve its full silhouette; the earlier tight composition is preserved in [drafts](drafts/ember-fang-tight.png) and is not a delivery asset.
+
+## Batch 2: 13 new uniques
+
+Seven Legendary, four Mythic and two Relic Items from the second wave, generated individually with the built-in image_gen tool. Exact prompts and file validation are appended to the existing records. These source PNGs retain their generated pixels and transparent alpha, totaling **21.8 MiB**.
+
+[Interactive review](unique-review-batch-2.html) · [375 px Bag](review/uniques-batch-2-phone.png) · [Large source inspection](review/uniques-batch-2-detail-phone.png) · [Browser validation](review/uniques-batch-2-browser-validation.json)
+
+![The second wave at Bag and Item-sheet size](review/uniques-batch-2-gallery.png)
+
+All 13 paintings were reviewed at 62 px Bag and 84 px Item-sheet size beside four existing uniques, with the actual ItemChip Tier colors and 96% object-contain sizing. Chrome decoded every image, checked frame dimensions, found no horizontal overflow at 375 px, and opened and closed a larger source inspection. This standalone HTML review is a source-art mockup, not an application screen.
+
+Titanfall and The Unwritten Page each received one framing revision so their complete silhouette and glow fit within the canvas. Their exact edit prompts are recorded; the selected outputs are unchanged. No required second pass remains. Quickdraw's second bolt and fine engraving become texture at 62 px; The Unwritten Page's bright, blank glow is intentional for a Relic. Ordinary gear stays visibly plainer beside these Items.
+
+| Item | Source |
+|---|---|
+| The Quickdraw · Скорострел | [<img src="quickdraw.png" width="128" alt="The Quickdraw · Скорострел">](quickdraw.png) |
+| Gravechain · Цепь могильщика | [<img src="gravechain.png" width="128" alt="Gravechain · Цепь могильщика">](gravechain.png) |
+| Dawnbringer · Несущий рассвет | [<img src="dawnbringer.png" width="128" alt="Dawnbringer · Несущий рассвет">](dawnbringer.png) |
+| The Ember Codex · Кодекс углей | [<img src="ember-codex.png" width="128" alt="The Ember Codex · Кодекс углей">](ember-codex.png) |
+| Circlet of Calm · Венец спокойствия | [<img src="circlet-of-calm.png" width="128" alt="Circlet of Calm · Венец спокойствия">](circlet-of-calm.png) |
+| Bracers of the Bulwark · Наручи оплота | [<img src="bulwark-bracers.png" width="128" alt="Bracers of the Bulwark · Наручи оплота">](bulwark-bracers.png) |
+| Bastion of the Fallen · Оплот павших | [<img src="bastion-plate.png" width="128" alt="Bastion of the Fallen · Оплот павших">](bastion-plate.png) |
+| Titanfall · Погибель титанов | [<img src="titanfall.png" width="128" alt="Titanfall · Погибель титанов">](titanfall.png) |
+| Greaves of the Long Road · Поножи дальней дороги | [<img src="long-road-greaves.png" width="128" alt="Greaves of the Long Road · Поножи дальней дороги">](long-road-greaves.png) |
+| Trollheart · Сердце тролля | [<img src="trollheart.png" width="128" alt="Trollheart · Сердце тролля">](trollheart.png) |
+| The Usurper’s Signet · Печать узурпатора | [<img src="usurpers-signet.png" width="128" alt="The Usurper’s Signet · Печать узурпатора">](usurpers-signet.png) |
+| Worldbreaker · Сокрушитель миров | [<img src="worldbreaker.png" width="128" alt="Worldbreaker · Сокрушитель миров">](worldbreaker.png) |
+| The Unwritten Page · Ненаписанная страница | [<img src="unwritten-page.png" width="128" alt="The Unwritten Page · Ненаписанная страница">](unwritten-page.png) |
+
+Claude: make 256 px WebP delivery copies under apps/web/public/art/items/ and set each matching unique's art in UNIQUES. These are source assets only, so application tests were not run and the first-load bundle is unchanged.
 
 ## Integration handoff
 

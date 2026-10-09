@@ -1,0 +1,16 @@
+{
+  "count": 13,
+  "viewports": [
+    1280,
+    375
+  ],
+  "checks": {
+    "images": true,
+    "overflow": false,
+    "frames": true,
+    "detailVisible": true,
+    "detailFits": true,
+    "detailCloses": true
+  },
+  "errors": []
+}

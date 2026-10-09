@@ -1,0 +1,1300 @@
+[
+  {
+    "file": "greatsword.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      56,
+      35,
+      1221,
+      1214
+    ],
+    "bytes": 706625,
+    "sha256": "f6c199b6c6eac285ce1564f3b27b24e745c472c2cf521b071a3f6c90aea22328"
+  },
+  {
+    "file": "greataxe.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      26,
+      54,
+      1232,
+      1215
+    ],
+    "bytes": 817889,
+    "sha256": "016218dff8c31d6b445d444bdf65ae94f100d5309f29e38d412c943879bfc478"
+  },
+  {
+    "file": "maul.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      73,
+      13,
+      1236,
+      1236
+    ],
+    "bytes": 772355,
+    "sha256": "b7089c6612b0f5f792550354a4cf60a88aa7687fe003c59f1f8baaff38fdd4b3"
+  },
+  {
+    "file": "halberd.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      35,
+      35,
+      1219,
+      1217
+    ],
+    "bytes": 573660,
+    "sha256": "04c00fc4c48412fa3bdd0cce292c2060c45dbd22d19c886efeb0b48d4719de2b"
+  },
+  {
+    "file": "longsword.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      35,
+      39,
+      1219,
+      1215
+    ],
+    "bytes": 566138,
+    "sha256": "1b53e7dec1ef252b710d456d75a371f290ef2b48ed3749b8318a344140ce5a6e"
+  },
+  {
+    "file": "saber.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      26,
+      32,
+      1223,
+      1208
+    ],
+    "bytes": 653701,
+    "sha256": "2296376f4af71271ab2bab9cb259c902532211cc4a67e10e19646a8722d2e60e"
+  },
+  {
+    "file": "rapier.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      50,
+      33,
+      1222,
+      1205
+    ],
+    "bytes": 661526,
+    "sha256": "c15aa8cb80bc801e5610e65b4945dca9154d191b094966b385f019b3b6b1e524"
+  },
+  {
+    "file": "dagger.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      102,
+      36,
+      1217,
+      1198
+    ],
+    "bytes": 799681,
+    "sha256": "354c0706e21547bb9d146a9a2101c74033fa72dc4ec7405841253b30a09af8b1"
+  },
+  {
+    "file": "shortbow.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      33,
+      43,
+      1218,
+      1212
+    ],
+    "bytes": 510479,
+    "sha256": "fffac93ea90d4d304659e58dc539ab234f42852d9af74f34b23229c5bd6457a6"
+  },
+  {
+    "file": "longbow.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      24,
+      33,
+      1237,
+      1228
+    ],
+    "bytes": 479932,
+    "sha256": "2af3526b63590ce5b5d202321eaf8e72db461d2702feed87cd6a94e6b3b13602"
+  },
+  {
+    "file": "crossbow.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      33,
+      34,
+      1237,
+      1216
+    ],
+    "bytes": 1234650,
+    "sha256": "bd93c5c3f43d464825cd1cb5485ed99e485ec1771f0f9164b3dc7d239c8b8fc5"
+  },
+  {
+    "file": "hand-crossbow.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      34,
+      39,
+      1225,
+      1206
+    ],
+    "bytes": 1181704,
+    "sha256": "65811e9d9b4691aea10830a1d528de51e603397022964396e673e207c1d9c9ec"
+  },
+  {
+    "file": "mace.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      51,
+      52,
+      1219,
+      1202
+    ],
+    "bytes": 824239,
+    "sha256": "de6300c97f67eb16f28f3fff70dc569a0229d90c459a9238a4049bc1d47ef7e4"
+  },
+  {
+    "file": "warhammer.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      91,
+      8,
+      1219,
+      1226
+    ],
+    "bytes": 897100,
+    "sha256": "33110cd7aac2d2d552bf2e403934eafee5f339fbad1c70de05d09495dc6b7bfb"
+  },
+  {
+    "file": "flail.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      53,
+      67,
+      1231,
+      1216
+    ],
+    "bytes": 782692,
+    "sha256": "27f744cff9f7a6d3ea7e916738e0403c43fe97f90945eb275130638c5d528843"
+  },
+  {
+    "file": "morningstar.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      74,
+      26,
+      1242,
+      1231
+    ],
+    "bytes": 926973,
+    "sha256": "2c9842ba25855cf431d3c59749313cb15d8c2b06102a47e5026023a38529355f"
+  },
+  {
+    "file": "staff.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      93,
+      26,
+      1205,
+      1217
+    ],
+    "bytes": 620014,
+    "sha256": "5d7848fd1ad8d441a5b2766c6cb940229d7c1b115f4925c7b9e69a82c8eb55d4"
+  },
+  {
+    "file": "wand.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      81,
+      73,
+      1197,
+      1197
+    ],
+    "bytes": 590426,
+    "sha256": "fae393d7bb92a5392d0e9e278b1e52a9e8f3602524c45fa4a6c7b776a099948e"
+  },
+  {
+    "file": "shield.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      58,
+      52,
+      1199,
+      1193
+    ],
+    "bytes": 2742564,
+    "sha256": "a9f84ecf94dab80ea53d3b63b43af17b8344e1f664e5467888944ea6eb630e62"
+  },
+  {
+    "file": "orb.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      197,
+      70,
+      1057,
+      1194
+    ],
+    "bytes": 1474312,
+    "sha256": "6e5594d0d5833dafe84b6153d6832e02dff4fd07c05978713c17eae0a553a2e0"
+  },
+  {
+    "file": "holy-symbol.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      79,
+      29,
+      1229,
+      1204
+    ],
+    "bytes": 1900204,
+    "sha256": "7c31839f6b8821473314a0c59424f9c66e248e639c5765e37028cf047d76c835"
+  },
+  {
+    "file": "tome.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      51,
+      57,
+      1211,
+      1201
+    ],
+    "bytes": 2491686,
+    "sha256": "148d9225bcd4190c969e420eadb9703cb15f4254dc8b72c1897f57ff844df368"
+  },
+  {
+    "file": "plate.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      30,
+      31,
+      1224,
+      1226
+    ],
+    "bytes": 2771569,
+    "sha256": "e9244d3c3eb665eba4cad67ac13a429f960b1b6a3d4258633ce892011252a2b4"
+  },
+  {
+    "file": "chainmail.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      72,
+      28,
+      1183,
+      1234
+    ],
+    "bytes": 2536597,
+    "sha256": "ba0f5d024212a98c49c75c41afbc859fd71ffd25a1329cfdb8c6f2556a8393af"
+  },
+  {
+    "file": "splint.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      30,
+      36,
+      1223,
+      1219
+    ],
+    "bytes": 2460127,
+    "sha256": "de7f08919a72036bb1722bd0853ddfc7a1aceb8eecc2d529b1cb055a29b43b5b"
+  },
+  {
+    "file": "breastplate.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      148,
+      26,
+      1115,
+      1228
+    ],
+    "bytes": 2523956,
+    "sha256": "77ada8c67104acc5092ddcc02653eebaa5ac7085facf3d41c644b947e967a591"
+  },
+  {
+    "file": "scale.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      48,
+      45,
+      1207,
+      1211
+    ],
+    "bytes": 2544114,
+    "sha256": "9e81a9199948250d5bc83cc85b949e7513b9defc3ec3a29cdafef68f30b95b75"
+  },
+  {
+    "file": "half-plate.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      53,
+      67,
+      1200,
+      1180
+    ],
+    "bytes": 2267619,
+    "sha256": "a19f622ffcaa62411601123b10baa30592f417a5afcc88a78fde394a48411819"
+  },
+  {
+    "file": "leather.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      46,
+      61,
+      1208,
+      1198
+    ],
+    "bytes": 2125660,
+    "sha256": "7dc16143f3623bb7a5bbadb6b06d0aae2b037214b688306e8428ee377af64a10"
+  },
+  {
+    "file": "studded.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      108,
+      41,
+      1148,
+      1212
+    ],
+    "bytes": 2245380,
+    "sha256": "fbd38a41aa7a1df0ce0bbacc1e7e7a567a30ee2ed78ac45159bd6f2ab06e4e50"
+  },
+  {
+    "file": "robes.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      240,
+      9,
+      1034,
+      1244
+    ],
+    "bytes": 1563483,
+    "sha256": "c76e3f5371510314bdc8ea2513e853f40b33a4c589656651ea5b7bebcfcb3598"
+  },
+  {
+    "file": "helm.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      256,
+      17,
+      1093,
+      1237
+    ],
+    "bytes": 1824504,
+    "sha256": "e7ab45ac959f40a64110cb7bd08b927e42d349c04a938b0e0889130172e04ca5"
+  },
+  {
+    "file": "hood.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      64,
+      48,
+      1200,
+      1216
+    ],
+    "bytes": 1814005,
+    "sha256": "aacaec37ad6a25e0162491f2712ff4630304c9f5bf16564d3bcb5c270ec25dff"
+  },
+  {
+    "file": "circlet.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      59,
+      344,
+      1219,
+      910
+    ],
+    "bytes": 851148,
+    "sha256": "dfc06dc60b8c30edb48d0880b4d0191f3aa656b7d15d58d5c0e87ab69dc3ba3d"
+  },
+  {
+    "file": "gauntlets.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      55,
+      17,
+      1218,
+      1233
+    ],
+    "bytes": 2122478,
+    "sha256": "aa7354f0d581e044d90a48b81c7e2ec38ed6255f5daf0c039534a5096b476f3e"
+  },
+  {
+    "file": "gloves.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      56,
+      59,
+      1219,
+      1197
+    ],
+    "bytes": 2150311,
+    "sha256": "dcf865804d76ed8aea83bdf8e1b9d8eb25095d2c2f26c9331c79e135208f523f"
+  },
+  {
+    "file": "bracers.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      65,
+      47,
+      1219,
+      1187
+    ],
+    "bytes": 2073583,
+    "sha256": "dbdff6998e6dd95a3ba6d270b3c6716b3d14999d7fc65ea098d4d6de6cf0643b"
+  },
+  {
+    "file": "boots.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      103,
+      81,
+      1189,
+      1188
+    ],
+    "bytes": 2039866,
+    "sha256": "50f47fc397d5fdb38983e4fc63939566bf4ce9217229937058cead369be89572"
+  },
+  {
+    "file": "greaves.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      149,
+      14,
+      1076,
+      1216
+    ],
+    "bytes": 1873740,
+    "sha256": "7164343623208c98dd51f8c0c0e5d629624785cb4c2660f551dcb18b06622d79"
+  },
+  {
+    "file": "amulet.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      35,
+      44,
+      1224,
+      1220
+    ],
+    "bytes": 1396754,
+    "sha256": "a8dc21575c974fd0ec44d3f8305616e2e809b3acb4cf5200ce9b0f0baa2ce943"
+  },
+  {
+    "file": "talisman.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      53,
+      58,
+      1211,
+      1186
+    ],
+    "bytes": 936895,
+    "sha256": "eed80b0118bbeb3d699413b9b216f262814276e22919bdc3d1f460e75b23283b"
+  },
+  {
+    "file": "ring.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      150,
+      144,
+      1180,
+      1126
+    ],
+    "bytes": 1490121,
+    "sha256": "e63c784eb8e9a9d56926fa5607837563ba5258b3e3ee0a5f03347b76e948e2d7"
+  },
+  {
+    "file": "signet.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      94,
+      72,
+      1178,
+      1183
+    ],
+    "bytes": 2334098,
+    "sha256": "493dc6ac6a4dbfdc9f849f2e48eccd139a2e53ebff2186fee73624f197bc22fb"
+  },
+  {
+    "file": "bond-ring.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      102,
+      146,
+      1151,
+      1130
+    ],
+    "bytes": 1402707,
+    "sha256": "e8561d90ed655a815af3036000e6da18d865ce99e96cb6248b809cb7f0e680f3"
+  },
+  {
+    "file": "potion.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      212,
+      91,
+      1116,
+      1154
+    ],
+    "bytes": 1518685,
+    "sha256": "23da69001f87090c6d78285c7791f1591e17433209cb7e3f5b92de5208b7129a"
+  },
+  {
+    "file": "scroll-identify.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      48,
+      56,
+      1226,
+      1203
+    ],
+    "bytes": 1652637,
+    "sha256": "092d7996426eb38c0811bebdd7381f669e51a268522b80baa5f9cf0a99db1e88"
+  },
+  {
+    "file": "scroll-portal.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      56,
+      47,
+      1211,
+      1209
+    ],
+    "bytes": 1523037,
+    "sha256": "3a6c5fb7742e9e3d43941b1e4ac8682fce4f20c7963d0a61cb18ba3065a30434"
+  },
+  {
+    "file": "scroll-protection.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      41,
+      81,
+      1214,
+      1178
+    ],
+    "bytes": 1404304,
+    "sha256": "6d41b5af3420abb53606543673f076537b38a5a1aeff173426f72c219b9fa4ca"
+  },
+  {
+    "file": "bomb-fire.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      204,
+      108,
+      1173,
+      1168
+    ],
+    "bytes": 1469278,
+    "sha256": "ae05bae2ad66157cc03236bbe84f75c4fa954f9729677b8a213250ea34ac18b7"
+  },
+  {
+    "file": "bomb-smoke.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      124,
+      54,
+      1190,
+      1198
+    ],
+    "bytes": 1737564,
+    "sha256": "0ad8ecf27ab370514ba727030396cf36a281c9e476b245f0bee91bf793914a5b"
+  },
+  {
+    "file": "key-iron.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      78,
+      50,
+      1219,
+      1199
+    ],
+    "bytes": 953638,
+    "sha256": "23233f5e00c88a05ff41dd936e7c761387617d47ac3f36d0147d3a1c48225118"
+  },
+  {
+    "file": "key-silver.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      87,
+      37,
+      1231,
+      1224
+    ],
+    "bytes": 976869,
+    "sha256": "899a46fde8c91189791420cc6021317dce4483e9daf0d9fb206b61d243057b67"
+  },
+  {
+    "file": "key-gold.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      102,
+      67,
+      1214,
+      1202
+    ],
+    "bytes": 938454,
+    "sha256": "6529b981ae58ee89e574c37d263dda916c7751c588c4aceb58fc40141fc04da8"
+  },
+  {
+    "file": "chest-iron.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      44,
+      93,
+      1216,
+      1178
+    ],
+    "bytes": 2479164,
+    "sha256": "9057ac24ce5b7a494e6517fac77b537b86ad7d7bbc1bb98c0009467c868d98f0"
+  },
+  {
+    "file": "chest-silver.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      42,
+      104,
+      1213,
+      1179
+    ],
+    "bytes": 2635954,
+    "sha256": "a559ed0352066745eaf1b42ac165ef693b3786c05c1b7a87a0173b7c6e4cd503"
+  },
+  {
+    "file": "chest-gold.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      44,
+      143,
+      1212,
+      1138
+    ],
+    "bytes": 2489305,
+    "sha256": "cbff299be73698e6037ba2d51e615ee9ee2f8cc2b95e6494d0b33de2646a4e3b"
+  },
+  {
+    "file": "scrap.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      46,
+      88,
+      1213,
+      1172
+    ],
+    "bytes": 1925382,
+    "sha256": "a5566ed0b75d0cc60d05dad743d2b290b83268067fe595228415ded9768212f1"
+  },
+  {
+    "file": "essence.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      162,
+      37,
+      1169,
+      1225
+    ],
+    "bytes": 1652558,
+    "sha256": "37d503452a5de650710612e924e6e4c03f5bbf26cc588bc42afa86428702ded5"
+  },
+  {
+    "file": "soulstone.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      261,
+      59,
+      1131,
+      1204
+    ],
+    "bytes": 1402546,
+    "sha256": "87754fa58cbd2b706e191fcdb8ab231e812aeaa890fbe795674d3c1b89d2f677"
+  }
+]
