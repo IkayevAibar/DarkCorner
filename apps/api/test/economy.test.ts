@@ -5,6 +5,7 @@ import { type GearRoll, createRng, rollGear } from '@dark/engine';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
 import { gearData } from '../src/services/items.js';
+import { omenOf } from '../src/services/omens.js';
 import { runDueJobs } from '../src/services/scheduler.js';
 import { devLogin, resetDatabase } from './helpers.js';
 
@@ -146,7 +147,9 @@ describe('the Forge', () => {
       const item = await giveGear(hero.id, rollGear(createRng(`f${i}`), { tier: 'epic', itemLevel: 3, identified: true }));
       await prisma.item.update({ where: { id: item.id }, data: { upgrade: 8 } });
       const quote = (await get(cookie, `/api/items/${item.id}/forge`)).json();
-      expect(quote.upgrade).toMatchObject({ to: 9, chance: 30, risky: true });
+      // 30% to reach +9, and more on a day whose Omen favors the Forge.
+      const omen = omenOf(await prisma.season.findFirstOrThrow({ where: { status: { in: ['ACTIVE', 'FINALE'] } } }))?.upgrade ?? 0;
+      expect(quote.upgrade).toMatchObject({ to: 9, chance: 30 + omen, risky: true });
       const r = (await post(cookie, `/api/items/${item.id}/upgrade`, { protect: true })).json();
       expect(await gold(hero.id)).toBe(1_000_000 - quote.upgrade.cost.gold);
       expect(await count(hero.id, 'soulstone')).toBe(10 - quote.upgrade.cost.materials[0].quantity);

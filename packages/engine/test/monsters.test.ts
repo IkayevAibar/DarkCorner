@@ -331,7 +331,7 @@ describe('elite packs and escorts', () => {
   });
 
   it('brings Mini-bosses with their escorts', () => {
-    const chief = spawnEncounter(createRng('chief'), 2, 'miniboss');
+    const chief = spawnEncounter(createRng('chief'), 1, 'miniboss');
     expect(chief.map((m) => m.id)).toEqual(['goblin-chieftain', 'goblin-archer']);
     expect(chief.map((m) => m.key)).toEqual(['m0', 'm1']);
     expect(spawnEncounter(createRng('dragon'), 10, 'boss').map((m) => m.id)).toEqual(['ancient-dragon']);

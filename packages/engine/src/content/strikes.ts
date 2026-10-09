@@ -31,6 +31,18 @@ const MONSTER_STRIKE: Partial<Record<string, Strike>> = {
   doppelganger: 'claw',
   'dawn-warden': 'blunt',
   'dusk-warden': 'slash',
+  bugbear: 'blunt',
+  ghost: 'touch',
+  'skeleton-archer': 'shoot',
+  necromancer: 'touch',
+  'vampire-lord': 'bite',
+  temptress: 'touch',
+  'bone-devil': 'pierce',
+  shadow: 'touch',
+  hierophant: 'blunt',
+  'pit-fiend': 'slash',
+  'kobold-shieldbearer': 'pierce',
+  'scale-sworn': 'slash',
 };
 
 export const monsterStrike = (def: Pick<MonsterDef, 'id' | 'kin'>): Strike => MONSTER_STRIKE[def.id] ?? KIN_STRIKE[def.kin];

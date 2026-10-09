@@ -19,6 +19,19 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-bestiary',
+    date: '2026-10-10',
+    title: t('Twenty-two new monsters', 'Двадцать два новых монстра'),
+    items: [
+      t('The Labyrinth is fuller: 22 new monsters across every part of it, and the Dragon’s lair finally holds more than kobolds and drakes: wyrmlings, wyverns, salamanders, scale-sworn and kobold shieldbearers.',
+        'В Лабиринте стало теснее: 22 новых монстра во всех его частях, а в логове дракона теперь не только кобольды и дрейки: дракончики, виверны, саламандры, чешуйчатые латники и кобольды-щитоносцы.'),
+      t('Eight new powers, each with an answer. Bodyguards shield the others, so bring them down first; some heal every turn unless fire touches them; some crack your armor; some burn whoever strikes them with steel; some hold you still with a look. Tap a monster to read what it does.',
+        'Восемь новых умений, и на каждое есть ответ. Телохранители прикрывают остальных, так что валите их первыми; одни лечатся каждый ход, пока их не коснётся огонь; другие раскалывают доспех; третьи обжигают того, кто бьёт их сталью; четвёртые приковывают взглядом. Нажмите на монстра — увидите, что он умеет.'),
+      t('Every Floor from 1 to 9 now has its own Mini-boss: the Broodmother, the Bugbear, the Necromancer, the Vampire lord, the Hierophant and the Pit fiend join the three you know, each as hard as the old one was on its Floor. Their portraits are still being painted; until then they fight as lettered discs.',
+        'Теперь на каждом этаже с 1-го по 9-й свой мини-босс: к трём знакомым добавились паучья матка, багбир, некромант, вампир-владыка, иерофант и исчадие бездны, каждый не сложнее прежнего на своём этаже. Их портреты ещё рисуются; пока они сражаются в виде дисков с буквой.'),
+    ],
+  },
+  {
     id: '2026-10-07-rage',
     date: '2026-10-07',
     title: t('Barbarians, a little less unstoppable', 'Варвары уже не так несокрушимы'),

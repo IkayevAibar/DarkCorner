@@ -21,7 +21,7 @@ export type Direction = z.infer<typeof directionSchema>;
 /** Monster signatures (engine: content/monsters.ts). */
 export const MONSTER_POWERS = [
   'pack', 'quick', 'thief', 'brittle', 'paralyze', 'undying', 'drain', 'mend', 'burn', 'breath', 'multiattack', 'frighten', 'enrage',
-  'poison', 'explode', 'swarm', 'wail', 'twin',
+  'poison', 'explode', 'swarm', 'wail', 'twin', 'pounce', 'protect', 'incorporeal', 'regenerate', 'sunder', 'thorns', 'hide', 'mesmerize',
 ] as const;
 export const monsterPowerSchema = z.enum(MONSTER_POWERS);
 export type MonsterPowerView = z.infer<typeof monsterPowerSchema>;

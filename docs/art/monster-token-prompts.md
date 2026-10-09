@@ -63,3 +63,32 @@ Added on 2026-09-29 so the deeper Floors don't repeat themselves: two in the cry
 | `flame-skull.png` | 7–9 | A flame skull: a cracked human skull floating in a crown of dull orange fire, flames pouring from its eye sockets and trailing behind it, the jaw hanging open in a grin. |
 | `night-hag.png` | 7–9 | A night hag: a hunched crone with blue-black skin, long matted black hair, a hooked nose and broken teeth, yellow eyes that stare straight through you, a clawed hand clutching a small glowing gem. |
 | `chain-devil.png` | 7–9 | A chain devil: a tall devil wrapped head to toe in rusted, hooked chains that coil around it like snakes, a scarred grey face between the links, burning eyes, loose chain ends swinging with hooks. |
+
+## Batch 4: the bestiary's second wave, 22 monsters
+
+Added on 2026-10-10: three new monsters and two new Mini-bosses in the warrens, four and two in the crypts, four and two in the depths, and five for the Dragon's lair, which had only kobolds and drakes ([codex-22](../tasks/codex-22-bestiary-tokens.md)). Same style block, same steps; save them in `art/monsters/` as before. Each prompt shows the monster's power, so a Player can read it off the token. The six Mini-bosses are drawn a little grander, as the earlier three were.
+
+| File | Floors | Prompt |
+|---|---|---|
+| `shell-beetle.png` | 1–3 | A shell beetle: a beetle as big as a shield, seen from the front, a domed armored shell of dark iridescent plates scratched by old blows, small mandibles, beady eyes under the rim. |
+| `hobgoblin.png` | 2–3 | A hobgoblin soldier: a stern, disciplined goblin with grey-orange skin and a flat nose, a dented iron cap, a battered round shield raised before its chest, the edge of a short sword visible over it. |
+| `worg.png` | 2–3 | A worg, head and forequarters: a wolf the size of a pony with coarse black fur, a heavy brow, intelligent yellow eyes, jaws open mid-lunge, shoulders bunched to spring. |
+| `broodmother.png` | Floor 2, Mini-boss | A spider broodmother, grander than a giant spider: a huge bloated black spider with a pale hourglass mark, a crown of many glinting red eyes, dripping venom, tiny spiderlings swarming over her back. |
+| `bugbear.png` | Floor 3, Mini-boss | A bugbear, grander than a goblin: a hulking, hairy goblinoid with a bear-like snout, small cruel eyes in deep shadow, a heavy spiked morningstar raised over one shoulder, mid-ambush. |
+| `ghost.png` | 4–6 | A ghost: the translucent, sorrowful face of an old man in a burial shroud, hollow eyes, the edges of the face dissolving into pale mist, a faint cold-blue glow; the background shows faintly through it. |
+| `vampire-spawn.png` | 4–6 | A vampire spawn: a gaunt, pale young man with sunken red eyes and long fangs, torn grave clothes, dried blood on the chin, a fresh wound on the cheek visibly closing at its edges. |
+| `skeleton-archer.png` | 4–6 | A skeleton archer: a grinning skeleton in a rotten leather hood, drawing a cracked longbow with bony fingers, one dull red eye light, an arrow nocked and aimed at the viewer. |
+| `gargoyle.png` | 4–6 | A gargoyle: a grinning stone demon with stubby horns and folded stone wings, cracked grey granite skin flecked with moss, pale stone eyes, a chip missing from one horn. |
+| `necromancer.png` | Floor 5, Mini-boss | A necromancer, grander than a cultist: a gaunt hooded sorcerer with ash-grey skin and burning green eyes, a staff topped with a skull, a wisp of sickly green life-force drawn from below into one clawed hand. |
+| `vampire-lord.png` | Floor 6, Mini-boss | A vampire lord, grander than the spawn: an ancient, aristocratic vampire with swept-back white hair, a high-collared black coat with tarnished brass buttons, blood-red eyes that hold your gaze, a faint smile over the fangs, a bat silhouette in the shadow behind. |
+| `temptress.png` | 7–9 | A temptress demon: a beautiful, pale face with small curved horns and long black hair, eyes glowing a soft hypnotic violet, a knowing half-smile, a shadow of bat-like wings behind the shoulders. Not explicit; head and shoulders only. |
+| `bone-devil.png` | 8–9 | A bone devil: a gaunt skeletal devil with dried yellowed skin stretched over its bones, a skull-like face with burning eyes, a scorpion's tail curling over its shoulder with a dripping stinger. |
+| `ember-fiend.png` | 7–9 | An ember fiend: a demon whose body is a heap of live coals and cracked black crust, orange fire glowing through the cracks, smoke rising from its shoulders, a grinning mouth of embers. |
+| `shadow.png` | 7–9 | A shadow: a featureless human silhouette cut from deep darkness, edges smoking away, two faint pale points for eyes, a clawed hand reaching toward the viewer; it reads as a hole in the light. |
+| `hierophant.png` | Floor 7, Mini-boss | A hierophant, grander than a cultist: the cult's high priest in a tall crimson mitre and heavy embroidered robes, a cracked gold mask over the upper face, one hand raised in a dark benediction, candle smoke curling around it. |
+| `pit-fiend.png` | Floor 9, Mini-boss | A pit fiend, grander than the other demons: a huge winged demon general with dark red scaled skin, great ram horns, burning eyes, cracked armor plates fused into its shoulders, a heavy flanged mace held across its chest. |
+| `kobold-shieldbearer.png` | 10 | A kobold shieldbearer: a small rust-red reptilian crouched behind a large shield cut from a single old dragon scale, only its snout, eyes and a spear tip showing over the rim. |
+| `wyrmling.png` | 10 | A wyrmling, head and neck: a hatchling red dragon, all oversized teeth and temper, small horns, a puff of fire escaping its jaws, bright amber eyes. |
+| `scale-sworn.png` | 10 | A scale-sworn warrior: a dragon-blooded humanoid with a draconic face and bronze scales, a horned helm, armor made of overlapping dragon scales, a notched greatsword raised to strike. |
+| `wyvern.png` | 10 | A wyvern, head and neck: a lean two-legged dragon cousin with leathery wings spread behind it, a long toothy snout, a barbed scorpion-like tail curling up beside the head, venom on the barb. |
+| `salamander.png` | 10 | A salamander: a fire lizard with a long serpentine body, black and orange mottled scales, flames licking along its spine and spiny back, burning yellow eyes, a forked tongue. |

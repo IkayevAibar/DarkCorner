@@ -297,6 +297,9 @@ Every monster has a signature power, so a fight plays differently depending on w
 | 1–3 | Goblin shaman | **Dark mending:** once per fight, instead of attacking, heals an ally below half health by 1d8 |
 | 1–3 | Bat swarm | **Swarm:** weapon hits deal half damage; spells hit it fully, and bursts and Fire bombs deal double. Also **Quick** |
 | 1–3 | Giant spider | **Venom:** a hit calls for a CON save (DC 10), or poison deals 1d4 at the start of the Hero's next 2 turns |
+| 1–3 | Shell beetle | **Hard shell:** weapon and spell hits on it deal 1 less (never below 1) |
+| 2–3 | Hobgoblin | **Bodyguard:** while it stands, attacks on the other monsters have disadvantage. The Hero's AI goes for it first |
+| 2–3 | Worg | **Pounce:** one more attack in the first round |
 | 4–6 | Skeleton | **Brittle bones:** blunt weapons deal +50%, piercing ones −25% |
 | 4–6 | Zombie | **Undying:** half the time, the first killing blow that isn't a critical hit leaves it at 1 health |
 | 4–6 | Ghoul | **Paralyzing touch:** a hit calls for a CON save (DC 10), or the Hero loses its next turn |
@@ -305,6 +308,10 @@ Every monster has a signature power, so a fight plays differently depending on w
 | 4–6 | Banshee | **Wail:** as the fight starts, before the first blow, 2d6 to the Hero, WIS save (DC 12) for half |
 | 4–6 | Mummy | **Undying**, and **Terrifying:** a WIS save as the fight starts (DC 11), or 1 round of disadvantage on attacks |
 | 4–6 | Rot grubs | **Swarm**, and **Venom:** a hit calls for a CON save (DC 11), or poison deals 1d6 at the start of the Hero's next 2 turns |
+| 4–6 | Ghost | **Incorporeal:** weapon hits deal half damage; spells, bursts and Fire bombs hit it fully. Also **Terrifying** (DC 11, 1 round) |
+| 4–6 | Vampire spawn | **Regeneration:** at the start of each of its turns it heals 12% of its full health, unless fire touched it since its last turn (a Fire bomb, a Burst of fire, burning, Wyrmfire's scorch) |
+| 4–6 | Skeleton archer | **Brittle bones** and **Quick** |
+| 4–6 | Gargoyle | **Hard shell** (2 less from every weapon and spell hit) |
 | 7–9 | Cultist | **Dark mending:** once per fight, instead of attacking, heals an ally below half health by 2d8 |
 | 7–9 | Imp | **Hellfire:** a hit sets the Hero burning, 1d4 at the start of its next 2 turns |
 | 7–9 | Hellhound | **Fire breath:** 3d6, DEX save (DC 13) for half. Ready at the start, and again on a 5–6 on a d6 each turn |
@@ -312,22 +319,40 @@ Every monster has a signature power, so a fight plays differently depending on w
 | 7–9 | Flame skull | **Hellfire** (1d6 for 2 turns) and **Quick** |
 | 7–9 | Night hag | **Life drain**, and **Terrifying** (DC 13, 1 round) |
 | 7–9 | Chain devil | **Several attacks:** two a turn, and **Rage:** below half health, once, it gains +2 AC and +1 to hit |
+| 7–9 | Temptress | **Mesmerize:** as the fight starts, a WIS save (DC 13), or the Hero loses its first turn. Also **Life drain** |
+| 8–9 | Bone devil | **Several attacks** (two a turn), and **Venom** (DC 13, 1d8 for 2 turns) |
+| 7–9 | Ember fiend | **Thorns:** every weapon hit on it costs the attacker 1d6, a little more deeper down; spells are safe. Also **Hellfire** (1d6 for 2 turns) |
+| 7–9 | Shadow | **Incorporeal** and **Quick** |
 | 10 | Kobold | **Pack hunter** |
 | 10 | Drake | **Fire breath:** 7d6, DC 15 |
+| 10 | Kobold shieldbearer | **Bodyguard** |
+| 10 | Wyrmling | **Fire breath:** 4d6, DC 14, and **Quick** |
+| 10 | Scale-sworn | **Several attacks** (two a turn), and **Armor-breaker:** each hit cracks the Hero's armor, 1 less Armor Class for the rest of the fight, 3 at most |
+| 10 | Wyvern | **Pounce**, and **Venom** (DC 14, 2d4 for 2 turns) |
+| 10 | Salamander | **Thorns** (1d6) and **Hellfire** (1d6 for 2 turns) |
 | any | Mimic | Bites before the Hero can move: the Hero is surprised. |
 | 1–9, Duo | Dawn Warden, Dusk Warden | **Twin:** felled while its twin stands, it rises at the end of the round with half its health (Duos → Twin doors). The Dawn Warden also has **Dark mending** (2d8), the Dusk Warden **Life drain** |
 
 - **One fear a fight:** when several monsters are Terrifying, only the first one's roar calls for a save.
+- **From a Floor on** *(v0)*: the Hobgoblin and the Worg join the warrens' fight Rooms from Floor 2, and the Bone devil the depths' from Floor 8, so a theme's first Floor stays its gentlest. Floor 1 is where new Heroes learn the game.
+- **The bestiary's second wave** (2026-10-10) added 22 monsters and eight powers, each with its own answer: Pounce (strike it down before it springs, or brace), Bodyguard (fell the protector first), Hard shell (big hits beat it; many small ones lose to it), Incorporeal (spells and bombs), Regeneration (fire), Armor-breaker (finish it fast), Thorns (spells, or few big hits), Mesmerize (WIS). Each new monster was checked against its theme's old ones with par Heroes: alone or in a pair it costs about what its neighbors do, and Floor-by-Floor deaths in Rooms stay where they were (balance:par).
 
 - **Deeper is harder** *(v0)*: gear keeps getting better, so the monsters do too.
   - Each Floor into a theme adds 15% health and +1 to hit and to damage.
   - On top of that, every Floor below Floor 2 adds 20% health, +0.75 to hit and +0.55 damage (rounded), so a Floor 9 monster has 2.4 times its Floor-1 health and +5 to hit and +4 damage from depth alone. Floors 1 and 2 stay gentle for new Heroes.
   - The Mimic and the Doppelganger, which turn up anywhere, grow like the Floor's own monsters. The Dragon is measured on its own (1,400 health, AC 20).
   - The aim, checked with `npm run balance:par -w @dark/engine`: on the Floor a typical Hero has just reached, a fight costs about a quarter of its health, most Rooms read Trivial or Easy at full health with a few Dangerous ones, and the Floor's Mini-boss is a real fight. The Dragon at full strength is a gamble even at level 20 with late-Season gear: about one win in four, and two deaths in five. Its weakening from day 29 brings it within reach: about one win in two on day 29, two in three on day 36 and nine in ten on day 43, so most Seasons find their Champion after day 29 *(v0)*.
-- **Mini-bosses** come with an escort:
-  - the Goblin chieftain with a Goblin archer
-  - the Bone knight, which is **Undying**, with a Skeleton
-  - the Horned tyrant (two attacks a turn, and **Terrifying**: a WIS save as the fight starts, DC 14, or 2 rounds of disadvantage on attacks) with an Imp
+- **Mini-bosses:** each Floor of a theme has its own *(v0)*, and each comes with an escort. Each was tuned so its Floor's Mini-boss fight is as hard as it was when one Mini-boss served the whole theme (balance:par, every Class):
+  - Floor 1: the Goblin chieftain with a Goblin archer
+  - Floor 2: the Broodmother (**Venom**, DC 11, 1d6 for 2 turns, and **Quick**) with a Giant spider
+  - Floor 3: the Bugbear (**Pounce**) with a Hobgoblin as its **Bodyguard**
+  - Floor 4: the Bone knight, which is **Undying**, with a Skeleton
+  - Floor 5: the Necromancer (**Dark mending** 3d8, and **Life drain**) with a Zombie
+  - Floor 6: the Vampire lord (**Regeneration**, 4%, and **Mesmerize**, DC 13) with a Bat swarm
+  - Floor 7: the Hierophant (two attacks a turn, **Dark mending** 3d8, and **Terrifying**, DC 13) with a Cultist
+  - Floor 8: the Horned tyrant (two attacks a turn, and **Terrifying**: a WIS save as the fight starts, DC 14, or 2 rounds of disadvantage on attacks) with an Imp
+  - Floor 9: the Pit fiend (two attacks a turn, **Armor-breaker** and **Rage**) with an Imp
+  - The Daily Delve's guardian is the Mini-boss of its Floor too.
 - **The Dragon:**
   - **Terrifying** (DC 15).
   - **Fire breath:** 12d6, DEX DC 17.

@@ -86,6 +86,11 @@ const POWER_LINES: Partial<Record<MonsterPowerView, MessageKey>> = {
   explode: 'fight.power.explode',
   wail: 'fight.power.wail',
   twin: 'fight.power.twin',
+  pounce: 'fight.power.pounce',
+  regenerate: 'fight.power.regenerate',
+  sunder: 'fight.power.sunder',
+  thorns: 'fight.power.thorns',
+  mesmerize: 'fight.power.mesmerize',
 };
 
 export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, names: Record<string, string>): string | null {

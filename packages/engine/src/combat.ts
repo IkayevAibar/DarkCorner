@@ -237,7 +237,9 @@ function spawnGroup(rng: Rng, floor: number, kind: EncounterKind, weakening: num
     return TWIN_WARDENS.map((id, i) => instantiate({ ...monsterById(id), ...WARDENS[home], theme: home }, floor, `m${i}`));
   }
   if (kind !== 'fight') {
-    const def = MONSTERS.find((d) => d.theme === theme && d.role === kind);
+    // Each Floor of a theme has its own Mini-boss, in the bestiary's order (docs/design.md → Monsters).
+    const defs = MONSTERS.filter((d) => d.theme === theme && d.role === kind);
+    const def = defs[(floor - THEME_START[theme]) % Math.max(1, defs.length)];
     if (!def) throw new Error(`no ${kind} for theme ${theme}`);
     const leader = instantiate(def, floor, 'm0', kind === 'boss' ? weakening : 0);
     return [leader, ...(def.escort ?? []).map((id, i) => instantiate(monsterById(id), floor, `m${i + 1}`))];
@@ -245,7 +247,7 @@ function spawnGroup(rng: Rng, floor: number, kind: EncounterKind, weakening: num
   const sizes: [number, number][] = floor === 1 ? [[1, 70], [2, 30]] : floor === 2 ? [[1, 40], [2, 50], [3, 10]] : [[1, 30], [2, 50], [3, 20]];
   let r = rng.next() * 100;
   const size = sizes.find(([, w]) => (r -= w) < 0)?.[0] ?? 1;
-  const pool = MONSTERS.filter((d) => d.theme === theme && (d.role === 'minion' || d.role === 'brute') && d.weight > 0);
+  const pool = MONSTERS.filter((d) => d.theme === theme && (d.role === 'minion' || d.role === 'brute') && d.weight > 0 && floor >= (d.from ?? 0));
   const out: MonsterInstance[] = [];
   let brutes = 0;
   for (let i = 0; i < size; i++) {
@@ -461,6 +463,8 @@ export const POTIONS_PER_FIGHT = 3;
 const ROUND_LIMIT = 60;
 /** Twin Wardens: one that fell while its twin stands rises at the end of the round with this share of its health (v0). */
 export const TWIN_RISE = 0.5;
+/** A sundering monster cracks this much Armor Class at most in one fight (v0). */
+export const SUNDER_MAX = 3;
 /** Thief, Ghost: the round from which every round's Sneak attack gets the full dice (v0). */
 export const THIEF_STUDY_ROUND = 4;
 /** Ember Fang: a critical hit leaves the enemy burning (v0). */
@@ -571,6 +575,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       poisoned: { turns: 0, dice: [1, 4] as [number, number] },
       held: 0,
       frightened: 0,
+      /** Armor a sundering monster has cracked this fight (each point is 1 less Armor Class). */
+      sundered: 0,
       escaped: false,
       /** Out of the fight: fell and made its death saves one way or the other, or ran. */
       out: null as FightOutcome | null,
@@ -604,6 +610,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   const breathReady = new Set(mons.filter((mm) => powerOf(mm, 'breath')).map((mm) => mm.key));
   const mended = new Set<string>();
   const stoodUp = new Set<string>();
+  /** Monsters fire touched since their last turn: a regenerating one heals nothing then. */
+  const scorched = new Set<string>();
   const enraged = new Set<string>();
 
   const alive = () => mons.filter((mm) => mm.hp > 0 && !fled.has(mm.key));
@@ -735,6 +743,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const after: FightEvent[] = [];
     const targets = mons.map((mm) => {
       const taken = damage * (powerOf(mm, 'swarm') ? 2 : 1);
+      scorched.add(mm.key);
       after.push(...wound(mm, taken, false));
       return { key: mm.key, damage: taken, hp: mm.hp };
     });
@@ -742,6 +751,18 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     markDefeated();
   }
   for (const s of sides) if (s.ward > 0) events.push({ type: 'feature', feature: 'ward', left: s.ward, ...tag(s) });
+  // A mesmerizing gaze holds a Hero through its first turn, unless a WIS save breaks it.
+  for (const mm of alive().filter((x) => powerOf(x, 'mesmerize'))) {
+    const gaze = powerOf(mm, 'mesmerize')!;
+    for (const s of sides) {
+      if (s.held > 0) continue;
+      events.push({ type: 'power', actor: mm.key, power: 'mesmerize', target: s.key });
+      if (!heroSave(s, 'wis', dcOf(mm, gaze.dc))) {
+        s.held = 1;
+        events.push({ type: 'status', target: s.key, status: 'paralyzed', turns: 1 });
+      }
+    }
+  }
   // Fear comes before the first blow: the most fearsome monster only, on every Hero.
   const dread = alive().find((mm) => powerOf(mm, 'frighten'));
   if (dread) {
@@ -789,10 +810,13 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       ?? targets.find((mm) => (stolen.get(mm.key)?.amount ?? 0) > 0)
       ?? targets.find((mm) => mm.key === s.marked)
       ?? (twins.length >= 2 ? twins.reduce((a, b) => (b.hp > a.hp ? b : a)) : undefined)
+      ?? targets.find((mm) => powerOf(mm, 'protect'))
       ?? targets.reduce((a, b) => (b.hp < a.hp ? b : a));
+    // A protector standing between them: blows at the others come at a disadvantage.
+    const shielded = !powerOf(target, 'protect') && targets.some((mm) => mm !== target && powerOf(mm, 'protect'));
     const ambush = currentRound === 1 && s.path('stalker');
-    const edge = combine(combine(combine(s.stance.attackEdge, s.frightened > 0 ? 'disadvantage' : 'normal'), ambush ? 'advantage' : 'normal'),
-      s.helped ? 'advantage' : 'normal');
+    const edge = combine(combine(combine(combine(s.stance.attackEdge, s.frightened > 0 ? 'disadvantage' : 'normal'), ambush ? 'advantage' : 'normal'),
+      s.helped ? 'advantage' : 'normal'), shielded ? 'disadvantage' : 'normal');
     s.helped = false;
     const roll = rollD20(rng, { edge, rerollOnes: s.rerollOnes });
     const partner = partnerOf(s);
@@ -862,7 +886,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       damage += s.heavyHitter;
       if (c.uniques.includes('oathbreaker') && c.hp < c.maxHp / 2) damage *= 1.5;
       if (c.uniques.includes('dragonbone-blade') && targetDef.kin === 'dragonkin') damage *= 2;
-      if (!s.caster && powerOf(target, 'swarm')) damage *= 0.5;
+      if (!s.caster && (powerOf(target, 'swarm') || powerOf(target, 'incorporeal'))) damage *= 0.5;
+      damage -= powerOf(target, 'hide')?.cut ?? 0;
       damage = Math.max(1, Math.round(damage));
       after = wound(target, damage, crit);
     }
@@ -874,11 +899,18 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       burning.set(target.key, { ...EMBER_BURN });
       events.push({ type: 'status', target: target.key, status: 'burning', turns: EMBER_BURN.turns });
     }
-    if (hit && c.lifeSteal > 0) heal(s, 'life-steal', (damage * c.lifeSteal) / 100);
+    const thorns = hit && !s.caster ? powerOf(target, 'thorns') : null;
+    if (thorns && c.hp > 0) {
+      const prick = soften(s, sum(rollDice(rng, thorns.dice[0], thorns.dice[1])) + Math.floor(target.depth / 2), false);
+      const pricked = hurtHero(s, prick);
+      events.push({ type: 'power', actor: target.key, power: 'thorns', target: s.key, amount: prick, hp: c.hp }, ...pricked);
+    }
+    if (hit && c.lifeSteal > 0 && c.hp > 0) heal(s, 'life-steal', (damage * c.lifeSteal) / 100);
     if (hit && crit && c.uniques.includes('wyrmfire')) {
       for (const other of alive()) {
         if (other === target) continue;
         const splash = Math.round(damage / 2);
+        scorched.add(other.key);
         const more = wound(other, splash, false);
         events.push({ type: 'attack', actor: s.key, target: other.key, natural: roll.natural, total, hit: true, crit: false, damage: splash, targetHp: other.hp, kind: 'weapon' }, ...more);
       }
@@ -1099,6 +1131,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
           const targets = alive().map((mm) => {
             const swarm = powerOf(mm, 'swarm') ? 2 : 1;
             const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + empowered) * lone * swarm * (1 + c.spellPower / 100)));
+            scorched.add(mm.key);
             after.push(...wound(mm, damage, false));
             return { key: mm.key, damage, hp: mm.hp };
           });
@@ -1168,6 +1201,11 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       return;
     }
 
+    if (powerOf(mm, 'sunder') && s.sundered < SUNDER_MAX) {
+      s.sundered++;
+      s.c.ac--;
+      events.push({ type: 'power', actor: mm.key, power: 'sunder', target: s.key, amount: s.sundered });
+    }
     if (powerOf(mm, 'drain')) {
       const gained = Math.min(mm.maxHp - mm.hp, Math.floor(damage / 2));
       if (gained > 0) {
@@ -1236,7 +1274,9 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         return;
       }
     }
-    const attacks = powerOf(mm, 'multiattack')?.attacks ?? 1;
+    const pounce = currentRound === 1 && powerOf(mm, 'pounce') !== null;
+    if (pounce && standing().length > 0) events.push({ type: 'power', actor: mm.key, power: 'pounce' });
+    const attacks = (powerOf(mm, 'multiattack')?.attacks ?? 1) + (pounce ? 1 : 0);
     for (let i = 0; i < attacks; i++) {
       const target = pickTarget();
       if (!target) break;
@@ -1258,6 +1298,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         if (s.c.hp <= 0) return false;
       } else {
         const mm = mons.find((x) => x.key === key)!;
+        scorched.add(mm.key);
         const after = wound(mm, rolled, false);
         events.push({ type: 'tick', target: key, damage: rolled, hp: mm.hp }, ...after);
         markDefeated();
@@ -1265,7 +1306,17 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       }
       if (fire.turns === 0) events.push({ type: 'expire', target: key, status: 'burning' });
     }
-    if (!s) return true;
+    if (!s) {
+      const mm = mons.find((x) => x.key === key)!;
+      const regen = powerOf(mm, 'regenerate');
+      if (regen && !scorched.has(mm.key) && mm.hp > 0 && mm.hp < mm.maxHp) {
+        const gained = Math.min(mm.maxHp - mm.hp, Math.max(1, Math.round(mm.maxHp * regen.share)));
+        mm.hp += gained;
+        events.push({ type: 'power', actor: mm.key, power: 'regenerate', amount: gained, hp: mm.hp });
+      }
+      scorched.delete(mm.key);
+      return true;
+    }
     if (s.poisoned.turns > 0) {
       s.poisoned.turns--;
       const damage = soften(s, sum(rollDice(rng, s.poisoned.dice[0], s.poisoned.dice[1])), false);
