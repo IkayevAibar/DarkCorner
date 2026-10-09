@@ -446,5 +446,489 @@
     "sampledMaxAlpha": 255,
     "bytes": 2641969,
     "sha256": "759a9ab33b72e0462ff9f66725cf699c5e573a91e2db48c72b3001f4cfdb7f2e"
+  },
+  {
+    "file": "shell-beetle.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      19,
+      42,
+      1238,
+      1245
+    ],
+    "bytes": 2977958,
+    "sha256": "4fec72713afa6c4905a3988e2f224648188704f3b68aa7ce9b2d3de8678247d7"
+  },
+  {
+    "file": "hobgoblin.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      17,
+      13,
+      1238,
+      1254
+    ],
+    "bytes": 2655534,
+    "sha256": "e7a3463cdbc2e2dab56636c110de54c1dc53e20125f40a82ddcfece43e04f5d9"
+  },
+  {
+    "file": "worg.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      31,
+      2,
+      1223,
+      1254
+    ],
+    "bytes": 2815794,
+    "sha256": "f1083724979482f36d90fc6c9bb97d8470e0dff1735a62ad1f5ca6053ea2b9f0"
+  },
+  {
+    "file": "broodmother.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      0,
+      0,
+      1254,
+      1252
+    ],
+    "bytes": 2907405,
+    "sha256": "24617c0018857bbddd6345bd65750ee118eaec738b16d66442c43342a5d85885"
+  },
+  {
+    "file": "bugbear.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      11,
+      0,
+      1253,
+      1254
+    ],
+    "bytes": 2754366,
+    "sha256": "c53a262abf2d7d2cf165d42751eb7a65a7a78374c494070b5623c3178d151359"
+  },
+  {
+    "file": "ghost.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      39,
+      3,
+      1224,
+      1253
+    ],
+    "bytes": 2893118,
+    "sha256": "abd91fcb4fe859209072840f361ee21094a24681b75a15c0bc776786f0550fa8"
+  },
+  {
+    "file": "vampire-spawn.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      18,
+      0,
+      1237,
+      1254
+    ],
+    "bytes": 2674518,
+    "sha256": "7e615863ede6a397608af65f92e39ac7d07afdf535d76bf5bb8cb7fa111ea451"
+  },
+  {
+    "file": "skeleton-archer.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      14,
+      0,
+      1249,
+      1254
+    ],
+    "bytes": 2597148,
+    "sha256": "5552714e599d07c55feea2ae4cef4281a3040e13c0753e38bde4e74b9c6ed6b2"
+  },
+  {
+    "file": "gargoyle.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      0,
+      0,
+      1254,
+      1254
+    ],
+    "bytes": 3263104,
+    "sha256": "32ea95dcdbacbc0d7a25c661c68232f1abdfc30ab817d26d6b5787bc5280193d"
+  },
+  {
+    "file": "necromancer.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      30,
+      10,
+      1237,
+      1254
+    ],
+    "bytes": 2762724,
+    "sha256": "fbe12299b564607eb3c6963478d641bc0ea6b2c5a8685f70a4e89f4a1917103b"
+  },
+  {
+    "file": "vampire-lord.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      21,
+      27,
+      1235,
+      1235
+    ],
+    "bytes": 2525610,
+    "sha256": "9d2d7b882bb2ff1a1cc1d50cfa37fc76a8abed90dbc554b72db6a83c96ba641b"
+  },
+  {
+    "file": "temptress.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      20,
+      1,
+      1237,
+      1254
+    ],
+    "bytes": 2689929,
+    "sha256": "d41fd4f3c38bc5b29e022b2795535be063bd05ee5d8e054df65949225cd1775e"
+  },
+  {
+    "file": "bone-devil.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      56,
+      7,
+      1213,
+      1254
+    ],
+    "bytes": 2475881,
+    "sha256": "c4f7f9dd8dd3cb56d3671b484d04e30dea604787c3366f33e43d628b972aa8e8"
+  },
+  {
+    "file": "ember-fiend.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      37,
+      0,
+      1238,
+      1254
+    ],
+    "bytes": 2818119,
+    "sha256": "7929020fddfb8c98584268f731792a0c5163c6715e67e7ca786294194a26063e"
+  },
+  {
+    "file": "shadow.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      33,
+      0,
+      1215,
+      1254
+    ],
+    "bytes": 2103175,
+    "sha256": "aff323521da71cbf584d3ba12e1a42fb317f14b980661aaa375aaf88b356dd89"
+  },
+  {
+    "file": "hierophant.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      51,
+      0,
+      1180,
+      1254
+    ],
+    "bytes": 2279340,
+    "sha256": "ea1eacd972dde5d55a209e88604a1835a41e6062e16a1d4487e2d55fa3f06f2b"
+  },
+  {
+    "file": "pit-fiend.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      0,
+      0,
+      1254,
+      1254
+    ],
+    "bytes": 3084421,
+    "sha256": "45be784b439972ccf018b32a7598bfeaba0d3e805e6a70e28cfa37ace072191e"
+  },
+  {
+    "file": "kobold-shieldbearer.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      53,
+      50,
+      1230,
+      1245
+    ],
+    "bytes": 2678403,
+    "sha256": "3aa28b5ca098627d322270ee9616c5168298f80d711dcc08b3e81704faef988d"
+  },
+  {
+    "file": "wyrmling.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      111,
+      8,
+      1157,
+      1250
+    ],
+    "bytes": 2423019,
+    "sha256": "50dde9e7c05fe5c7e3f2ec086cbce9fb500768f48e68b3cfe5cb0853091d1b1e"
+  },
+  {
+    "file": "scale-sworn.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      14,
+      3,
+      1238,
+      1254
+    ],
+    "bytes": 2807914,
+    "sha256": "cc2bc2b1ff9535bb20eea5729a1d2b4428a7362612a36c07a94be7f634562cc8"
+  },
+  {
+    "file": "wyvern.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      1,
+      43,
+      1251,
+      1252
+    ],
+    "bytes": 2916188,
+    "sha256": "05166747f1ae5747e8b70dba9202ead064006ac32a90e6456f451c75afd3ccf1"
+  },
+  {
+    "file": "salamander.png",
+    "width": 1254,
+    "height": 1254,
+    "pixelFormat": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sampledMinAlpha": 0,
+    "sampledMaxAlpha": 255,
+    "visibleBounds": [
+      56,
+      0,
+      1236,
+      1254
+    ],
+    "bytes": 2521807,
+    "sha256": "888228467e40aa381b1098fbb4d24a82a127c82d24ddde9f4787432f53adb0c2"
   }
 ]

@@ -1,13 +1,52 @@
 # Season 0 monster token sources
 
-28 monster illustrations generated with the **built-in image_gen tool**: 17 for [Codex task 10](../../docs/tasks/codex-10-monster-tokens.md), six for [Codex task 12](../../docs/tasks/codex-12-new-monster-tokens.md), and five for [Codex task 13](../../docs/tasks/codex-13-deep-monster-tokens.md), using [the monster prompt brief](../../docs/art/monster-token-prompts.md).
+50 monster illustrations generated with the **built-in image_gen tool**: 17 for [Codex task 10](../../docs/tasks/codex-10-monster-tokens.md), six for [Codex task 12](../../docs/tasks/codex-12-new-monster-tokens.md), five for [Codex task 13](../../docs/tasks/codex-13-deep-monster-tokens.md), plus 22 for [Codex task 22](https://github.com/IkayevAibar/DarkCorner/blob/90ef613/docs/tasks/codex-22-bestiary-tokens.md), using [the monster prompt brief](../../docs/art/monster-token-prompts.md).
 
-All source PNGs are square **1254 × 1254** with alpha transparency, preserved as generated. The selected sources total approximately **68.9 MiB**. Batches 1 and 2 have no discarded variants; Batch 3 includes two targeted image_gen revisions described below.
+All source PNGs are square **1254 × 1254** with alpha transparency, preserved as generated. The selected sources total approximately **125.7 MiB**. Batches 1 and 2 have no discarded variants; Batch 3 includes two targeted image_gen revisions described below.
 
 - [Exact submitted prompts](generation-prompts.json), including the shared style and circular-crop requirements.
 - [File validation](validation.json): dimensions, pixel format, corner and sampled alpha, bytes, SHA-256.
 - [Browser crop review](token-review.html): open locally at 100% zoom for 48, 64 and 96 px tokens, alongside the four existing references.
 - [Crop review screenshot](review/token-crops.png): the same sheet rendered in Chrome at device scale 1.
+
+## Batch 4: 22 Bestiary portraits
+
+Generated from the Batch 4 subjects in the task 22 brief, with one built-in image_gen call per source and no revisions. All 22 PNGs retain their generated pixels and alpha (1254 × 1254, 56.9 MiB together). Exact submitted prompts are appended to the manifest; dimensions, alpha, visible bounds and SHA-256 are appended to validation.
+
+| Monster | Floors | Source |
+|---|---|---|
+| Shell beetle · Панцирный жук | 1–3 | [<img src="shell-beetle.png" width="128" alt="Shell beetle · Панцирный жук">](shell-beetle.png) |
+| Hobgoblin · Хобгоблин | 2–3 | [<img src="hobgoblin.png" width="128" alt="Hobgoblin · Хобгоблин">](hobgoblin.png) |
+| Worg · Варг | 2–3 | [<img src="worg.png" width="128" alt="Worg · Варг">](worg.png) |
+| Broodmother · Паучья матка | Floor 2, Mini-boss | [<img src="broodmother.png" width="128" alt="Broodmother · Паучья матка">](broodmother.png) |
+| Bugbear · Багбир | Floor 3, Mini-boss | [<img src="bugbear.png" width="128" alt="Bugbear · Багбир">](bugbear.png) |
+| Ghost · Привидение | 4–6 | [<img src="ghost.png" width="128" alt="Ghost · Привидение">](ghost.png) |
+| Vampire spawn · Вампирское отродье | 4–6 | [<img src="vampire-spawn.png" width="128" alt="Vampire spawn · Вампирское отродье">](vampire-spawn.png) |
+| Skeleton archer · Скелет-лучник | 4–6 | [<img src="skeleton-archer.png" width="128" alt="Skeleton archer · Скелет-лучник">](skeleton-archer.png) |
+| Gargoyle · Горгулья | 4–6 | [<img src="gargoyle.png" width="128" alt="Gargoyle · Горгулья">](gargoyle.png) |
+| Necromancer · Некромант | Floor 5, Mini-boss | [<img src="necromancer.png" width="128" alt="Necromancer · Некромант">](necromancer.png) |
+| Vampire lord · Вампир-владыка | Floor 6, Mini-boss | [<img src="vampire-lord.png" width="128" alt="Vampire lord · Вампир-владыка">](vampire-lord.png) |
+| Temptress · Искусительница | 7–9 | [<img src="temptress.png" width="128" alt="Temptress · Искусительница">](temptress.png) |
+| Bone devil · Костяной дьявол | 8–9 | [<img src="bone-devil.png" width="128" alt="Bone devil · Костяной дьявол">](bone-devil.png) |
+| Ember fiend · Огненный изверг | 7–9 | [<img src="ember-fiend.png" width="128" alt="Ember fiend · Огненный изверг">](ember-fiend.png) |
+| Shadow · Тень | 7–9 | [<img src="shadow.png" width="128" alt="Shadow · Тень">](shadow.png) |
+| Hierophant · Иерофант | Floor 7, Mini-boss | [<img src="hierophant.png" width="128" alt="Hierophant · Иерофант">](hierophant.png) |
+| Pit fiend · Исчадие бездны | Floor 9, Mini-boss | [<img src="pit-fiend.png" width="128" alt="Pit fiend · Исчадие бездны">](pit-fiend.png) |
+| Kobold shieldbearer · Кобольд-щитоносец | 10 | [<img src="kobold-shieldbearer.png" width="128" alt="Kobold shieldbearer · Кобольд-щитоносец">](kobold-shieldbearer.png) |
+| Wyrmling · Дракончик | 10 | [<img src="wyrmling.png" width="128" alt="Wyrmling · Дракончик">](wyrmling.png) |
+| Scale-sworn · Чешуйчатый латник | 10 | [<img src="scale-sworn.png" width="128" alt="Scale-sworn · Чешуйчатый латник">](scale-sworn.png) |
+| Wyvern · Виверна | 10 | [<img src="wyvern.png" width="128" alt="Wyvern · Виверна">](wyvern.png) |
+| Salamander · Саламандра | 10 | [<img src="salamander.png" width="128" alt="Salamander · Саламандра">](salamander.png) |
+
+[Interactive crop review](token-review-batch-4.html) · [Phone-width capture](review/token-crops-batch-4-phone.png) · [Browser validation](review/batch-4-browser-validation.json)
+
+![22 portraits with six existing references at 48, 64 and 96 px](review/token-crops-batch-4.png)
+
+The centered circular crop uses the Token.tsx iron ring and 1.08× zoom. Faces, shield silhouettes, pale undead and burning creatures remain distinct at 48 px. The Shadow is intentionally nearly black: its pale eyes and reaching claw carry its silhouette. The Ember Fiend and Salamander are deliberately brighter, with orange fire. Outer wing and horn tips crop at the ring; faces stay inside. Fine wounds, webs and chains become texture at the smallest size. No required second pass was identified.
+
+Chrome decoded every image and checked all 66 new crop frames at 1280 and 375 px, with no page errors or horizontal overflow. Source filenames match all 22 brief subjects. Application tests were not run: only source art, metadata and review files change, so the first-load bundle is unchanged.
+
+Claude: create the 256 px WebP delivery copies under apps/web/public/art/tokens/, set each matching monster's art in the content, and check the compressed portraits in encounters. The new monster content and briefs were read from claude/armory (55e2bb1, including Bestiary commit 90ef613); the art branch starts from main. No contract, gameplay or application changes are included.
 
 ## Batch 3: five monsters for the crypts and the depths
 

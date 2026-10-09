@@ -1,0 +1,14 @@
+{
+  "newCount": 22,
+  "referenceCount": 6,
+  "viewports": [
+    1280,
+    375
+  ],
+  "checks": {
+    "images": true,
+    "overflow": false,
+    "frames": true
+  },
+  "errors": []
+}
