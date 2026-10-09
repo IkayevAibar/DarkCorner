@@ -37,7 +37,10 @@ describe('creating a Hero', () => {
   it('tells the creation screen which ability each Class fights with', async () => {
     const options = (await get('/api/heroes/options')).json();
     const primary = Object.fromEntries(options.classes.map((c: { id: string; primary: string }) => [c.id, c.primary]));
-    expect(primary).toEqual({ fighter: 'str', rogue: 'dex', wizard: 'int', cleric: 'wis', barbarian: 'str', ranger: 'dex' });
+    expect(primary).toEqual({
+      fighter: 'str', rogue: 'dex', wizard: 'int', cleric: 'wis', barbarian: 'str', ranger: 'dex',
+      paladin: 'str', warlock: 'cha', monk: 'dex', druid: 'wis', bard: 'cha', sorcerer: 'cha',
+    });
   });
 
   it('rolls one set, allows three rerolls, then stops', async () => {

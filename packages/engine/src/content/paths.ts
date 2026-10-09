@@ -6,7 +6,10 @@ import { type Text, text } from './text.js';
  * it at level 9 (docs/design.md → Growing: Paths and Talents, v0). Retiring is
  * the only way to try the other one in the same Season.
  */
-export const PATHS = ['champion', 'guardian', 'thief', 'assassin', 'evoker', 'abjurer', 'life', 'war', 'berserker', 'bearheart', 'hunter', 'stalker'] as const;
+export const PATHS = [
+  'champion', 'guardian', 'thief', 'assassin', 'evoker', 'abjurer', 'life', 'war', 'berserker', 'bearheart', 'hunter', 'stalker',
+  'devotion', 'vengeance', 'fiend', 'old-one', 'open-hand', 'shadows', 'moon', 'land', 'lore', 'valor', 'draconic', 'wild',
+] as const;
 export type PathId = (typeof PATHS)[number];
 
 /** The level a Path is chosen at, and the level its second feature comes. */
@@ -207,6 +210,198 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
       feature(9, text('Evasion', 'Увёртливость'), text(
         'A DEX save against breath or a blast takes no damage on a success, and half on a failure.',
         'Спасбросок ЛОВ от дыхания или взрыва: при успехе урона нет, при провале — половина.',
+      )),
+    ],
+  },
+  'devotion': {
+    id: 'devotion',
+    class: 'paladin',
+    name: text('Devotion', 'Преданность'),
+    blurb: text('A shining knight: steady hand, steady heart.', 'Сияющий рыцарь: твёрдая рука и твёрдое сердце.'),
+    features: [
+      feature(3, text('Sacred weapon', 'Священное оружие'), text(
+        '+2 to hit with weapons.',
+        '+2 к попаданию оружием.',
+      )),
+      feature(9, text('Aura of devotion', 'Аура преданности'), text(
+        'Neither fear nor a mesmerizing gaze can take hold of you.',
+        'Ни страх, ни завораживающий взгляд не властны над вами.',
+      )),
+    ],
+  },
+  'vengeance': {
+    id: 'vengeance',
+    class: 'paladin',
+    name: text('Vengeance', 'Месть'),
+    blurb: text('Hunts down the worst of them.', 'Выслеживает самых страшных.'),
+    features: [
+      feature(3, text('Vow of enmity', 'Клятва вражды'), text(
+        'In a hard fight, advantage on attacks against the toughest monster.',
+        'В тяжёлом бою — преимущество на атаки по самому опасному монстру.',
+      )),
+      feature(9, text('Avenging smite', 'Карающая кара'), text(
+        'Divine smite deals one more d8.',
+        'Божественная кара наносит на d8 больше.',
+      )),
+    ],
+  },
+  'fiend': {
+    id: 'fiend',
+    class: 'warlock',
+    name: text('Fiend', 'Исчадие'),
+    blurb: text('A pact with a power of the pit.', 'Договор с силой преисподней.'),
+    features: [
+      feature(3, text('Dark one’s blessing', 'Благословение тёмного'), text(
+        'Every monster your spells fell restores your CHA modifier + your level in health.',
+        'Каждый монстр, павший от ваших заклинаний, восстанавливает модификатор ХАР + ваш уровень здоровья.',
+      )),
+      feature(9, text('Hellfire', 'Адское пламя'), text(
+        'Your blasts set what they hit burning: 1d6 for 2 turns.',
+        'Ваши заряды поджигают цель: 1d6 два хода.',
+      )),
+    ],
+  },
+  'old-one': {
+    id: 'old-one',
+    class: 'warlock',
+    name: text('Great Old One', 'Великий Древний'),
+    blurb: text('A mind touched by something vast.', 'Разум, которого коснулось нечто необъятное.'),
+    features: [
+      feature(3, text('Awakened mind', 'Пробуждённый разум'), text(
+        '+5 to initiative, and WIS saves with advantage.',
+        '+5 к инициативе и спасброски МДР с преимуществом.',
+      )),
+      feature(9, text('Entropic ward', 'Энтропийная защита'), text(
+        'The first blow of every fight that would hit you misses.',
+        'Первый удар в каждом бою, который попал бы, промахивается.',
+      )),
+    ],
+  },
+  'open-hand': {
+    id: 'open-hand',
+    class: 'monk',
+    name: text('Open Hand', 'Открытая ладонь'),
+    blurb: text('Every strike a lesson.', 'Каждый удар — урок.'),
+    features: [
+      feature(3, text('Open hand technique', 'Техника открытой ладони'), text(
+        'A monster struck by your Flurry of blows attacks at a disadvantage on its next turn.',
+        'Монстр под шквалом ваших ударов атакует с помехой в свой следующий ход.',
+      )),
+      feature(9, text('Wholeness of body', 'Целостность тела'), text(
+        'Once a fight, below half health, regain three times your level in health.',
+        'Раз за бой, когда здоровья меньше половины, восстанавливает трижды ваш уровень здоровья.',
+      )),
+    ],
+  },
+  'shadows': {
+    id: 'shadows',
+    class: 'monk',
+    name: text('Shadow', 'Тень'),
+    blurb: text('Strikes from where no light falls.', 'Бьёт оттуда, куда не падает свет.'),
+    features: [
+      feature(3, text('Shadow arts', 'Искусство теней'), text(
+        'In each fight’s first round, attacks with advantage; Sneak checks with advantage.',
+        'В первом раунде каждого боя атакует с преимуществом; проверки скрытности с преимуществом.',
+      )),
+      feature(9, text('Cloak of shadows', 'Плащ теней'), text(
+        'The first blow of every fight that would hit you misses.',
+        'Первый удар в каждом бою, который попал бы, промахивается.',
+      )),
+    ],
+  },
+  'moon': {
+    id: 'moon',
+    class: 'druid',
+    name: text('Moon', 'Луна'),
+    blurb: text('More beast than sage.', 'Скорее зверь, чем мудрец.'),
+    features: [
+      feature(3, text('Moon form', 'Лунный облик'), text(
+        'Your beast form has half again as much health.',
+        'У вашего звериного облика в полтора раза больше здоровья.',
+      )),
+      feature(9, text('Primal strike', 'Первобытный удар'), text(
+        'Beast claws deal +1d8.',
+        'Когти зверя наносят +1d8.',
+      )),
+    ],
+  },
+  'land': {
+    id: 'land',
+    class: 'druid',
+    name: text('Land', 'Земля'),
+    blurb: text('Draws on the old roots of the world.', 'Черпает силу из древних корней мира.'),
+    features: [
+      feature(3, text('Natural recovery', 'Природное восстановление'), text(
+        'One more Cure wounds a rest.',
+        'На одно «Лечение ран» за отдых больше.',
+      )),
+      feature(9, text('Nature’s ward', 'Защита природы'), text(
+        'Poison can’t take hold of you.',
+        'Яд над вами не властен.',
+      )),
+    ],
+  },
+  'lore': {
+    id: 'lore',
+    class: 'bard',
+    name: text('Lore', 'Знание'),
+    blurb: text('Knows the right word for every wound.', 'Знает нужное слово для каждой раны.'),
+    features: [
+      feature(3, text('Peerless skill', 'Непревзойдённое мастерство'), text(
+        'Your Inspiration die is one size bigger (a d8 to start with).',
+        'Ваша кость вдохновения на размер больше (для начала d8).',
+      )),
+      feature(9, text('Countercharm', 'Контрочары'), text(
+        'Neither fear nor a mesmerizing gaze can take hold of you.',
+        'Ни страх, ни завораживающий взгляд не властны над вами.',
+      )),
+    ],
+  },
+  'valor': {
+    id: 'valor',
+    class: 'bard',
+    name: text('Valor', 'Доблесть'),
+    blurb: text('Sings the battle, then joins it.', 'Воспевает битву, а потом вступает в неё.'),
+    features: [
+      feature(3, text('Combat inspiration', 'Боевое вдохновение'), text(
+        'An Inspiration that turns a miss into a hit adds its die to the damage too.',
+        'Вдохновение, превратившее промах в попадание, добавляет свою кость и к урону.',
+      )),
+      feature(9, text('Battle magic', 'Боевая магия'), text(
+        'Every attack spell that hits adds your Inspiration die to its damage, spending nothing.',
+        'Каждое попавшее боевое заклинание добавляет к урону вашу кость вдохновения, ничего не тратя.',
+      )),
+    ],
+  },
+  'draconic': {
+    id: 'draconic',
+    class: 'sorcerer',
+    name: text('Draconic', 'Драконья кровь'),
+    blurb: text('A dragon somewhere in the family tree.', 'Где-то в родословной был дракон.'),
+    features: [
+      feature(3, text('Draconic resilience', 'Драконья стойкость'), text(
+        '+2 Armor Class, and fire (breath, burning) deals half.',
+        '+2 к классу доспеха, а огонь (дыхание, горение) наносит половину.',
+      )),
+      feature(9, text('Elemental affinity', 'Стихийное родство'), text(
+        'Your spells and Bursts of fire deal your CHA modifier more.',
+        'Ваши заклинания и огненные взрывы наносят на модификатор ХАР больше.',
+      )),
+    ],
+  },
+  'wild': {
+    id: 'wild',
+    class: 'sorcerer',
+    name: text('Wild Magic', 'Дикая магия'),
+    blurb: text('Power that does not always ask.', 'Сила, которая не всегда спрашивает.'),
+    features: [
+      feature(3, text('Tides of chaos', 'Волны хаоса'), text(
+        'Once a fight, a missed attack spell is cast again.',
+        'Раз за бой промахнувшееся боевое заклинание творится снова.',
+      )),
+      feature(9, text('Wild surge', 'Дикий всплеск'), text(
+        'Bursts of fire deal half again as much, and even a lone monster takes one (for double).',
+        'Огненные взрывы наносят в полтора раза больше урона и достаются даже одинокому монстру (вдвойне).',
       )),
     ],
   },

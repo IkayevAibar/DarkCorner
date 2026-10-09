@@ -19,7 +19,7 @@ A Hero's people (Human, Elf, Dwarf, Halfling), each granting one small trait.
 _Avoid_: species, ancestry
 
 **Class**:
-A Hero's calling (Fighter, Rogue, Wizard, Cleric, …). It sets the Hero's fighting style, Proficiencies and trick in the Labyrinth.
+A Hero's calling: Fighter, Rogue, Wizard, Cleric, Barbarian, Ranger, Paladin, Warlock, Monk, Druid, Bard or Sorcerer. It sets the Hero's fighting style, Proficiencies and trick in the Labyrinth.
 _Avoid_: job, profession, role
 
 **Ability scores**:
@@ -360,6 +360,34 @@ _Avoid_: berserk (that's a Path), fury
 **Hunter's mark** (метка охотника):
 A Ranger's mark on the toughest monster of a hard fight: the Ranger attacks it first, every hit on it deals more, and the mark moves on when it falls. A few a rest.
 _Avoid_: target, quarry
+
+**Hex** (порча):
+A Warlock's curse that works like a Hunter's mark: the toughest monster of a hard fight, attacked first, hurt more by every hit, and the Hex moves on when it falls. A few a rest.
+_Avoid_: curse (a cursed Item is something else), mark (that's the Ranger's)
+
+**Divine smite** (божественная кара):
+A Paladin's holy fire poured into the turn's first hit, worst for the undead and demons. A few a rest.
+_Avoid_: holy strike, smite (alone)
+
+**Lay on hands** (наложение рук):
+A Paladin's healing touch in a fight, for itself or its partner. A few a rest.
+_Avoid_: heal, Cure wounds (that's a spell)
+
+**Flurry of blows** (шквал ударов):
+A Monk's extra strike on a turn, paid for with ki (ци), its few-a-rest uses.
+_Avoid_: combo, double attack
+
+**Wild shape** (дикий облик):
+A Druid's turn into a beast for the rest of a fight, once a fight: the beast's health takes the blows first and it fights with claws.
+_Avoid_: transform, polymorph
+
+**Bardic inspiration** (вдохновение барда):
+A Bard's die, a few a rest: it lands a missed spell or, as Cutting words (колкие слова), turns aside a blow that would hit. Spent only when it changes the outcome.
+_Avoid_: buff, luck
+
+**Sorcery points** (очки чародейства):
+A Sorcerer's few-a-rest uses, spent on a Burst of fire or a Quickened spell (ускоренное заклинание: two attack spells in one turn).
+_Avoid_: mana, spell slots
 
 **First steps** (первые шаги):
 A new Hero's short list of first goals (win a fight, bring gold home, open a Chest…), each with a small reward the Player claims once a Season.

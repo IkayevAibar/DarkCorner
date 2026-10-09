@@ -20,8 +20,15 @@ const PICKS: Record<ClassId, { race: RaceId; talents: TalentId[]; banner: string
   cleric: { race: 'dwarf', talents: ['lucky-charm'], banner: '#b08a2e', fallbackName: 'Borin' },
   barbarian: { race: 'dwarf', talents: ['tough'], banner: '#c2682b', fallbackName: 'Hrolf' },
   ranger: { race: 'elf', talents: ['alert'], banner: '#2f7f86', fallbackName: 'Tamsin' },
+  // Banners come from the eight the server allows (BANNER_COLORS), so some Classes share one.
+  paladin: { race: 'human', talents: ['tough', 'lucky-charm'], banner: '#8a8a8a', fallbackName: 'Aldric' },
+  warlock: { race: 'elf', talents: ['tough'], banner: '#6b3f8f', fallbackName: 'Morwen' },
+  monk: { race: 'human', talents: ['alert', 'tough'], banner: '#c2682b', fallbackName: 'Shen' },
+  druid: { race: 'halfling', talents: ['tough'], banner: '#3f7a4a', fallbackName: 'Fern' },
+  bard: { race: 'halfling', talents: ['lucky-charm'], banner: '#b08a2e', fallbackName: 'Lark' },
+  sorcerer: { race: 'human', talents: ['tough', 'alert'], banner: '#9e2a2a', fallbackName: 'Vesna' },
 };
-const CLASSES: ClassId[] = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'];
+const CLASSES: ClassId[] = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger', 'paladin', 'warlock', 'monk', 'druid', 'bard', 'sorcerer'];
 /** `wears`: the Class whose portraits it wears (a new Class borrows a painted one's until its own are in). */
 const portraitOf = (cls: ClassId, wears: ClassId) => `${PICKS[cls].race}-${wears}-1`;
 
@@ -39,7 +46,7 @@ async function bestSet(primary: AbilityId): Promise<number> {
   return draft.sets.reduce((best, set, i) => (score(set) > score(draft.sets[best]!) ? i : best), 0);
 }
 
-/** Six Classes to pick from, each with its portrait and what it's good at. */
+/** Twelve Classes to pick from, each with its portrait and what it's good at. */
 export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onCustom: () => void }) {
   const { t, locale } = useI18n();
   const text = (value: LocalizedText) => value[locale];
@@ -51,7 +58,10 @@ export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onC
     const def = classes.find((c) => c.id === cls)!;
     openSheet({
       title: text(def.name),
-      body: <Begin cls={cls} wears={def.wears} onCreated={() => { closeSheet(); onCreated(); }} onCustom={() => { closeSheet(); onCustom(); }} />,
+      body: (
+        <Begin cls={cls} wears={def.wears} banners={options.data?.banners ?? []}
+          onCreated={() => { closeSheet(); onCreated(); }} onCustom={() => { closeSheet(); onCustom(); }} />
+      ),
     });
   };
 
@@ -94,20 +104,27 @@ export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onC
 }
 
 /** The last step: a name (the Player's own by default), then into the game. */
-function Begin({ cls, wears, onCreated, onCustom }: { cls: ClassId; wears: ClassId; onCreated: () => void; onCustom: () => void }) {
+function Begin({ cls, wears, banners, onCreated, onCustom }: {
+  cls: ClassId; wears: ClassId; banners: string[]; onCreated: () => void; onCustom: () => void;
+}) {
   const { t } = useI18n();
   const { session } = useSession();
   const pick = PICKS[cls];
+  // The Class's own banner, if the server still offers it.
+  const banner = banners.length === 0 || banners.includes(pick.banner) ? pick.banner : banners[0]!;
   const [name, setName] = useState(() => heroName(session.state === 'signedIn' ? session.player.name : undefined, cls));
   const { busy, error, run } = useAction();
-  const primary: Record<ClassId, AbilityId> = { fighter: 'str', rogue: 'dex', wizard: 'int', cleric: 'wis', barbarian: 'str', ranger: 'dex' };
+  const primary: Record<ClassId, AbilityId> = {
+    fighter: 'str', rogue: 'dex', wizard: 'int', cleric: 'wis', barbarian: 'str', ranger: 'dex',
+    paladin: 'str', warlock: 'cha', monk: 'dex', druid: 'wis', bard: 'cha', sorcerer: 'cha',
+  };
   const valid = /^[\p{L}\p{N}' -]{2,20}$/u.test(name.trim());
 
   const begin = async () => {
     const made = await run(async () => {
       const set = await bestSet(primary[cls]);
       return api.createHero({
-        name: name.trim(), race: pick.race, class: cls, talents: pick.talents, portrait: portraitOf(cls, wears), banner: pick.banner, set,
+        name: name.trim(), race: pick.race, class: cls, talents: pick.talents, portrait: portraitOf(cls, wears), banner, set,
       });
     });
     if (made) {
@@ -122,7 +139,7 @@ function Begin({ cls, wears, onCreated, onCustom }: { cls: ClassId; wears: Class
         src={`/art/portraits/${portraitOf(cls, wears)}.webp`}
         alt=""
         className="mx-auto aspect-[4/5] w-40 rounded-[2px] border-2 object-cover object-[50%_30%]"
-        style={{ borderColor: pick.banner }}
+        style={{ borderColor: banner }}
       />
       <p className="m-0 text-center text-sm">{t(`quick.${cls}`)}</p>
       <label className="grid gap-1 text-sm">

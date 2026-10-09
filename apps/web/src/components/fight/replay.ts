@@ -49,9 +49,10 @@ export function advance(frame: Frame, event: FightEventView): Frame {
     case 'feature':
       if (!actor) break;
       if (event.hp !== undefined) actor.hp = event.hp;
-      if (event.feature === 'ward') actor.ward = event.left ?? actor.ward;
+      // A Druid's beast shows its health as a ward does; a Warlock's Hex as a Hunter's mark.
+      if (event.feature === 'ward' || event.feature === 'wild-shape') actor.ward = event.left ?? actor.ward;
       if (event.feature === 'rage') actor.raging = true;
-      if (event.feature === 'mark' && event.target && who(event.target)) actor.marked = event.target;
+      if ((event.feature === 'mark' || event.feature === 'hex') && event.target && who(event.target)) actor.marked = event.target;
       break;
     case 'power':
       if (event.hp !== undefined) hp(

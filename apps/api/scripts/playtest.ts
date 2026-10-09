@@ -183,6 +183,12 @@ const HOLDS: Record<ClassId, { main: (b: GearBase) => boolean; off: (b: GearBase
   rogue: { main: (b) => b.weapon === 'blade', off: (b) => b.weapon === 'dagger' },
   cleric: { main: (b) => b.weapon === 'mace', off: (b) => b.offHand === 'shield' },
   wizard: { main: (b) => b.weapon === 'staff', off: (b) => b.offHand === 'orb' },
+  paladin: { main: (b) => b.weapon === 'mace' || b.weapon === 'blade', off: (b) => b.offHand === 'shield' },
+  warlock: { main: (b) => b.weapon === 'staff' || b.weapon === 'dagger', off: (b) => b.offHand === 'orb' },
+  monk: { main: (b) => b.weapon === 'staff', off: () => false },
+  druid: { main: (b) => b.weapon === 'staff', off: (b) => b.offHand === 'shield' },
+  bard: { main: (b) => b.weapon === 'blade', off: () => false },
+  sorcerer: { main: (b) => b.weapon === 'staff', off: (b) => b.offHand === 'orb' },
 };
 
 /** Puts on whatever in the Bag beats what is worn (identified gear only), each weapon in the hand its Class holds it in. */
@@ -624,6 +630,9 @@ const CLASSES: [ClassId, string, string][] = [
   ['fighter', 'human', 'human-fighter-1'], ['rogue', 'halfling', 'halfling-rogue-1'],
   ['wizard', 'elf', 'elf-wizard-1'], ['cleric', 'dwarf', 'dwarf-cleric-1'],
   ['barbarian', 'dwarf', 'dwarf-fighter-1'], ['ranger', 'elf', 'elf-rogue-1'],
+  ['paladin', 'human', 'human-fighter-1'], ['warlock', 'elf', 'elf-wizard-1'],
+  ['monk', 'human', 'human-rogue-1'], ['druid', 'halfling', 'halfling-cleric-1'],
+  ['bard', 'halfling', 'halfling-rogue-1'], ['sorcerer', 'human', 'human-wizard-1'],
 ];
 const bots: Bot[] = [];
 for (const [cls, race, portrait] of CLASSES) {

@@ -1,7 +1,7 @@
 import { Prisma, type Hero, type Player, type Season } from '@prisma/client';
 import { type BulkSellResult, type BulkTier, type ShopView, type TradeResult, takenInBulk } from '@dark/shared';
 import {
-  type ClassId, SHOP_BASICS, SHOP_GEAR_MARKUP, buybackPrice, createRng, isGear, baseById, sellValue, shopBuyPrice, SIGNET_DEAL, shopDeal,
+  type ClassId, SHOP_BASICS, SHOP_GEAR_MARKUP, SILVER_TONGUE, buybackPrice, createRng, isGear, baseById, sellValue, shopBuyPrice, SIGNET_DEAL, shopDeal,
   shopSellPrice, shopStock,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -14,8 +14,9 @@ import {
 } from './ledger.js';
 import { currentSeason } from './seasons.js';
 
-/** How much better this Hero's Shop deals are: a Haggler's, and its Charisma's. */
+/** How much better this Hero's Shop deals are: a Haggler's, its Charisma's, a Bard's Silver tongue and the Usurper's Signet. */
 const deal = (hero: HeroWithItems) => shopDeal(hero.talents.includes('haggler'), scoresOf(hero).cha)
+  + (hero.class === 'bard' ? SILVER_TONGUE : 0)
   + (hero.items.some((i) => i.place === 'WORN' && i.uniqueId === 'usurpers-signet') ? SIGNET_DEAL : 0);
 
 /** Today's gear for one Hero: seeded by the day, so it is the same all day and new tomorrow. */

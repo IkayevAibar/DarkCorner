@@ -1,7 +1,7 @@
 import { type Ability, type AbilityScores, abilityModifier } from './abilities.js';
 import { type CheckInput, check } from './check.js';
 import { type GearBase, baseById, isGear } from './content/bases.js';
-import { CLASS_DEFS, type ClassId } from './content/classes.js';
+import { CASTERS, CLASS_DEFS, type ClassId } from './content/classes.js';
 import { type ThemeId, themeOf } from './content/floors.js';
 import type { BonusStatId } from './content/loot.js';
 import { type StatGear, statTotal } from './items.js';
@@ -16,10 +16,10 @@ import type { TalentId } from './content/talents.js';
 import { type Edge, rollD20, rollDice, sum } from './dice.js';
 import { type Rng, createRng } from './rng.js';
 import {
-  ARCHERY_BONUS, MARK_DICE, type RestUses, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice, proficiencyBonus, rageDamage, sneakDice,
-  spellDice,
+  ARCHERY_BONUS, AURA_LEVEL, EVASION_LEVEL, FLURRY_STRIKES, MARK_DICE, MARTIAL_STRIKES, type RestUses, agathys, UNCANNY_DODGE_LEVEL, attacksPerTurn, burstDice, cureDice,
+  BEAST_TWIN_CLAWS, inspirationDie, layOnHands, martialDie, proficiencyBonus, rageDamage, smiteDice, sneakDice, spellDice, wildShapeHealth,
 } from './levels.js';
-import { armorClass, gearFactor } from './stats.js';
+import { type WornGear, armorClass, gearFactor } from './stats.js';
 
 // ─── The Hero as it fights ────────────────────────────────────────────────
 
@@ -63,6 +63,27 @@ export interface HeroCombat {
 /** Battle-hardened: +1 AC on top of gear. */
 export const talentArmor = (talents: readonly TalentId[]): number => (talents.includes('battle-hardened') ? 1 : 0);
 
+/** Draconic resilience: a Draconic Sorcerer's scales add this to its Armor Class. */
+export const DRACONIC_AC = 2;
+
+/**
+ * A Hero's Armor Class: its gear's (stats.ts), Battle-hardened's +1, a Monk's WIS while it
+ * wears no body armor and no shield (Unarmored defense), and a Draconic Sorcerer's scales.
+ * `scores` already carry the gear's Bonus stats. The Character sheet and the fights both use it.
+ */
+export function heroArmorClass(
+  hero: { class: ClassId; level: number; path?: PathId | null; talents: readonly TalentId[]; scores: AbilityScores },
+  worn: WornGear[],
+): number {
+  const armored = worn.some((w) => {
+    const b = baseById(w.base);
+    return isGear(b) && b.ac !== undefined && (b.slot === 'body' || b.offHand === 'shield');
+  });
+  return armorClass(hero.scores.dex, worn) + talentArmor(hero.talents)
+    + (hero.class === 'monk' && !armored ? abilityModifier(hero.scores.wis) : 0)
+    + (onPath({ path: hero.path ?? null, level: hero.level }, 'draconic') ? DRACONIC_AC : 0);
+}
+
 /** Full health with gear on: the Hero's own plus its "+N max health" Bonus stats. */
 export const maxHealth = (base: number, worn: readonly StatGear[]): number => base + statTotal(worn, 'maxHp');
 
@@ -89,6 +110,10 @@ export const escapeSteps = (escape: number): number => Math.floor(escape / 5);
 export function potionHealing(rng: Rng, fullHealth: number, fieldMedic: boolean): number {
   return (sum(rollDice(rng, 2, 4)) + 2 + Math.round(fullHealth * 0.1)) * (fieldMedic ? 1.5 : 1);
 }
+
+/** Who gets half again from a Healing potion: a Field medic, or a Druid (Herbalist). */
+export const herbalist = (hero: { class: ClassId; talents: readonly TalentId[] }): boolean =>
+  hero.talents.includes('field-medic') || hero.class === 'druid';
 
 /** Puts a Hero, its scores and its worn gear together into one fighter. */
 export function heroCombat(input: {
@@ -123,7 +148,7 @@ export function heroCombat(input: {
     maxHp,
     // Gear taken off since the last fight can leave more health than now fits.
     hp: Math.min(input.hp, maxHp),
-    ac: armorClass(scores.dex, input.worn) + talentArmor(input.talents),
+    ac: heroArmorClass({ ...input, scores }, input.worn),
     weapon,
     offHand,
     damagePct: bonus('damage'),
@@ -287,11 +312,15 @@ export type FightEvent =
   /** That side was caught off guard and loses its turns in the first round. */
   | { type: 'surprise'; side: 'hero' | 'monsters' }
   | { type: 'attack'; actor: string; target: string; natural: number; total: number; hit: boolean; crit: boolean; damage: number; targetHp: number; kind: 'weapon' | 'spell'; hand?: 'off' }
-  /** A blow turned aside: by the Ashen Aegis, or by a Wizard's Shield. */
-  | { type: 'blocked'; actor: string; by: 'aegis' | 'shield'; target?: string }
+  /** A blow turned aside: by the Ashen Aegis, a Wizard's Shield, a Great Old One's Entropic ward or a Shadow Monk's Cloak of shadows. */
+  | { type: 'blocked'; actor: string; by: BlockedBy; target?: string }
   | { type: 'burst'; actor: string; source: 'spell' | 'bomb'; targets: { key: string; damage: number; hp: number }[] }
-  /** `actor` is who is healed; `by` the other Hero when a Cleric mends its partner. */
-  | { type: 'heal'; actor: string; ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal'; amount: number; hp: number; by?: string }
+  /**
+   * `actor` is who is healed; `by` the other Hero when a Cleric, Druid or Paladin mends its partner.
+   * `lay-on-hands` is a Paladin's, `wholeness` an Open Hand Monk's Wholeness of body, `dark-blessing`
+   * a Fiend Warlock's Dark one's blessing on a kill.
+   */
+  | { type: 'heal'; actor: string; ability: HealAbility; amount: number; hp: number; by?: string }
   /**
    * A Hero's Class or Path at work: `survivor` heals `amount` to `hp`; `indomitable` and
    * `relentless` keep it standing at `hp` 1; `ward` is raised (`left`) or soaks `amount`
@@ -299,9 +328,15 @@ export type FightEvent =
    * Hunter's mark on the monster `target`. Chosen in a manual fight: `dodge` (blows at it
    * have disadvantage until its next turn), `help` (its partner `target`'s next attack has
    * advantage) and `guard` (blows at its partner `target` come to it until its next turn).
+   * The newer Classes: `smite` (a Paladin's Divine smite blazes on the hit at `target`), `hex`
+   * (a Warlock's Hex goes on `target`), `flurry` (a Monk's Flurry of blows), `wild-shape` (a
+   * Druid becomes a beast with `left` health, or the beast soaks `amount` of a hit and has
+   * `left`; 0 is its own shape again), `inspiration` (a Bard's die, `amount`, turns its missed
+   * spell into a hit), `cutting-words` (a Bard's die, `amount`, turns aside `target`'s blow)
+   * and `quickened` (a Sorcerer casts two attack spells this turn).
    */
   | {
-    type: 'feature'; feature: 'survivor' | 'indomitable' | 'ward' | 'rage' | 'mark' | 'relentless' | 'dodge' | 'help' | 'guard';
+    type: 'feature'; feature: FeatureEventId;
     amount?: number; hp?: number; left?: number; target?: string; actor?: string;
   }
   /** A Hero pulls its fallen Duo partner (`target`) up: a WIS check; on a success it stands with `hp`. */
@@ -335,6 +370,12 @@ export type FightEvent =
   /** An Escape roll, made by Stance when the Hero is badly hurt. */
   | { type: 'escape'; natural: number; total: number; dc: number; success: boolean; actor?: string }
   | { type: 'end'; outcome: FightOutcome };
+
+/** What turned a blow aside. */
+export type BlockedBy = 'aegis' | 'shield' | 'entropic-ward' | 'cloak-of-shadows';
+export type HealAbility = 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal' | 'lay-on-hands' | 'wholeness' | 'dark-blessing';
+export type FeatureEventId = 'survivor' | 'indomitable' | 'ward' | 'rage' | 'mark' | 'relentless' | 'dodge' | 'help' | 'guard'
+  | 'smite' | 'hex' | 'flurry' | 'wild-shape' | 'inspiration' | 'cutting-words' | 'quickened';
 
 /** Which Hero an event is about: the one whose fight it is, or its Duo partner. */
 export type HeroKey = 'hero' | 'ally';
@@ -402,10 +443,13 @@ export type HeroActionKind = (typeof HERO_ACTIONS)[number];
 
 /**
  * One Hero's choice for a turn. `target` is the monster to attack (the AI picks when
- * left out) or the Hero ('hero', 'ally') to cure. `rage` and `mark` cost no turn: a
- * Barbarian starts its Rage, a Ranger puts its Hunter's mark on that monster, before
- * the action. 'auto' hands the Hero to the AI for the rest of the fight; 'ai' lets the
- * AI take just this turn (a Duo turn that ran out of time).
+ * left out) or the Hero ('hero', 'ally') to cure. `rage` and `mark` cost no turn and come
+ * before the action. `rage` is the Class's own power: a Barbarian starts its Rage, a
+ * Paladin calls a Divine smite for this turn's first hit, a Monk a Flurry of blows for
+ * this turn's attack, a Druid takes its Wild shape, a Sorcerer Quickens this turn's attack
+ * spell. `mark` puts a Ranger's Hunter's mark
+ * or a Warlock's Hex on that monster. 'auto' hands the Hero to the AI for the rest of the
+ * fight; 'ai' lets the AI take just this turn (a Duo turn that ran out of time).
  */
 export interface HeroAction {
   kind: HeroActionKind | 'auto' | 'ai';
@@ -430,9 +474,9 @@ export interface TurnOptions {
   actions: HeroActionKind[];
   /** Monsters it can attack or mark. */
   targets: string[];
-  /** Heroes its Cure wounds can reach, a fallen partner too. */
+  /** Heroes its Cure wounds (or Lay on hands) can reach, a fallen partner too. */
   cure: HeroKey[];
-  /** It can start a Rage, or place a Hunter's mark, before acting. */
+  /** It can call its Class's power (Rage, Divine smite, Flurry of blows, Wild shape, Quickened spell), or place a Hunter's mark or a Hex, before acting. */
   rage: boolean;
   mark: boolean;
   /** Attacks an 'attack' makes this turn. */
@@ -482,6 +526,12 @@ export const TROLLHEART_SHARE = 0.03;
 export const THIEF_STUDY_ROUND = 4;
 /** Ember Fang: a critical hit leaves the enemy burning (v0). */
 const EMBER_BURN = { turns: 3, dice: [1, 6] as [number, number] };
+/** Hellfire: a master Fiend Warlock's blasts leave what they hit burning (v0). */
+const HELLFIRE_BURN = { turns: 2, dice: [1, 6] as [number, number] };
+/** Wholeness of body: a master of the Open Hand gets this many times its level back, once a fight. */
+export const WHOLENESS_PER_LEVEL = 3;
+/** A Druid's beast claws (v0): this die each, plus WIS; Primal strike adds one more. */
+const CLAW_DIE = 8;
 
 /** Advantage and disadvantage cancel out, as in the SRD. */
 function combine(a: Edge, b: Edge): Edge {
@@ -528,7 +578,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const c = { ...from.hero, ac: from.hero.ac + stance.ac };
     const path = (id: PathId, level?: typeof PATH_MASTERY) => onPath(c, id, level);
     const cls = CLASS_DEFS[c.class];
-    const caster = c.class === 'wizard' || c.class === 'cleric';
+    const caster = CASTERS.includes(c.class);
     const intMod = abilityModifier(c.scores.int);
     const ward = path('abjurer') ? 4 * c.level + intMod : 0;
     const champion = path('champion') ? 1 : 0;
@@ -549,15 +599,19 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       indomitable: path('guardian', PATH_MASTERY),
       ward,
       wardMax: ward,
-      fireproof: c.talents.includes('fireproof'),
+      /** Fireproof talent, or a Draconic Sorcerer's Draconic resilience: fire deals half. */
+      fireproof: c.talents.includes('fireproof') || path('draconic'),
       heavyHitter: c.talents.includes('heavy-hitter') ? 2 : 0,
       /** Life: potions and Cure wounds heal half again as much. */
       lifeBoost: path('life') ? 1.5 : 1,
       /** Life, Preserve life: the first Cure wounds of a fight doesn't cost the turn. */
       quickCure: path('life', PATH_MASTERY),
       aegis: c.uniques.includes('ashen-aegis'),
-      /** Wizard, Shield: the first blow of each fight that would land is turned aside. */
-      shield: c.class === 'wizard',
+      /**
+       * The first blow of each fight that would land is turned aside: a Wizard's Shield, a master
+       * Great Old One's Entropic ward, a master Shadow Monk's Cloak of shadows.
+       */
+      shield: (c.class === 'wizard' ? 'shield' : path('old-one', PATH_MASTERY) ? 'entropic-ward' : path('shadows', PATH_MASTERY) ? 'cloak-of-shadows' : null) as BlockedBy | null,
       /** The Last Ember: once per fight a missed spell hits for double. */
       lastEmber: c.uniques.includes('last-ember'),
       /** Saint's Knuckle: the first Cure wounds of a fight gives its use back. */
@@ -573,15 +627,40 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       raging: false,
       /** Bear-heart, Relentless: the CON save that keeps a raging Hero up grows harder each time. */
       relentlessDc: 10,
-      /** Ranger: the monster under the Hunter's mark. */
+      /** Ranger or Warlock: the monster under the Hunter's mark or the Hex. */
       marked: null as string | null,
+      markFeature: (c.class === 'warlock' ? 'hex' : 'mark') as 'hex' | 'mark',
+      /** Paladin: a Divine smite called for this turn, spent on its first hit. */
+      smiting: false,
+      /** Paladin or Monk: a Divine smite or a Flurry of blows already spent this fight (the AI keeps the rest for Mini-bosses and the Boss). */
+      smote: false,
+      /** Paladin, Vow of enmity: the monster it swore against. */
+      vowed: null as string | null,
+      /** Monk: a Flurry of blows called for this turn. */
+      flurry: false,
+      /** Monk: the Flurry of blows being struck right now. */
+      flurrying: false,
+      /** Druid: its beast form's health left; 0 is its own shape. */
+      beast: 0,
+      /** Druid: it took its Wild shape this fight (once a fight). */
+      shaped: false,
+      /** Sorcerer: a Quickened spell called for this turn. */
+      quicken: false,
+      /** Open Hand, Wholeness of body: once a fight. */
+      wholeness: path('open-hand', PATH_MASTERY),
+      /** Wild Magic, Tides of chaos: once a fight. */
+      tides: path('wild'),
+      /** Aura of devotion or Countercharm: neither fear nor a mesmerizing gaze takes hold. */
+      fearless: path('devotion', PATH_MASTERY) || path('lore', PATH_MASTERY),
+      /** Aura of protection: a Paladin's CHA modifier (at least +1) on every save. */
+      aura: c.class === 'paladin' && c.level >= AURA_LEVEL ? Math.max(1, abilityModifier(c.scores.cha)) : 0,
       /** Hunter, Colossus slayer: once per turn. */
       slewThisTurn: false,
       rerollOnes: RACE_DEFS[c.race].rerollOnes,
       mod: (a: Ability) => abilityModifier(c.scores[a]),
       prof: proficiencyBonus(c.level),
       attackAbility: (caster ? cls.primary
-        : c.weapon?.base.weapon === 'bow' || c.class === 'rogue' || c.class === 'ranger' ? 'dex' : 'str') as Ability,
+        : c.weapon?.base.weapon === 'bow' || c.class === 'rogue' || c.class === 'ranger' || c.class === 'monk' ? 'dex' : 'str') as Ability,
       /** Ranger, Archery. */
       archery: c.class === 'ranger' && c.weapon?.base.weapon === 'bow' ? ARCHERY_BONUS : 0,
       critFrom: critFromOf(c.critChance, champion === 1),
@@ -614,6 +693,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   const partnerOf = (s: Side) => sides.find((x) => x !== s) ?? null;
   /** Which Heroes have gone for each monster this round: a Rogue flanks its partner's quarry. */
   const struckThisRound = new Map<string, Set<HeroKey>>();
+  /** Monsters a Bard's Vicious mockery stung or an Open Hand Monk's Flurry of blows staggered: all their attacks next turn have disadvantage. */
+  const staggered = new Set<string>();
   /** The ally's lines name it; the Hero's stay as they always were. */
   const tag = (s: Side) => (s.key === 'hero' ? {} : { actor: s.key });
   const standing = () => sides.filter((s) => s.out === null && s.c.hp > 0);
@@ -649,11 +730,12 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         defeated.push(mm.key);
         stolen.delete(mm.key);
         events.push({ type: 'defeated', key: mm.key });
-        // The Hunter's mark moves on to the next quarry.
+        // The Hunter's mark (or the Hex) moves on to the next quarry; a Vow of enmity waits for the next hard fight.
         for (const s of sides) {
+          if (s.vowed === mm.key) s.vowed = null;
           if (s.marked !== mm.key) continue;
           s.marked = toughest()?.key ?? null;
-          if (s.marked) events.push({ type: 'feature', feature: 'mark', target: s.marked, ...tag(s) });
+          if (s.marked) events.push({ type: 'feature', feature: s.markFeature, target: s.marked, ...tag(s) });
         }
         // A sapper's bomb goes off as it falls, on every Hero still standing.
         const blast = powerOf(mm, 'explode');
@@ -672,9 +754,10 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   };
   const heroSave = (s: Side, ability: Ability, dc: number) => {
     const result = check(rng, {
-      modifier: s.mod(ability) + (s.proficientSaves.has(ability) ? s.prof : 0), dc, rerollOnes: s.rerollOnes,
-      // Spell resistance, or a Barbarian's Danger sense against what it can see coming.
-      edge: s.path('abjurer', PATH_MASTERY) || (s.c.class === 'barbarian' && ability === 'dex') ? 'advantage' : 'normal',
+      modifier: s.mod(ability) + (s.proficientSaves.has(ability) ? s.prof : 0) + s.aura, dc, rerollOnes: s.rerollOnes,
+      // Spell resistance, a Barbarian's Danger sense against what it can see coming, or an Awakened mind.
+      edge: s.path('abjurer', PATH_MASTERY) || (s.c.class === 'barbarian' && ability === 'dex') || (s.path('old-one') && ability === 'wis')
+        ? 'advantage' : 'normal',
     });
     events.push({ type: 'save', ability, natural: result.roll.natural, total: result.total, dc, success: result.success, ...tag(s) });
     return result.success;
@@ -685,12 +768,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     if (!s.raging || !(blow || s.path('bearheart'))) return damage;
     return Math.max(1, damage - rageDamage(s.c.level) * (blow && s.path('bearheart') ? 2 : 1));
   };
-  /** A DEX save against breath or a blast: half on a success, or with Evasion none, and half on a failure. */
+  /** A DEX save against breath or a blast: half on a success, or with Evasion (a master Stalker, a Monk from level 7) none, and half on a failure. */
   const dodgeBlast = (s: Side, full: number, saved: boolean): number =>
-    s.path('stalker', PATH_MASTERY) ? (saved ? 0 : Math.floor(full / 2)) : Math.max(1, saved ? Math.floor(full / 2) : full);
+    s.path('stalker', PATH_MASTERY) || (s.c.class === 'monk' && s.c.level >= EVASION_LEVEL)
+      ? (saved ? 0 : Math.floor(full / 2)) : Math.max(1, saved ? Math.floor(full / 2) : full);
   /**
-   * Damage to a Hero: the Abjurer's ward soaks it first; Indomitable, Relentless or
-   * Deathless Mail may keep it standing. Returns the events to add after the blow itself.
+   * Damage to a Hero: the Abjurer's ward soaks it first, then a Druid's beast form;
+   * Indomitable, Relentless or Deathless Mail may keep it standing. Returns the events
+   * to add after the blow itself.
    */
   const hurtHero = (s: Side, damage: number): FightEvent[] => {
     const after: FightEvent[] = [];
@@ -699,6 +784,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       s.ward -= soaked;
       damage -= soaked;
       after.push({ type: 'feature', feature: 'ward', amount: soaked, left: s.ward, ...tag(s) });
+    }
+    if (s.beast > 0 && damage > 0) {
+      const soaked = Math.min(s.beast, damage);
+      s.beast -= soaked;
+      damage -= soaked;
+      // The beast falls away and the Druid casts again; what the beast couldn't take carries over.
+      if (s.beast === 0) s.caster = true;
+      after.push({ type: 'feature', feature: 'wild-shape', amount: soaked, left: s.beast, ...tag(s) });
     }
     s.c.hp = Math.max(0, s.c.hp - damage);
     if (s.c.hp === 0 && s.indomitable) {
@@ -749,7 +842,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   const init = new Map<string, number>();
   for (const s of sides) {
     const natural = rollD20(rng, { rerollOnes: s.rerollOnes, edge: s.c.class === 'rogue' ? 'advantage' : 'normal' }).natural;
-    init.set(s.key, s.c.uniques.includes('wardens-longbow') ? 99 : natural + s.mod('dex') + (s.c.talents.includes('alert') ? 5 : 0));
+    init.set(s.key, s.c.uniques.includes('wardens-longbow') ? 99
+      : natural + s.mod('dex') + (s.c.talents.includes('alert') ? 5 : 0) + (s.path('old-one') ? 5 : 0));
   }
   for (const mm of mons) init.set(mm.key, rollD20(rng).natural + abilityModifier(mm.dex) + (powerOf(mm, 'quick') ? 5 : 0));
   const order = [...init.entries()].sort((p, q) => q[1] - p[1]).map(([k]) => k);
@@ -767,12 +861,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     events.push({ type: 'burst', actor: 'hero', source: 'bomb', targets }, ...after);
     markDefeated();
   }
+  // Armor of Agathys: frost wraps a Warlock as a hard fight begins.
+  for (const s of sides) if (s.c.class === 'warlock' && hardFight()) s.ward = agathys(s.c.level, s.c.scores.cha);
   for (const s of sides) if (s.ward > 0) events.push({ type: 'feature', feature: 'ward', left: s.ward, ...tag(s) });
   // A mesmerizing gaze holds a Hero through its first turn, unless a WIS save breaks it.
   for (const mm of alive().filter((x) => powerOf(x, 'mesmerize'))) {
     const gaze = powerOf(mm, 'mesmerize')!;
     for (const s of sides) {
-      if (s.held > 0 || s.c.uniques.includes('circlet-of-calm')) continue;
+      if (s.held > 0 || s.c.uniques.includes('circlet-of-calm') || s.fearless) continue;
       events.push({ type: 'power', actor: mm.key, power: 'mesmerize', target: s.key });
       if (!heroSave(s, 'wis', dcOf(mm, gaze.dc))) {
         s.held = 1;
@@ -785,7 +881,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   if (dread) {
     const fear = powerOf(dread, 'frighten')!;
     for (const s of sides) {
-      if (s.c.uniques.includes('circlet-of-calm')) continue;
+      if (s.c.uniques.includes('circlet-of-calm') || s.fearless) continue;
       events.push({ type: 'power', actor: dread.key, power: 'frighten', target: s.key });
       if (!heroSave(s, 'wis', dcOf(dread, fear.dc))) {
         s.frightened = fear.rounds;
@@ -808,7 +904,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   }
 
   /** Healing on `to` (the healer's own side unless it mends its partner); it brings a fallen partner back up. */
-  const heal = (to: Side, ability: 'second-wind' | 'cure-wounds' | 'potion' | 'life-steal', amount: number, by?: Side) => {
+  const heal = (to: Side, ability: HealAbility, amount: number, by?: Side) => {
     const gained = Math.max(0, Math.min(to.c.maxHp - to.c.hp, Math.round(amount)));
     to.c.hp += gained;
     if (to.down && to.c.hp > 0) to.down = null;
@@ -827,12 +923,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       ?? (prefer ? targets.find((mm) => mm.key === prefer) : undefined)
       ?? targets.find((mm) => (stolen.get(mm.key)?.amount ?? 0) > 0)
       ?? targets.find((mm) => mm.key === s.marked)
+      ?? targets.find((mm) => mm.key === s.vowed)
       ?? (twins.length >= 2 ? twins.reduce((a, b) => (b.hp > a.hp ? b : a)) : undefined)
       ?? targets.find((mm) => powerOf(mm, 'protect'))
       ?? targets.reduce((a, b) => (b.hp < a.hp ? b : a));
     // A protector standing between them: blows at the others come at a disadvantage.
     const shielded = !powerOf(target, 'protect') && targets.some((mm) => mm !== target && powerOf(mm, 'protect'));
-    const ambush = currentRound === 1 && s.path('stalker');
+    // A Stalker's ambush, Shadow arts, or a Vow of enmity on this monster.
+    const ambush = (currentRound === 1 && (s.path('stalker') || s.path('shadows'))) || s.vowed === target.key;
     const edge = combine(combine(combine(combine(s.stance.attackEdge, s.frightened > 0 ? 'disadvantage' : 'normal'), ambush ? 'advantage' : 'normal'),
       s.helped ? 'advantage' : 'normal'), shielded ? 'disadvantage' : 'normal');
     s.helped = false;
@@ -842,7 +940,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const flanked = partner !== null && (struckThisRound.get(target.key)?.has(partner.key) ?? false);
     if (!struckThisRound.has(target.key)) struckThisRound.set(target.key, new Set());
     struckThisRound.get(target.key)!.add(s.key);
-    const total = roll.natural + s.prof + s.mod(s.attackAbility) + s.stance.toHit + s.archery;
+    // Devotion, Sacred weapon: +2 to hit with weapons.
+    const total = roll.natural + s.prof + s.mod(s.attackAbility) + s.stance.toHit + s.archery + (s.path('devotion') && !s.caster ? 2 : 0);
     let crit = roll.natural >= s.critFrom;
     let hit = crit || (roll.natural !== 1 && total >= target.ac);
     // The Unwritten Page: an attack spell finds its mark.
@@ -852,6 +951,19 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       s.lastEmber = false;
       hit = true;
     }
+    /** Events that come before the attack's own: a Bard's inspiration, a Paladin's smite. */
+    const before: FightEvent[] = [];
+    // Bardic inspiration: a die on a missed spell; spent only when it lands the spell.
+    let inspired = 0;
+    if (!hit && s.caster && c.class === 'bard' && s.uses.spells > 0 && roll.natural !== 1) {
+      const die = rollDice(rng, 1, inspirationDie(c.level, c.path))[0]!;
+      if (total + die >= target.ac) {
+        s.uses.spells--;
+        hit = true;
+        inspired = die;
+        before.push({ type: 'feature', feature: 'inspiration', amount: die, target: target.key, ...tag(s) });
+      }
+    }
     if (hit && s.firstHitCrit) {
       crit = true;
       s.firstHitCrit = false;
@@ -860,16 +972,25 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     let after: FightEvent[] = [];
     if (hit) {
       const targetDef = monsterById(target.id);
-      if (s.caster) {
+      if (s.beast > 0) {
+        // A Druid's beast: claws of 1d8 + WIS (Primal strike: a d8 more), as strong as its spells would be.
+        const dice = 1 + (s.path('moon', PATH_MASTERY) ? 1 : 0);
+        damage = (sum(rollDice(rng, crit ? dice * 2 : dice, CLAW_DIE)) + s.mod('wis')) * (1 + c.spellPower / 100);
+      } else if (s.caster) {
         const [n, sides_] = spellDice(c.class, c.level)!;
-        damage = sum(rollDice(rng, crit ? n * 2 : n, sides_)) + s.mod(s.cls.primary) * (s.path('evoker') ? 2 : 1);
+        // Elemental affinity: a master Draconic Sorcerer's spells add CHA once more.
+        damage = sum(rollDice(rng, crit ? n * 2 : n, sides_)) + s.mod(s.cls.primary) * (s.path('evoker') ? 2 : 1)
+          + (s.path('draconic', PATH_MASTERY) ? s.mod('cha') : 0);
+        // Combat inspiration: a Valor Bard's die counts in the damage too; Battle magic: a master's every hit adds one, free.
+        if (s.path('valor')) damage += inspired;
+        if (s.path('valor', PATH_MASTERY)) damage += rollDice(rng, 1, inspirationDie(c.level, c.path))[0]!;
         damage *= 1 + c.spellPower / 100;
         if (c.class === 'cleric' && targetDef.kin === 'undead') damage *= 2;
         if (c.uniques.includes('lantern-of-the-deep') && (targetDef.kin === 'undead' || targetDef.kin === 'demon')) damage *= 1.25;
         if (ember) damage *= 2;
       } else {
         const weapon = offHand ? c.offHand : c.weapon;
-        const [n, sides_] = weapon?.base.damage ?? [1, 4];
+        const [n, sides_] = weaponDice(s, weapon);
         const once = () => sum(rollDice(rng, crit ? n * 2 : n, sides_));
         let dice = once();
         if (c.talents.includes('savage-attacker')) dice = Math.max(dice, once());
@@ -897,6 +1018,15 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       }
       if (s.path('war') && !s.struckThisTurn) damage += sum(rollDice(rng, crit ? 2 : 1, 8));
       s.struckThisTurn = true;
+      // Divine smite: the turn's first hit pours in holy fire, a d8 more on the undead and demons.
+      if (s.smiting && !offHand && s.uses.spells > 0) {
+        s.smiting = false;
+        s.smote = true;
+        s.uses.spells--;
+        const dice = smiteDice(c.level, c.path) + (targetDef.kin === 'undead' || targetDef.kin === 'demon' ? 1 : 0);
+        damage += sum(rollDice(rng, crit ? dice * 2 : dice, 8));
+        before.push({ type: 'feature', feature: 'smite', target: target.key, ...tag(s) });
+      }
       if (s.raging) damage += rageDamage(c.level);
       // A Hunter's mark counts for both Heroes of a Duo.
       if (s.marked === target.key || partner?.marked === target.key) damage += sum(rollDice(rng, crit ? MARK_DICE[0] * 2 : MARK_DICE[0], MARK_DICE[1]));
@@ -913,10 +1043,21 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       damage = Math.max(1, Math.round(damage));
       after = wound(target, damage, crit);
     }
-    events.push({
-      type: 'attack', actor: s.key, target: target.key, natural: roll.natural, total, hit, crit, damage, targetHp: target.hp, kind: s.caster ? 'spell' : 'weapon',
-      ...(offHand ? { hand: 'off' as const } : {}),
+    events.push(...before, {
+      type: 'attack', actor: s.key, target: target.key, natural: roll.natural, total: total + inspired, hit, crit, damage, targetHp: target.hp,
+      kind: s.caster ? 'spell' : 'weapon', ...(offHand ? { hand: 'off' as const } : {}),
     }, ...after);
+    if (hit && target.hp > 0) {
+      // Vicious mockery stings, and Open hand technique throws a monster the Flurry of blows lands on off balance: its next turn's attacks come at a disadvantage.
+      if ((s.caster && c.class === 'bard') || (s.flurrying && s.path('open-hand'))) staggered.add(target.key);
+      // Hellfire: a master Fiend's blast sets what it hits burning.
+      if (s.caster && s.path('fiend', PATH_MASTERY) && !((burning.get(target.key)?.turns ?? 0) > 0)) {
+        burning.set(target.key, { ...HELLFIRE_BURN });
+        events.push({ type: 'status', target: target.key, status: 'burning', turns: HELLFIRE_BURN.turns });
+      }
+    }
+    // Dark one's blessing: a Fiend's spell that fells a monster feeds its caster.
+    if (hit && target.hp <= 0 && s.caster && s.path('fiend') && c.hp > 0) heal(s, 'dark-blessing', s.mod('cha') + c.level);
     if (hit && crit && c.uniques.includes('ember-fang') && target.hp > 0) {
       burning.set(target.key, { ...EMBER_BURN });
       events.push({ type: 'status', target: target.key, status: 'burning', turns: EMBER_BURN.turns });
@@ -943,16 +1084,34 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       }
     }
     markDefeated();
+    // Tides of chaos: a Wild Magic Sorcerer's missed spell is cast again, once a fight.
+    if (!hit && s.caster && s.tides && c.hp > 0) {
+      s.tides = false;
+      heroAttack(s, target);
+    }
   };
 
-  /** Attacks an 'attack' makes this turn: Extra Attack, a Berserker's Frenzy (raging and below half health), a master Hunter, a Stalker's first round. */
+  /** The dice of a weapon blow: the weapon's, or a Monk's martial arts die when that is bigger; bare hands 1d4. */
+  const weaponDice = (s: Side, weapon: HeroCombat['weapon'] | undefined): [number, number] => {
+    const [n, sides_] = weapon?.base.damage ?? [1, 4];
+    if (s.c.class !== 'monk') return [n, sides_];
+    const die = martialDie(s.c.level);
+    return n * (sides_ + 1) >= die + 1 ? [n, sides_] : [1, die];
+  };
+
+  /**
+   * Attacks an 'attack' makes this turn: Extra Attack, a Berserker's Frenzy (raging and below half health), a master Hunter,
+   * a Stalker's first round, a Druid beast's second claw from level 5, a Monk's Martial arts strike.
+   */
   const attacksFor = (s: Side) => attacksPerTurn(s.c.class, s.c.level, s.c.path)
     + (s.raging && s.path('berserker') && s.c.hp < s.c.maxHp / 2 ? 1 : 0)
     + (s.path('hunter', PATH_MASTERY) ? 1 : 0)
     + (currentRound === 1 && s.path('stalker') ? 1 : 0)
-    + (currentRound === 1 && s.c.uniques.includes('quickdraw') ? 1 : 0);
-  /** A light weapon in the off-hand adds a blow to every 'attack' (spells cast with neither hand). */
-  const offHanded = (s: Side) => Boolean(s.c.offHand) && !s.caster;
+    + (currentRound === 1 && s.c.uniques.includes('quickdraw') ? 1 : 0)
+    + (s.beast > 0 && s.c.level >= BEAST_TWIN_CLAWS ? 1 : 0)
+    + (s.c.class === 'monk' ? MARTIAL_STRIKES : 0);
+  /** A light weapon in the off-hand adds a blow to every 'attack' (spells cast with neither hand, and a Druid's beast has claws). */
+  const offHanded = (s: Side) => Boolean(s.c.offHand) && !s.caster && s.beast === 0;
 
   /**
    * Where a turn stands: its first choice, or a second after Preserve life's free Cure
@@ -960,10 +1119,16 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
    */
   type Stage = 'start' | 'after-cure' | 'after-potion';
 
-  /** Who Cure wounds can reach: Heroes still in the fight and hurt, a fallen partner too. */
+  /** Who Cure wounds (or Lay on hands) can reach: Heroes still in the fight and hurt, a fallen partner too. */
   const curable = (s: Side, stage: Stage): Side[] =>
-    s.c.class !== 'cleric' || s.uses.heals <= 0 || stage === 'after-cure' ? []
+    s.uses.heals <= 0 || stage === 'after-cure' ? []
       : sides.filter((x) => x.out === null && (x.down !== null || (x.c.hp > 0 && x.c.hp < x.c.maxHp)));
+
+  /** Whether a Hero can call its Class's power now: a Rage, a Divine smite, a Flurry of blows, a Wild shape, a Quickened spell. */
+  const powerReady = (s: Side): boolean => s.uses.spells > 0 && alive().length > 0 && (
+    s.c.class === 'barbarian' ? !s.raging
+      : s.c.class === 'druid' ? !s.shaped
+        : s.c.class === 'paladin' || s.c.class === 'monk' || s.c.class === 'sorcerer');
 
   /** What a Hero can do at this point of its turn. */
   const options = (s: Side, stage: Stage): TurnOptions => {
@@ -973,7 +1138,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const potions = Math.min(s.potions, POTIONS_PER_FIGHT - s.potionsUsed);
     const actions: HeroActionKind[] = [];
     if (up.length > 0) actions.push('attack');
-    if (s.c.class === 'wizard' && s.uses.spells > 0 && up.length > 0) actions.push('burst');
+    if ((s.c.class === 'wizard' || s.c.class === 'sorcerer') && s.uses.spells > 0 && up.length > 0) actions.push('burst');
     if (cure.length > 0) actions.push('cure');
     if (s.secondWind && stage === 'start') actions.push('second-wind');
     if (potions > 0 && stage !== 'after-potion') actions.push('potion');
@@ -984,8 +1149,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     return {
       hero: s.key, round: currentRound, continuing: stage !== 'start', actions,
       targets: up.map((mm) => mm.key), cure: cure.map((x) => x.key),
-      rage: stage === 'start' && s.c.class === 'barbarian' && !s.raging && s.uses.spells > 0,
-      mark: stage === 'start' && s.c.class === 'ranger' && s.marked === null && s.uses.spells > 0 && up.length > 0,
+      rage: stage === 'start' && powerReady(s),
+      mark: stage === 'start' && (s.c.class === 'ranger' || s.c.class === 'warlock') && s.marked === null && s.uses.spells > 0 && up.length > 0,
       attacks: attacksFor(s) + (offHanded(s) ? 1 : 0), spells: s.uses.spells, heals: s.uses.heals, potions,
     };
   };
@@ -993,19 +1158,27 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   /** About what a Hero's 'attack' deals this turn, every attack of it together: the AI's sums against Twin Wardens. */
   const blowOf = (s: Side): number => {
     const { c } = s;
+    if (s.beast > 0) return ((1 + (s.path('moon', PATH_MASTERY) ? 1 : 0)) * (CLAW_DIE + 1) / 2 + s.mod('wis')) * (1 + c.spellPower / 100) * attacksFor(s);
     if (s.caster) {
       const [n, sides_] = spellDice(c.class, c.level)!;
-      return ((n * (sides_ + 1)) / 2 + s.mod(s.cls.primary) * (s.path('evoker') ? 2 : 1)) * (1 + c.spellPower / 100) * attacksFor(s);
+      return ((n * (sides_ + 1)) / 2 + s.mod(s.cls.primary) * (s.path('evoker') ? 2 : 1) + (s.path('draconic', PATH_MASTERY) ? s.mod('cha') : 0))
+        * (1 + c.spellPower / 100) * attacksFor(s);
     }
-    const [n, sides_] = c.weapon?.base.damage ?? [1, 4];
+    const [n, sides_] = weaponDice(s, c.weapon);
     const each = ((n * (sides_ + 1)) / 2) * (c.weapon?.factor ?? 1) + s.mod(s.attackAbility) + (s.raging ? rageDamage(c.level) : 0);
     const [on, osides] = c.offHand?.base.damage ?? [0, 0];
     const off = offHanded(s) ? ((on * (osides + 1)) / 2) * (c.offHand?.factor ?? 1) + Math.min(0, s.mod(s.attackAbility)) : 0;
     return (each * attacksFor(s) + off) * (1 + c.damagePct / 100);
   };
+  /** What a Burst of fire adds to its dice on each monster: an Evoker's INT twice, a master Draconic Sorcerer's CHA. */
+  const burstBonus = (s: Side): number => (s.path('evoker') ? 2 * s.intMod : 0) + (s.path('draconic', PATH_MASTERY) ? s.mod('cha') : 0);
+  /** What multiplies a Burst of fire: the Ember Codex, a master Wild Magic Sorcerer's Wild surge, spell power. */
+  const burstFactor = (s: Side): number => (s.c.uniques.includes('ember-codex') ? 1.5 : 1) * (s.path('wild', PATH_MASTERY) ? 1.5 : 1)
+    * (1 + s.c.spellPower / 100);
+  /** A master Evoker, or a master of Wild Magic, Bursts even a lone monster (for double). */
+  const loneBurst = (s: Side): boolean => s.path('evoker', PATH_MASTERY) || s.path('wild', PATH_MASTERY);
   /** About what a Burst of fire deals each monster. */
-  const burstOf = (s: Side): number => (burstDice(s.c.level) * 3.5 + (s.path('evoker') ? 2 * s.intMod : 0))
-    * (s.c.uniques.includes('ember-codex') ? 1.5 : 1) * (1 + s.c.spellPower / 100);
+  const burstOf = (s: Side): number => (burstDice(s.c.level) * 3.5 + burstBonus(s)) * burstFactor(s);
 
   /**
    * Against the Twin Wardens a blow that fells one is wasted unless the other falls in
@@ -1034,17 +1207,25 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     const { c } = s;
     const action: HeroAction = { kind: 'attack' };
     if (stage === 'start') {
-      // A Rage and a Hunter's mark cost no turn: when a fight turns hard (or a Barbarian is hurt), while uses last.
-      if (c.class === 'barbarian' && !s.raging && s.uses.spells > 0 && (hardFight() || c.hp < c.maxHp / 2)) action.rage = true;
-      if (c.class === 'ranger' && s.marked === null && s.uses.spells > 0 && hardFight()) {
+      // A Rage, a Wild shape (once a fight), a Hunter's mark or a Hex cost no turn: when a fight turns hard (or the Hero is hurt), while uses last.
+      // A Divine smite or a Flurry of blows goes once in a hard fight, and every turn against a Mini-boss or the Boss.
+      const big = alive().some((mm) => monsterById(mm.id).role === 'miniboss' || monsterById(mm.id).role === 'boss');
+      if (powerReady(s)) {
+        if ((c.class === 'barbarian' || c.class === 'druid') && (hardFight() || c.hp < c.maxHp / 2)) action.rage = true;
+        if (c.class === 'paladin' && (big || (hardFight() && !s.smote))) action.rage = true;
+        if (c.class === 'monk' && (big || (hardFight() && !s.smote))) action.rage = true;
+        // A Sorcerer Bursts while two or more stand, and Quickens its spell on a lone hard foe (a master of Wild Magic Bursts that too).
+        if (c.class === 'sorcerer' && hardFight() && alive().length === 1 && !loneBurst(s)) action.rage = true;
+      }
+      if ((c.class === 'ranger' || c.class === 'warlock') && s.marked === null && s.uses.spells > 0 && hardFight()) {
         const quarry = toughest();
         if (quarry) action.mark = quarry.key;
       }
       if (c.hp < c.maxHp * 0.45 && s.secondWind) return { ...action, kind: 'second-wind' };
-      // A fallen partner comes first: a Cleric's Cure wounds raises it, anyone else pulls it up.
+      // A fallen partner comes first: Cure wounds or Lay on hands raises it, anyone else pulls it up.
       const partner = partnerOf(s);
       if (partner && partner.out === null && partner.down) {
-        return c.class === 'cleric' && s.uses.heals > 0 ? { ...action, kind: 'cure', target: partner.key } : { ...action, kind: 'revive' };
+        return s.uses.heals > 0 ? { ...action, kind: 'cure', target: partner.key } : { ...action, kind: 'revive' };
       }
       // Cure wounds goes to whichever Hero is hurt worst, below 45% health.
       const patient = standing().filter((x) => x.c.hp < x.c.maxHp * 0.45).sort((a, b) => a.c.hp / a.c.maxHp - b.c.hp / b.c.maxHp)[0];
@@ -1052,7 +1233,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     }
     if (stage !== 'after-potion' && c.hp < c.maxHp * 0.3 && s.potions > 0 && s.potionsUsed < POTIONS_PER_FIGHT) return { ...action, kind: 'potion' };
     if (!duo && s.stance.escapeBelow > 0 && c.hp < c.maxHp * s.stance.escapeBelow) return { ...action, kind: 'escape' };
-    const burst = c.class === 'wizard' && s.uses.spells > 0 && alive().length >= (s.path('evoker', PATH_MASTERY) ? 1 : 2);
+    const burst = (c.class === 'wizard' || c.class === 'sorcerer') && s.uses.spells > 0 && alive().length >= (loneBurst(s) ? 1 : 2);
     const twins = twinsPlan(s, burst);
     if (twins) return { ...action, ...twins };
     if (burst) return { ...action, kind: 'burst' };
@@ -1093,7 +1274,22 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   const placeMark = (s: Side, key: string) => {
     s.uses.spells--;
     s.marked = key;
-    events.push({ type: 'feature', feature: 'mark', target: key, ...tag(s) });
+    events.push({ type: 'feature', feature: s.markFeature, target: key, ...tag(s) });
+  };
+  /** The Class's own power, called before the action: a Rage, a Divine smite, a Flurry of blows, a Wild shape, a Quickened spell. */
+  const callPower = (s: Side) => {
+    if (s.c.class === 'barbarian') startRage(s);
+    // A smite waits for the turn's first hit and a Flurry for its attack: neither is spent without one.
+    if (s.c.class === 'paladin') s.smiting = true;
+    if (s.c.class === 'monk') s.flurry = true;
+    if (s.c.class === 'sorcerer') s.quicken = true;
+    if (s.c.class === 'druid') {
+      s.uses.spells--;
+      s.shaped = true;
+      s.beast = wildShapeHealth(s.c.level, s.c.path);
+      s.caster = false;
+      events.push({ type: 'feature', feature: 'wild-shape', left: s.beast, ...tag(s) });
+    }
   };
   /** Pulling a fallen partner up: a WIS check (Clerics proficient); on a success it stands with a quarter of its health. */
   const revive = (s: Side, p: Side) => {
@@ -1111,9 +1307,14 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     s.slewThisTurn = false;
     s.dodging = false;
     s.guarding = false;
+    s.smiting = false;
+    s.flurry = false;
+    s.quicken = false;
+    // Vengeance, Vow of enmity: sworn against the toughest monster of a hard fight.
+    if (s.path('vengeance') && s.vowed === null && hardFight()) s.vowed = toughest()?.key ?? null;
     let stage: Stage = 'start';
     let action = decide(s, stage);
-    if (action.rage) startRage(s);
+    if (action.rage) callPower(s);
     if (action.mark) placeMark(s, action.mark);
     // Abjurer: the ward mends by the INT modifier each turn, never past where it started.
     if (s.wardMax > 0 && s.ward < s.wardMax) {
@@ -1130,8 +1331,12 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
           const patient = sideOf(action.target ?? s.key)!;
           if (s.knuckle) s.knuckle = false;
           else s.uses.heals--;
-          const cure = (sum(rollDice(rng, cureDice(c.level), 8)) + s.mod('wis')) * s.lifeBoost * (1 + c.healing / 100);
-          heal(patient, 'cure-wounds', cure, s);
+          // A Paladin lays on hands; a Cleric, a Druid or a Bard (with CHA) casts Cure wounds.
+          if (c.class === 'paladin') heal(patient, 'lay-on-hands', layOnHands(c.level) * (1 + c.healing / 100), s);
+          else {
+            const cure = sum(rollDice(rng, cureDice(c.level), 8)) + s.mod(c.class === 'bard' ? 'cha' : 'wis');
+            heal(patient, 'cure-wounds', cure * s.lifeBoost * (1 + c.healing / 100), s);
+          }
           if (!s.quickCure) return;
           s.quickCure = false;
           stage = 'after-cure';
@@ -1140,7 +1345,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         case 'potion':
           s.potions--;
           s.potionsUsed++;
-          heal(s, 'potion', potionHealing(rng, c.maxHp, c.talents.includes('field-medic')) * s.lifeBoost * (1 + c.healing / 100));
+          heal(s, 'potion', potionHealing(rng, c.maxHp, herbalist(c)) * s.lifeBoost * (1 + c.healing / 100));
           // Thief: Fast hands drink potions without losing the turn.
           if (!s.path('thief')) return;
           stage = 'after-potion';
@@ -1154,13 +1359,11 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         case 'burst': {
           s.uses.spells--;
           const dice = burstDice(c.level);
-          const empowered = s.path('evoker') ? 2 * s.intMod : 0;
           const after: FightEvent[] = [];
           const lone = alive().length === 1 ? 2 : 1;
           const targets = alive().map((mm) => {
             const swarm = powerOf(mm, 'swarm') ? 2 : 1;
-            const codex = c.uniques.includes('ember-codex') ? 1.5 : 1;
-            const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + empowered) * lone * swarm * codex * (1 + c.spellPower / 100)));
+            const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + burstBonus(s)) * lone * swarm * burstFactor(s)));
             scorched.add(mm.key);
             after.push(...wound(mm, damage, false));
             return { key: mm.key, damage, hp: mm.hp };
@@ -1187,9 +1390,24 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
           revive(s, partnerOf(s)!);
           return;
         default: {
-          const attacks = attacksFor(s);
+          let attacks = attacksFor(s);
+          // Flurry of blows: a ki for another strike.
+          if (s.flurry && s.uses.spells > 0) {
+            s.uses.spells--;
+            s.smote = true;
+            s.flurrying = true;
+            attacks += FLURRY_STRIKES;
+            events.push({ type: 'feature', feature: 'flurry', ...tag(s) });
+          }
+          // Quickened spell: a sorcery point for a second attack spell.
+          if (s.quicken && s.uses.spells > 0) {
+            s.uses.spells--;
+            attacks += 1;
+            events.push({ type: 'feature', feature: 'quickened', ...tag(s) });
+          }
           for (let i = 0; i < attacks && alive().length > 0 && c.hp > 0; i++) heroAttack(s, undefined, action.target);
           if (offHanded(s) && alive().length > 0 && c.hp > 0) heroAttack(s, undefined, action.target, true);
+          s.flurrying = false;
           return;
         }
       }
@@ -1199,16 +1417,30 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
 
   const monsterAttack = (mm: MonsterInstance, s: Side) => {
     const pack = powerOf(mm, 'pack') !== null && alive().some((other) => other !== mm);
-    const roll = rollD20(rng, { edge: combine(combine(s.stance.defendEdge, pack ? 'advantage' : 'normal'), s.dodging ? 'disadvantage' : 'normal') });
-    const total = roll.natural + mm.attack;
+    // Stung by a Vicious mockery or staggered by an Open Hand: its whole turn.
+    const shaken = staggered.has(mm.key);
+    const roll = rollD20(rng, {
+      edge: combine(combine(combine(s.stance.defendEdge, pack ? 'advantage' : 'normal'), s.dodging ? 'disadvantage' : 'normal'), shaken ? 'disadvantage' : 'normal'),
+    });
+    let total = roll.natural + mm.attack;
     const crit = roll.natural === 20 && !s.c.uniques.includes('drowned-crown');
     // Bastion of the Fallen: 3 more Armor Class once its wearer is below half health.
     const ac = s.c.ac + (s.c.uniques.includes('bastion-plate') && s.c.hp < s.c.maxHp / 2 ? 3 : 0);
-    const hit = roll.natural === 20 || (roll.natural !== 1 && total >= ac);
+    let hit = roll.natural === 20 || (roll.natural !== 1 && total >= ac);
+    // Cutting words: a Bard's inspiration die off the blow; spent only when it turns the blow aside.
+    if (hit && roll.natural !== 20 && s.c.class === 'bard' && s.uses.spells > 0) {
+      const die = rollDice(rng, 1, inspirationDie(s.c.level, s.c.path))[0]!;
+      if (total - die < ac) {
+        s.uses.spells--;
+        total -= die;
+        hit = false;
+        events.push({ type: 'feature', feature: 'cutting-words', amount: die, target: mm.key, ...tag(s) });
+      }
+    }
     if (hit && (s.aegis || s.shield)) {
-      const by = s.aegis ? 'aegis' : 'shield';
+      const by: BlockedBy = s.aegis ? 'aegis' : s.shield!;
       if (s.aegis) s.aegis = false;
-      else s.shield = false;
+      else s.shield = null;
       events.push({ type: 'blocked', actor: mm.key, by, ...(s.key === 'hero' ? {} : { target: s.key }) });
       return;
     }
@@ -1268,7 +1500,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       events.push({ type: 'status', target: s.key, status: 'paralyzed', turns: 1 });
     }
     const poison = powerOf(mm, 'poison');
-    if (poison && s.poisoned.turns === 0 && !heroSave(s, 'con', dcOf(mm, poison.dc))) {
+    // Nature's ward: a master of the Land shrugs poison off.
+    if (poison && s.poisoned.turns === 0 && !s.path('land', PATH_MASTERY) && !heroSave(s, 'con', dcOf(mm, poison.dc))) {
       s.poisoned.turns = poison.turns;
       s.poisoned.dice = poison.dice;
       events.push({ type: 'status', target: s.key, status: 'poisoned', turns: poison.turns });
@@ -1372,6 +1605,11 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       const gained = Math.min(s.c.maxHp - s.c.hp, Math.max(1, Math.round(s.c.maxHp * TROLLHEART_SHARE)));
       s.c.hp += gained;
       events.push({ type: 'feature', feature: 'survivor', amount: gained, hp: s.c.hp, ...tag(s) });
+    }
+    // Open Hand, Wholeness of body: once a fight, below half health.
+    if (s.wholeness && s.c.hp > 0 && s.c.hp < s.c.maxHp / 2) {
+      s.wholeness = false;
+      heal(s, 'wholeness', WHOLENESS_PER_LEVEL * s.c.level);
     }
     // Champion, Survivor: a little health back each turn while below half.
     if (s.path('champion', PATH_MASTERY) && s.c.hp > 0 && s.c.hp < s.c.maxHp / 2) {
@@ -1485,6 +1723,8 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         } else {
           const mm = mons.find((x) => x.key === key)!;
           if (mm.hp > 0 && !fled.has(mm.key) && startTurn(mm.key)) monsterTurn(mm);
+          // A mockery or a stagger lasts until the end of the monster's next turn, used or not.
+          staggered.delete(mm.key);
         }
         for (const x of sides) {
           if (x.out !== null) continue;
@@ -1547,20 +1787,23 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
 /** A Fire bomb (v0): 2d6 + 2 per Floor to every monster, before the first round. */
 export const fireBomb = (floor: number) => ({ dice: 2, sides: 6, bonus: 2 * floor });
 
+/** Rogues and Monks (Step of the wind) roll Escapes with advantage and their proficiency. */
+const slippery = (hero: HeroCombat) => hero.class === 'rogue' || hero.class === 'monk';
+
 const escapeBonus = (hero: HeroCombat) =>
-  abilityModifier(hero.scores.dex) + (hero.class === 'rogue' ? proficiencyBonus(hero.level) : 0) + escapeSteps(hero.escape)
+  abilityModifier(hero.scores.dex) + (slippery(hero) ? proficiencyBonus(hero.level) : 0) + escapeSteps(hero.escape)
   + (hero.talents.includes('light-step') ? 2 : 0) + (onPath(hero, 'thief', PATH_MASTERY) ? 5 : 0)
   + (hero.uniques.includes('long-road-greaves') ? 5 : 0);
 
 /** An Escape roll's difficulty (v0): the more monsters still standing, the harder. */
 export const escapeDc = (monsters: number): number => 8 + 2 * monsters;
 
-/** A DEX Check to get out of a fight. Rogues roll with advantage and add their proficiency. */
+/** A DEX Check to get out of a fight. Rogues and Monks roll with advantage and add their proficiency. */
 export function escapeCheck(hero: HeroCombat, monsters: number, bonus = 0): CheckInput {
   return {
     modifier: escapeBonus(hero) + bonus,
     dc: escapeDc(monsters),
-    edge: hero.class === 'rogue' || hero.uniques.includes('long-road-greaves') ? 'advantage' : 'normal',
+    edge: slippery(hero) || hero.uniques.includes('long-road-greaves') ? 'advantage' : 'normal',
     rerollOnes: RACE_DEFS[hero.race].rerollOnes,
   };
 }
@@ -1570,13 +1813,15 @@ export const sneakDc = (floor: number, monsters: number): number => 10 + Math.fl
 
 /**
  * The DEX Check to Sneak past. Rogues roll with advantage and add their
- * proficiency; heavy armor gives disadvantage; escape Bonus stats help.
+ * proficiency (Monks add theirs too, and a Shadow Monk rolls with advantage);
+ * heavy armor gives disadvantage; escape Bonus stats help.
  */
 export function sneakCheck(hero: HeroCombat, floor: number, monsters: number, bonus = 0): CheckInput {
   return {
     modifier: escapeBonus(hero) + bonus,
     dc: sneakDc(floor, monsters),
-    edge: hero.heavyArmor && !hero.talents.includes('light-step') ? 'disadvantage' : hero.class === 'rogue' ? 'advantage' : 'normal',
+    edge: hero.heavyArmor && !hero.talents.includes('light-step') ? 'disadvantage'
+      : hero.class === 'rogue' || onPath(hero, 'shadows') ? 'advantage' : 'normal',
     rerollOnes: RACE_DEFS[hero.race].rerollOnes,
   };
 }

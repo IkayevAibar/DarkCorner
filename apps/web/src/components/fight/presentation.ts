@@ -74,6 +74,11 @@ export function displayNames(replay: FightReplay, text: (value: LocalizedText) =
   return names;
 }
 
+/** What turned a blow aside, as a line. */
+const BLOCKED_LINES: Record<Extract<FightEventView, { type: 'blocked' }>['by'], MessageKey> = {
+  aegis: 'fight.blocked', shield: 'fight.shield', 'entropic-ward': 'fight.entropic', 'cloak-of-shadows': 'fight.cloak',
+};
+
 /** The monster powers that show up as their own line in a fight. */
 const POWER_LINES: Partial<Record<MonsterPowerView, MessageKey>> = {
   thief: 'fight.power.thief',
@@ -107,11 +112,11 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
       if (e.crit) return t('fight.crit', { actor: n(e.actor), target: n(e.target), n: e.damage }) + off;
       return t(e.kind === 'spell' ? 'fight.spell' : 'fight.hit', { actor: n(e.actor), target: n(e.target), n: e.damage }) + off;
     }
-    case 'blocked': return t(e.by === 'shield' ? 'fight.shield' : 'fight.blocked', { actor: n(e.actor) });
+    case 'blocked': return t(BLOCKED_LINES[e.by], { actor: n(e.actor) });
     case 'burst': return t(e.source === 'bomb' ? 'fight.bomb' : 'fight.burst', { actor: n(e.actor), n: e.targets.reduce((s, x) => s + x.damage, 0) });
     case 'heal':
       return e.by && e.by !== e.actor
-        ? t('fight.heal.mend', { by: n(e.by), actor: n(e.actor), n: e.amount })
+        ? t(e.ability === 'lay-on-hands' ? 'fight.heal.mendHands' : 'fight.heal.mend', { by: n(e.by), actor: n(e.actor), n: e.amount })
         : t(`fight.heal.${e.ability}`, { actor: n(e.actor), n: e.amount });
     case 'defeated': return t('fight.defeated', { name: n(e.key) });
     case 'down': return t('fight.down', { name: self });
@@ -143,6 +148,16 @@ export function describe(t: ReturnType<typeof useI18n>['t'], e: FightEventView, 
       if (e.feature === 'dodge') return t('fight.feature.dodge', { name: self });
       if (e.feature === 'help') return t('fight.feature.help', { name: self, target: n(e.target ?? '') });
       if (e.feature === 'guard') return t('fight.feature.guard', { name: self, target: n(e.target ?? '') });
+      if (e.feature === 'smite') return t('fight.feature.smite', { name: self, target: n(e.target ?? '') });
+      if (e.feature === 'hex') return t('fight.feature.hex', { name: self, target: n(e.target ?? '') });
+      if (e.feature === 'flurry') return t('fight.feature.flurry', { name: self });
+      if (e.feature === 'quickened') return t('fight.feature.quickened', { name: self });
+      if (e.feature === 'inspiration') return t('fight.feature.inspiration', { name: self, n: e.amount ?? 0 });
+      if (e.feature === 'cutting-words') return t('fight.feature.cuttingWords', { name: self, n: e.amount ?? 0, target: n(e.target ?? '') });
+      if (e.feature === 'wild-shape') {
+        if (e.amount === undefined) return t('fight.feature.wildShape', { name: self, n: e.left ?? 0 });
+        return e.left ? t('fight.feature.wildShapeSoak', { n: e.amount, left: e.left }) : t('fight.feature.wildShapeEnd', { name: self, n: e.amount });
+      }
       return e.amount === undefined
         ? t('fight.feature.wardUp', { name: self, n: e.left ?? 0 })
         : t('fight.feature.ward', { n: e.amount, left: e.left ?? 0 });

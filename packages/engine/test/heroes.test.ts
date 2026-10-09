@@ -10,7 +10,9 @@ describe('art', () => {
   const served = (url: string) => existsSync(new URL(`../../../apps/web/public${url}`, import.meta.url));
 
   it('offers two painted portraits for every Race and Class (or the ones it borrows), then the hooded one', () => {
-    const painted: Partial<Record<(typeof CLASSES)[number], string>> = { barbarian: 'fighter', ranger: 'rogue' };
+    const painted: Partial<Record<(typeof CLASSES)[number], string>> = {
+      barbarian: 'fighter', ranger: 'rogue', paladin: 'fighter', warlock: 'wizard', monk: 'rogue', druid: 'cleric', bard: 'rogue', sorcerer: 'wizard',
+    };
     for (const race of RACES) {
       for (const cls of CLASSES) {
         const as = painted[cls] ?? cls;

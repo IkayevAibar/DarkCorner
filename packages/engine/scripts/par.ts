@@ -9,7 +9,9 @@ import {
   heroCombat, pathsOf, rollGear, rollTier, startingHealth, tierRank,
 } from '../src/index.js';
 
-export const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'] as const;
+export const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger', 'paladin', 'warlock', 'monk', 'druid', 'bard', 'sorcerer'] as const;
+/** A second ability a Class leans on, where a Player would put its next-best score: a Monk's WIS (its Armor Class), a Paladin's CHA (its aura). */
+const SECOND: Partial<Record<ClassId, 'wis' | 'cha'>> = { monk: 'wis', paladin: 'cha' };
 const SLOTS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring', 'ring'] as const;
 const GROWTH = [4, 8, 12, 16, 19];
 
@@ -40,7 +42,7 @@ export function parHero(cls: ClassId, floor: number, level: number, pathIndex: n
   const def = CLASS_DEFS[cls];
   const primary = def.primary;
   const grown = GROWTH.filter((l) => l <= level).length;
-  const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, [primary]: Math.min(20, 16 + 2 * grown) };
+  const scores = { str: 12, dex: 14, con: 14, int: 10, wis: 12, cha: 10, ...(SECOND[cls] ? { [SECOND[cls]!]: 14 } : {}), [primary]: Math.min(20, 16 + 2 * grown) };
   const perLevel = Math.ceil(def.hitDie / 2) + 1 + 2 + 2;
   const hp = startingHealth(cls, 'human', ['alert', 'tough'], scores.con) + (level - 1) * perLevel;
   // Drops so far come from the Floors above; the best usable one per slot is worn.

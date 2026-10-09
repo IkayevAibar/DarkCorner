@@ -441,6 +441,18 @@ describe('the Labyrinth', () => {
     expect(again.loot).toHaveLength(0);
     expect(again.notices.some((n) => n.en.includes('fills again'))).toBe(true);
   });
+
+  it('shows a Warlock every secret Door (Devil’s sight)', async () => {
+    const hidden = floor1.rooms.find((r) => r.type === 'hidden')!;
+    const door = floor1.doors.find((d) => d.a === hidden.id || d.b === hidden.id)!;
+    const outside = door.a === hidden.id ? door.b : door.a;
+    await act('/api/labyrinth/enter', { floor: 1 });
+    // Its WIS as low as it goes: no Check would spot the Door.
+    await prisma.hero.updateMany({ data: { class: 'warlock', wis: 3, room: outside, prevRoom: outside, maxHp: 999, hp: 999 } });
+    await prisma.heroFloor.updateMany({ data: { seen: { push: outside } } });
+    const here = labyrinthResultSchema.parse((await app.inject({ url: '/api/labyrinth', headers: { cookie } })).json());
+    expect(here.view.exits.some((e) => e.to === hidden.id)).toBe(true);
+  });
 });
 
 

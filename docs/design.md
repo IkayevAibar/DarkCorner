@@ -64,7 +64,7 @@ Each Player has one Hero per Season. Fights are automatic in Season 0: the Playe
 4. **Look:** choose a portrait from the set for that Race and Class, a name and a banner color.
 5. **Start:** the Hero receives its Starter kit and 100 gold *(v0)*, and appears in the Tavern.
 
-**Quick start:** a new Player's first screen offers the four Classes by their portraits. Picking one and a name (the Player's own by default) makes the Hero by the same rules, with the rest chosen to suit the Class: a Human Fighter (Tough, Savage attacker), a Halfling Rogue (Alert), an Elf Wizard (Tough) or a Dwarf Cleric (Lucky charm). Its dice are rolled with every reroll, keeping the set best for the Class's main ability. The Hero goes straight to the Labyrinth gate, where three short tips wait before its first Run; the full guide stays behind the "?". "Make it my own" opens the steps above instead.
+**Quick start:** a new Player's first screen offers every Class by its portrait. Picking one and a name (the Player's own by default) makes the Hero by the same rules, with the rest chosen to suit the Class: a Human Fighter (Tough, Savage attacker), a Halfling Rogue (Alert), an Elf Wizard (Tough), a Dwarf Cleric (Lucky charm), a Dwarf Barbarian (Tough), an Elf Ranger (Alert), a Human Paladin (Tough, Lucky charm), an Elf Warlock (Tough), a Human Monk (Alert, Tough), a Halfling Druid (Tough), a Halfling Bard (Lucky charm) or a Human Sorcerer (Tough, Alert). Its dice are rolled with every reroll, keeping the set best for the Class's main ability. The Hero goes straight to the Labyrinth gate, where three short tips wait before its first Run; the full guide stays behind the "?". "Make it my own" opens the steps above instead.
 
 ### Races (Season 0)
 
@@ -94,7 +94,7 @@ This list exists so the Human's extra Talent has something to choose from in Sea
 
 ### Classes
 
-Season 0 started with the classic party of four; the Barbarian and the Ranger joined mid-Season. Later Seasons add more.
+Season 0 started with the classic party of four; the Barbarian and the Ranger joined mid-Season, and on 2026-10-10 six more: the Paladin, Warlock, Monk, Druid, Bard and Sorcerer.
 
 | Class | Hit die | In fights | In the Labyrinth |
 |---|---|---|---|
@@ -104,8 +104,16 @@ Season 0 started with the classic party of four; the Barbarian and the Ranger jo
 | Cleric | d8 | Heals itself. Its spells are deadly to undead. | Rolls with advantage at Shrines. |
 | Barbarian | d12 | **Rage** *(v0)*, a few times a rest (2, then 3 at level 3, 4 at 6, 5 at 12, 6 at 17): when a fight turns hard (two or more monsters, an elite, a Mini-boss or the Boss) or once below half health, it Rages for the rest of the fight: +1 damage on every hit it lands and 1 less from every blow that lands on it (never below 1); 2 from level 9, 3 from 16. The SRD halves the blows instead, which made Barbarians far too hard to kill here, and its +2/+3/+4 still let par Barbarians win 97–99% of Mini-boss fights (most Classes win 55–80%). **Danger sense:** advantage on DEX saves (breath, blasts). Two attacks from level 5. | Smashes cracked walls like a Fighter, and takes half damage from traps. |
 | Ranger | d10 | **Hunter's mark** *(v0)*, a few times a rest (2, and one more at 5, 9, 13 and 17): in a hard fight it marks the monster with the most health and attacks it first, and every hit on it deals +1d6; when it falls, the mark moves on to the next. **Archery:** +2 to hit with a bow. Attacks with DEX. Two attacks from level 5. | Reads the tracks: always knows when a Clue lies. |
+| Paladin | d10 | Heavy armor, STR, two attacks from level 5. **Divine smite** *(v0)*, a few times a rest (2, and one more at 6, 12 and 18): the turn's first hit adds 2d8 holy fire (3d8 from level 9, 4d8 from 17), a d8 more on the undead and demons; the AI calls it once in a hard fight, and every turn against a Mini-boss or the Boss. **Lay on hands:** in a fight, 5 + 3 × level health, to itself or its partner (1 a rest, one more every fifth level). **Aura of protection** (from level 6): its CHA modifier, at least +1, on every save. | Divine sense: always knows when a Clue lies in the crypts and the depths, where the undead and demons are. |
+| Warlock | d8 | **Eldritch blast** at will: a beam of 1d10 + CHA, two beams from level 5, three from 11, four from 17. **Hex** *(v0)*, a few times a rest (as many as a Ranger's marks): in a hard fight it curses the monster with the most health and blasts it first, and every hit on it deals +1d6; when it falls, the Hex moves on. **Armor of Agathys:** a hard fight begins with a ward of its level + CHA modifier around it that takes the blows first. Wears robes too. | Devil's sight: always finds secret Doors. |
+| Monk | d8 | **Unarmored defense:** Armor Class 10 + DEX + WIS with no body armor and no shield. **Martial arts:** every attack brings one more strike; its strikes roll d6 (d8 from level 5, d10 from 11, d12 from 17), or the weapon's dice when bigger, with DEX. **Flurry of blows** *(v0)*: one more strike for a ki (ki a rest: 1, and one more every fourth level), called like a Divine smite. Two attacks from level 5. **Evasion** from level 7. | Step of the wind: Escape rolls with advantage and its proficiency, as a Rogue's. |
+| Druid | d8 | **Thorn whip** at will (an attack spell of d8s and WIS) and **Cure wounds** like a Cleric's. **Wild shape** *(v0)*, once a fight (2 a rest, 3 from level 10), in a hard fight or below half health: it becomes a beast whose health (4 × level) takes the blows first, and claws for 1d8 + WIS, twice a turn from level 5, until the beast falls. | Herbalist: Healing potions heal 50% more. |
+| Bard | d8 | **Vicious mockery** at will (an attack spell of d10s and CHA): a monster it hits attacks at a disadvantage on its next turn. **Bardic inspiration** *(v0)*, a few times a rest (3, and one more every fourth level), a d6 (d8 from level 5, d10 from 10, d12 from 15): added to a missed attack spell, or taken off a monster's blow that would hit it (Cutting words); one is spent only when it changes the outcome. **Cure wounds** with CHA (1 a rest, one more every fourth level). Wears robes too. | Silver tongue: the Shops deal 10% better. |
+| Sorcerer | d6 | **Fire bolt** at will (an attack spell of d10s and CHA). **Sorcery points** *(v0)*, a few a rest (2, and one more every third level), for a **Burst of fire** like a Wizard's or a **Quickened spell**: a second attack spell that turn, which the AI calls when one monster is left in a hard fight. No Shield. | Sorcerous sense: identifies Items for free. |
 
-Planned order (it can change): Season 1 Paladin and Warlock, Season 2 Bard and Sorcerer, then Druid and Monk. Until their own portraits are painted, Barbarians borrow the Fighter's portraits and Rangers the Rogue's, for the same Race.
+Until their own portraits are painted, the newer Classes borrow a painted Class's portraits for the same Race: Barbarians and Paladins the Fighter's, Rangers, Monks and Bards the Rogue's, Warlocks and Sorcerers the Wizard's, Druids the Cleric's.
+
+**Balancing the six new Classes** *(v0, 2026-10-10)*: measured with par Heroes against the harder numbers for a Hero alone (`npm run balance:par -w @dark/engine`). From Floor 3, Rooms kill 2–5% of the time (the first six: 2–5%); Mini-bosses are won 35–72% of the time (the first six: 26–70%); and late-Season Heroes beat the Dragon 4–46% of the time, depending on the Path (the first six: 2–56%). The first measures found the Druid (96% of Mini-bosses) and the Paladin (81%) far too strong and the Bard (5%) far too weak, so: the Druid's Wild shape went to once a fight with less health and one claw before level 5; Lay on hands from 4 × level to 5 + 3 × level and Divine smites from one more every fourth level to every sixth; the Bard got d10 spells, robes, Cure wounds, Cutting words for every Bard and more inspirations; the Warlock robes and Armor of Agathys; the Monk its Martial arts strike from level 1 (it won 4–16% of the first Floors' Mini-bosses) with one Flurry strike instead of two; the Sorcerer spends its points on Quickened spells rather than casting twice in every hard fight's first round; and Valor's Battle magic adds an Inspiration die to every hit instead of a second spell (Valor Bards won 74% against the Dragon).
 
 ### Proficiencies
 
@@ -127,18 +135,34 @@ Weapons and armor come in types. Each Class can use some of the types, and the t
 | Light armor | ✓ | ✓ | | ✓ | ✓ | ✓ |
 | Robes | | | ✓ | ✓ | | |
 
-Starter kits: Fighter longsword, shield and chain mail; Rogue rapier, a dagger in the off-hand and leather; Wizard staff, orb and robes; Cleric mace, shield and breastplate; Barbarian greataxe and scale mail; Ranger longbow and scale mail.
+| Type | Paladin | Warlock | Monk | Druid | Bard | Sorcerer |
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+| Heavy weapons | ✓ | | | | | |
+| Blades | ✓ | | | | ✓ | |
+| Daggers | | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Bows, crossbows and hand crossbows | | | | | ✓ | |
+| Maces, hammers, flails and morningstars | ✓ | | | | | |
+| Staves and wands | | ✓ | ✓ | ✓ | | ✓ |
+| Shields | ✓ | | | ✓ | | |
+| Orbs and tomes (off-hand) | | ✓ | | | | ✓ |
+| Holy symbols (off-hand) | | | | | | |
+| Heavy armor | ✓ | | | | | |
+| Medium armor | ✓ | | | ✓ | | |
+| Light armor | ✓ | ✓ | | ✓ | ✓ | |
+| Robes | | ✓ | | ✓ | ✓ | ✓ |
+
+Starter kits: Fighter longsword, shield and chain mail; Rogue rapier, a dagger in the off-hand and leather; Wizard staff, orb and robes; Cleric mace, shield and breastplate; Barbarian greataxe and scale mail; Ranger longbow and scale mail; Paladin warhammer, shield and chain mail; Warlock dagger, orb and leather; Monk staff and hood; Druid staff, shield and leather; Bard rapier and leather; Sorcerer staff, orb and robes.
 
 ### Hands
 
 What a Hero holds is a choice between ways of fighting: a weapon and a shield, one weapon in both hands, or a dagger beside the weapon.
 
 - **Two-handed** weapons fill both hands: greatswords, greataxes, mauls, halberds and every bow but the hand crossbow (shortbows d8, longbows d10, crossbows d12, a die bigger than before bows took both hands). The hand crossbow (d6) is a bow for one hand: smaller, but a shield or a dagger fits beside it, and a Ranger's Archery still counts. The off-hand stays empty beside them, so their Bonus stats count twice *(v0)*, as a weapon's and an off-hand piece's would together; the Item card shows them doubled. Putting one on takes the off-hand piece off, and putting an off-hand piece on takes the two-handed weapon off. When both a weapon and an off-hand piece come off, the second needs room in the Bag (or Storage) the new weapon came from.
-- **Daggers** are light and go in either hand. A dagger in the off-hand, beside a weapon in the main hand, strikes once more every turn the Hero attacks: its own dice, without the ability modifier (a penalty still counts), and never with a Sneak attack *(v0)*. This weaker blow is the price of the second weapon. A dagger alone in the off-hand fights as the main weapon. Wizards and Clerics cast with neither hand, so for them a dagger counts only for its Bonus stats.
+- **Daggers** are light and go in either hand. A dagger in the off-hand, beside a weapon in the main hand, strikes once more every turn the Hero attacks: its own dice, without the ability modifier (a penalty still counts), and never with a Sneak attack *(v0)*. This weaker blow is the price of the second weapon. A dagger alone in the off-hand fights as the main weapon. Casters (Wizards, Clerics, Warlocks, Druids, Bards and Sorcerers) cast with neither hand, so for them a dagger counts only for its Bonus stats.
 - Shields, orbs and holy symbols go only in the off-hand; every other weapon only in the main hand.
 - Measured with par Heroes (`npm run balance:hands -w @dark/engine`): with doubled Bonus stats a two-hander stands level with a one-hander and a shield (without them it fell far behind), a bow with its bigger die level with a blade and a shield, and a Rogue's blade and dagger, the strongest way for a Rogue, lands with the other Classes against the Dragon rather than above them. A Ranger's Starter kit trades the shield for scale mail, which keeps its first Floors as safe as before.
 
-Robes are woven with wards: Armor Class 13 + the full DEX modifier *(v0)*, like the SRD's Mage armor, so a caster's body armor grows with Quality and Upgrades too.
+Robes are woven with wards: Armor Class 13 + the full DEX modifier *(v0)*, like the SRD's Mage armor, so a caster's body armor grows with Quality and Upgrades too. Wizards, Clerics, Warlocks, Druids, Bards and Sorcerers wear them.
 
 ### Levels, health and power
 
@@ -170,6 +194,18 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
   | Barbarian | Bear-heart | While raging, blows lose twice the Rage's edge, and breath, blasts, wails, fire and poison lose it too | While raging, a blow that would drop the Hero calls for a CON save (DC 10, then 5 higher each time): on a success it stays up with 1 health |
   | Ranger | Hunter | Once a turn, +1d8 on a hit against a monster that is already hurt | One more attack each turn |
   | Ranger | Stalker | In each fight's first round, one more attack, and every attack that round with advantage | Evasion: a DEX save against breath or a blast takes no damage on a success, and half on a failure |
+  | Paladin | Devotion | Sacred weapon: +2 to hit with weapons | Aura of devotion: neither fear nor a mesmerizing gaze takes hold |
+  | Paladin | Vengeance | Vow of enmity: in a hard fight, sworn against the monster with the most health: attacks it first, with advantage | Avenging smite: Divine smite deals one more d8 |
+  | Warlock | Fiend | Dark one's blessing: every monster its spells fell gives back its CHA modifier + its level in health | Hellfire: its blasts set what they hit burning (1d6 for 2 turns) |
+  | Warlock | Great Old One | Awakened mind: +5 to initiative, and WIS saves with advantage | Entropic ward: the first blow of every fight that would hit misses |
+  | Monk | Open Hand | A monster its Flurry of blows lands on attacks at a disadvantage on its next turn | Wholeness of body: once a fight, below half health, 3 × level health back |
+  | Monk | Shadow | Shadow arts: every attack in each fight's first round with advantage, and Sneak with advantage | Cloak of shadows: the first blow of every fight that would hit misses |
+  | Druid | Moon | Moon form: the beast has half again as much health | Primal strike: claws deal +1d8 |
+  | Druid | Land | Natural recovery: one more Cure wounds a rest | Nature's ward: poison can't take hold |
+  | Bard | Lore | Peerless skill: the Inspiration die is one size bigger | Countercharm: neither fear nor a mesmerizing gaze takes hold |
+  | Bard | Valor | Combat inspiration: an Inspiration that lands a spell adds its die to the damage | Battle magic: every attack spell that hits adds an Inspiration die to its damage, spending none *(v0)*: two spells a turn won Valor Bards 74% of their Dragon fights |
+  | Sorcerer | Draconic | Draconic resilience: +2 Armor Class, and fire (breath, burning) deals half | Elemental affinity: its attack spells and Bursts add its CHA modifier once more |
+  | Sorcerer | Wild Magic | Tides of chaos: once a fight, a missed attack spell is cast again | Wild surge: Bursts deal half again as much, and even a lone monster takes one, twice as hard |
 
   Each Class has one Path built for the Boss and one for the long road: Thief, Abjurer, Life and Bear-heart trade damage for gold, safety and healing.
 - **Growth (levels 4, 8, 12, 16, 19):** +2 to one ability score, +1 to two (never above 20), or one of three Talents offered. The three are drawn from the Talents the Hero doesn't have yet, and stay the same however often the Player looks.
@@ -271,12 +307,12 @@ Every fight in a Room (monsters in the doorway, Mini-bosses, the Dragon) is play
 
 - **The Hero's turn:** one of these, as its Class, uses and the fight allow:
   - **Attack:** tap a monster, or let the Hero hit the weakest. Every attack the Hero has that turn goes at it (the next one if it falls).
-  - **Burst of fire** (Wizard): every monster, one use. **Cure wounds** (Cleric): itself or its partner, one use. **Second wind** (Fighter): once a fight.
+  - **Burst of fire** (Wizard, Sorcerer): every monster, one use. **Cure wounds** (Cleric, Druid, Bard) or **Lay on hands** (Paladin): itself or its partner, one use. **Second wind** (Fighter): once a fight.
   - **A Healing potion:** at most 3 a fight.
   - **Dodge:** until its next turn, blows at it have disadvantage.
   - **Escape:** an Escape roll (alone only).
   - In a Duo: **Help**, **Guard** and **Pull up** (Duos, below).
-- **Free, before the action:** a Barbarian can start its Rage, and a Ranger put its Hunter's mark on a monster.
+- **Free, before the action:** a Barbarian can start its Rage, a Druid take its Wild shape, a Paladin call a Divine smite for the turn's first hit, a Monk a Flurry of blows for its attack, and a Sorcerer Quicken its spell; a Ranger can put its Hunter's mark, and a Warlock its Hex, on a monster. A smite, a Flurry or a Quickened spell that the turn doesn't use costs nothing.
 - **A second action:** Preserve life's free Cure wounds and a Thief's Fast hands potion give the turn another choice.
 - **Auto:** the Hero fights the rest on its own, the way it always has: the same AI plays fights in events and the Daily Delve. From the doorway, **Auto** fights the whole fight at once. On Auto, a Hero's Stance also decides when it tries to escape; played by hand, Escape is the Player's call.
 - **The dice:** the server rolls every one. It keeps each fight's seed and the choices made, and plays it again from the start to where it stands, so a fight looks the same to everyone and can't be rolled over.

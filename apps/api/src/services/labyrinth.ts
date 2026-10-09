@@ -5,7 +5,7 @@ import {
 } from '@dark/shared';
 import {
   BAG_SLOTS, type ClassId, type Door, breaksWalls, FLOOR_COUNT, type Floor, LOOT, type Labyrinth, RACE_DEFS, type RaceId, STAMINA_MAX,
-  type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
+  type PathId, STAMINA_REFILL_MS, type StanceId, THEMES, type ThemeId, XP_FOR_LEVEL, abilityModifier, check, cluesFor, createRng, currentStamina, doorsOf,
   PATH_MASTERY, type HeroKey, InvalidChoice, type MonsterInstance, type ThreatId, type Tier, dropOdds, fightOdds, generateLabyrinth, onPath, proficiencyBonus, recoveredHealth, restUses, sneakCheck,
   threatOf, tierRank, baseById, heroFeatures, itemAbout, CAMP_REST_MS, SHORT_RESTS, SHORT_REST_RECHARGE_MS, SHORT_REST_SHARE, addStamina, monsterById, OATH_MS,
 } from '@dark/engine';
@@ -219,12 +219,12 @@ function facingView(hero: HeroWithItems, partner: HeroWithItems | null, season: 
 
 /**
  * Whether the Hero knows a secret Door is there: it has been through it, wears
- * the Eye of the Abyss, or spots it today (a WIS Check, Rogues and Elves with
- * advantage; the same answer all day).
+ * the Eye of the Abyss, is a Warlock (Devil's sight), or spots it today (a WIS Check,
+ * Rogues and Elves with advantage; the same answer all day).
  */
 function spotsSecret(hero: HeroWithItems, floor: Floor, door: Door, seen: ReadonlySet<number>, now: Date): boolean {
   const hidden = floor.rooms[door.a]!.type === 'hidden' ? door.a : door.b;
-  if (seen.has(hidden) || wears(hero, 'eye-of-the-abyss')) return true;
+  if (seen.has(hidden) || wears(hero, 'eye-of-the-abyss') || hero.class === 'warlock') return true;
   const race = RACE_DEFS[hero.race as RaceId];
   const rng = createRng(`${hero.id}:secret:${floor.number}:${door.a}-${door.b}:${Math.floor(now.getTime() / DAY_MS)}`);
   return check(rng, {
@@ -252,10 +252,13 @@ function opens(door: Door, floor: Floor, to: number, hero: HeroWithItems, partne
   return canPass(door, hero) || (partner !== null && canPass(door, partner));
 }
 
-/** Rangers always know a lying Clue; Rogues and Elves (with advantage) may see through one. Stable per Door. */
-function seesThrough(hero: HeroWithItems, floor: number, door: Door, from: number): boolean {
+/**
+ * Rangers always know a lying Clue, and Paladins (Divine sense) in the crypts and the depths;
+ * Rogues and Elves (with advantage) may see through one. Stable per Door.
+ */
+function seesThrough(hero: HeroWithItems, floor: number, door: Door, from: number, theme: ThemeId): boolean {
   const race = RACE_DEFS[hero.race as RaceId];
-  if (hero.class === 'ranger') return true;
+  if (hero.class === 'ranger' || (hero.class === 'paladin' && (theme === 'crypts' || theme === 'depths'))) return true;
   if (hero.class !== 'rogue' && !race.clueAdvantage) return false;
   const rng = createRng(`${hero.id}:clue:${floor}:${door.a}-${door.b}:${from}`);
   return check(rng, {
@@ -330,7 +333,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
       smoke: stackTotal(hero, 'bomb-smoke'),
     },
     features: heroFeatures({
-      class: hero.class as ClassId, level: hero.level, path: hero.path as PathId | null, int: scoresOf(hero).int, wis: scoresOf(hero).wis,
+      class: hero.class as ClassId, level: hero.level, path: hero.path as PathId | null, int: scoresOf(hero).int, wis: scoresOf(hero).wis, cha: scoresOf(hero).cha,
       spellUses: hero.spellUses, healUses: hero.healUses,
     }),
     // What the Bag lends the belt, in the order a Run reaches for it.
@@ -381,7 +384,7 @@ async function buildView(tx: Tx, hero: HeroWithItems, season: Season, now: Date)
         direction: direction(floor, room.id, to),
         kind: door.kind,
         clue: truth ?? clue.text,
-        suspicious: !truth && clue.lie && seesThrough(hero, floor.number, door, room.id),
+        suspicious: !truth && clue.lie && seesThrough(hero, floor.number, door, room.id, floor.theme),
         passable: opens(door, floor, to, hero, together),
         visited: seen.has(to),
         free: freeToEnter(floor, to, hf, now, pf),

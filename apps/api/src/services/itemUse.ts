@@ -1,7 +1,7 @@
 import type { Player } from '@prisma/client';
 import type { HeroView, IdentifyResult, OpenChestResult } from '@dark/shared';
 import {
-  CHEST_ODDS, baseById, chestBase, chestGradeOf, createRng, isGear, keyBase, potionHealing, rollChestTier, rollGear, tierRank,
+  CHEST_ODDS, type ClassId, type TalentId, baseById, chestBase, chestGradeOf, createRng, herbalist, isGear, keyBase, potionHealing, rollChestTier, rollGear, tierRank,
   uniqueById,
 } from '@dark/engine';
 import { prisma } from '../db.js';
@@ -19,14 +19,14 @@ async function heroView(heroId: string): Promise<HeroView> {
   return toHeroView(await prisma.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }));
 }
 
-/** Reveals an Unidentified Item: a Scroll of Identify, or free for Wizards. Works anywhere. */
+/** Reveals an Unidentified Item: a Scroll of Identify, or free for Wizards and Sorcerers. Works anywhere. */
 export async function identifyItem(player: Player, itemId: string): Promise<IdentifyResult> {
   const season = await currentSeason();
   const r = await prisma.$transaction(async (tx) => {
     const hero = await lockHero(tx, player, season.id);
     const item = ownItem(hero, itemId, ['BAG', 'STORAGE']);
     if (!isGear(baseById(item.base)) || item.identified) throw ApiError.conflict('already_identified', 'Nothing to identify');
-    const free = hero.class === 'wizard';
+    const free = hero.class === 'wizard' || hero.class === 'sorcerer';
     if (!free) await takeStack(tx, hero, 'scroll-identify', 1, 'no_identify_scroll');
     const updated = await tx.item.update({ where: { id: item.id }, data: { identified: true } });
     if (tierRank(item.tier as never) >= tierRank('legendary')) {
@@ -80,7 +80,7 @@ export async function openChest(player: Player, itemId: string): Promise<OpenChe
   };
 }
 
-/** Drinks a Healing potion outside a fight (Field medics get 50% more). */
+/** Drinks a Healing potion outside a fight (Field medics and Druids get 50% more). */
 export async function drinkPotion(player: Player, itemId: string): Promise<HeroView> {
   const season = await currentSeason();
   const heroId = await prisma.$transaction(async (tx) => {
@@ -89,7 +89,7 @@ export async function drinkPotion(player: Player, itemId: string): Promise<HeroV
     if (potion.base !== 'potion') throw ApiError.badRequest('not_a_potion', 'That is not a potion');
     const full = fullHealth(hero);
     if (hero.hp >= full) throw ApiError.conflict('full_health', 'You are already at full health');
-    const healed = Math.round(potionHealing(createRng(newSeed()), full, hero.talents.includes('field-medic')));
+    const healed = Math.round(potionHealing(createRng(newSeed()), full, herbalist({ class: hero.class as ClassId, talents: hero.talents as TalentId[] })));
     await takeStack(tx, hero, 'potion', 1);
     await tx.hero.update({ where: { id: hero.id }, data: { hp: Math.min(full, hero.hp + healed) } });
     return hero.id;

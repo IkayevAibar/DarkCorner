@@ -1,7 +1,7 @@
 import type { Ability } from '../abilities.js';
 import { type Text, text } from './text.js';
 
-export const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger'] as const;
+export const CLASSES = ['fighter', 'rogue', 'wizard', 'cleric', 'barbarian', 'ranger', 'paladin', 'warlock', 'monk', 'druid', 'bard', 'sorcerer'] as const;
 export type ClassId = (typeof CLASSES)[number];
 
 /** Weapon, off-hand and armor types a Class can use (Proficiencies, docs/design.md). */
@@ -135,4 +135,107 @@ export const CLASS_DEFS: Record<ClassId, ClassDef> = {
     trick: text('Reads the tracks: always knows when a Clue lies.', 'Читает следы: всегда знает, когда подсказка лжёт.'),
     starterKit: ['longbow', 'scale'],
   },
+  paladin: {
+    id: 'paladin',
+    name: text('Paladin', 'Паладин'),
+    hitDie: 10,
+    primary: 'str',
+    saves: ['wis', 'cha'],
+    weapons: ['heavy', 'blade', 'mace'],
+    offHands: ['shield'],
+    armor: ['heavy', 'medium', 'light'],
+    fights: text(
+      'Heavy armor and two attacks from level 5. Divine smite pours holy fire into a hit, Lay on hands heals, and from level 6 an aura steadies every save.',
+      'Тяжёлая броня и две атаки с 5-го уровня. Божественная кара вливает в удар святой огонь, наложение рук лечит, а с 6-го уровня аура укрепляет каждый спасбросок.',
+    ),
+    trick: text(
+      'Divine sense: sees through lying Clues in the crypts and the depths, where the undead and demons lurk.',
+      'Божественное чувство: видит ложь в подсказках склепов и глубин, где таятся нежить и демоны.',
+    ),
+    starterKit: ['warhammer', 'shield', 'chainmail'],
+  },
+  warlock: {
+    id: 'warlock',
+    name: text('Warlock', 'Колдун'),
+    hitDie: 8,
+    primary: 'cha',
+    saves: ['wis', 'cha'],
+    weapons: ['dagger', 'staff'],
+    offHands: ['orb'],
+    // Armor of shadows: robes woven with wards, as a Wizard wears.
+    armor: ['light', 'robes'],
+    fights: text(
+      'Eldritch blast at will: a beam of force, and more beams as it grows. Hex curses the toughest foe, and every hit on it bites harder.',
+      'Мистический заряд без ограничений: луч силы, а с ростом — больше лучей. Порча проклинает самого опасного врага, и каждое попадание по нему жалит сильнее.',
+    ),
+    trick: text('Devil’s sight: always finds secret Doors.', 'Дьявольское зрение: всегда находит потайные двери.'),
+    starterKit: ['dagger', 'orb', 'leather'],
+  },
+  monk: {
+    id: 'monk',
+    name: text('Monk', 'Монах'),
+    hitDie: 8,
+    primary: 'dex',
+    saves: ['str', 'dex'],
+    weapons: ['dagger', 'staff'],
+    offHands: [],
+    armor: [],
+    fights: text(
+      'Wears no armor, yet is hard to hit: Armor Class 10 + DEX + WIS. Its strikes hit like a martial artist’s, harder as it grows; Flurry of blows adds two more; two attacks from level 5, and Evasion from level 7.',
+      'Не носит доспехов, но попасть в него трудно: класс доспеха 10 + ЛОВ + МДР. Бьёт как мастер боевых искусств, с ростом — всё сильнее; шквал ударов добавляет ещё два; две атаки с 5-го уровня и увёртливость с 7-го.',
+    ),
+    trick: text('Step of the wind: Escape rolls with advantage and its proficiency.', 'Шаг ветра: броски побега с преимуществом и бонусом мастерства.'),
+    starterKit: ['staff', 'hood'],
+  },
+  druid: {
+    id: 'druid',
+    name: text('Druid', 'Друид'),
+    hitDie: 8,
+    primary: 'wis',
+    saves: ['int', 'wis'],
+    weapons: ['staff', 'dagger'],
+    offHands: ['shield'],
+    armor: ['light', 'medium', 'robes'],
+    fights: text(
+      'Thorn whip at will and Cure wounds a few times a rest. Wild shape turns it into a beast whose health takes the blows first, with two claw attacks.',
+      'Терновый кнут без ограничений и «Лечение ран» несколько раз за отдых. Дикий облик превращает его в зверя, чьё здоровье первым принимает удары, с двумя атаками когтями.',
+    ),
+    trick: text('Herbalist: Healing potions heal half again as much.', 'Травник: зелья лечения лечат в полтора раза сильнее.'),
+    starterKit: ['staff', 'shield', 'leather'],
+  },
+  bard: {
+    id: 'bard',
+    name: text('Bard', 'Бард'),
+    hitDie: 8,
+    primary: 'cha',
+    saves: ['dex', 'cha'],
+    weapons: ['blade', 'dagger', 'bow'],
+    offHands: [],
+    armor: ['light', 'robes'],
+    fights: text(
+      'Vicious mockery at will: it wounds, and its target’s next attack comes at a disadvantage. Bardic inspiration turns a missed spell into a hit, and Cure wounds heals, a few times a rest.',
+      'Злая насмешка без ограничений: ранит, а следующая атака её жертвы — с помехой. Несколько раз за отдых вдохновение барда превращает промах заклинания в попадание, а «Лечение ран» лечит.',
+    ),
+    trick: text('Silver tongue: the Shops deal 10% better.', 'Серебряный язык: лавки торгуют на 10% выгоднее.'),
+    starterKit: ['rapier', 'leather'],
+  },
+  sorcerer: {
+    id: 'sorcerer',
+    name: text('Sorcerer', 'Чародей'),
+    hitDie: 6,
+    primary: 'cha',
+    saves: ['con', 'cha'],
+    weapons: ['dagger', 'staff'],
+    offHands: ['orb'],
+    armor: ['robes'],
+    fights: text(
+      'Fire bolt at will, and sorcery points for a Burst of fire or a Quickened spell (two attack spells in one turn); no Shield.',
+      'Огненный снаряд без ограничений и очки чародейства на огненный взрыв или ускоренное заклинание (два боевых заклинания за ход); без «Щита».',
+    ),
+    trick: text('Sorcerous sense: identifies Items for free.', 'Чародейское чутьё: опознаёт предметы бесплатно.'),
+    starterKit: ['staff', 'orb', 'robes'],
+  },
 };
+
+/** Classes whose attacks are spells (their weapons count only for their Bonus stats). A Druid in beast form fights with claws instead. */
+export const CASTERS: readonly ClassId[] = ['wizard', 'cleric', 'warlock', 'druid', 'bard', 'sorcerer'];

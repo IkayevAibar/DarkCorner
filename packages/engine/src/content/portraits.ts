@@ -29,7 +29,9 @@ export function portraitById(id: string): PortraitDef | undefined {
 }
 
 /** Classes not painted yet borrow a painted Class's portraits for the same Race until they are. */
-const STAND_INS: Partial<Record<ClassId, ClassId>> = { barbarian: 'fighter', ranger: 'rogue' };
+const STAND_INS: Partial<Record<ClassId, ClassId>> = {
+  barbarian: 'fighter', ranger: 'rogue', paladin: 'fighter', warlock: 'wizard', monk: 'rogue', druid: 'cleric', bard: 'rogue', sorcerer: 'wizard',
+};
 
 /** The Class whose portraits a Class wears: its own once they're painted, a stand-in's until then. */
 export const portraitClass = (cls: ClassId): ClassId =>

@@ -6,9 +6,9 @@ import type {
 import {
   ABILITY_REROLLS, type AbilitySet, BAD_LUCK_MAX, BAG_SLOTS, BANNER_COLORS, BLESSINGS, type BlessingId, CLASS_DEFS, CLASSES,
   DAY_MS, type GearBase, PORTRAITS, RACE_DEFS, type Tier, UNCOMMON_KIT_AFTER_DAYS, isGear, itemName, luckOf, tierRank,
-  RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, armorClass, baseById,
+  RACES, SLOTS, STAMINA_MAX, STARTER_POTIONS, STARTING_GOLD, STORAGE_SLOTS, TALENT_DEFS, TALENTS, baseById, heroArmorClass,
   type ClassId, type Growth, type GrowthChoice, ORIGIN_TALENTS, PATH_DEFS, PATH_LEVEL, type PathId, type TalentId, createRng, currentStamina, maxHealth,
-  pathsOf, pendingGrowth, portraitById, portraitClass, portraitsFor, restUses, rollAbilitySet, rollGear, kitSlots, startingHealth, talentArmor, talentOffer,
+  pathsOf, pendingGrowth, portraitById, portraitClass, portraitsFor, restUses, rollAbilitySet, rollGear, kitSlots, startingHealth, talentOffer,
   validateGrowth, validateHeroChoices, MAX_LEVEL, XP_FOR_LEVEL, type RaceId, levelChoice, levelGains,
   ABILITIES, type AbilityScores, BONUS_STATS, charmOf, critFromOf, escapeSteps, gearScores, onPath, statTotal,
 } from '@dark/engine';
@@ -121,8 +121,8 @@ export function toHeroView(hero: HeroWithItems, now = new Date()): HeroView {
     maxHp: fullHealth(hero),
     hp: Math.min(hero.hp, fullHealth(hero)),
     gear: gearView(hero),
-    armorClass: talentArmor(hero.talents as TalentId[]) + armorClass(
-      scoresOf(hero).dex,
+    armorClass: heroArmorClass(
+      { class: hero.class as ClassId, level: hero.level, path: hero.path as PathId | null, talents: hero.talents as TalentId[], scores: scoresOf(hero) },
       hero.items
         .filter((i) => i.place === 'WORN')
         .map((i) => ({

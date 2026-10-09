@@ -19,6 +19,22 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-classes',
+    date: '2026-10-10',
+    title: t('Six new Classes', 'Шесть новых классов'),
+    items: [
+      t('The Paladin, Warlock, Monk, Druid, Bard and Sorcerer join the Labyrinth, each with two Paths. A new Player meets them in Quick start; a Hero Retired at the Temple can come back as one.',
+        'В лабиринт приходят паладин, колдун, монах, друид, бард и чародей, у каждого по два пути. Новый игрок найдёт их в быстром старте, а героя, отправленного на покой в храме, можно заменить одним из них.'),
+      t('The Paladin smites with holy fire and lays on hands. The Warlock blasts at will and Hexes the toughest foe. The Monk fights without armor, in a flurry of blows.',
+        'Паладин карает святым огнём и исцеляет наложением рук. Колдун бьёт мистическими зарядами и наводит порчу на самого опасного врага. Монах сражается без доспехов, шквалом ударов.'),
+      t('The Druid heals and takes a Wild shape. The Bard mocks foes off balance and turns rolls with Bardic inspiration. The Sorcerer spends sorcery points on Bursts of fire and Quickened spells.',
+        'Друид лечит и принимает дикий облик. Бард насмешками выводит врагов из равновесия и меняет исход бросков вдохновением. Чародей тратит очки чародейства на огненные взрывы и ускоренные заклинания.'),
+      t('In a fight played by hand, each power has its own button: Divine smite, Hex, Flurry of blows, Wild shape, Quickened spell, Lay on hands.',
+        'В бою по ходам у каждой силы своя кнопка: божественная кара, порча, шквал ударов, дикий облик, ускоренное заклинание, наложение рук.'),
+      t('They borrow other Classes’ portraits until their own are painted.', 'Пока их портреты не нарисованы, они носят портреты других классов.'),
+    ],
+  },
+  {
     id: '2026-10-10-harder',
     date: '2026-10-10',
     title: t('Harder alone', 'Одному — тяжелее'),

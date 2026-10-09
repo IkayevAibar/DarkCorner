@@ -116,6 +116,8 @@ export const CHARM_STEP = 0.04;
 export const charmOf = (cha: number): number => CHARM_STEP * Math.max(0, abilityModifier(cha));
 /** The Usurper's Signet (Mythic): the Shops deal this much better to its wearer. */
 export const SIGNET_DEAL = 0.25;
+/** A Bard's Silver tongue: the Shops deal this much better. */
+export const SILVER_TONGUE = 0.1;
 /** How much better a Hero's Shop deals are: a Haggler's 10% and its Charisma's, added. */
 export const shopDeal = (haggler: boolean, cha: number): number => (haggler ? HAGGLE : 0) + charmOf(cha);
 

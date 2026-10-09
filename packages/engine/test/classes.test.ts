@@ -63,7 +63,7 @@ describe('the Barbarian', () => {
   });
 
   it('gives its belt Rage with uses, Danger sense and Extra attack', () => {
-    const belt = heroFeatures({ class: 'barbarian', level: 5, path: null, int: 10, wis: 10, spellUses: 1, healUses: 0 });
+    const belt = heroFeatures({ class: 'barbarian', level: 5, path: null, int: 10, wis: 10, cha: 10, spellUses: 1, healUses: 0 });
     expect(belt.map((f) => f.id)).toEqual(['rage', 'danger-sense', 'extra-attack', 'path']);
     expect(belt[0]).toMatchObject({ kind: 'rest', uses: { left: 1, of: 3 } });
     expect(belt[0]!.now.en).toContain('+1 damage');
@@ -96,7 +96,7 @@ describe('the Ranger', () => {
   });
 
   it('gives its belt Hunter’s mark, Archery and Extra attack', () => {
-    const belt = heroFeatures({ class: 'ranger', level: 1, path: null, int: 10, wis: 10, spellUses: 2, healUses: 0 });
+    const belt = heroFeatures({ class: 'ranger', level: 1, path: null, int: 10, wis: 10, cha: 10, spellUses: 2, healUses: 0 });
     expect(belt.map((f) => f.id)).toEqual(['hunters-mark', 'archery', 'extra-attack', 'path']);
     expect(belt[1]!.now.en).toBe('+2 to hit with a bow.');
   });

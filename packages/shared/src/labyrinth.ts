@@ -80,14 +80,14 @@ export const fightEventSchema = z.discriminatedUnion('type', [
     /** The extra blow of a dagger in the off-hand (docs/design.md → Hands). Absent: the main hand. */
     hand: z.literal('off').optional(),
   }),
-  /** A blow turned aside: by the Ashen Aegis, or by a Wizard's Shield. */
-  z.object({ type: z.literal('blocked'), actor: z.string(), by: z.enum(['aegis', 'shield']).default('aegis'), target: who }),
+  /** A blow turned aside: by the Ashen Aegis, a Wizard's Shield, a Great Old One's Entropic ward or a Shadow Monk's Cloak of shadows. */
+  z.object({ type: z.literal('blocked'), actor: z.string(), by: z.enum(['aegis', 'shield', 'entropic-ward', 'cloak-of-shadows']).default('aegis'), target: who }),
   z.object({
     type: z.literal('burst'), actor: z.string(), source: z.enum(['spell', 'bomb']),
     targets: z.array(z.object({ key: z.string(), damage: z.number().int(), hp: z.number().int() })),
   }),
   z.object({
-    type: z.literal('heal'), actor: z.string(), ability: z.enum(['second-wind', 'cure-wounds', 'potion', 'life-steal']),
+    type: z.literal('heal'), actor: z.string(), ability: z.enum(['second-wind', 'cure-wounds', 'potion', 'life-steal', 'lay-on-hands', 'wholeness', 'dark-blessing']),
     amount: z.number().int(), hp: z.number().int(),
     /** A Cleric mending its Duo partner: the healer, when it isn't `actor`. */
     by: z.string().optional(),
@@ -97,7 +97,7 @@ export const fightEventSchema = z.discriminatedUnion('type', [
    * ward rises (`left`) or soaks `amount`, a Barbarian's Rage begins, a Ranger's Hunter's mark goes on `target`.
    */
   z.object({
-    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless', 'dodge', 'help', 'guard']),
+    type: z.literal('feature'), feature: z.enum(['survivor', 'indomitable', 'ward', 'rage', 'mark', 'relentless', 'dodge', 'help', 'guard', 'smite', 'hex', 'flurry', 'wild-shape', 'inspiration', 'cutting-words', 'quickened']),
     amount: z.number().int().optional(), hp: z.number().int().optional(), left: z.number().int().optional(), target: z.string().optional(),
     actor: who,
   }),

@@ -339,13 +339,17 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
           break;
         case 'heal': {
           if (!b) break;
-          const colors = { 'second-wind': 0xd2c092, 'cure-wounds': 0xa4d59a, potion: 0xdf789a, 'life-steal': 0xbe75b9 };
+          const colors = {
+            'second-wind': 0xd2c092, 'cure-wounds': 0xa4d59a, potion: 0xdf789a, 'life-steal': 0xbe75b9, 'lay-on-hands': 0xf0dc8c, wholeness: 0xc9e0b0,
+            'dark-blessing': 0x9a4fb0,
+          };
           if (event.by && a) mend(a, b);
-          heal(b, event.amount, colors[event.ability]); if (event.ability === 'cure-wounds') radiant(b); break;
+          heal(b, event.amount, colors[event.ability]); if (event.ability === 'cure-wounds' || event.ability === 'lay-on-hands') radiant(b); break;
         }
         case 'blocked': if (b) ring(b.x, b.y, event.by === 'shield' ? 0x94dcf4 : 0xe4c986, 100, 0); break;
         case 'feature': {
-          if (event.feature === 'rage' || event.feature === 'mark' || event.feature === 'relentless') break;
+          if (event.feature === 'rage' || event.feature === 'mark' || event.feature === 'relentless' || event.feature === 'hex' || event.feature === 'smite'
+            || event.feature === 'flurry' || event.feature === 'inspiration' || event.feature === 'cutting-words' || event.feature === 'quickened') break;
           if (!a) break;
           if (event.feature === 'help' && b) { mend(a, b); ring(b.x, b.y, 0xaee6df, b.radius + 30); break; }
           if (event.feature === 'guard' || event.feature === 'dodge') {
@@ -360,7 +364,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
             });
             break;
           }
-          heal(a, event.amount, event.feature === 'ward' ? 0x8ad2e8 : 0xb8d894); break;
+          heal(a, event.amount, event.feature === 'ward' ? 0x8ad2e8 : event.feature === 'wild-shape' ? 0x9bbf6a : 0xb8d894); break;
         }
         case 'power': {
           if (!a) break;

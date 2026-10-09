@@ -72,3 +72,60 @@ The Barbarian and the Ranger joined mid-Season 0. Until these are in, they borro
 | `halfling-barbarian-2.png` | A halfling Barbarian woman: wild blond curls, freckles under smeared red war paint, a fox-fur collar, a tiny notched greataxe blade behind her head. |
 | `halfling-ranger-1.png` | A halfling Ranger woman: a green hooded cloak, a round freckled face, a sling and a short bow, a sparrow perched on her shoulder. |
 | `halfling-ranger-2.png` | A halfling Ranger man: a brown felt hood, a trimmed moustache, a quiver of fletched arrows, keen eyes looking just past the viewer. |
+
+## Batch 3: Paladins, Warlocks, Monks, Druids, Bards and Sorcerers (48 prompts)
+
+Six Classes joined on 2026-10-10. Until these are in, they borrow a painted Class's portraits for the same Race (engine `portraitsFor`): Paladins the Fighter's, Monks and Bards the Rogue's, Warlocks and Sorcerers the Wizard's, Druids the Cleric's. Use the same style block as above. Once a Class's eight files are in `art/portraits/`, Claude adds it to `CLASSES_PAINTED` in `packages/engine/src/content/portraits.ts`.
+
+Each Class should read at a glance on a 48 px token: the Paladin's holy armor, the Warlock's eldritch light, the Monk's bare, wrapped hands, the Druid's leaves, fur and antlers, the Bard's instrument and the Sorcerer's magic coming out of the body itself.
+
+| File | Prompt |
+|---|---|
+| `human-paladin-1.png` | A human Paladin man in his thirties: close-cropped fair hair, a square jaw, dented plate pauldrons, a tabard with an abstract sunburst, a greatsword hilt behind the shoulder, a resolute gaze. |
+| `human-paladin-2.png` | A human Paladin woman: dark hair under a winged steel helm with the visor raised, a faint holy light in her eyes, a white cloak clasped with a brass sunburst, a calm, unshakable face. |
+| `elf-paladin-1.png` | An elf Paladin woman: long golden hair in a single braid, a silver-chased gorget, a pale blue cloak, an abstract star-shaped holy symbol at her throat, serene and stern. |
+| `elf-paladin-2.png` | An elf Paladin man: an ageless lean face, short white hair, leaf-patterned plate, a faint halo of cold light behind his head, eyes closed in prayer. |
+| `dwarf-paladin-1.png` | A dwarf Paladin man: a great grey beard bound with gold rings, a heavy plate collar engraved with abstract mountain shapes, a warhammer head beside the cheek, a solemn, fatherly look. |
+| `dwarf-paladin-2.png` | A dwarf Paladin woman: red braids under a round steel helm, a soot-streaked face, a shield rim over one shoulder bearing an abstract anvil and sun, a fierce, devout stare. |
+| `halfling-paladin-1.png` | A halfling Paladin man: an earnest round face, neat brown curls, a too-big polished breastplate, a small shield with an abstract sun, a proud, brave look. |
+| `halfling-paladin-2.png` | A halfling Paladin woman: silver-streaked curls, a chain coif, a white tabard, a lantern of soft holy light held near the face, a gentle but firm smile. |
+| `human-warlock-1.png` | A human Warlock man: a gaunt face, hollow eyes with faint violet light, a high-collared black coat, abstract eldritch shapes drifting like smoke near one hand, a thin knowing smile. |
+| `human-warlock-2.png` | A human Warlock woman: sharp cheekbones, black hair with one white streak, a dark lace veil pulled back, a pact ring glowing sickly green, a cold stare. |
+| `elf-warlock-1.png` | An elf Warlock woman: ashen skin, silver hair, black eyes with pale irises, a mantle of raven feathers, tendrils of shadow curling over one shoulder. |
+| `elf-warlock-2.png` | An elf Warlock man: a young, haunted face, long dark hair, thin abstract cracks of violet light across one cheek, a hooded cloak, eyes looking just past the viewer. |
+| `dwarf-warlock-1.png` | A dwarf Warlock man: a soot-black beard with ember-red tips, a horned iron mask pushed up on the forehead, faint infernal light in the eyes, a chain of iron hooks around the neck. |
+| `dwarf-warlock-2.png` | A dwarf Warlock woman: grey braids, a deep hood, one milky eye glowing faint green, an abstract eldritch shape hovering over her palm, a grim mouth. |
+| `halfling-warlock-1.png` | A halfling Warlock man: a sly young face, curly dark hair, a tattered velvet cloak, a tiny shadowy creature peering from behind his shoulder, a violet glint in his eyes. |
+| `halfling-warlock-2.png` | A halfling Warlock woman: a pale freckled face, red curls under a dark hood, a small horned skull charm at her throat, faint green flame in one cupped hand, a secretive smile. |
+| `human-monk-1.png` | A human Monk man: a shaved head, calm eyes, a plain dark wrap over one shoulder, cloth-wrapped forearms raised in a guard near the chin, a faint scar at the temple. |
+| `human-monk-2.png` | A human Monk woman: hair in a tight topknot, a plain grey tunic, wooden prayer beads around the neck, bandaged knuckles, a still, focused face. |
+| `elf-monk-1.png` | An elf Monk woman: very short silver hair, a serene face, a sleeveless dark robe, one palm raised in an open-hand stance, faint lines of wind around her fingers. |
+| `elf-monk-2.png` | An elf Monk man: long black hair in a low tail, a lean ascetic face, a cloth mask lowered under the chin, a shadowy hood, half the face in deep shadow. |
+| `dwarf-monk-1.png` | A dwarf Monk man: a bald head with an abstract painted circle on the brow, a braided beard tucked into a sash, broad shoulders under a rough robe, fists wrapped in cloth. |
+| `dwarf-monk-2.png` | A dwarf Monk woman: braids pinned in a crown, a plain brown robe, a quarterstaff across the shoulders, a calm, immovable look. |
+| `halfling-monk-1.png` | A halfling Monk man: an old wrinkled face with a wispy white beard, a shaved head, a patched grey robe, one eyebrow raised in amusement. |
+| `halfling-monk-2.png` | A halfling Monk woman: a young freckled face, dark hair in two buns, a sash over a plain tunic, wrapped hands in a ready stance, a playful but sharp look. |
+| `human-druid-1.png` | A human Druid woman: wild auburn hair woven with twigs and small leaves, a mantle of moss and bark, green eyes, a crow perched on her shoulder. |
+| `human-druid-2.png` | A human Druid man: an old weathered face, a long grey beard with beads of wood and bone, an antlered hood, the gnarled top of a staff beside his head. |
+| `elf-druid-1.png` | An elf Druid man: long dark hair, abstract leaf-shaped marks on one cheek, a wolf-pelt hood with the wolf's head above his brow, amber eyes. |
+| `elf-druid-2.png` | An elf Druid woman: silver hair threaded with ivy, a cloak of feathers, faint green light in her cupped hands, a calm, watchful look. |
+| `dwarf-druid-1.png` | A dwarf Druid man: a mossy beard with tiny mushrooms growing in it, a bark-brown leather cap, earthy robes, kind deep-set eyes. |
+| `dwarf-druid-2.png` | A dwarf Druid woman: copper braids bound with roots, a bear-claw necklace, a stone amulet with an abstract spiral, a stern, grounded stare. |
+| `halfling-druid-1.png` | A halfling Druid woman: curly hair full of small flowers, a leafy green hood, a hedgehog peeking from her collar, a cheerful face. |
+| `halfling-druid-2.png` | A halfling Druid man: a round face with a short beard, a hooded cloak of fur and leaves, a small owl on his shoulder, patient eyes. |
+| `human-bard-1.png` | A human Bard man: a rakish grin, a thin moustache, a feathered hat tilted back, a lute's neck over the shoulder, a high-collared slashed doublet. |
+| `human-bard-2.png` | A human Bard woman: dark curls under a velvet beret, a silver earring, a mocking smile, a wooden flute held near her lips. |
+| `elf-bard-1.png` | An elf Bard woman: long platinum hair, a circlet of small silver leaves, an embroidered cloak, the curve of a lyre beside her head, a knowing half smile. |
+| `elf-bard-2.png` | An elf Bard man: an elegant face, long dark hair, a high ruffled collar, a fiddle bow held like a rapier, one eyebrow raised. |
+| `dwarf-bard-1.png` | A dwarf Bard man: a magnificent braided beard with brass beads, a broad laughing face, a drum strap across the chest, mid-song. |
+| `dwarf-bard-2.png` | A dwarf Bard woman: auburn braids, a fur-trimmed cape, a small harp held against her shoulder, a bold, singing mouth. |
+| `halfling-bard-1.png` | A halfling Bard man: tousled blond curls, a bright scarf, a mandolin over the shoulder, a cheeky wink. |
+| `halfling-bard-2.png` | A halfling Bard woman: a round freckled face, a jaunty hat with a long feather, a tambourine beside her cheek, a teasing grin. |
+| `human-sorcerer-1.png` | A young human Sorcerer woman: a fierce face, hair lifting as if in hot wind, faint glowing scale-like patches on her neck, small flames curling from her fingertips. |
+| `human-sorcerer-2.png` | A human Sorcerer man: a sharp young face, wild dark hair, crackling abstract arcs of light around one raised hand, one amber eye and one grey. |
+| `elf-sorcerer-1.png` | An elf Sorcerer man: pale skin with faintly glowing veins, white hair standing as if charged, a high dark collar, sparks drifting around his head. |
+| `elf-sorcerer-2.png` | An elf Sorcerer woman: copper hair, small draconic horn nubs at the temples, golden slit-pupil eyes, embers floating before her face. |
+| `dwarf-sorcerer-1.png` | A dwarf Sorcerer man: a black beard singed at the ends, ember-orange cracks of light across one cheek, a heavy fur collar, smoke rising from one fist. |
+| `dwarf-sorcerer-2.png` | A dwarf Sorcerer woman: grey braids crackling with tiny sparks, a stern face, faint scales on the brow, a palm cupping a small ball of fire. |
+| `halfling-sorcerer-1.png` | A halfling Sorcerer woman: a mischievous face, frizzy hair standing on end with static, a patched robe, a tiny unstable abstract swirl of light over her palm. |
+| `halfling-sorcerer-2.png` | A halfling Sorcerer man: a young round face, freckles that glow faintly like embers, a hood thrown back, flame-colored eyes, a surprised half smile. |

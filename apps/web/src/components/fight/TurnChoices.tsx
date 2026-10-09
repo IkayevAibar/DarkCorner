@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { HeroActionKind, HeroActionView } from '@dark/shared';
+import type { ClassId, HeroActionKind, HeroActionView } from '@dark/shared';
 import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
 import { BeltIcon } from '../../screens/labyrinth/Belt';
@@ -9,6 +9,14 @@ type Icon = Parameters<typeof BeltIcon>[0]['name'];
 const ICON: Record<HeroActionKind, Icon> = {
   attack: 'sword', burst: 'flame', cure: 'heart', 'second-wind': 'wind', potion: 'potion', escape: 'escape', dodge: 'dodge', help: 'path', guard: 'shield',
   revive: 'bolt',
+};
+/** The Class power a turn can call before its action, by Class: its label and icon. */
+const POWER: Partial<Record<ClassId, { label: MessageKey; icon: Icon }>> = {
+  barbarian: { label: 'live.rage', icon: 'rage' },
+  paladin: { label: 'live.power.paladin', icon: 'bolt' },
+  monk: { label: 'live.power.monk', icon: 'swords' },
+  druid: { label: 'live.power.druid', icon: 'rage' },
+  sorcerer: { label: 'live.power.sorcerer', icon: 'bolt' },
 };
 /** The order the choices are offered in, attacks first. */
 const ORDER: HeroActionKind[] = ['attack', 'burst', 'cure', 'second-wind', 'potion', 'dodge', 'help', 'guard', 'revive', 'escape'];
@@ -25,6 +33,10 @@ export function TurnChoices({ fight, busy, ready, names, onChoose, children }: {
   useEffect(() => { setRage(false); setMark(null); setMarking(false); setCuring(false); }, [turnKey]);
   useEffect(() => { if (!busy) sent.current = false; }, [busy, turnKey]);
   const partnerName = names.ally ?? names.hero!;
+  // Whose turn it is: its Class names its power, its mark (a Warlock's is a Hex) and its healing (a Paladin's is Lay on hands).
+  const cls = (turn?.hero === 'ally' ? fight.ally : fight.hero)?.class ?? null;
+  const power = (cls && POWER[cls]) ?? POWER.barbarian!;
+  const hex = cls === 'warlock';
   const can = (k: HeroActionKind) => ready && (turn?.actions.includes(k) ?? false);
   const choose = (action: HeroActionView) => {
     if (!ready || sent.current || (action.kind !== 'auto' && !can(action.kind))) return;
@@ -38,7 +50,7 @@ export function TurnChoices({ fight, busy, ready, names, onChoose, children }: {
   };
   const count: Partial<Record<HeroActionKind, number>> = turn ? { burst: turn.spells, cure: turn.heals, potion: turn.potions } : {};
   const label = (k: HeroActionKind): string => {
-    const n = count[k], base = t(`live.act.${k}` as MessageKey, { name: partnerName });
+    const n = count[k], base = t(k === 'cure' && cls === 'paladin' ? 'live.act.layOnHands' : `live.act.${k}` as MessageKey, { name: partnerName });
     return n !== undefined ? `${base} · ${n}` : base;
   };
   return <>
@@ -49,13 +61,14 @@ export function TurnChoices({ fight, busy, ready, names, onChoose, children }: {
             <div className="flex flex-wrap gap-2">
               {turn.rage && (
                 <button type="button" aria-pressed={rage} className={`btn btn-small flex items-center gap-1.5 ${rage ? 'btn-primary' : ''}`} disabled={!ready} onClick={() => setRage(!rage)}>
-                  <BeltIcon name="rage" className="size-4" />{t('live.rage')}
+                  <BeltIcon name={power.icon} className="size-4" />{t(power.label)}
                 </button>
               )}
               {turn.mark && (
                 <button type="button" aria-pressed={marking || mark !== null} className={`btn btn-small flex items-center gap-1.5 ${marking || mark ? 'btn-primary' : ''}`} disabled={!ready}
                   onClick={() => { setMark(null); setMarking(!marking); }}>
-                  <BeltIcon name="target" className="size-4" />{mark ? t('live.marked', { name: names[mark]! }) : t('live.mark')}
+                  <BeltIcon name="target" className="size-4" />
+                  {mark ? t(hex ? 'live.hexed' : 'live.marked', { name: names[mark]! }) : t(hex ? 'live.hex' : 'live.mark')}
                 </button>
               )}
             </div>

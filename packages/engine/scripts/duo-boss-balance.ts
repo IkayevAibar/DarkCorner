@@ -14,7 +14,10 @@ if (bossHp) DUO.bossHp = bossHp;
 if (bossDamage) DUO.bossDamage = bossDamage;
 
 const FIGHTS = 240;
-const PAIRS: [ClassId, ClassId][] = [['fighter', 'wizard'], ['rogue', 'cleric'], ['barbarian', 'ranger'], ['fighter', 'cleric'], ['wizard', 'rogue']];
+const PAIRS: [ClassId, ClassId][] = [
+  ['fighter', 'wizard'], ['rogue', 'cleric'], ['barbarian', 'ranger'], ['fighter', 'cleric'], ['wizard', 'rogue'],
+  ['paladin', 'bard'], ['monk', 'druid'], ['warlock', 'sorcerer'],
+];
 const pct = (x: number) => `${Math.round(100 * x)}%`.padStart(4);
 const side = (h: HeroCombat) => ({ hero: h, uses: restUses(h.class, h.level, h.path), potions: 3, runPowers: { deathless: false, lucky: false }, stance: 'steady' as const });
 

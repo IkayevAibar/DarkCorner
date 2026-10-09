@@ -9,7 +9,10 @@ export const TALENT_IDS = [
   'alert', 'tough', 'savage-attacker', 'lucky-charm', 'haggler', 'field-medic',
   'iron-will', 'fireproof', 'scavenger', 'treasure-hunter', 'light-step', 'heavy-hitter', 'battle-hardened',
 ] as const;
-export const PATH_IDS = ['champion', 'guardian', 'thief', 'assassin', 'evoker', 'abjurer', 'life', 'war', 'berserker', 'bearheart', 'hunter', 'stalker'] as const;
+export const PATH_IDS = [
+  'champion', 'guardian', 'thief', 'assassin', 'evoker', 'abjurer', 'life', 'war', 'berserker', 'bearheart', 'hunter', 'stalker',
+  'devotion', 'vengeance', 'fiend', 'old-one', 'open-hand', 'shadows', 'moon', 'land', 'lore', 'valor', 'draconic', 'wild',
+] as const;
 export const ABILITY_IDS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const;
 export const SLOT_IDS = ['main', 'off', 'head', 'body', 'hands', 'feet', 'amulet', 'ring1', 'ring2'] as const;
 

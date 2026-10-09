@@ -15,11 +15,15 @@ let seasonId: string;
 const post = (cookie: string, url: string, payload: object = {}) => app.inject({ method: 'POST', url, headers: { cookie }, payload });
 const get = (cookie: string, url: string) => app.inject({ method: 'GET', url, headers: { cookie } });
 
-async function makeHero(name: string, cls: 'fighter' | 'wizard' | 'rogue' | 'cleric' = 'fighter', talents: string[] = ['alert', 'tough']) {
+type TestClass = 'fighter' | 'wizard' | 'rogue' | 'cleric' | 'sorcerer' | 'bard';
+async function makeHero(name: string, cls: TestClass = 'fighter', talents: string[] = ['alert', 'tough']) {
   const cookie = await devLogin(app, name, true);
   await post(cookie, '/api/heroes/draft');
-  const portrait = { fighter: 'human-fighter-1', wizard: 'elf-wizard-1', rogue: 'halfling-rogue-1', cleric: 'dwarf-cleric-1' }[cls];
-  const race = { fighter: 'human', wizard: 'elf', rogue: 'halfling', cleric: 'dwarf' }[cls];
+  // A new Class wears a painted one's portraits until its own are in (a Sorcerer a Wizard's, a Bard a Rogue's).
+  const portrait = {
+    fighter: 'human-fighter-1', wizard: 'elf-wizard-1', rogue: 'halfling-rogue-1', cleric: 'dwarf-cleric-1', sorcerer: 'human-wizard-1', bard: 'halfling-rogue-1',
+  }[cls];
+  const race = { fighter: 'human', wizard: 'elf', rogue: 'halfling', cleric: 'dwarf', sorcerer: 'human', bard: 'halfling' }[cls];
   const created = await post(cookie, '/api/heroes', { name, race, class: cls, talents: race === 'human' ? talents : talents.slice(0, 1), portrait, banner: '#9e2a2a', set: 0 });
   if (created.statusCode !== 200) throw new Error(created.body);
   // Charisma 10: plain prices (Charisma's own test raises it).
@@ -76,6 +80,14 @@ describe('the Shops', () => {
     expect(shop.basics.find((b: { id: string }) => b.id === 'potion').price).toBe(23);
   });
 
+  it('deal as well with a Bard (Silver tongue) as with a Haggler', async () => {
+    const plain = await makeHero('Plain');
+    const bard = await makeHero('Lark', 'bard', ['lucky-charm']);
+    const potion = async (cookie: string) => (await get(cookie, '/api/shop')).json().basics.find((b: { id: string }) => b.id === 'potion').price;
+    expect(await potion(plain.cookie)).toBe(25);
+    expect(await potion(bard.cookie)).toBe(23);
+  });
+
   it('buy back anything but Relics, a stack piece by piece', async () => {
     const { cookie, hero } = await makeHero('Seller');
     const epic = await giveGear(hero.id, rollGear(createRng('s1'), { tier: 'epic', itemLevel: 3, identified: true }));
@@ -130,6 +142,10 @@ describe('identifying and Chests', () => {
     const wiz = await makeHero('Wiz', 'wizard');
     const epic = await giveGear(wiz.hero.id, rollGear(createRng('i2'), { tier: 'epic', itemLevel: 2 }));
     expect((await post(wiz.cookie, `/api/items/${epic.id}/identify`)).json().free).toBe(true);
+
+    const sorc = await makeHero('Vesna', 'sorcerer');
+    const other = await giveGear(sorc.hero.id, rollGear(createRng('i3'), { tier: 'rare', itemLevel: 2 }));
+    expect((await post(sorc.cookie, `/api/items/${other.id}/identify`)).json().free).toBe(true);
   });
 
   it('opens a Chest with its Key, and keeps both when there is no Key', async () => {

@@ -26,20 +26,74 @@ export const proficiencyBonus = (level: number): number => 2 + Math.floor((level
 
 /** Uses that come back on a long rest (a Camp, or the City). */
 export interface RestUses {
-  /** The Class's power a rest brings back: a Wizard's Bursts of fire, a Barbarian's Rages, a Ranger's Hunter's marks. */
+  /**
+   * The Class's power a rest brings back: a Wizard's or Sorcerer's Bursts of fire, a Barbarian's Rages,
+   * a Ranger's Hunter's marks, a Paladin's Divine smites, a Warlock's Hexes, a Monk's ki (Flurries of blows),
+   * a Druid's Wild shapes, a Bard's Bardic inspirations, a Sorcerer's sorcery points (Bursts of fire and Quickened spells).
+   */
   spells: number;
-  /** A Cleric's Cure wounds. */
+  /** A Cleric's, Druid's or Bard's Cure wounds, a Paladin's Lay on hands. */
   heals: number;
 }
 
 export function restUses(cls: ClassId, level: number, path: PathId | null = null): RestUses {
   const hero = { path, level };
-  return {
-    spells: cls === 'wizard' ? 1 + Math.floor(level / 4) + (onPath(hero, 'evoker', PATH_MASTERY) ? 1 : 0)
-      : cls === 'barbarian' ? rages(level) : cls === 'ranger' ? marks(level) : 0,
-    heals: cls === 'cleric' ? 1 + Math.floor(level / 3) + (onPath(hero, 'life', PATH_MASTERY) ? 1 : 0) : 0,
+  const spells: Record<ClassId, number> = {
+    fighter: 0,
+    rogue: 0,
+    wizard: 1 + Math.floor(level / 4) + (onPath(hero, 'evoker', PATH_MASTERY) ? 1 : 0),
+    cleric: 0,
+    barbarian: rages(level),
+    ranger: marks(level),
+    paladin: smites(level),
+    warlock: marks(level),
+    monk: ki(level),
+    druid: wildShapes(level),
+    bard: inspirations(level),
+    sorcerer: 2 + Math.floor(level / 3),
   };
+  const heals: Partial<Record<ClassId, number>> = {
+    cleric: 1 + Math.floor(level / 3) + (onPath(hero, 'life', PATH_MASTERY) ? 1 : 0),
+    druid: 1 + Math.floor(level / 3) + (onPath(hero, 'land') ? 1 : 0),
+    paladin: 1 + Math.floor(level / 5),
+    bard: 1 + Math.floor(level / 4),
+  };
+  return { spells: spells[cls], heals: heals[cls] ?? 0 };
 }
+
+/** A Paladin's Divine smites a rest (v0): 2, and one more at 6, 12 and 18. */
+export const smites = (level: number): number => 2 + Math.floor(level / 6);
+/** Divine smite: this many d8 of holy fire on the hit (2, 3 from 9, 4 from 17), one more against undead and demons (v0); a master of Vengeance adds one. */
+export const smiteDice = (level: number, path: PathId | null): number =>
+  (level >= 17 ? 4 : level >= 9 ? 3 : 2) + (onPath({ path, level }, 'vengeance', PATH_MASTERY) ? 1 : 0);
+/** Lay on hands heals this much (v0), a few times a rest. */
+export const layOnHands = (level: number): number => 5 + 3 * level;
+/** From this level a Paladin's aura adds its CHA modifier (at least +1) to every save. */
+export const AURA_LEVEL = 6;
+/** A Monk's ki a rest (v0): a Flurry of blows each. */
+export const ki = (level: number): number => 1 + Math.floor(level / 4);
+/** Flurry of blows: this many more strikes on the turn it is used. */
+export const FLURRY_STRIKES = 1;
+/** A Monk's martial arts die (v0): d6, d8 from 5, d10 from 11, d12 from 17. */
+export const martialDie = (level: number): number => (level >= 17 ? 12 : level >= 11 ? 10 : level >= 5 ? 8 : 6);
+/** Martial arts: a Monk's every attack brings this many more strikes, at the martial arts die. */
+export const MARTIAL_STRIKES = 1;
+/** From this level a Monk has Evasion, as a master Stalker does. */
+export const EVASION_LEVEL = 7;
+/** A Druid's Wild shapes a rest (v0): 2, 3 from level 10. */
+export const wildShapes = (level: number): number => (level >= 10 ? 3 : 2);
+/** A Druid's beast form: this much health that takes the blows first (v0); half again on the Moon's Path. */
+export const wildShapeHealth = (level: number, path: PathId | null): number =>
+  Math.round(4 * level * (onPath({ path, level }, 'moon') ? 1.5 : 1));
+/** From this level a Druid's beast strikes twice a turn. */
+export const BEAST_TWIN_CLAWS = 5;
+/** A Warlock's Armor of Agathys (v0): a ward of its level plus its CHA modifier, as a hard fight begins. */
+export const agathys = (level: number, cha: number): number => level + Math.max(0, abilityModifier(cha));
+/** A Bard's Bardic inspirations a rest (v0): 3, and one more every fourth level. */
+export const inspirations = (level: number): number => 3 + Math.floor(level / 4);
+/** The Bardic inspiration die: d6, d8 from 5, d10 from 10, d12 from 15; Lore's Peerless skill makes it one size bigger (d12 at most). */
+export const inspirationDie = (level: number, path: PathId | null = null): number =>
+  Math.min(12, (level >= 15 ? 12 : level >= 10 ? 10 : level >= 5 ? 8 : 6) + (onPath({ path, level }, 'lore') ? 2 : 0));
 
 /** A Barbarian's Rages a rest (SRD): 2, then 3 at level 3, 4 at 6, 5 at 12 and 6 at 17. */
 export const rages = (level: number): number => (level >= 17 ? 6 : level >= 12 ? 5 : level >= 6 ? 4 : level >= 3 ? 3 : 2);
@@ -61,18 +115,24 @@ export const MARK_DICE: [number, number] = [1, 6];
 export const ARCHERY_BONUS = 2;
 
 /**
- * Weapon attacks a turn: Fighters gain one at 5, 11 and 20; Barbarians and Rangers
- * one at 5; a master of War gets two.
+ * Attacks a turn: Fighters gain one at 5, 11 and 20; Barbarians, Rangers, Paladins and
+ * Monks one at 5; a Warlock's Eldritch blast a beam more at 5, 11 and 17; a master of War
+ * gets two.
  */
-export const attacksPerTurn = (cls: ClassId, level: number, path: PathId | null): number => (cls === 'fighter'
-  ? 1 + (level >= 5 ? 1 : 0) + (level >= 11 ? 1 : 0) + (level >= 20 ? 1 : 0)
-  : cls === 'barbarian' || cls === 'ranger' ? 1 + (level >= 5 ? 1 : 0)
+export const attacksPerTurn = (cls: ClassId, level: number, path: PathId | null): number => (cls === 'fighter' || cls === 'warlock'
+  ? 1 + (level >= 5 ? 1 : 0) + (level >= 11 ? 1 : 0) + (level >= (cls === 'fighter' ? 20 : 17) ? 1 : 0)
+  : cls === 'barbarian' || cls === 'ranger' || cls === 'paladin' || cls === 'monk' ? 1 + (level >= 5 ? 1 : 0)
   : onPath({ path, level }, 'war', PATH_MASTERY) ? 2 : 1);
 
-/** A Wizard's or Cleric's attack spell: one die more at 5, 11 and 17. */
+/**
+ * A caster's attack spell: one die more at 5, 11 and 17 (a Wizard's, Sorcerer's or Bard's d10s, a Cleric's
+ * or Druid's d8s). A Warlock's Eldritch blast stays a d10 a beam, and gains beams.
+ */
 export function spellDice(cls: ClassId, level: number): [number, number] | null {
   const n = 1 + (level >= 5 ? 1 : 0) + (level >= 11 ? 1 : 0) + (level >= 17 ? 1 : 0);
-  return cls === 'wizard' ? [n, 10] : cls === 'cleric' ? [n, 8] : null;
+  if (cls === 'warlock') return [1, 10];
+  const sides: Partial<Record<ClassId, number>> = { wizard: 10, sorcerer: 10, bard: 10, cleric: 8, druid: 8 };
+  return sides[cls] ? [n, sides[cls]!] : null;
 }
 
 /** The Wizard's burst of fire, on every monster: 2d6, and one d6 more every third level. */
@@ -134,6 +194,39 @@ export function levelGains(hero: LevelingHero): Text[] {
   if (spell[0] && spell[1] && spell[1][0] > spell[0][0]) gains.push(change('Attack spell', 'Боевое заклинание', dice(spell[0]), dice(spell[1])));
 
   const uses = [restUses(cls, from, hero.path), restUses(cls, to, hero.path)] as const;
+  const more = (en: string, ru: string, kind: 'spells' | 'heals') => {
+    if (uses[1][kind] > uses[0][kind]) gains.push(change(en, ru, uses[0][kind], uses[1][kind]));
+  };
+  if (cls === 'paladin') {
+    more('Divine smites a rest', 'Божественных кар за отдых', 'spells');
+    if (smiteDice(to, hero.path) > smiteDice(from, hero.path)) gains.push(change('Divine smite', 'Божественная кара', `${smiteDice(from, hero.path)}d8`, `${smiteDice(to, hero.path)}d8`));
+    more('Lay on hands a rest', 'Наложений рук за отдых', 'heals');
+    gains.push(change('Lay on hands', 'Наложение рук', layOnHands(from), layOnHands(to)));
+    if (to === AURA_LEVEL) gains.push(text('New: Aura of protection. Your CHA modifier (at least +1) on every save.', 'Новое: аура защиты. Модификатор ХАР (не меньше +1) к каждому спасброску.'));
+  }
+  if (cls === 'warlock') more('Hexes a rest', 'Порч за отдых', 'spells');
+  if (cls === 'monk') {
+    more('Ki (Flurries of blows) a rest', 'Ци (шквалов ударов) за отдых', 'spells');
+    if (martialDie(to) > martialDie(from)) gains.push(change('Martial arts', 'Боевые искусства', `1d${martialDie(from)}`, `1d${martialDie(to)}`));
+    if (to === EVASION_LEVEL) gains.push(text('New: Evasion. A DEX save against breath or a blast takes no damage on a success, and half on a failure.', 'Новое: увёртливость. Спасбросок ЛОВ от дыхания или взрыва: при успехе урона нет, при провале — половина.'));
+  }
+  if (cls === 'druid') {
+    more('Wild shapes a rest', 'Диких обликов за отдых', 'spells');
+    gains.push(change('Beast form health', 'Здоровье звериного облика', wildShapeHealth(from, hero.path), wildShapeHealth(to, hero.path)));
+    if (cureDice(to) > cureDice(from)) gains.push(change('Cure wounds', '«Лечение ран»', `${cureDice(from)}d8`, `${cureDice(to)}d8`));
+    more('Cure wounds a rest', '«Лечений ран» за отдых', 'heals');
+  }
+  if (cls === 'bard') {
+    more('Bardic inspirations a rest', 'Вдохновений за отдых', 'spells');
+    if (cureDice(to) > cureDice(from)) gains.push(change('Cure wounds', '«Лечение ран»', `${cureDice(from)}d8`, `${cureDice(to)}d8`));
+    more('Cure wounds a rest', '«Лечений ран» за отдых', 'heals');
+    const die = (l: number) => inspirationDie(l, hero.path);
+    if (die(to) > die(from)) gains.push(change('Inspiration die', 'Кость вдохновения', `d${die(from)}`, `d${die(to)}`));
+  }
+  if (cls === 'sorcerer') {
+    if (burstDice(to) > burstDice(from)) gains.push(change('Burst of fire, on every monster', 'Огненный взрыв — по всем монстрам', `${burstDice(from)}d6`, `${burstDice(to)}d6`));
+    more('Sorcery points a rest', 'Очков чародейства за отдых', 'spells');
+  }
   if (cls === 'wizard') {
     if (burstDice(to) > burstDice(from)) gains.push(change('Burst of fire, on every monster', 'Огненный взрыв — по всем монстрам', `${burstDice(from)}d6`, `${burstDice(to)}d6`));
     if (uses[1].spells > uses[0].spells) gains.push(change('Bursts of fire a rest', 'Огненных взрывов за отдых', uses[0].spells, uses[1].spells));

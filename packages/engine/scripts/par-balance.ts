@@ -8,7 +8,7 @@
  * Targets (docs/design.md → Monsters): on the Floor a par Hero just reached,
  * most Rooms read Easy or Risky with some Trivial and a few Dangerous; its
  * Mini-boss is a real fight; the Dragon is out of reach until late levels.
- * Run: npm run balance:par -w @dark/engine [-- hp hit damage] (to try other MIGHT values)
+ * Run: npm run balance:par -w @dark/engine [-- hp hit damage] (to try other MIGHT values) [paladin,monk] (only those Classes)
  */
 import {
   type ClassId, type HeroCombat, MIGHT, THREATS, type ThreatId, createRng, fightOdds, pathsOf, restUses, simulateFight, spawnEncounter, threatOf,
@@ -19,7 +19,10 @@ import { CLASSES, type Gearing, heroesAt as parHeroes, parLevel } from './par.js
 const GEAR_SEEDS = process.argv.includes('dragon') ? 8 : 3;
 const ROOMS = 50;
 
-const [hpArg, hitArg, damageArg] = process.argv.slice(2).filter((a) => a !== 'dragon').map(Number);
+const [hpArg, hitArg, damageArg] = process.argv.slice(2).filter((a) => a !== 'dragon' && !/^[a-z,-]+$/.test(a)).map(Number);
+/** Only these Classes, when named (comma-separated). */
+const only = process.argv.slice(2).find((a) => a !== 'dragon' && /^[a-z,-]+$/.test(a))?.split(',');
+const classes = CLASSES.filter((c) => !only || only.includes(c));
 if (hpArg !== undefined && !Number.isNaN(hpArg)) Object.assign(MIGHT, { hp: hpArg, hit: hitArg ?? MIGHT.hit, damage: damageArg ?? MIGHT.damage });
 
 const heroesAt = (cls: ClassId, floor: number, level = parLevel(floor), pathIndex = 0, gearing?: Gearing) => parHeroes(cls, floor, level, pathIndex, gearing, GEAR_SEEDS);
@@ -65,7 +68,7 @@ function boss(heroes: HeroCombat[], floor: number, kind: 'miniboss' | 'boss', n 
 }
 
 console.log(`Par Heroes (level about 1.5 x Floor, best of the drops so far), Bold, 3 potions; MIGHT ${JSON.stringify(MIGHT)}`);
-for (const cls of onlyDragon ? [] : CLASSES) {
+for (const cls of onlyDragon ? [] : classes) {
   console.log(cls);
   for (let floor = 1; floor <= 10; floor++) {
     const heroes = heroesAt(cls, floor);
@@ -75,7 +78,7 @@ for (const cls of onlyDragon ? [] : CLASSES) {
 }
 
 console.log('\nThe Dragon at full strength, late-Season gear: best of 20 drops per slot from Floors 8-10, Upgraded +6 (each Path)');
-for (const cls of CLASSES) {
+for (const cls of classes) {
   for (const pathIndex of [0, 1]) {
     const cells = [15, 17, 19, 20].map((level) => `lv${level} ${boss(heroesAt(cls, 11, level, pathIndex, { draws: 20, upgrade: 6 }), 10, 'boss', 240)}`);
     console.log(`  ${`${cls} ${pathsOf(cls)[pathIndex]!.id}`.padEnd(18)} ${cells.join(' | ')}`);

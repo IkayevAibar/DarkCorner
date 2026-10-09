@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { type FeatureHero, heroFeatures } from '../src/index.js';
 
-const hero = (over: Partial<FeatureHero>): FeatureHero => ({ class: 'wizard', level: 1, path: null, int: 16, wis: 10, spellUses: 1, healUses: 0, ...over });
+const hero = (over: Partial<FeatureHero>): FeatureHero => ({ class: 'wizard', level: 1, path: null, int: 16, wis: 10, cha: 10, spellUses: 1, healUses: 0, ...over });
 const byId = (over: Partial<FeatureHero>) => Object.fromEntries(heroFeatures(hero(over)).map((f) => [f.id, f]));
 
 describe('the belt’s class features', () => {
