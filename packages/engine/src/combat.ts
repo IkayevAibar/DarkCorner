@@ -6,7 +6,7 @@ import { type ThemeId, themeOf } from './content/floors.js';
 import type { BonusStatId } from './content/loot.js';
 import { type StatGear, statTotal } from './items.js';
 import {
-  ELITE_CHANCE, ELITE_HP, ELITES, type EliteId, GILDED_HP, type MonsterDef, type MonsterPower, type MonsterPowerId, MONSTERS, TWIN_WARDENS, WARDENS, monsterById,
+  DUO_ELITE_CHANCE, ELITE_CHANCE, ELITE_HP, ELITES, type EliteId, GILDED_HP, type MonsterDef, type MonsterPower, type MonsterPowerId, MONSTERS, TWIN_WARDENS, WARDENS, monsterById,
 } from './content/monsters.js';
 import type { OmenDef } from './content/omens.js';
 import { type PathId, PATH_MASTERY, onPath } from './content/paths.js';
@@ -167,10 +167,10 @@ const THEME_START: Record<ThemeId, number> = { warrens: 1, crypts: 4, depths: 7,
  * A monster scaled to its Floor: each Floor deeper into a theme adds 15% health
  * and +1 to hit and damage. An elite gift toughens it further (content/monsters.ts).
  */
-export function instantiate(def: MonsterDef, floor: number, key: string, weakening = 0, elite: EliteId | null = null): MonsterInstance {
+export function instantiate(def: MonsterDef, floor: number, key: string, weakening = 0, elite: EliteId | null = null, alone = true): MonsterInstance {
   // Monsters that turn up anywhere grow as if they lived on the Floor; the Dragon is its own measure.
   const depth = Math.max(0, floor - THEME_START[def.anywhere ? themeOf(floor) : def.theme]);
-  const might = def.role === 'boss' ? { hp: 1, hit: 0, damage: 0 } : floorMight(floor);
+  const might = def.role === 'boss' ? { hp: 1, hit: 0, damage: 0 } : floorMight(floor, alone);
   const toughness = elite === 'gilded' ? GILDED_HP : elite ? ELITE_HP : 1;
   const hp = Math.round(def.hp * (1 + 0.15 * depth) * might.hp * (1 - weakening) * toughness);
   const powers = [...(def.powers ?? [])];
@@ -202,11 +202,18 @@ export function instantiate(def: MonsterDef, floor: number, key: string, weakeni
  * Depth's own weight, on top of the theme (v0): every monster grows tougher the deeper
  * its Floor, to keep pace with Heroes whose gear keeps getting better.
  */
-export function floorMight(floor: number): { hp: number; hit: number; damage: number } {
+export function floorMight(floor: number, alone = true): { hp: number; hit: number; damage: number } {
   const below = Math.max(0, floor - 2);
-  return { hp: 1 + MIGHT.hp * below, hit: Math.round(MIGHT.hit * below), damage: Math.round(MIGHT.damage * below) };
+  // From Floor 3 on, a step up all at once for a Hero alone (v0, 2026-10-10: the game was too easy alone).
+  // Floors 1 and 2 stay gentle, and a Duo's monsters keep their numbers (duo.ts tunes those on their own).
+  const step = floor >= 3 && alone ? 1 : 0;
+  return {
+    hp: 1 + MIGHT.hp * below + MIGHT.stepHp * step,
+    hit: Math.round(MIGHT.hit * below + MIGHT.stepHit * step),
+    damage: Math.round(MIGHT.damage * below + MIGHT.stepDamage * step),
+  };
 }
-export const MIGHT = { hp: 0.2, hit: 0.75, damage: 0.55 };
+export const MIGHT = { hp: 0.2, hit: 0.75, damage: 0.55, stepHp: 0.25, stepHit: 1, stepDamage: 1 };
 
 /** The day's Omen on a monster: more or less health, harder or softer blows. */
 function underOmen(mm: MonsterInstance, omen: OmenDef | null): MonsterInstance {
@@ -221,30 +228,32 @@ function underOmen(mm: MonsterInstance, omen: OmenDef | null): MonsterInstance {
  * elite. A Mini-boss or the Boss comes with its escort. The day's Omen may make
  * them tougher or weaker, and elites more common.
  */
-export function spawnEncounter(rng: Rng, floor: number, kind: EncounterKind, weakening = 0, omen: OmenDef | null = null): MonsterInstance[] {
-  const out = spawnGroup(rng, floor, kind, weakening, omen);
+export function spawnEncounter(rng: Rng, floor: number, kind: EncounterKind, weakening = 0, omen: OmenDef | null = null, alone = true): MonsterInstance[] {
+  const out = spawnGroup(rng, floor, kind, weakening, omen, alone);
   return out.map((mm) => underOmen(mm, omen));
 }
 
 /** What waits in a Room: a group, a Mini-boss, the Boss, or the Twin Wardens (for a Duo, behind a Twin door). */
 export type EncounterKind = 'fight' | 'miniboss' | 'boss' | 'twin';
 
-function spawnGroup(rng: Rng, floor: number, kind: EncounterKind, weakening: number, omen: OmenDef | null): MonsterInstance[] {
+function spawnGroup(rng: Rng, floor: number, kind: EncounterKind, weakening: number, omen: OmenDef | null, alone: boolean): MonsterInstance[] {
   const theme = themeOf(floor);
   if (kind === 'twin') {
     // The lair has no Twin door; past the depths the Wardens keep the depths' numbers.
     const home = theme === 'lair' ? 'depths' : theme;
-    return TWIN_WARDENS.map((id, i) => instantiate({ ...monsterById(id), ...WARDENS[home], theme: home }, floor, `m${i}`));
+    return TWIN_WARDENS.map((id, i) => instantiate({ ...monsterById(id), ...WARDENS[home], theme: home }, floor, `m${i}`, 0, null, false));
   }
   if (kind !== 'fight') {
     // Each Floor of a theme has its own Mini-boss, in the bestiary's order (docs/design.md → Monsters).
     const defs = MONSTERS.filter((d) => d.theme === theme && d.role === kind);
     const def = defs[(floor - THEME_START[theme]) % Math.max(1, defs.length)];
     if (!def) throw new Error(`no ${kind} for theme ${theme}`);
-    const leader = instantiate(def, floor, 'm0', kind === 'boss' ? weakening : 0);
-    return [leader, ...(def.escort ?? []).map((id, i) => instantiate(monsterById(id), floor, `m${i + 1}`))];
+    const leader = instantiate(def, floor, 'm0', kind === 'boss' ? weakening : 0, null, alone);
+    return [leader, ...(def.escort ?? []).map((id, i) => instantiate(monsterById(id), floor, `m${i + 1}`, 0, null, alone))];
   }
-  const sizes: [number, number][] = floor === 1 ? [[1, 70], [2, 30]] : floor === 2 ? [[1, 40], [2, 50], [3, 10]] : [[1, 30], [2, 50], [3, 20]];
+  // Alone, more threes from Floor 3 (v0, 2026-10-10); a Duo's groups keep the old odds.
+  const sizes: [number, number][] = floor === 1 ? [[1, 70], [2, 30]] : floor === 2 ? [[1, 40], [2, 50], [3, 10]]
+    : alone ? [[1, 25], [2, 50], [3, 25]] : [[1, 30], [2, 50], [3, 20]];
   let r = rng.next() * 100;
   const size = sizes.find(([, w]) => (r -= w) < 0)?.[0] ?? 1;
   const pool = MONSTERS.filter((d) => d.theme === theme && (d.role === 'minion' || d.role === 'brute') && d.weight > 0 && floor >= (d.from ?? 0));
@@ -256,11 +265,11 @@ function spawnGroup(rng: Rng, floor: number, kind: EncounterKind, weakening: num
     let pick = rng.next() * total;
     const def = options.find((d) => (pick -= d.weight) < 0) ?? options[0]!;
     if (def.role === 'brute') brutes++;
-    out.push(instantiate(def, floor, `m${i}`));
+    out.push(instantiate(def, floor, `m${i}`, 0, null, alone));
   }
-  if (floor >= 2 && rng.chance(Math.min(1, ELITE_CHANCE[theme] * (omen?.elites ?? 1)))) {
+  if (floor >= 2 && rng.chance(Math.min(1, (alone ? ELITE_CHANCE : DUO_ELITE_CHANCE)[theme] * (omen?.elites ?? 1)))) {
     const strongest = out.reduce((a, b) => (b.maxHp > a.maxHp ? b : a));
-    out[out.indexOf(strongest)] = instantiate(monsterById(strongest.id), floor, strongest.key, 0, rng.pick([...ELITES]));
+    out[out.indexOf(strongest)] = instantiate(monsterById(strongest.id), floor, strongest.key, 0, rng.pick([...ELITES]), alone);
   }
   return out;
 }

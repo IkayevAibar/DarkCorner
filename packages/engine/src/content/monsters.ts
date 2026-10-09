@@ -186,7 +186,7 @@ export const MONSTERS: MonsterDef[] = [
   m({ id: 'necromancer', name: text('Necromancer', 'Некромант'), theme: 'crypts', kin: 'humanoid', art: null, role: 'miniboss', hp: 70, ac: 12, attack: 6, damage: [2, 6, 3], dex: 12, xp: 280, weight: 0,
     powers: [{ id: 'mend', dice: [3, 8] }, { id: 'drain' }], escort: ['zombie'],
     about: text('The one who keeps the crypts awake. It drinks the life its spells take, and once a fight it knits its dead servant back together.', 'Тот, кто не даёт склепам уснуть. Пьёт жизнь, отнятую заклинаниями, и раз за бой сшивает своего мёртвого слугу заново.') }),
-  m({ id: 'vampire-lord', name: text('Vampire lord', 'Вампир-владыка'), theme: 'crypts', kin: 'undead', art: null, role: 'miniboss', hp: 64, ac: 15, attack: 7, damage: [2, 6, 3], dex: 16, xp: 330, weight: 0,
+  m({ id: 'vampire-lord', name: text('Vampire lord', 'Вампир-владыка'), theme: 'crypts', kin: 'undead', art: null, role: 'miniboss', hp: 74, ac: 15, attack: 7, damage: [2, 6, 3], dex: 16, xp: 330, weight: 0,
     powers: [{ id: 'regenerate', share: 0.04 }, { id: 'mesmerize', dc: 13 }], escort: ['bat-swarm'],
     about: text('Old blood in a fine coat. Its gaze can hold you still through your first turn, and only fire keeps its wounds from closing.', 'Древняя кровь в дорогом камзоле. Его взгляд может приковать вас на весь первый ход, и лишь огонь не даёт его ранам затянуться.') }),
 
@@ -227,10 +227,10 @@ export const MONSTERS: MonsterDef[] = [
   m({ id: 'hierophant', name: text('Hierophant', 'Иерофант'), theme: 'depths', kin: 'humanoid', art: null, role: 'miniboss', hp: 85, ac: 15, attack: 8, damage: [2, 6, 2], dex: 12, xp: 380, weight: 0,
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'mend', dice: [3, 8] }, { id: 'frighten', dc: 13, rounds: 1 }], escort: ['cultist'],
     about: text('The cult’s high priest, wrapped in prayer and dread. Its sermon shakes the nerve, and it mends its faithful once a fight.', 'Верховный жрец культа, окутанный молитвой и ужасом. Его проповедь лишает мужества, и раз за бой он исцеляет своих верных.') }),
-  m({ id: 'horned-tyrant', name: text('Horned tyrant', 'Рогатый тиран'), theme: 'depths', kin: 'demon', art: '/art/tokens/horned-tyrant.webp', role: 'miniboss', hp: 85, ac: 16, attack: 8, damage: [1, 10, 3], dex: 12, xp: 500, weight: 0,
+  m({ id: 'horned-tyrant', name: text('Horned tyrant', 'Рогатый тиран'), theme: 'depths', kin: 'demon', art: '/art/tokens/horned-tyrant.webp', role: 'miniboss', hp: 95, ac: 16, attack: 8, damage: [1, 10, 3], dex: 12, xp: 500, weight: 0,
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'frighten', dc: 14, rounds: 2 }], escort: ['imp'],
     about: text('Lord of these depths. Its roar breaks the nerve, and imps fight at its side.', 'Владыка этих глубин. Его рёв лишает мужества, а рядом с ним сражаются бесы.') }),
-  m({ id: 'pit-fiend', name: text('Pit fiend', 'Исчадие бездны'), theme: 'depths', kin: 'demon', art: null, role: 'miniboss', hp: 85, ac: 16, attack: 8, damage: [1, 8, 3], dex: 14, xp: 620, weight: 0,
+  m({ id: 'pit-fiend', name: text('Pit fiend', 'Исчадие бездны'), theme: 'depths', kin: 'demon', art: null, role: 'miniboss', hp: 78, ac: 16, attack: 8, damage: [1, 8, 3], dex: 14, xp: 620, weight: 0,
     powers: [{ id: 'multiattack', attacks: 2 }, { id: 'sunder' }, { id: 'enrage' }], escort: ['imp'],
     about: text('A general of the pit. Its blows crack armor plate by plate, and wounding it only makes it worse.', 'Полководец бездны. Его удары раскалывают доспех пластину за пластиной, а ранить его — значит только разозлить.') }),
 
@@ -309,7 +309,9 @@ export type EliteId = (typeof ELITES)[number];
  * gets one of these (v0). Every elite has more health and is worth double XP and
  * one more Item. Gilded ones are what Players hope for: triple gold.
  */
-export const ELITE_CHANCE: Record<ThemeId, number> = { warrens: 0.1, crypts: 0.15, depths: 0.2, lair: 0.25 };
+export const ELITE_CHANCE: Record<ThemeId, number> = { warrens: 0.1, crypts: 0.2, depths: 0.26, lair: 0.32 };
+/** A Duo's groups keep the elite odds from before the solo step (2026-10-10). */
+export const DUO_ELITE_CHANCE: Record<ThemeId, number> = { warrens: 0.1, crypts: 0.15, depths: 0.2, lair: 0.25 };
 export const ELITE_HP = 1.25;
 export const GILDED_HP = 1.5;
 export const GILDED_GOLD = 3;

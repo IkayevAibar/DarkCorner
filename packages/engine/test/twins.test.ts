@@ -39,10 +39,10 @@ describe('The Twin Wardens', () => {
     expect(first.map((m) => m.key)).toEqual(['m0', 'm1']);
     expect(first[0]).toMatchObject({ maxHp: WARDENS.warrens.hp, ac: WARDENS.warrens.ac, attack: WARDENS.warrens.attack });
     expect(first.every((m) => m.powers.some((p) => p.id === 'twin'))).toBe(true);
-    // Floor 5: one Floor into the crypts, and three below Floor 2.
+    // Floor 5: one Floor into the crypts, and three below Floor 2; a Duo's numbers, without the solo step.
     const fifth = spawnEncounter(createRng('a'), 5, 'twin');
-    expect(fifth[1]!.maxHp).toBe(Math.round(WARDENS.crypts.hp * 1.15 * floorMight(5).hp));
-    expect(fifth[1]!.attack).toBe(WARDENS.crypts.attack + 1 + floorMight(5).hit);
+    expect(fifth[1]!.maxHp).toBe(Math.round(WARDENS.crypts.hp * 1.15 * floorMight(5, false).hp));
+    expect(fifth[1]!.attack).toBe(WARDENS.crypts.attack + 1 + floorMight(5, false).hit);
   });
 
   it('raise a Warden that fell alone at the end of the round, with half its health', () => {

@@ -54,13 +54,14 @@ describe('Duo fights', () => {
 
   it('meet more monsters than a Hero alone would', () => {
     for (let i = 0; i < 30; i++) {
-      const solo = spawnEncounter(createRng(`size-${i}`), 4, 'fight');
+      // The same Room at a Duo's numbers (without the solo step), plus part of a second group.
+      const solo = spawnEncounter(createRng(`size-${i}`), 4, 'fight', 0, null, false);
       const duo = duoEncounter(createRng(`size-${i}`), 4, 'fight');
       expect(duo.length).toBeGreaterThan(solo.length);
       expect(new Set(duo.map((m) => m.key)).size).toBe(duo.length);
     }
     const boss = duoEncounter(createRng('boss'), 3, 'miniboss');
-    const alone = spawnEncounter(createRng('boss'), 3, 'miniboss');
+    const alone = spawnEncounter(createRng('boss'), 3, 'miniboss', 0, null, false);
     // The Mini-boss itself is hardier and hits harder than the monsters at its side.
     expect(boss[0]!.maxHp).toBeGreaterThan(alone[0]!.maxHp * DUO.hp);
     expect(boss[0]!.damageFactor).toBeGreaterThan(alone[0]!.damageFactor * DUO.damage);

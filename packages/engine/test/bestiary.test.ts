@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type HeroCombat, MONSTERS, type MonsterInstance, SUNDER_MAX, createRng, fireBomb,
+  CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type HeroCombat, MIGHT, MONSTERS, type MonsterInstance, SUNDER_MAX, createRng, fireBomb, floorMight,
   heroCombat, instantiate, monsterById, monsterStrike, restUses, simulateFight, spawnEncounter, startingHealth,
 } from '../src/index.js';
 
@@ -135,5 +135,21 @@ describe('the new monster powers', () => {
       }
     }
     expect(held).toBeGreaterThan(0);
+  });
+});
+
+describe('harder alone', () => {
+  it('steps up from Floor 3 for a Hero alone, and leaves Floors 1–2 and a Duo as they were', () => {
+    expect(floorMight(1)).toEqual(floorMight(1, false));
+    expect(floorMight(2)).toEqual(floorMight(2, false));
+    for (const floor of [3, 6, 9]) {
+      const alone = floorMight(floor);
+      const pair = floorMight(floor, false);
+      expect(alone.hp).toBeCloseTo(pair.hp + MIGHT.stepHp);
+      expect(alone.hit).toBeGreaterThan(pair.hit);
+      expect(alone.damage).toBeGreaterThan(pair.damage);
+    }
+    // The Boss is its own measure either way.
+    expect(spawnEncounter(createRng('dragon'), 10, 'boss')[0]!.maxHp).toBe(monsterById('ancient-dragon').hp);
   });
 });

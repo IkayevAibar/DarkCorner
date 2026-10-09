@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-harder',
+    date: '2026-10-10',
+    title: t('Harder alone', 'Одному — тяжелее'),
+    items: [
+      t('From Floor 3 down, a Hero alone now meets tougher monsters: more health, harder blows, bigger groups and more elites. Expect more Risky and Dangerous Doors, and Mini-bosses that win about half the time. Floors 1 and 2 stay as they were.',
+        'С 3-го этажа герой-одиночка теперь встречает монстров покрепче: больше здоровья, сильнее удары, группы побольше и чаще элита. Рискованных и опасных дверей станет больше, а мини-боссы побеждают примерно в половине боёв. Этажи 1 и 2 остались прежними.'),
+      t('A Duo keeps the old numbers: going down together is now the easier road.',
+        'Для дуэта всё осталось по-старому: вдвоём теперь идти легче.'),
+    ],
+  },
+  {
     id: '2026-10-10-armory',
     date: '2026-10-10',
     title: t('A fuller armory', 'Арсенал пополнился'),

@@ -20,8 +20,9 @@ export const DUO = { extra: 1, hp: 1.3, damage: 1.2, deepHp: 1.15, deepDamage: 1
  * the same Floor; a Mini-boss itself comes with more health and a harder hit.
  */
 export function duoEncounter(rng: Rng, floor: number, kind: 'fight' | 'miniboss', weakening = 0, omen: OmenDef | null = null): MonsterInstance[] {
-  const base = spawnEncounter(rng, floor, kind, weakening, omen);
-  const second = spawnEncounter(rng, floor, 'fight', 0, omen);
+  // A Duo meets monsters at their Duo numbers, without the solo step (combat.ts floorMight).
+  const base = spawnEncounter(rng, floor, kind, weakening, omen, false);
+  const second = spawnEncounter(rng, floor, 'fight', 0, omen, false);
   const take = Math.max(1, Math.ceil(second.length * DUO.extra));
   const extra = second.slice(0, take).map((mm, i) => ({ ...mm, key: `m${base.length + i}` }));
   if (kind === 'miniboss') {
