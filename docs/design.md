@@ -927,8 +927,9 @@ A board leaves out anyone with nothing to show on it yet. The Rankings end with 
   - The world is kept muted so that Tier colors are always the brightest thing on screen.
 - **Hero and equipment screens:** front-facing portraits and a Diablo-style equipment layout.
 - **Item art:**
-  - Common to Epic: game-icons.net icons, recolored by Tier.
-  - Legendary, Mythic and Relics: unique painted art.
+  - Every gear type and every supply (potions, scrolls, bombs, Keys, Chests, Materials) has a painting *(since 2026-10-10)*, plainer than any unique's, in its Tier frame.
+  - Legendary, Mythic and Relics: unique painted art, shown once the Item is identified.
+  - game-icons.net icons, recolored by Tier, stand in for anything not painted yet.
 - **Animated scenes (PixiJS):**
   - Fight playback: tokens slide, strike, shake and flash, with damage numbers and dice at key moments.
   - The Chest Spin and the identify reveal.
@@ -939,9 +940,9 @@ A board leaves out anyone with nothing to show on it yet. The Rankings end with 
   - Music comes later.
 - **Where the art comes from:** ChatGPT image generation, always using one fixed style description. For Season 0 that means:
   - about 15–20 Room maps per Floor theme
-  - 2 portraits per Race and Class pair (32 in total)
-  - monster tokens for each monster family
-  - the Dragon
+  - 2 portraits per Race and Class pair (32 for the first four Classes; the eight newer Classes borrow theirs until Codex task 24 paints them)
+  - a token for every monster, the Dragon among them (56)
+  - a painting for every gear type and supply (59) and every unique (30)
 - **UI look: B · Crypt**, chosen in the look test on 2026-09-27:
   - dark stone panels with a faint texture
   - tarnished-brass borders with corner brackets

@@ -10,9 +10,9 @@ export type ItemKind = 'gear' | 'potion' | 'scroll' | 'bomb' | 'key' | 'chest' |
 interface BaseCommon {
   id: string;
   name: Text;
-  /** Icon key for the web: a game-icons.net silhouette, shown until the base is painted. */
+  /** Icon key for the web: a game-icons.net silhouette, shown where a base has no painting. */
   icon: string;
-  /** Painted art under apps/web/public/art/gear (docs/art/gear-prompts.md); a unique's own painting wins over it. */
+  /** Painted art under apps/web/public/art/gear (sources in art/gear, docs/art/gear-prompts.md); a unique's own painting wins over it. */
   art?: string;
 }
 
@@ -47,8 +47,10 @@ export interface StackBase extends BaseCommon {
 
 export type ItemBase = GearBase | StackBase;
 
-const gear = (b: Omit<GearBase, 'kind'>): GearBase => ({ kind: 'gear', ...b });
-const stack = (b: StackBase): StackBase => b;
+/** Every base is painted (2026-10-10); a new one names `art: undefined` until it is. */
+const painted = (id: string) => `/art/gear/${id}.webp`;
+const gear = (b: Omit<GearBase, 'kind'>): GearBase => ({ kind: 'gear', art: painted(b.id), ...b });
+const stack = (b: StackBase): StackBase => ({ art: painted(b.id), ...b });
 
 export const BASES: ItemBase[] = [
   // Weapons

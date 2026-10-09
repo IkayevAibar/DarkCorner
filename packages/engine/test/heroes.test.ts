@@ -23,13 +23,13 @@ describe('art', () => {
 
   it('points every portrait, unique Item, gear type, monster and Room map at a file the web serves', () => {
     for (const p of PORTRAITS) expect(served(p.url), p.url).toBe(true);
-    // A unique or a gear type may still wait for its painting (the base's icon stands in); any art it names must be served.
-    for (const u of UNIQUES) if (u.art !== null) expect(served(u.art), u.id).toBe(true);
-    for (const b of BASES) if (b.art) expect(served(b.art), b.id).toBe(true);
-    // Season 0's uniques are all painted.
-    expect(UNIQUES.filter((u) => u.art === null).length).toBeLessThanOrEqual(13);
-    // A monster may still wait for its token (its initial stands in); any art it names must be served.
-    for (const m of MONSTERS) if (m.art !== null) expect(served(m.art), m.id).toBe(true);
+    // Every unique, gear type, supply and monster is painted (2026-10-10). A newcomer may wait for its painting with
+    // `art: null` (a unique, a monster) or `art: undefined` (a base), where its icon or initial stands in; this list grows only then.
+    const unpainted: string[] = [];
+    for (const u of UNIQUES) if (u.art === null) unpainted.push(u.id); else expect(served(u.art), u.id).toBe(true);
+    for (const b of BASES) if (!b.art) unpainted.push(b.id); else expect(served(b.art), b.id).toBe(true);
+    for (const m of MONSTERS) if (m.art === null) unpainted.push(m.id); else expect(served(m.art), m.id).toBe(true);
+    expect(unpainted).toEqual([]);
     for (const theme of Object.values(THEMES)) for (const map of theme.maps) expect(served(`/art/rooms/${map}.webp`), map).toBe(true);
   });
 });
