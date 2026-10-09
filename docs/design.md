@@ -186,7 +186,7 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
   | Fighter | Guardian | Once per round, strike back at a monster that misses | Once per fight, a blow that would drop the Hero leaves it at 1 health |
   | Rogue | Thief | Potions don't cost the turn; +20% gold find | +5 to Sneak and Escape rolls; can Sneak past Mini-bosses; from a fight's fourth round, each round's Sneak attack rolls a third of the level in d6 (it has studied its prey), so a Thief can wear the Boss down |
   | Rogue | Assassin | Full Sneak attack every round | The first hit of every fight is a critical hit |
-  | Wizard | Evoker | Spells add the INT modifier twice | One more burst per rest; a burst hits even a lone enemy, twice as hard |
+  | Wizard | Evoker | Spells add the INT modifier twice | Overchannel: one more burst per rest; a burst hits even a lone enemy, twice as hard; against the Boss, attack spells and bursts deal 50% more *(v0)* |
   | Wizard | Abjurer | Each fight starts behind a ward of 4 × level + INT modifier that takes damage first and mends by the INT modifier each turn | Advantage on every saving throw |
   | Cleric | Life | Cure wounds and potions heal 50% more | One more Cure wounds per rest; the first in each fight doesn't cost the turn |
   | Cleric | War | The first hit each turn deals +1d8 | Two attacks each turn |
@@ -205,9 +205,11 @@ Every few levels the Player chooses how the Hero grows. The choice waits on the 
   | Bard | Lore | Peerless skill: the Inspiration die is one size bigger | Countercharm: neither fear nor a mesmerizing gaze takes hold |
   | Bard | Valor | Combat inspiration: an Inspiration that lands a spell adds its die to the damage | Battle magic: every attack spell that hits adds an Inspiration die to its damage, spending none *(v0)*: two spells a turn won Valor Bards 74% of their Dragon fights |
   | Sorcerer | Draconic | Draconic resilience: +2 Armor Class, and fire (breath, burning) deals half | Elemental affinity: its attack spells and Bursts add its CHA modifier once more |
-  | Sorcerer | Wild Magic | Tides of chaos: once a fight, a missed attack spell is cast again | Wild surge: Bursts deal half again as much, and even a lone monster takes one, twice as hard |
+  | Sorcerer | Wild Magic | Tides of chaos: once a fight, a missed attack spell is cast again | Wild surge: Bursts deal half again as much, and even a lone monster takes one, twice as hard; against the Boss, attack spells and Bursts deal 75% more *(v0)* |
 
   Each Class has one Path built for the Boss and one for the long road: Thief, Abjurer, Life and Bear-heart trade damage for gold, safety and healing.
+
+  **The casters' Boss Paths** *(v0, 2026-10-10)*: late-Season par Evokers and Wild Magic Sorcerers beat the Dragon only 2–5% of the time (Abjurers about 20%, Draconic Sorcerers about 50%). They burn the Dragon down fast, but die within about five of its turns, so ever more damage alone barely helped. Defenses that kept them alive (fire at half, the Shield again every round, wards, harm halved below half health) also won them 98–100% of the Mini-boss fights on Floors 6–9. So their edge works against the Boss alone: 50% more for an Evoker, 75% for Wild Magic. Each now beats the Dragon about 30% of the time (16 gear rolls a level), and every other fight is unchanged.
 - **Growth (levels 4, 8, 12, 16, 19):** +2 to one ability score, +1 to two (never above 20), or one of three Talents offered. The three are drawn from the Talents the Hero doesn't have yet, and stay the same however often the Player looks.
 - **Talents learned by growing** *(v0)*, on top of the origin Talents:
 

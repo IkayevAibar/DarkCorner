@@ -19,6 +19,17 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-boss-paths',
+    date: '2026-10-10',
+    title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),
+    items: [
+      t('From level 9, an Evoker’s attack spells and Bursts deal 50% more to the Boss, and a Wild Magic Sorcerer’s 75% more.',
+        'С 9-го уровня боевые заклинания и взрывы воплотителя наносят боссу на 50% больше урона, а чародея дикой магии — на 75% больше.'),
+      t('Both Paths almost never beat the Dragon; now they do about as often as the other Boss Paths. Every other fight stays as it was.',
+        'Оба пути почти никогда не побеждали дракона, а теперь побеждают примерно так же часто, как другие пути против босса. Все остальные бои не изменились.'),
+    ],
+  },
+  {
     id: '2026-10-10-action-surge',
     date: '2026-10-10',
     title: t('Action Surge for the Fighter', 'Всплеск действий для воина'),

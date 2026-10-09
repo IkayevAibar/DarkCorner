@@ -105,8 +105,8 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
         'Заклинания добавляют модификатор ИНТ к урону дважды.',
       )),
       feature(9, text('Overchannel', 'Перенапряжение'), text(
-        'One more burst per rest, and a burst hits even a lone enemy, twice as hard.',
-        'На один взрыв больше до отдыха, и взрыв бьёт даже по одинокому врагу, вдвое сильнее.',
+        'One more burst per rest, and a burst hits even a lone enemy, twice as hard. Against the Boss, your attack spells and bursts deal 50% more.',
+        'На один взрыв больше до отдыха, и взрыв бьёт даже по одинокому врагу, вдвое сильнее. Против босса ваши боевые заклинания и взрывы наносят на 50% больше урона.',
       )),
     ],
   },
@@ -400,8 +400,8 @@ export const PATH_DEFS: Record<PathId, PathDef> = {
         'Раз за бой промахнувшееся боевое заклинание творится снова.',
       )),
       feature(9, text('Wild surge', 'Дикий всплеск'), text(
-        'Bursts of fire deal half again as much, and even a lone monster takes one (for double).',
-        'Огненные взрывы наносят в полтора раза больше урона и достаются даже одинокому монстру (вдвойне).',
+        'Bursts of fire deal half again as much, and even a lone monster takes one (for double). Against the Boss, your attack spells and Bursts deal 75% more.',
+        'Огненные взрывы наносят в полтора раза больше урона и достаются даже одинокому монстру (вдвойне). Против босса ваши боевые заклинания и взрывы наносят на 75% больше урона.',
       )),
     ],
   },

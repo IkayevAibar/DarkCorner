@@ -529,6 +529,20 @@ export const THIEF_STUDY_ROUND = 4;
 const EMBER_BURN = { turns: 3, dice: [1, 6] as [number, number] };
 /** Hellfire: a master Fiend Warlock's blasts leave what they hit burning (v0). */
 const HELLFIRE_BURN = { turns: 2, dice: [1, 6] as [number, number] };
+/**
+ * The Paths built for the Boss (v0, 2026-10-10): against the Boss, a master Evoker's attack spells and
+ * Bursts deal this much more (Overchannel), a master of Wild Magic's this much (Wild surge). Fights
+ * against anything else are untouched: defenses that held up the Dragon fight also won 98–100% of
+ * Mini-boss fights (docs/design.md → Growing).
+ */
+export const BOSS_EDGE: Partial<Record<PathId, number>> = { evoker: 1.5, wild: 1.75 };
+
+/** How much more a Hero's attack spells and Bursts deal to this monster: its Path's edge against the Boss, or none. */
+export function bossEdge(hero: { path: PathId | null; level: number }, monsterId: string): number {
+  if (monsterById(monsterId).role !== 'boss' || !hero.path || !onPath(hero, hero.path, PATH_MASTERY)) return 1;
+  return BOSS_EDGE[hero.path] ?? 1;
+}
+
 /** Wholeness of body: a master of the Open Hand gets this many times its level back, once a fight. */
 export const WHOLENESS_PER_LEVEL = 3;
 /** A Druid's beast claws (v0): this die each, plus WIS; Primal strike adds one more. */
@@ -989,7 +1003,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
         // Combat inspiration: a Valor Bard's die counts in the damage too; Battle magic: a master's every hit adds one, free.
         if (s.path('valor')) damage += inspired;
         if (s.path('valor', PATH_MASTERY)) damage += rollDice(rng, 1, inspirationDie(c.level, c.path))[0]!;
-        damage *= 1 + c.spellPower / 100;
+        damage *= (1 + c.spellPower / 100) * bossEdge(c, target.id);
         if (c.class === 'cleric' && targetDef.kin === 'undead') damage *= 2;
         if (c.uniques.includes('lantern-of-the-deep') && (targetDef.kin === 'undead' || targetDef.kin === 'demon')) damage *= 1.25;
         if (ember) damage *= 2;
@@ -1375,7 +1389,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
           const lone = alive().length === 1 ? 2 : 1;
           const targets = alive().map((mm) => {
             const swarm = powerOf(mm, 'swarm') ? 2 : 1;
-            const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + burstBonus(s)) * lone * swarm * burstFactor(s)));
+            const damage = Math.max(1, Math.round((sum(rollDice(rng, dice, 6)) + burstBonus(s)) * lone * swarm * burstFactor(s) * bossEdge(c, mm.id)));
             scorched.add(mm.key);
             after.push(...wound(mm, damage, false));
             return { key: mm.key, damage, hp: mm.hp };

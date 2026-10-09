@@ -9,6 +9,7 @@
  * most Rooms read Easy or Risky with some Trivial and a few Dangerous; its
  * Mini-boss is a real fight; the Dragon is out of reach until late levels.
  * Run: npm run balance:par -w @dark/engine [-- hp hit damage] (to try other MIGHT values) [paladin,monk] (only those Classes)
+ * [second] (the Floors with each Class's second Path; from level 3 they take its first otherwise) [dragon] (only the Dragon)
  */
 import {
   type ClassId, type HeroCombat, MIGHT, THREATS, type ThreatId, createRng, fightOdds, pathsOf, restUses, simulateFight, spawnEncounter, threatOf,
@@ -19,9 +20,12 @@ import { CLASSES, type Gearing, heroesAt as parHeroes, parLevel } from './par.js
 const GEAR_SEEDS = process.argv.includes('dragon') ? 8 : 3;
 const ROOMS = 50;
 
-const [hpArg, hitArg, damageArg] = process.argv.slice(2).filter((a) => a !== 'dragon' && !/^[a-z,-]+$/.test(a)).map(Number);
+const FLAGS = ['dragon', 'second'];
+const [hpArg, hitArg, damageArg] = process.argv.slice(2).filter((a) => !FLAGS.includes(a) && !/^[a-z,-]+$/.test(a)).map(Number);
 /** Only these Classes, when named (comma-separated). */
-const only = process.argv.slice(2).find((a) => a !== 'dragon' && /^[a-z,-]+$/.test(a))?.split(',');
+const only = process.argv.slice(2).find((a) => !FLAGS.includes(a) && /^[a-z,-]+$/.test(a))?.split(',');
+/** Which Path the Floors' par Heroes take: each Class's first, or with `second` its second. */
+const floorPath = process.argv.includes('second') ? 1 : 0;
 const classes = CLASSES.filter((c) => !only || only.includes(c));
 if (hpArg !== undefined && !Number.isNaN(hpArg)) Object.assign(MIGHT, { hp: hpArg, hit: hitArg ?? MIGHT.hit, damage: damageArg ?? MIGHT.damage });
 
@@ -71,7 +75,7 @@ console.log(`Par Heroes (level about 1.5 x Floor, best of the drops so far), Bol
 for (const cls of onlyDragon ? [] : classes) {
   console.log(cls);
   for (let floor = 1; floor <= 10; floor++) {
-    const heroes = heroesAt(cls, floor);
+    const heroes = heroesAt(cls, floor, parLevel(floor), floorPath);
     const mini = floor < 10 ? `mini ${boss(heroes, floor, 'miniboss')}` : '';
     console.log(`  F${String(floor).padStart(2)} lv${String(heroes[0]!.level).padStart(2)} hp${String(avg(heroes, (h) => h.maxHp)).padStart(4)} ac${avg(heroes, (h) => h.ac)}  ${rooms(heroes, floor, `par-${cls}`)}  ${mini}`);
   }

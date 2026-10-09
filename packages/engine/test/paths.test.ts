@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLASSES, CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type HeroCombat, type PathId, PATHS, POTIONS_PER_FIGHT, TALENTS,
+  BOSS_EDGE, CLASSES, CLASS_DEFS, type ClassId, type FightEvent, type FightInput, type HeroCombat, type PathId, PATHS, POTIONS_PER_FIGHT, TALENTS, bossEdge,
   type TalentId, createRng, heroCombat, instantiate, luckOf, maxHealth, monsterById, onPath, pathsOf, pendingGrowth, potionHealing,
   restUses, simulateFight, sneakCheck, startingHealth, talentOffer, validateGrowth,
 } from '../src/index.js';
@@ -37,6 +37,25 @@ describe('Paths', () => {
     expect(restUses('wizard', 9, 'evoker').spells).toBe(restUses('wizard', 9).spells + 1);
     expect(restUses('wizard', 8, 'evoker').spells).toBe(restUses('wizard', 8).spells);
     expect(restUses('cleric', 9, 'life').heals).toBe(restUses('cleric', 9).heals + 1);
+  });
+
+  it('gives the Boss Paths of casters their edge against the Boss, and nowhere else', () => {
+    expect(bossEdge({ path: 'evoker', level: 9 }, 'ancient-dragon')).toBe(1.5);
+    expect(bossEdge({ path: 'wild', level: 9 }, 'ancient-dragon')).toBe(1.75);
+    expect(bossEdge({ path: 'evoker', level: 8 }, 'ancient-dragon')).toBe(1);
+    expect(bossEdge({ path: 'abjurer', level: 20 }, 'ancient-dragon')).toBe(1);
+    expect(bossEdge({ path: 'evoker', level: 20 }, 'goblin-chieftain')).toBe(1);
+    expect(BOSS_EDGE).toEqual({ evoker: 1.5, wild: 1.75 });
+    // The same Dragon, once as the Boss and once under another name: the same dice, and the Boss's Bursts land half again as hard.
+    const dragon = instantiate(monsterById('ancient-dragon'), 10, 'm0');
+    const bursts = (id: string) => {
+      const r = fight('overchannel', hero('wizard', 9, { path: 'evoker', hp: 999 }), [{ ...dragon, id }]);
+      return of(r.events, 'burst').map((e) => e.targets[0]!.damage);
+    };
+    const boss = bursts('ancient-dragon');
+    const plain = bursts('wyvern');
+    expect(boss.length).toBeGreaterThan(0);
+    boss.forEach((d, i) => expect(Math.abs(d - plain[i]! * 1.5)).toBeLessThanOrEqual(1));
   });
 
   it('crits more often as a Champion', () => {
