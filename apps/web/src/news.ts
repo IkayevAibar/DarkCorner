@@ -40,6 +40,13 @@ export const NEWS: NewsEntry[] = [
       'При взломе видны три штифта, сломанные отмычки и поворот замка перед появлением сундука. Момент нажатия определяется по прежним правилам.')],
   },
   {
+    id: '2026-10-10-cup-ink',
+    date: '2026-10-10',
+    title: t('Watch the goblin’s hands', 'Следите за руками гоблина'),
+    items: [t('The cups now cross on a wooden table under the goblin’s quick hands. Watch the gem, choose a cup, or catch it slipping from his sleeve.',
+      'Напёрстки теперь скользят по деревянному столу под быстрыми руками гоблина. Следите за камешком, выбирайте напёрсток или ловите гоблина на уловке с рукавом.')],
+  },
+  {
     id: '2026-10-10-boss-paths',
     date: '2026-10-10',
     title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),
