@@ -6,17 +6,14 @@ import { Cups } from '../labyrinth/Cups';
 type Game = NonNullable<CupsView['game']>;
 
 /** A fake game as the server deals it on Floor 1 or 10, palmed or not, seen by a Rogue or not. */
-function deal(floor: 1 | 10, palmed: boolean, rogue: boolean, bet: number): Game {
-  const swaps: [number, number][] = Array.from({ length: 4 + Math.ceil(floor / 2) }, () => {
-    const a = Math.floor(Math.random() * 3);
-    return [a, (a + 1 + Math.floor(Math.random() * 2)) % 3];
-  });
-  return { bet, start: Math.floor(Math.random() * 3), swaps, swapMs: floor === 1 ? 650 : 330, palmed: rogue ? palmed : null, end: null };
+export function deal(floor: 1 | 10, palmed: boolean, rogue: boolean, bet: number): Game {
+  const sequence: [number, number][] = [[0, 2], [1, 2], [0, 1], [2, 0], [1, 2], [0, 1], [2, 1], [0, 2], [1, 0]];
+  return { bet, start: floor === 1 ? 1 : 2, swaps: sequence.slice(0, 4 + Math.ceil(floor / 2)), swapMs: floor === 1 ? 650 : 330, palmed: rogue ? palmed : null, end: null };
 }
 
 const COPY = {
-  en: { title: 'The goblin’s cups', shallow: 'Floor 1', deep: 'Floor 10', palmed: 'He palms it', rogue: 'Rogue', again: 'Again' },
-  ru: { title: 'Напёрстки гоблина', shallow: 'Этаж 1', deep: 'Этаж 10', palmed: 'Прячет в рукав', rogue: 'Плут', again: 'Ещё раз' },
+  en: { title: 'The goblin’s cups', shallow: 'Floor 1', deep: 'Floor 10', palmed: 'He palms it', rogue: 'Rogue', again: 'Again', resume: 'Return to a paid game' },
+  ru: { title: 'Напёрстки гоблина', shallow: 'Этаж 1', deep: 'Этаж 10', palmed: 'Прячет в рукав', rogue: 'Плут', again: 'Ещё раз', resume: 'Вернуться к оплаченной игре' },
 };
 
 /** The cups against fake games, each pick judged a moment later as the server would. */
@@ -32,7 +29,7 @@ export function CupsPreview() {
   // Whether the game on the table is palmed, as dealt (a non-Rogue's view doesn't say).
   const dealtPalmed = useRef(false);
   const reset = () => {
-    setCups({ maxBet: 60, game: null });
+    setCups({ maxBet: 30 * (floor + 1), game: null });
     setRound((n) => n + 1);
   };
   const bet = (amount: number) => {
@@ -61,13 +58,14 @@ export function CupsPreview() {
     <section className="grid gap-2" data-cups-preview>
       <h2 className="sub-heading m-0">{copy.title}</h2>
       <div className="flex flex-wrap gap-2">
-        <button type="button" className="btn btn-small" aria-pressed={floor === 1} onClick={() => setFloor(1)}>{copy.shallow}</button>
-        <button type="button" className="btn btn-small" aria-pressed={floor === 10} onClick={() => setFloor(10)}>{copy.deep}</button>
-        <button type="button" className="btn btn-small" aria-pressed={palmed} onClick={() => setPalmed((v) => !v)}>{copy.palmed}</button>
-        <button type="button" className="btn btn-small" aria-pressed={rogue} onClick={() => setRogue((v) => !v)}>{copy.rogue}</button>
-        <button type="button" className="btn btn-small" onClick={reset}>{copy.again}</button>
+        <button type="button" className="btn btn-small" disabled={busy} aria-pressed={floor === 1} onClick={() => { setFloor(1); reset(); }}>{copy.shallow}</button>
+        <button type="button" className="btn btn-small" disabled={busy} aria-pressed={floor === 10} onClick={() => { setFloor(10); reset(); }}>{copy.deep}</button>
+        <button type="button" className="btn btn-small" disabled={busy} aria-pressed={palmed} onClick={() => { setPalmed((v) => !v); reset(); }}>{copy.palmed}</button>
+        <button type="button" className="btn btn-small" disabled={busy} aria-pressed={rogue} onClick={() => { setRogue((v) => !v); reset(); }}>{copy.rogue}</button>
+        <button type="button" className="btn btn-small" disabled={busy} onClick={reset}>{copy.again}</button>
+        <button type="button" className="btn btn-small" disabled={busy} onClick={() => { dealtPalmed.current = palmed; setCups({ maxBet: 30 * (floor + 1), game: deal(floor, palmed, rogue, 20) }); setRound(n => n + 1); }}>{copy.resume}</button>
       </div>
-      <Cups key={round} cups={cups} busy={busy} onBet={bet} onPick={pick} />
+      <Cups key={round} cups={{ ...cups, maxBet: 30 * (floor + 1) }} busy={busy} onBet={bet} onPick={pick} />
     </section>
   );
 }
