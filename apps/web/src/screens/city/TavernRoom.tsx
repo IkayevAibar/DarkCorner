@@ -10,8 +10,10 @@ import { TavernMark, feedSymbol, useTavernCopy } from './tavernArt';
 import './tavern.css';
 
 type Tab = 'feed' | 'rankings' | 'hall';
-export function TavernRoom({ view, hall, lodging, bounties, rankings, initialTab = 'feed', hallError = false, onRetryHall }: {
+export function TavernRoom({ view, hall, lodging, bounties, rankings, companion, initialTab = 'feed', hallError = false, onRetryHall }: {
   view: TavernView; hall: HallEntry[] | null; lodging: ReactNode; bounties: ReactNode; rankings: ReactNode;
+  /** Solo: the Companion's corner, where one is hired and let go. */
+  companion?: ReactNode;
   initialTab?: Tab; hallError?: boolean; onRetryHall?: () => void;
 }) {
   const { t } = useI18n(), copy = useTavernCopy();
@@ -35,6 +37,7 @@ export function TavernRoom({ view, hall, lodging, bounties, rankings, initialTab
       <div className="tavern-columns"><aside className="tavern-services">
         <details open={servicesOpen}><summary><TavernMark kind="stairs" />{t('lodging.title')}</summary>{lodging}</details>
         <details open={servicesOpen}><summary><TavernMark kind="hunt" />{t('bounty.title')}</summary>{bounties}</details>
+        {companion && <details open={servicesOpen}><summary><TavernMark kind="twin" />{t('companion.title')}</summary>{companion}</details>}
       </aside><Feed entries={view.entries} /></div>
     </>}
     {tab === 'rankings' && rankings}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ABILITY_IDS, type ClassId, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
+import type { CompanionView } from '@dark/solo';
 import { api } from '../../api';
 import { ItemTile } from '../../components/items/ItemTile';
 import { ItemCard } from '../../components/items/ItemCard';
@@ -9,6 +10,7 @@ import { LevelUp } from './LevelUp';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
+import { useLoad } from '../../components/useLoad';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';
@@ -17,6 +19,10 @@ import { DeedsPanel } from './Deeds';
 import { Growth } from './Growth';
 
 type Place = 'worn' | 'bag' | 'storage';
+
+/** Solo: the Companion, to hand gear to (docs/design.md → The solo game → The Companion); online there is none. */
+const loadCompanion = __SOLO__ ? () => api.companion() : async (): Promise<CompanionView | null> => null;
+type Beside = NonNullable<CompanionView['companion']>;
 
 const modifier = (score: number) => {
   const m = Math.floor((score - 10) / 2);
@@ -46,12 +52,16 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
   const text = useText();
   const { openSheet, closeSheet } = useSheet();
   const worn = new Map(hero.worn.map((w) => [w.slot, w.item]));
+  const companion = useLoad(loadCompanion);
+  const c = companion.data?.companion;
+  const beside = c && !c.backAt && !c.waiting ? c : null;
   const showItem = (item: ItemView, place: Place) =>
     openSheet({
       title: text(item.name),
       body: (
         <div className="grid gap-4">
-          <ItemActions item={item} place={place} heroClass={hero.class} worn={hero.worn} onIdentified={onChanged} onDone={() => { closeSheet(); onChanged(); }} />
+          <ItemActions item={item} place={place} heroClass={hero.class} worn={hero.worn} companion={beside} onIdentified={onChanged}
+            onDone={() => { closeSheet(); onChanged(); void companion.reload(); }} />
         </div>
       ),
     });
@@ -223,8 +233,8 @@ function ItemGrid({ title, items, onPick }: { title: string; items: ItemView[]; 
   );
 }
 
-function ItemActions({ item, place, heroClass, worn, onIdentified, onDone }: {
-  item: ItemView; place: Place; heroClass: ClassId; worn: HeroView['worn']; onIdentified: () => void; onDone: () => void;
+function ItemActions({ item, place, heroClass, worn, companion = null, onIdentified, onDone }: {
+  item: ItemView; place: Place; heroClass: ClassId; worn: HeroView['worn']; companion?: Beside | null; onIdentified: () => void; onDone: () => void;
 }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
@@ -249,6 +259,7 @@ function ItemActions({ item, place, heroClass, worn, onIdentified, onDone }: {
   const wearable = item.kind === 'gear';
   // The card already says why; the server would refuse it anyway.
   const barred = item.gear?.classes != null && !item.gear.classes.includes(heroClass);
+  const companionBarred = companion !== null && item.gear?.classes != null && !item.gear.classes.includes(companion.class);
   const text = useText();
   const inHand = (slot: SlotId) => worn.find((w) => w.slot === slot)?.item ?? null;
   // Hands (docs/design.md → Hands): what else comes off, beyond the piece it swaps with.
@@ -306,6 +317,14 @@ function ItemActions({ item, place, heroClass, worn, onIdentified, onDone }: {
             {t('item.drink')}
           </button>
         )}
+        {companion && place !== 'worn' && wearable && item.identified && (
+          <button type="button" className="btn flex-1" disabled={busy || companionBarred} onClick={() => void act(async () => {
+            play('equip');
+            await api.giveToCompanion(item.id);
+          })}>
+            {t('companion.give', { name: companion.name })}
+          </button>
+        )}
         {place === 'bag' && (
           <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(() => api.moveItem(item.id, 'storage'))}>
             {t('item.toStorage')}
@@ -327,6 +346,9 @@ function ItemActions({ item, place, heroClass, worn, onIdentified, onDone }: {
           </button>
         )}
       </div>
+      {companion && place !== 'worn' && wearable && item.identified && companionBarred && (
+        <p className="m-0 text-sm text-muted">{t('companion.cannotUse', { name: companion.name })}</p>
+      )}
       {place !== 'worn' && wearable && item.identified && !barred && away.length > 0 && (
         <p className="m-0 text-sm text-muted">
           {item.gear?.light && `${t('item.equipOff')}: `}

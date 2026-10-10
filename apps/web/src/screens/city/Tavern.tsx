@@ -12,6 +12,7 @@ import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';
 import { formatClock, formatDuration, useNow } from '../../time';
+import { Companion } from './Companion';
 import { Rankings } from './Rankings';
 import { TavernRoom } from './TavernRoom';
 import { TavernMark, useTavernCopy } from './tavernArt';
@@ -24,7 +25,7 @@ export function Tavern() {
   if (!tavern.data) return <Loading failed={tavern.failed !== null} onRetry={() => void tavern.reload()} />;
   return <TavernRoom view={tavern.data} hall={hall.data?.entries ?? null}
     hallError={hall.failed !== null} onRetryHall={() => void hall.reload()}
-    lodging={<Lodging />} bounties={<Bounties />} rankings={<Rankings />} />;
+    lodging={<Lodging />} bounties={<Bounties />} rankings={<Rankings />} companion={__SOLO__ ? <Companion /> : undefined} />;
 }
 
 /** Lodging: a bed upstairs for City gold, for full Stamina and the short rests back; each night costs more. */

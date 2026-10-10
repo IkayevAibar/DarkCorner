@@ -6,6 +6,7 @@ import type {
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
   BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView, OathChoice, AcademyView, TalentId, TrainingView, AbilityId, BulkTier, BulkSellResult, BulkSalvageResult
 } from '@dark/shared';
+import type { CompanionView } from '@dark/solo';
 
 /**
  * Solo only (docs/plan-solo-offline.md, decisions 5 and 6): a Save's difficulty and
@@ -109,6 +110,14 @@ export const api = {
   /** Solo only: the Save's difficulty and Iron mode, chosen before its first Hero. */
   soloSettings: () => request<SoloSettings>('GET', '/api/solo/settings'),
   setSoloSettings: (body: Omit<SoloSettings, 'locked'>) => request<SoloSettings>('PUT', '/api/solo/settings', body),
+  /** Solo only (docs/design.md → The solo game → The Companion): hired at the Tavern, dressed from the Bag. */
+  companion: (locale?: 'en' | 'ru') => request<CompanionView>('GET', `/api/companion${locale ? `?locale=${locale}` : ''}`),
+  hireCompanion: (offer: number, locale: 'en' | 'ru') => request<CompanionView>('POST', '/api/companion/hire', { offer, locale }),
+  dismissCompanion: () => request<CompanionView>('POST', '/api/companion/dismiss'),
+  giveToCompanion: (itemId: string) => request<CompanionView>('POST', '/api/companion/give', { itemId }),
+  takeFromCompanion: (itemId: string) => request<CompanionView>('POST', '/api/companion/take', { itemId }),
+  /** Solo only: every Item left in the Duo Chest at once, at a price in the Companion's Loyalty. */
+  takeWholeChest: () => request<LabyrinthResult>('POST', '/api/labyrinth/chest/all'),
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
   eventAction: (action: EventAction) => request<LabyrinthResult>('POST', '/api/labyrinth/event', action),
   face: (action: FaceAction) => request<LabyrinthResult>('POST', '/api/labyrinth/face', action),

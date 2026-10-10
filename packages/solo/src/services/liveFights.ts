@@ -127,7 +127,9 @@ export async function advance(tx: Tx, fight: Fight, heroes: FightHeroes, season:
     r = replay();
     turnAt = new Date(now.getTime() + playback(r.events.length - before));
   }
-  while (isPaused(r) && fight.partnerId && now.getTime() - turnAt.getTime() >= TURN_MS) {
+  // A Companion's turns are the AI's already, and its Hero's wait for its Player as a Hero alone's do.
+  const timed = fight.partnerId !== null && !isCompanion(heroes.ally);
+  while (isPaused(r) && timed && now.getTime() - turnAt.getTime() >= TURN_MS) {
     const waiting = r.turn.hero === 'hero' ? heroes.hero : heroes.ally!;
     const before = r.events.length;
     choices = [...choices, { hero: r.turn.hero, action: { kind: isOnline(waiting.player, now) ? 'ai' : 'auto' } }];
@@ -258,7 +260,7 @@ export function liveView(fight: Fight, paused: PausedFight, heroes: FightHeroes,
     events: flip ? forAlly(paused.events, 'victory') : paused.events,
     turn: { ...turn, hero: flip ? swap(turn.hero) : turn.hero, cure: flip ? turn.cure.map(swap) : turn.cure },
     mine: turn.hero === viewer,
-    deadline: fight.partnerId ? new Date(fight.turnAt.getTime() + TURN_MS).toISOString() : null,
+    deadline: fight.partnerId && !isCompanion(heroes.ally) ? new Date(fight.turnAt.getTime() + TURN_MS).toISOString() : null,
     auto: !(fight.manual as string[]).includes(viewer) || choices.some((c) => c.hero === viewer && c.action.kind === 'auto'),
   };
 }

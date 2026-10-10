@@ -43,9 +43,16 @@ export function OathChoices({ view, busy, onSwear }: { view: LabyrinthView; busy
 }
 
 export function ChestPanel({ chest, view, busy, act }: { chest: DuoChestView; view: LabyrinthView; busy: boolean; act: Act }) {
-  return <ChestScene chest={chest} hero={view.hero} partner={view.duo} busy={busy} onPick={index => void act(async () => {
-    const result = await api.pickFromChest(index);
-    // While picking, ownership on the tray is the receipt. Keep the closing report intact.
-    return result.closedChest ? result : { ...result, loot: [] };
-  })} />;
+  const { t } = useI18n();
+  return <>
+    <ChestScene chest={chest} hero={view.hero} partner={view.duo} busy={busy} onPick={index => void act(async () => {
+      const result = await api.pickFromChest(index);
+      // While picking, ownership on the tray is the receipt. Keep the closing report intact.
+      return result.closedChest ? result : { ...result, loot: [] };
+    })} />
+    {/* Solo, the partner is the Companion: the Player may take it all, at a price in its Loyalty. */}
+    {__SOLO__ && view.duo && chest.turn !== null && <button type="button" className="btn" disabled={busy} onClick={() => void act(() => api.takeWholeChest())}>
+      {t('companion.takeAll', { name: view.duo.name })}
+    </button>}
+  </>;
 }

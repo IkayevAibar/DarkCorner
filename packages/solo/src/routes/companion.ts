@@ -12,15 +12,19 @@ import { takeWholeChest } from '../services/labyrinth.js';
  * dressed from the Bag, let go at the Tavern. Solo only: the server has none.
  */
 
-const hireSchema = z.object({ offer: z.number().int().min(0) });
+const hireSchema = z.object({ offer: z.number().int().min(0), locale: z.enum(['en', 'ru']).optional() });
+const lookSchema = z.object({ locale: z.enum(['en', 'ru']).optional() });
 const itemSchema = z.object({ itemId: z.string().min(1) });
 
 export async function companionRoutes(app: App) {
   const guard = { preHandler: requireApproved };
 
-  app.get('/api/companion', guard, async (request): Promise<CompanionView> => companionView(request.player!));
-  app.post('/api/companion/hire', guard, async (request): Promise<CompanionView> =>
-    hireCompanion(request.player!, hireSchema.parse(request.body).offer));
+  // The screen's language names the Tavern's Companions: a Player may never have chosen one.
+  app.get('/api/companion', guard, async (request): Promise<CompanionView> => companionView(request.player!, lookSchema.parse(request.query).locale));
+  app.post('/api/companion/hire', guard, async (request): Promise<CompanionView> => {
+    const { offer, locale } = hireSchema.parse(request.body);
+    return hireCompanion(request.player!, offer, locale);
+  });
   app.post('/api/companion/dismiss', guard, async (request): Promise<CompanionView> => dismissCompanion(request.player!));
   app.post('/api/companion/give', guard, async (request): Promise<CompanionView> =>
     giveToCompanion(request.player!, itemSchema.parse(request.body).itemId));

@@ -99,7 +99,8 @@ interface Offer extends CompanionOffer {
   portrait: string;
 }
 
-const localeOf = (player: Pick<Player, 'locale'>): 'en' | 'ru' => (player.locale === 'ru' ? 'ru' : 'en');
+/** The language its name is given in: the one the screen asks in, else the Player's own. */
+const localeOf = (player: Pick<Player, 'locale'>, asked?: string): 'en' | 'ru' => ((asked ?? player.locale) === 'ru' ? 'ru' : 'en');
 
 /** The Tavern's three for the Day: Classes other than the Hero's, at its level, the same all Day. */
 function offersFor(hero: Hero, season: Pick<Season, 'seed'>, locale: 'en' | 'ru', now: Date): Offer[] {
@@ -111,7 +112,10 @@ function offersFor(hero: Hero, season: Pick<Season, 'seed'>, locale: 'en' | 'ru'
     const cls = classes.splice(rng.int(0, classes.length - 1), 1)[0]!;
     const name = names.splice(rng.int(0, names.length - 1), 1)[0]!;
     const race = rng.pick(RACES);
-    const portrait = rng.pick(portraitsFor(race, cls)).id;
+    // Its own Class's portraits first; the ones for anyone only when there are none.
+    const offered = portraitsFor(race, cls);
+    const own = offered.filter((p) => p.class !== null);
+    const portrait = rng.pick(own.length > 0 ? own : offered).id;
     offers.push({
       name: NAMES[locale][name]!, class: cls, race, portrait, portraitUrl: portraitUrlOf({ portrait }), banner: rng.pick(BANNER_COLORS),
       level: hero.level, wage: wageOf(hero.level),
@@ -428,7 +432,7 @@ async function besideHero(tx: Tx, hero: HeroWithItems): Promise<HeroWithItems> {
   return companion;
 }
 
-async function viewOf(tx: Tx, player: Player, hero: HeroWithItems, season: Season, now: Date, notices: LocalizedText[]): Promise<CompanionView> {
+async function viewOf(tx: Tx, player: Player, hero: HeroWithItems, season: Season, now: Date, notices: LocalizedText[], locale?: string): Promise<CompanionView> {
   const state = await stateOf(tx);
   const companion = state && state.masterId === hero.id ? await tx.hero.findUnique({ where: { id: state.heroId }, include: { items: true } }) : null;
   return {
@@ -438,25 +442,26 @@ async function viewOf(tx: Tx, player: Player, hero: HeroWithItems, season: Seaso
       wage: wageOf(companion.level), backAt: state.downUntil, waiting: !state.downUntil && hero.partnerId !== companion.id,
       gear: companion.items.filter((i) => i.place === 'WORN').map(toItemView),
     } : null,
-    offers: !companion && hero.location === 'CITY' ? offersFor(hero, season, localeOf(player), now).map(({ portrait: _, ...offer }) => offer) : [],
+    offers: !companion && hero.location === 'CITY' ? offersFor(hero, season, localeOf(player, locale), now).map(({ portrait: _, ...offer }) => offer) : [],
     gold: hero.gold,
     notices,
   };
 }
 
-/** A look at the Companion (its morning tended first), and the Tavern's offers. */
-export async function companionView(player: Player, notices: LocalizedText[] = []): Promise<CompanionView> {
+/** A look at the Companion (its morning tended first), and the Tavern's offers, named in `locale`. */
+export async function companionView(player: Player, locale?: string): Promise<CompanionView> {
   const season = await currentSeason();
   const now = gameNow();
+  const notices: LocalizedText[] = [];
   return prisma.$transaction(async (tx) => {
     const hero = await lockHero(tx, player, season.id);
     await tendCompanion(tx, hero, now, { notices });
-    return viewOf(tx, player, hero, season, now, notices);
+    return viewOf(tx, player, hero, season, now, notices, locale);
   });
 }
 
-/** Hires one of the Tavern's offers: the first wage now, at the Hero's level, in its Class's Starter kit. */
-export async function hireCompanion(player: Player, index: number): Promise<CompanionView> {
+/** Hires one of the Tavern's offers (named in `locale`): the first wage now, at the Hero's level, in its Class's Starter kit. */
+export async function hireCompanion(player: Player, index: number, locale?: string): Promise<CompanionView> {
   const season = await currentSeason();
   const now = gameNow();
   const notices: LocalizedText[] = [];
@@ -466,8 +471,8 @@ export async function hireCompanion(player: Player, index: number): Promise<Comp
     await tendCompanion(tx, hero, now, { notices });
     if (await stateOf(tx)) throw ApiError.conflict('companion_hired', 'You have a Companion already');
     if (hero.partnerId) throw ApiError.conflict('in_duo', 'You are in a Duo already');
-    const offer = offersFor(hero, season, localeOf(player), now)[index];
-    if (!offer) throw ApiError.notFound('no_offer', 'Nobody like that is at the Tavern today');
+    const offer = offersFor(hero, season, localeOf(player, locale), now)[index];
+    if (!offer) throw ApiError.notFound('no_companion_offer', 'Nobody like that is at the Tavern today');
     if (hero.gold < offer.wage) throw ApiError.conflict('not_enough_gold', 'Not enough gold');
     await tx.hero.update({ where: { id: hero.id }, data: { gold: { decrement: offer.wage } } });
     hero.gold -= offer.wage;

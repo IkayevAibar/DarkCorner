@@ -1,6 +1,7 @@
 const FILLS = {
   health: 'linear-gradient(90deg, #7a1d1d, #d23a2a)',
   stamina: 'linear-gradient(90deg, #6d5a2a, #e2b23a)',
+  loyalty: 'linear-gradient(90deg, #2c4a7e, #6f9be0)',
 } as const;
 
 export function Meter({ label, value, max, kind }: { label: string; value: number; max: number; kind: keyof typeof FILLS }) {

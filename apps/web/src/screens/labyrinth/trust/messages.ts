@@ -53,9 +53,24 @@ const ru: Record<keyof typeof en, string> = {
   'chest.wait': 'Ждите выбора героя {name}',
   'chest.hint': 'Нажмите на предмет, чтобы рассмотреть его. Выбираете по очереди; если ход затянется на полминуты, берётся лучший оставшийся предмет.',
 };
+// Solo, the partner is the Companion (docs/design.md → The solo game → The Companion): it
+// swears and picks at once, by its Loyalty, and nobody's pick runs out of time.
+const soloEn: Partial<typeof en> = {
+  'oath.rules': 'You swear by the stone, and your Companion swears at once: to share while its Loyalty is 5 or more, to take below that.',
+  'oath.secret': '{name} swears the moment you do. Share, and its Loyalty grows by 1; take, and it falls by 2.',
+  'chest.yourPick': 'Your pick',
+  'chest.hint': 'Tap an Item to look at it. You take turns, and your Companion picks at once. Letting it pick earns 1 Loyalty; taking it all costs 2.',
+};
+const soloRu: Partial<typeof en> = {
+  'oath.rules': 'Вы клянётесь камнем, а спутник клянётся сразу: поделиться, пока его верность 5 или больше, и забрать, если меньше.',
+  'oath.secret': '{name} клянётся сразу за вами. Поделитесь — верность вырастет на 1; заберёте — упадёт на 2.',
+  'chest.yourPick': 'Ваш выбор',
+  'chest.hint': 'Нажмите на предмет, чтобы рассмотреть его. Вы выбираете по очереди, а спутник — сразу. Дадите выбрать — +1 к верности; заберёте всё — −2.',
+};
+
 export function useTrustText() {
   const { locale } = useI18n();
-  const dictionary = locale === 'ru' ? ru : en;
+  const dictionary = __SOLO__ ? (locale === 'ru' ? { ...ru, ...soloRu } : { ...en, ...soloEn }) : locale === 'ru' ? ru : en;
   return (key: keyof typeof en, vars?: Record<string, string | number>) => {
     const line = dictionary[key];
     return vars ? line.replace(/\{(\w+)\}/g, (_, name: string) => String(vars[name] ?? `{${name}}`)) : line;

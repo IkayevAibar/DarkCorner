@@ -238,7 +238,8 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
 
       {duo && <DuoStrip hero={hero} partner={duo} busy={busy} onLeave={() => void act(async () => { await api.duoLeave(); return api.labyrinth(); })} />}
       <section className="grid gap-2">
-        {view.portal && !duo && (
+        {/* A Companion steps through a Town Portal beside its Hero (solo). */}
+        {view.portal && (!duo || __SOLO__) && (
           <div className="grid gap-1">
             <button type="button" className="btn btn-primary" disabled={busy || shut} onClick={() => enter(view.portal!.floor, true)}>
               {t('lab.portalBack', { n: view.portal.floor })}
@@ -252,7 +253,7 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
           </button>
         ))}
         {duo && floors.length <= woken.length && <span className="px-1 text-xs text-muted">{t('duo.shared')}</span>}
-        {duo && view.portal && <span className="px-1 text-xs text-muted">{t('err.duo_portal')}</span>}
+        {duo && view.portal && !__SOLO__ && <span className="px-1 text-xs text-muted">{t('err.duo_portal')}</span>}
       </section>
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
       {!duo && !__SOLO__ && <DuoCard onChange={onDuo} />}
