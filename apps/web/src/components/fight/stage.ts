@@ -4,6 +4,7 @@ import type { Frame, Status } from './replay';
 import type { Cue } from './choreography';
 import { ParticlePool, type Spray } from './particles';
 import { ClassEffects } from './classEffects';
+import { PowerEffects, powerVisual } from './powerEffects';
 import { tokenPlaces } from './layout';
 
 const SIZE = 600;
@@ -120,6 +121,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
     };
     const spray = (x: number, y: number, options: Spray) => { if (!reduced) pool!.emit(x, y, worldTime, options); };
     const classEffects = new ClassEffects(world, tokens, spray);
+    const powerEffects = new PowerEffects(world, tokens, spray);
     const ring = (x: number, y: number, color: number, radius: number, at = cue.contact, length = 650) => {
       const g = new Graphics();
       clip(g, at, reduced ? 220 : length, p => {
@@ -293,6 +295,13 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
     const prepare = () => {
       if (!event) return;
       const a = cue.actor ? get(cue.actor) : undefined, b = cue.targets[0] ? get(cue.targets[0]) : undefined;
+      const power = powerVisual(event, a?.who.class ?? null, previous?.fighters[cue.actor ?? 'hero']?.beast);
+      if (power && event.type !== 'attack') {
+        if (event.type === 'heal' && b) number(b, '+' + event.amount, event.ability === 'lay-on-hands' ? 0xffdc86 : event.ability === 'wholeness' ? 0xeee6cc : 0xc59aed);
+        if (event.type === 'feature' && event.amount !== undefined && b) number(b,
+          (event.feature === 'ward' || event.feature === 'wild-shape' || event.feature === 'cutting-words' ? '−' : '+') + event.amount, 0xe7d7b8);
+        return;
+      }
       if (event.type === 'power' && event.power === 'twin' && a && b) { twinRise(a, b); return; }
       if (reduced) {
         if (event.type === 'feature' && ['rage', 'mark', 'relentless'].includes(event.feature)) return;
@@ -312,7 +321,8 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         case 'initiative': event.order.forEach((key, i) => { const token = get(key); if (token) number(token, String(i + 1), 0xd8c597, 0); }); break;
         case 'attack':
           if (a && b) {
-            if (event.kind === 'spell') {
+            if (power) { /* The Class layer draws this spell or beast strike on the same contact clock. */ }
+            else if (event.kind === 'spell') {
               const x = b.x + (event.hit ? 0 : b.radius + 45), holy = a.who.class === 'cleric';
               if (holy) radiant({ x, y: b.y }, cue.contact, true);
               else projectile(a, x, b.y, 'bolt');
@@ -437,6 +447,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         for (const status of Object.keys(STATUS) as Status[]) if (!frame.fighters[key]?.statuses[status]) pool!.clear(key + ':' + status);
       }
       classEffects.show(frame, previous, next, timing, calm);
+      powerEffects.show(frame, previous, next, timing, calm);
       prepare(); draw(0);
     };
     const draw = (at: number) => {
@@ -453,6 +464,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         token.root.position.set(token.x, token.y); token.root.alpha = state.fled ? 0 : state.fallen ? .35 : 1;
         token.art.position.set(0, state.fallen ? 20 : active && !reduced ? -6 : 0);
         token.art.rotation = state.fallen ? .25 : 0;
+        token.art.alpha = 1;
         const breath = !reduced && !ended && !state.fallen ? Math.sin(worldTime / 600 + token.x) * .012 : 0;
         token.art.scale.set((active && !reduced ? 1.035 : 1) + breath, (state.fallen ? .88 : 1) - breath * .35);
         token.art.filters = state.fallen ? [mono] : []; token.flash.alpha = 0;
@@ -468,7 +480,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         if (elite) token.halo.circle(0, 0, token.radius + 8).stroke({ color: elite, width: 7, alpha: .3 });
         if (active) token.halo.circle(0, -3, token.radius + 8).stroke({ color: 0xf8d28b, width: 9, alpha: .15 })
           .circle(0, -3, token.radius + 7).stroke({ color: 0xf8d28b, width: 2, alpha: .9 });
-        if (state.ward > 0) token.halo.circle(0, 0, token.radius + 13).stroke({ color: 0x8ad2e8, width: 3, alpha: .65 });
+        if (state.ward > 0 && !state.beast && token.who.class !== 'warlock') token.halo.circle(0, 0, token.radius + 13).stroke({ color: 0x8ad2e8, width: 3, alpha: .65 });
         token.aura.clear();
         if (cue.targets.includes(key) && (replay.ally || event?.type !== 'blocked') && !ended && !state.fallen) {
           const r = token.radius + 15;
@@ -519,6 +531,7 @@ export async function createFightStage({ host, replay, names, map, signal, miss 
         }
       }
       cameraStrength = Math.max(cameraStrength, classEffects.draw(time, worldTime));
+      powerEffects.draw(time, worldTime);
       if (!reduced && !ended) {
         if (worldTime >= airAt) { airAt = worldTime + 170;
           const color = replay.map.startsWith('demons') ? 0xde743a : replay.map.startsWith('lair') ? 0xbbb2a6 : replay.map.startsWith('crypt') ? 0xbca784 : 0x8d8776;

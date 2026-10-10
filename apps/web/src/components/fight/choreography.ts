@@ -26,7 +26,7 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
   if (event.type === 'held') cue.actor = event.target;
   if (event.type === 'feature') {
     cue.actor = event.actor ?? 'hero';
-    cue.targets = ['mark', 'help', 'guard'].includes(event.feature) ? (event.target ? [event.target] : []) : [cue.actor];
+    cue.targets = ['mark', 'hex', 'smite', 'cutting-words', 'help', 'guard'].includes(event.feature) ? (event.target ? [event.target] : []) : [cue.actor];
   }
   // Even a reconnect backlog leaves time to read the Wardens' round-end rule.
   if (event.type === 'power' && event.power === 'twin') cue.length = 3000;
@@ -46,6 +46,9 @@ export function cueFor(replay: FightReplay, event: FightEventView | null, reduce
     case 'feature':
       if (event.feature === 'rage') { cue.contact = 180; cue.length = 1100; cue.hold = 65; }
       if (event.feature === 'mark') { cue.contact = 420; cue.length = 850; }
+      if (event.feature === 'hex') { cue.contact = 360; cue.length = 800; }
+      if (['smite', 'flurry', 'inspiration', 'cutting-words', 'quickened', 'action-surge'].includes(event.feature)) { cue.contact = 160; cue.length = 650; }
+      if (event.feature === 'wild-shape') { cue.contact = 220; cue.length = 800; }
       if (event.feature === 'relentless') { cue.contact = 400; cue.length = 1100; cue.hold = 65; }
       if (['help', 'guard', 'dodge'].includes(event.feature)) { cue.contact = 320; cue.length = 1000; }
       break;
