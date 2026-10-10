@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiRequestError } from '../api';
+import { onGameClockMoved } from '../time';
 
 /**
  * Looks again every `ms` while the screen is open (there are no websockets in Season 0),
@@ -7,6 +8,9 @@ import { ApiRequestError } from '../api';
  */
 export function useRefresh(reload: () => Promise<void>, ms: number) {
   useEffect(() => {
+    // Solo: nothing changes while the player only looks. There are no other Players,
+    // and the game's clock stands still until the Hero sleeps (useLoad looks again then).
+    if (__SOLO__) return;
     // Tabs can flicker visible and back; a look within the last 10 seconds is fresh enough.
     let last = Date.now();
     const tick = () => {
@@ -42,6 +46,9 @@ export function useLoad<T>(load: () => Promise<T>) {
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  // Solo: a night's sleep turns the day (a new Omen, Bounties, stock and Stamina), so look again.
+  useEffect(() => (__SOLO__ ? onGameClockMoved(() => void reload()) : undefined), [reload]);
 
   return { data, setData, failed, reload };
 }
