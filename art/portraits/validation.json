@@ -390,5 +390,1221 @@
     "sampledMinAlpha": 0,
     "sampledMaxAlpha": 254,
     "bytes": 2261133
+  },
+  {
+    "file": "human-barbarian-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2814062,
+    "sha256": "8c093693207c1e30079744846d31c26e240f4df93e9576426be07af964f3c5b0",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-barbarian-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2217487,
+    "sha256": "54771aa029aff8a4c96341253945c7acf6e5c7b379939f23dc8813b681544673",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-ranger-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2411987,
+    "sha256": "6b35d718bc1e52c2544c15e7be891cee2fc9d86e0dc2921ae2b42164eaf361b7",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-ranger-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2469175,
+    "sha256": "e75a1336781cc85087115e3daf9dfd01c56462059153a7db65cb503f43d06753",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-barbarian-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2898518,
+    "sha256": "e78ae666775a8dfe5cc850bfe48332fdee6ec69ac004090cbea343d435ae4a3d",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-barbarian-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2930075,
+    "sha256": "b611a49e9e9179174ecc378e9366227b3f93498de58562d7e64ac7ddea8ba236",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-ranger-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2242802,
+    "sha256": "43e32af50c9caf6326f91b18542fbb8db88d8b14f26d0fdda2c04dad11fa8ced",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-ranger-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2227224,
+    "sha256": "bdac28c4bc6e5149d06b37220e34d5a7c4f38cf2deb8ef3c6dd3929adeb7ab2c",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-barbarian-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2447780,
+    "sha256": "a38b804c8a831d0ffadb6a98ca7e5058eeb5e4559d640868d0990836f05a0534",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-barbarian-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2713303,
+    "sha256": "96d9c2cde351cf04aa7d80789a82acc9ec2c827791162007282a9dee9dc3c50c",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-ranger-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2488118,
+    "sha256": "45225cccc48d937cd6fa2973ea47969cb2fa85d319cd8032b82ddcf07dddb2cd",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-ranger-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2445926,
+    "sha256": "7d805e20ff49334da2dd2da18d8809e37a5ac1ebbdd9131ea97407dd16352058",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-barbarian-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2991644,
+    "sha256": "b2bd24f6666d8827a4e6c9e302b4b012f07e6980a59d1edd6ec67669cf7a031b",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-barbarian-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2654180,
+    "sha256": "0dc6086cd57bd63809f778989b42697f7f16f0f6bf2c889a009a1af10f12b1d1",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-ranger-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2289264,
+    "sha256": "258e015d5fd6bdcb60a9d622f9365e5bd280d00cd4c454affb55fe5609388b20",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-ranger-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2156800,
+    "sha256": "0889d84709ed904adc2bc209bdec4650af926f4e90a32a9f59dff8729d7c8eff",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-paladin-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2257261,
+    "sha256": "ed6cd622ec610dcf1d23b451c5099fc1026584921c4f1e199e15186ca639cf95",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-paladin-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2485260,
+    "sha256": "6347afe78eba3b25cc032094baedcf72d6e8be5c72700c7af2f8f8be0ea50238",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-paladin-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2307243,
+    "sha256": "291bde11a89eb526d4ea6397c0e66ac880a67d3672d86a4c719f3aa7c89c0307",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-paladin-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2330046,
+    "sha256": "13661631b979e83cc8e85e827fbae415f64b62332e27650a98fe5715165974e6",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-paladin-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2712837,
+    "sha256": "7e90105c6aa10fc3c2cd7867bc91d2c04e1c0da43dbeb5e69d1596b14ec713c7",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-paladin-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2390294,
+    "sha256": "13ab1741ade7e7e9625a94e74544c70e9b4cc594515fc4636df88d7b56761ff4",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-paladin-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2272832,
+    "sha256": "c4ca31ad726a3475a8b48f1a1420888a4b75cb710292251c77c05b3c576983a1",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-paladin-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2352758,
+    "sha256": "1883cb47804bf2d2c67c1d64866066fb15aace01b44cc275ad46976dd908e5f4",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-warlock-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2196619,
+    "sha256": "a1d76f5e2eefa1f861c43fa2c28f37ff9fb48c5a97a9319e63ced9292059d43a",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-warlock-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2439681,
+    "sha256": "907bb350c079bc82586c600678a0f1b7d74c3146c5ff30e2e88a9e6b8aec508b",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-warlock-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2544118,
+    "sha256": "29b90abaaf095b7d350c7b1b8edf77394da596ec40a60ae59843dca7cf769ec5",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-warlock-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2246513,
+    "sha256": "61b6451ba8c017164877d9970ec8f10707aaeb6b11db9000b120ef7e33e70faf",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-warlock-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2008871,
+    "sha256": "d968dea0559439f4392da61fd4c87ab5dee60ebfbe2101e11805406a8b62fe14",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-warlock-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2390366,
+    "sha256": "fca3354c413cf603ba792dca332642946a425e613acd11b76e1dd97e0da2bb3b",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-warlock-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2188605,
+    "sha256": "517bd3ab17d98cecb0bf85a45e825d7e5e848dfff1bbb313617ac57e27b8494b",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-warlock-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2217744,
+    "sha256": "7edaa85b1e84bbd37792b6f540ac5b920c410fa21511debebf50628ee9a47942",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-monk-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2060958,
+    "sha256": "ce2e2bbeb51f12c923b82ec49b023e6f3f62fadeb0fd73db5ef253914bb16cb3",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-monk-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1616882,
+    "sha256": "da7bdcd235f0d3ed7f93cbe34167d9ddbc3eee50f4de962f0c679072fca4d961",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-monk-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2213422,
+    "sha256": "e93fdc2423f6a47a4b6dc592579a9679b933086841341efd201137ec894721d7",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-monk-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1950871,
+    "sha256": "7294f1a0c357f0a12170f0fd676290d1ff890b2d12d67b3cfa8edf262463916e",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-monk-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2506996,
+    "sha256": "13035a0231212e8b043f993357b1863e1590395a315d5e9daa7279109008dfe2",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-monk-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2262694,
+    "sha256": "957dba4e63a9348c0ae60488f3570cb1ea9b1786614a9e3bedf058983751cd14",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-monk-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 1894770,
+    "sha256": "f23c018f25ea0e765e119012dc582360dd3d39a12d36eb25b88dac238a9a8526",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-monk-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2218125,
+    "sha256": "e26de71063f4be3c812f30df4275acafecbb3ecbb4f8fe5cc16eadb10980879d",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-druid-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2661627,
+    "sha256": "b84f46dcf36dd96654b593d61591800eebbef0f6eb4c2e56e43fca2abda96453",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-druid-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2748880,
+    "sha256": "860bf6a5a1f4fbdf5da3aa3ea61226287e6c4906c59ac949bbd5f12910d68062",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-druid-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2574758,
+    "sha256": "982f2f5d4914944f30801c9b8db770fa55af4343e96cf9abf515a5506dda55c3",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-druid-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2467532,
+    "sha256": "9d18676f8ec1a4b3663a9f59608dc919f8a9c925f99bb9cf8e9de76bced22c2f",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-druid-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2311027,
+    "sha256": "628c114025f4ce24df5a845115e883d0a138dc7377cacc6c47e2b5880303d1f8",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-druid-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2466267,
+    "sha256": "d50880df6fe9ed303d49a2fdcaab4973e26bf78e9cb086de388a402ff9b3f5b4",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-druid-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2493511,
+    "sha256": "0038f7d39da4a1a1d2a4c9d7d9c793315e5d81352f7e24745a93f427636491a7",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-druid-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2397849,
+    "sha256": "c7069b129382d804487d418bdfe5615fc531ddda156460229297503aa2e8cab3",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-bard-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2412841,
+    "sha256": "c2901751d1c9087aa74456fc625193bcba7ed8c95f0dd8440fe6f96be3bceeb9",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-bard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2172291,
+    "sha256": "f315ebd8a9549791f7eb18a368870a30eadd51aba3e6cb3849d5da4076a74d8d",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-bard-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2780985,
+    "sha256": "8ccfe1d6a23f77d0ae3be64eb77efeda6528090239df3429d86568416edbdde0",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-bard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2208768,
+    "sha256": "6ae3f6e88387c7c19e5c03e18a65d9518fe7fb37d5d3ce157375de05984852cf",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-bard-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2211786,
+    "sha256": "1073dd80cbe3c9a41ae176f311ad4fba798f35f9f5ec5e59182de4ec41db768e",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-bard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2649143,
+    "sha256": "0eb6af74a3a53ee83537e09e008fdedd1531b5cba8f243a265b24e36aad90d66",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-bard-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2451267,
+    "sha256": "be9c225cc2a79eb178253638fe2197e1aa1cceda9db7936a44a2c56984a10409",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-bard-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2523429,
+    "sha256": "dd08db972de27adaa4007f6dda056a2fb03feff07fab0cb777f5d0ffac0aa870",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-sorcerer-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2591016,
+    "sha256": "9439accccbb4251040ffab4f92999bf5b3a052f407517f8d1ca6414271671b15",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "human-sorcerer-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2445767,
+    "sha256": "4abbfcc67f0ebae8e145e58d7d7782a728f547bc757d0922955a7724a06c2f43",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-sorcerer-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2656705,
+    "sha256": "37ff3c2375d84d73e13fdba195ee6a17c6d1a6a9c1655335f7fa8dacbab1ecba",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "elf-sorcerer-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2523589,
+    "sha256": "d73d9a3e2165db9f16293ed4ef3b928fcab82eaa536a4f677bb0f030fb8f330f",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-sorcerer-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2658828,
+    "sha256": "ad3c3c6eafc44e8973a30c43a06636de896be4d27d3c0000a60975bbb4a830ce",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "dwarf-sorcerer-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2574889,
+    "sha256": "5b04ec90fd9a6f8ed59edf68d121abeb31fca74bfea30b2d491a048df6700098",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-sorcerer-1.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2587289,
+    "sha256": "b81e0f410cab75b609dd5099b6b35fba5ea7afc6e28c6852403d27d93a0fd0c8",
+    "matchesGeneratedOriginal": true
+  },
+  {
+    "file": "halfling-sorcerer-2.png",
+    "width": 1254,
+    "height": 1254,
+    "mode": "RGBA",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "alphaRange": [
+      0,
+      255
+    ],
+    "bytes": 2134216,
+    "sha256": "323117ce3dec88bf54d0cf6f21dee9c3dd67bcc9682514452223a6d9df9c43c9",
+    "matchesGeneratedOriginal": true
   }
 ]
