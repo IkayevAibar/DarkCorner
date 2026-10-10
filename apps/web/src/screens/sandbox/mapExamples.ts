@@ -3,7 +3,7 @@ import type { MapView } from '../../components/map/geometry';
 
 export interface MapExample { id: 'fresh' | 'half' | 'full' | 'lair'; width: number; height: number; current: number; map: MapView; revealed: MapView }
 const room = (id: number, width: number, type: RoomTypeId | null, visited = true, cleared = false) =>
-  ({ id, x: id % width, y: Math.floor(id / width), type, visited, cleared, free: visited, back: null });
+  ({ id, x: id % width, y: Math.floor(id / width), type, visited, cleared, free: visited && (cleared || ['empty', 'landing', 'waypoint', 'camp'].includes(type ?? '')), back: cleared ? '2026-10-11T00:00:00Z' : null });
 const door = (a: number, b: number, kind: MapView['doors'][number]['kind'] = 'open') => ({ a, b, kind, passable: kind !== 'twin', key: kind === 'locked' });
 const fresh: MapView = { rooms: [room(44, 10, 'landing'), ...[34, 43, 45, 54].map(id => room(id, 10, null, false))], doors: [34, 43, 45, 54].map(id => door(44, id)) };
 const half: MapView = {

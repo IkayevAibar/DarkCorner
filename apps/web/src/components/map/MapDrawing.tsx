@@ -1,25 +1,28 @@
 import { useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
-import { CELL, canSlide, center, doorKey, frame, reveals, type MapProps, type MapView } from './geometry';
+import { CELL, center, doorKey, frame, reveals, type MapProps, type MapView } from './geometry';
 import { DoorGlyph, Glyph } from './Glyph';
 import { useMapText } from './text';
-import './map.css';
+import { routeInk, walkedRooms } from './routeDrawing';
+import mapStyles from './map.css?inline';
 
 type DrawingProps = Pick<MapProps, 'map' | 'current' | 'banner' | 'exits'> & Partial<Pick<MapProps, 'width' | 'height' | 'disabled' | 'onMove' | 'route' | 'picked' | 'onPick'>>
   & { mini?: boolean };
 
-function useMotion(map: MapView, current: number) {
+function useMotion(map: MapView, current: number, route?: number[] | null) {
   const [snapshot, setSnapshot] = useState({ map, current, revision: 0, slide: false,
-    rooms: new Map<number, number>(), doors: new Set<string>() });
+    route, walk: [] as MapView['rooms'], rooms: new Map<number, number>(), doors: new Set<string>() });
   if (snapshot.map !== map || snapshot.current !== current) {
     const oldDoors = new Set(snapshot.map.doors.map(doorKey));
-    const next = { map, current, revision: snapshot.revision + 1,
-      slide: snapshot.current === current || canSlide(map, snapshot.current, current),
+    const walk = walkedRooms(snapshot.map, map, snapshot.current, current, snapshot.route);
+    const next = { map, current, route, walk, revision: snapshot.revision + 1,
+      slide: snapshot.current === current || walk.length > 1,
       rooms: reveals(snapshot.map, map, current),
       doors: new Set(map.doors.filter(d => d.kind === 'secret' && !oldDoors.has(doorKey(d))).map(doorKey)),
     };
     setSnapshot(next);
     return next;
   }
+  if (snapshot.route !== route) { const next = { ...snapshot, route }; setSnapshot(next); return next; }
   return snapshot;
 }
 
@@ -27,6 +30,7 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
   const { t } = useMapText();
   const id = useId().replace(/:/g, '');
   const svg = useRef<SVGSVGElement>(null);
+  const camera = useRef<SVGGElement>(null), token = useRef<SVGGElement>(null);
   const [pixels, setPixels] = useState({ width: 320, height: 320 });
   useLayoutEffect(() => {
     if (mini || !svg.current) return;
@@ -34,7 +38,20 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
     resize.observe(svg.current);
     return () => resize.disconnect();
   }, [mini]);
-  const motion = useMotion(map, current);
+  const motion = useMotion(map, current, route);
+  useLayoutEffect(() => {
+    if (!mini || motion.walk.length < 2) return;
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (preference.matches) return;
+    const points = motion.walk.map(center), duration = Math.min(2000, (points.length - 1) * 300);
+    const animations = [
+      token.current?.animate(points.map(p => ({ transform: `translate(${p.x + 13}px, ${p.y - 13}px)` })), { duration, easing: 'linear' }),
+      camera.current?.animate(points.map(p => ({ transform: `translate(${CELL * 2 - p.x}px, ${CELL * 2 - p.y}px)` })), { duration, delay: 35, fill: 'backwards', easing: 'linear' }),
+    ];
+    const stop = () => animations.forEach(a => a?.cancel());
+    preference.addEventListener('change', stop);
+    return () => { stop(); preference.removeEventListener('change', stop); };
+  }, [mini, motion.revision]);
   const byId = new Map(map.rooms.map(r => [r.id, r]));
   const exitTo = new Map(exits.map(e => [e.to, e]));
   const view = frame(map.rooms, width, height);
@@ -46,21 +63,22 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
   const hitRadius = onPick ? CELL / 2 : Math.max(20, 22 * Math.max(canvas.w / Math.max(1, pixels.width), canvas.h / Math.max(1, pixels.height)));
   const move = (to: number) => { if (!disabled && exitTo.get(to)?.passable) onMove?.(to); };
   const tap = (to: number) => (onPick ? onPick(to) : move(to));
+  const Hit = onPick ? 'rect' : 'circle';
   // The Route being followed, from the Hero's Room to its goal.
-  const routeLine = route?.length ? [current, ...route].map((id) => byId.get(id)).filter((r) => r !== undefined)
-    .map((r) => `${center(r).x},${center(r).y}`).join(' ') : null;
+  const routeLine = route?.length ? routeInk(map, current, route).map(p => `${p.x},${p.y}`).join(' ') : null;
   const goal = picked === null ? undefined : byId.get(picked);
   return <svg ref={svg} className={`floor-drawing${mini ? ' floor-drawing-mini' : ''}`}
     viewBox={`${canvas.x} ${canvas.y} ${canvas.w} ${canvas.h}`}
     role={mini ? undefined : 'group'} aria-hidden={mini || undefined} aria-label={mini ? undefined : t('lab.mapLabel')}>
+    <style>{mapStyles}</style>
     <defs>
       <pattern id={`${id}-grain`} width="12" height="14" patternUnits="userSpaceOnUse">
         <path d="M1 3 L3 2 M8 11 L10 12" stroke="#99866b" strokeWidth=".6" opacity=".17" />
       </pattern>
-      <radialGradient id={`${id}-edge`}><stop offset="60%" stopColor="#100e0c" stopOpacity="0" /><stop offset="100%" stopColor="#100e0c" stopOpacity=".7" /></radialGradient>
+      <radialGradient id={`${id}-edge`}><stop offset="60%" stopColor="#100e0c" stopOpacity="0" /><stop offset="100%" stopColor="#100e0c" stopOpacity={mini ? .7 : .38} /></radialGradient>
     </defs>
     <rect x={canvas.x} y={canvas.y} width={canvas.w} height={canvas.h} fill="#191815" />
-    <g className={mini && motion.slide ? 'map-camera map-walking' : 'map-camera'}
+    <g ref={camera} className="map-camera"
       style={mini ? { transform: `translate(${CELL * 2 - point.x}px, ${CELL * 2 - point.y}px)` } : undefined}>
       {/* Ragged outlines are deterministic ink, not a filter or a raster dependency. */}
       {map.rooms.map(r => <path key={`fog-${r.id}`} transform={`translate(${center(r).x} ${center(r).y})`}
@@ -74,9 +92,9 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
         return <g key={`${key}-${newly ? motion.revision : 'known'}`} className={`map-door map-door-${d.kind}${newly ? ' map-door-new' : ''}`} data-door={key}>
           <path d={`M${p.x} ${p.y} L${q.x} ${q.y}`} className="map-passage-edge" />
           <path d={`M${p.x} ${p.y} L${q.x} ${q.y}`} className="map-passage" />
-          {d.kind !== 'twin' && <g transform={`translate(${(p.x + q.x) / 2} ${(p.y + q.y) / 2})`}><DoorGlyph kind={d.kind} /></g>}
         </g>;
       })}
+      {routeLine && <g className="map-route-line"><polyline className="map-route-edge" points={routeLine} /><polyline className="map-route" points={routeLine} /></g>}
       {map.rooms.map(r => {
         const p = center(r), exit = exitTo.get(r.id), active = exit?.passable && !disabled;
         const fresh = mini && motion.rooms.has(r.id);
@@ -92,25 +110,24 @@ export function MapDrawing({ map, current, banner, exits, width = 10, height = 1
             {exit?.free && <circle className="map-free-dot" cx="-14" cy="-14" r="2.5" />}
             {/* Done for now, or something new waits again: what a Route walks past for free, or stops at. */}
             {r.visited && r.cleared && <g className="map-done"><circle cx="11" cy="11" r="6" /><path d="M8 11 L10.2 13.4 L14.2 8.4" /></g>}
-            {r.visited && !r.free && r.id !== current && <g className="map-waits"><circle cx="11" cy="-11" r="6" /><path d="M11-14.6 V-10.4 M11-7.9 V-7.6" /></g>}
+            {r.visited && !r.free && r.id !== current && <g className="map-waits"><path className="map-waits-seal" d="M11-18 18-11 11-4 4-11Z" /><path d="M11-14.6 V-10.4 M11-7.9 V-7.6" /></g>}
           </g>
           {!mini && <title>{roomLabel}{dim ? ` · ${t(r.type === 'twin' || r.type === 'oathstone' ? 'room.clearedWeek' : 'room.cleared')}` : ''}{r.visited && !r.free && r.id !== current ? ` · ${t('waits')}` : ''}</title>}
-          {!mini && (onPick || exit) && <circle className="map-hit" r={hitRadius} role="button" tabIndex={onPick || active ? 0 : -1}
+          {!mini && (onPick || exit) && <Hit className="map-hit" {...(onPick ? { x: -CELL / 2, y: -CELL / 2, width: CELL, height: CELL } : { r: hitRadius })} role="button" tabIndex={onPick || active ? 0 : -1}
             aria-disabled={!onPick && !active} aria-pressed={onPick ? picked === r.id : undefined}
             aria-label={exit ? `${t(`dir.${exit.direction}`)} · ${roomLabel}${exit.free ? ` · ${t('free')}` : ''}` : roomLabel}
             onClick={() => tap(r.id)} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tap(r.id); } }} />}
         </g>;
       })}
-      {/* The split seal sits over the wall edges so neither half disappears in a narrow passage. */}
-      {map.doors.filter(d => d.kind === 'twin').map(d => {
+      {/* Door glyphs sit above the Route so locks and split seals remain readable. */}
+      {map.doors.map(d => {
         const a = byId.get(d.a), b = byId.get(d.b);
         if (!a || !b) return null;
         const p = center(a), q = center(b);
-        return <g key={doorKey(d)} className="map-overlay" transform={`translate(${(p.x + q.x) / 2} ${(p.y + q.y) / 2})`}><DoorGlyph kind="twin" /></g>;
+        return <g key={doorKey(d)} className="map-overlay" transform={`translate(${(p.x + q.x) / 2} ${(p.y + q.y) / 2})`}><DoorGlyph kind={d.kind} /></g>;
       })}
-      {routeLine && <g className="map-route-line"><polyline className="map-route-edge" points={routeLine} /><polyline className="map-route" points={routeLine} /></g>}
-      {goal && <circle className="map-goal" cx={center(goal).x} cy={center(goal).y} r="23" />}
-      {here && <g className={`map-token${mini && motion.slide ? ' map-walking' : ''}`}
+      {goal && <g className="map-goal" transform={`translate(${center(goal).x} ${center(goal).y})`}><path d="M-21 15 V21 H15 M-15-21 H21 V-15"/><path className="map-goal-flag" d="M20-10 V-28 L31-25 20-20"/></g>}
+      {here && <g ref={token} className="map-token"
         style={{ transform: `translate(${point.x + 13}px, ${point.y - 13}px)` }} data-current={current}>
         <g key={mini && !motion.slide ? motion.revision : 'walk'} className={mini && !motion.slide ? 'map-arrival' : undefined}>
           <circle r="8" fill="#100d09" stroke="#e8d9ad" strokeWidth="1.5" />

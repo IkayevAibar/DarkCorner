@@ -19,6 +19,13 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-route-ink',
+    date: '2026-10-10',
+    title: t('Follow the ink', 'По чернильному следу'),
+    items: [t('Routes skirt the Room symbols and end at a small flag. The mini-map follows each Room crossed, and larger Rooms in the Map make a Route easier to pick on a phone.',
+      'Маршрут огибает значки комнат и заканчивается флажком. Мини-карта показывает путь через каждую комнату, а увеличенный вид карты помогает выбрать маршрут на телефоне.')],
+  },
+  {
     id: '2026-10-10-boss-paths',
     date: '2026-10-10',
     title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),
