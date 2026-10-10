@@ -4,7 +4,7 @@ import type { TavernView, HallEntry, SeasonView } from '@dark/shared';
 import { useI18n } from '../../i18n';
 import { Token } from '../../components/Token';
 import { OmenNote } from '../../components/OmenNote';
-import { useText } from '../../components/items/ItemChip';
+import { useText } from '../../components/items/text';
 import { formatClock, formatDuration, useNow } from '../../time';
 import { TavernMark, feedSymbol, useTavernCopy } from './tavernArt';
 import './tavern.css';

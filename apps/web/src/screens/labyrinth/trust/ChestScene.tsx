@@ -1,7 +1,9 @@
 import { useTrustText } from './messages';
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { DuoChestView, ItemView } from '@dark/shared';
-import { ItemChip, ItemDetails, useText } from '../../../components/items/ItemChip';
+import { ItemTile } from '../../../components/items/ItemTile';
+import { ItemCard } from '../../../components/items/ItemCard';
+import { useText } from '../../../components/items/text';
 import { useSheet } from '../../../components/Sheet';
 import { useReducedMotion } from '../../../components/loot/motion';
 import { play, playTier } from '../../../sound';
@@ -73,12 +75,12 @@ export function ChestScene({ chest, hero, partner, busy, onPick, closed = false,
     </div>
     {chest.full && !empty && <p className="duo-bag-full">{trustText('chest.bagFull')}</p>}
     <div className="duo-chest-items">{chest.items.map(({ item, takenBy }, index) => <article key={item.id} data-chest-item={index} data-taken={takenBy ?? undefined} style={{ '--item-tier': `var(--color-tier-${item.tier})` } as CSSProperties}>
-      <div className="duo-item-art" inert={closed || undefined}><ItemChip item={item} size={58} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} /></div>
+      <div className="duo-item-art" inert={closed || undefined}><ItemTile item={item} size={58} onClick={() => openSheet({ title: text(item.name), body: <ItemCard item={item} /> })} /></div>
       <span className="duo-item-name">{text(item.name)}</span>
       <small>{t(`tier.${item.tier}`)}</small>
       {takenBy ? <div className="duo-item-owner"><span>✓ {copy.claimed}</span><strong>{takenBy === 'me' ? hero.name : partner?.name ?? copy.partner}</strong></div> : closed ? <div className="duo-item-owner">{copy.leftBehind}</div> : <button type="button" className="btn btn-small" disabled={busy || !mine || seconds === 0} onClick={() => pick(index)}>{trustText('chest.take')}</button>}
     </article>)}</div>
     {!closed && <p className="duo-chest-hint">{trustText('chest.hint')}</p>}
-    {flights.map(flight => <div key={flight.item.id} className="duo-item-flight" data-flight-to={flight.side} aria-hidden="true" inert style={{ left: flight.x, top: flight.y, '--flight-x': `${flight.dx}px`, '--flight-y': `${flight.dy}px` } as CSSProperties} onAnimationEnd={() => setFlights(current => current.filter(f => f !== flight))}><ItemChip item={flight.item} size={58} /></div>)}
+    {flights.map(flight => <div key={flight.item.id} className="duo-item-flight" data-flight-to={flight.side} aria-hidden="true" inert style={{ left: flight.x, top: flight.y, '--flight-x': `${flight.dx}px`, '--flight-y': `${flight.dy}px` } as CSSProperties} onAnimationEnd={() => setFlights(current => current.filter(f => f !== flight))}><ItemTile item={flight.item} size={58} /></div>)}
   </div>;
 }

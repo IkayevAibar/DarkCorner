@@ -1,7 +1,7 @@
 import type { HeroView } from '@dark/shared';
 import { useI18n } from '../i18n';
 import { formatDuration, useNow } from '../time';
-import { useText } from './items/ItemChip';
+import { useText } from './items/text';
 import './blessing.css';
 
 /** A curse occupies the Blessing slot, but never borrows its benevolent treatment. */

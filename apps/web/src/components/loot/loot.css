@@ -11,7 +11,7 @@
 .spin-needle::before { top: -6px; } .spin-needle::after { bottom: -6px; }
 .spin-hint { margin: 0; min-height: 42px; text-align: center; font-style: italic; color: var(--color-muted); }
 .spin-prize { padding: 10px 0 4px; }
-.spin-prize .tier-burst, .identify-card > .tier-burst { --loot-x: 42px; --loot-y: 42px; }
+.spin-prize .tier-burst, .identify-card > .tier-burst { --loot-x: 50%; --loot-y: 95px; }
 .tier-burst { position: relative; min-width: 0; isolation: isolate; }
 .tier-content { position: relative; z-index: 1; }
 .tier-fx { position: absolute; inset: -8px; pointer-events: none; z-index: 0; overflow: clip; overflow-clip-margin: 40px; }

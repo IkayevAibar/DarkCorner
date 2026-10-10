@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useText } from '../components/items/ItemChip';
+import { useText } from '../components/items/text';
 import { useI18n } from '../i18n';
 import { NEWS } from '../news';
 import { markNewsRead } from '../newsState';

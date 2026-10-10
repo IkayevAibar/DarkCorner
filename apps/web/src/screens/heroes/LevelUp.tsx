@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { GrowRequest, HeroView, LevelUpResponse, PathIdView } from '@dark/shared';
 import { api } from '../../api';
-import { useText } from '../../components/items/ItemChip';
+import { useText } from '../../components/items/text';
 import { useAction } from '../../components/useAction';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';

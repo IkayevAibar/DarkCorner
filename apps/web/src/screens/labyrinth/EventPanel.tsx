@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { EventAction, EventView, ItemView, LabyrinthResult, LabyrinthView } from '@dark/shared';
 import { api } from '../../api';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { ItemPicker } from '../../components/ItemPicker';
 import { useSheet } from '../../components/Sheet';
 import { useLoad } from '../../components/useLoad';
@@ -126,7 +128,7 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
                   title: text(w.item.name),
                   body: (
                     <div className="grid gap-4">
-                      <ItemDetails item={w.item} />
+                      <ItemCard item={w.item} />
                       <button type="button" className="btn btn-primary" disabled={view.hero.carriedGold < w.price} onClick={() => { closeSheet(); void send({ action: 'buy', ware: w.id }); }}>
                         {t('shop.buyFor', { n: w.price.toLocaleString() })}
                       </button>
@@ -135,7 +137,7 @@ export function EventPanel({ event, view, busy, act }: { event: EventView; view:
                   ),
                 })}
               >
-                <ItemChip item={w.item} size={48} />
+                <ItemTile item={w.item} size={48} />
                 <span className="min-w-0 flex-1 truncate font-head font-bold">{text(w.item.name)}</span>
                 <span className="font-head font-bold text-[#f1c75b]">{w.sold ? t('shop.soldOut') : w.price.toLocaleString()}</span>
               </button>

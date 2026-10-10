@@ -75,6 +75,13 @@ export const NEWS: NewsEntry[] = [
     ],
   },
   {
+    id: '2026-10-10-item-ink',
+    date: '2026-10-10',
+    title: t('Every Item has its frame', 'Своя оправа для каждого предмета'),
+    items: [t('Item cards now show their art, Quality bar and Tier frame. Relics carry their numbered gold border, Radiant gear shimmers, and Unidentified Items keep their secrets. Tap a stat for its explanation and compare with worn gear as before.',
+      'На карточках предметов теперь видны рисунок, шкала качества и рамка ранга. У реликвий золотая оправа и номер экземпляра, сияющие вещи переливаются, а неопознанные хранят свои тайны. Нажатие на характеристику открывает объяснение; сравнение с надетыми вещами остаётся на месте.')],
+  },
+  {
     id: '2026-10-10-boss-paths',
     date: '2026-10-10',
     title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),

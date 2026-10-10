@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type { ItemView, Listing } from '@dark/shared';
 import { api } from '../../api';
 import { Building, Loading } from '../../components/Building';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { ItemPicker } from '../../components/ItemPicker';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
@@ -79,7 +81,7 @@ function ListingRow({ listing, onPick }: { listing: Listing; onPick: () => void 
   const now = useNow(60_000);
   return (
     <button type="button" className="btn flex items-center gap-3 p-2 text-left font-body font-normal" onClick={onPick}>
-      <ItemChip item={listing.item} size={52} />
+      <ItemTile item={listing.item} size={52} />
       <span className="grid min-w-0 flex-1 gap-0.5">
         <span className="truncate font-head font-bold" style={{ color: `var(--color-tier-${listing.item.tier})` }}>{text(listing.item.name)}</span>
         <span className="truncate text-xs text-muted">
@@ -97,7 +99,7 @@ function BuyListing({ listing, gold, onDone }: { listing: Listing; gold: number;
   const { busy, error, run } = useAction();
   return (
     <div className="grid gap-4">
-      <ItemDetails item={listing.item} />
+      <ItemCard item={listing.item} />
       <span className="text-sm text-muted">{t('market.soldBy', { name: listing.seller })}</span>
       <button type="button" className="btn btn-primary" disabled={busy || gold < listing.price} onClick={() => void run(async () => {
         await api.buyListing(listing.id);
@@ -116,7 +118,7 @@ function TakeBack({ listing, onDone }: { listing: Listing; onDone: () => void })
   const { busy, error, run } = useAction();
   return (
     <div className="grid gap-4">
-      <ItemDetails item={listing.item} />
+      <ItemCard item={listing.item} />
       <span className="text-sm text-muted">{t('market.listedFor', { n: listing.price.toLocaleString() })}</span>
       <button type="button" className="btn" disabled={busy} onClick={() => void run(async () => {
         await api.cancelListing(listing.id);
@@ -138,7 +140,7 @@ function ListItem({ item, tax, onDone }: { item: ItemView; tax: number; onDone: 
   const valid = Number.isInteger(value) && value >= 1;
   return (
     <div className="grid gap-4">
-      <ItemDetails item={item} />
+      <ItemCard item={item} />
       <label className="grid gap-1">
         <span className="sub-heading">{t('market.price')}</span>
         <input className="field" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value.replace(/\D/g, ''))} />

@@ -19,6 +19,7 @@ import { FightLog } from './labyrinth/FightLog';
 import { classPowerFixtures } from '../components/fight/classPowerFixtures';
 
 const POWER_FIGHTS = classPowerFixtures(FIGHTS['goblins-victory-crit']!);
+import { ItemPreview } from './sandbox/ItemPreview';
 
 /**
  * Codex builds visual components here against @dark/shared types with fake
@@ -36,6 +37,7 @@ export function Sandbox() {
       <DicePreview />
       <ForgePreview />
       <SoundPreview />
+      <ItemPreview />
       <CupsPreview />
       <LockPreview />
       <TrustPreview />

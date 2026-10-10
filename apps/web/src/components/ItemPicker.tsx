@@ -1,6 +1,6 @@
 import type { ItemView } from '@dark/shared';
 import { useI18n } from '../i18n';
-import { ItemChip } from './items/ItemChip';
+import { ItemTile } from './items/ItemTile';
 
 /** A titled grid of Items to pick one from, with an optional line under each (a price, a count). */
 export function ItemPicker({ title, items, onPick, note, empty }: {
@@ -20,7 +20,7 @@ export function ItemPicker({ title, items, onPick, note, empty }: {
         <div className="grid grid-cols-[repeat(auto-fill,minmax(66px,1fr))] gap-x-2 gap-y-2.5">
           {items.map((item) => (
             <div key={item.id} className="grid justify-items-center gap-0.5">
-              <ItemChip item={item} onClick={() => onPick(item)} />
+              <ItemTile item={item} onClick={() => onPick(item)} />
               {note && note(item) && <span className="text-center text-[11px] leading-tight text-muted">{note(item)}</span>}
             </div>
           ))}

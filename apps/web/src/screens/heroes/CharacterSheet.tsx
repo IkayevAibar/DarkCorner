@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { ABILITY_IDS, type ClassId, type CreationOptions, type HeroView, type ItemView, type SlotId } from '@dark/shared';
 import { api } from '../../api';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { type InfoId, PERCENT_STATS, critRange, useStatInfo } from '../../components/items/StatInfo';
 import { LevelUp } from './LevelUp';
 import { Meter } from '../../components/Meter';
@@ -159,10 +161,10 @@ export function CharacterSheet({ hero, canRetire, options, onChanged }: {
               return (
                 <div key={slot} className="flex flex-col items-center gap-0.5" style={{ gridArea: area }}>
                   {item ? (
-                    <ItemChip item={item} onClick={() => showItem(item, 'worn')} />
+                    <ItemTile item={item} onClick={() => showItem(item, 'worn')} />
                   ) : both ? (
                     <span className="opacity-35 grayscale" title={t('slot.offTaken')}>
-                      <ItemChip item={both} onClick={() => showItem(both, 'worn')} />
+                      <ItemTile item={both} onClick={() => showItem(both, 'worn')} />
                     </span>
                   ) : (
                     <span className="block size-[62px] rounded-[2px] border border-dashed border-bone/30" />
@@ -213,7 +215,7 @@ function ItemGrid({ title, items, onPick }: { title: string; items: ItemView[]; 
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(62px,1fr))] gap-2">
           {items.map((item) => (
-            <ItemChip key={item.id} item={item} onClick={() => onPick(item)} />
+            <ItemTile key={item.id} item={item} onClick={() => onPick(item)} />
           ))}
         </div>
       )}
@@ -266,7 +268,7 @@ function ItemActions({ item, place, heroClass, worn, onIdentified, onDone }: {
   if (revealed) return <IdentifyReveal before={item} after={revealed} onDone={onDone} />;
   return (
     <div className="grid gap-4">
-      <ItemDetails item={item} />
+      <ItemCard item={item} />
       <div className="flex flex-wrap gap-2">
         {place === 'worn' && (
           <button type="button" className="btn flex-1" disabled={busy} onClick={() => void act(async () => {

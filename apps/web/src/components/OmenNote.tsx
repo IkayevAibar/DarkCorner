@@ -1,6 +1,6 @@
 import type { OmenView } from '@dark/shared';
 import { useI18n } from '../i18n';
-import { useText } from './items/ItemChip';
+import { useText } from './items/text';
 
 /** Today's Omen: how the Labyrinth leans for everyone (docs/design.md → Omens). */
 export function OmenNote({ omen }: { omen: OmenView }) {

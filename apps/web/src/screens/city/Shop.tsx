@@ -1,7 +1,9 @@
 import type { HeroView, ItemView, ShopOffer } from '@dark/shared';
 import { api } from '../../api';
 import { Building, Loading } from '../../components/Building';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { ItemPicker } from '../../components/ItemPicker';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
@@ -40,7 +42,7 @@ export function Shop() {
         <span className="sub-heading">{t('shop.basics')}</span>
         {data.basics.map((offer) => (
           <button key={offer.id} type="button" className="btn flex items-center gap-3 p-2 text-left font-body font-normal" onClick={() => showOffer(offer, true)}>
-            <ItemChip item={offer.item} size={44} />
+            <ItemTile item={offer.item} size={44} />
             <span className="min-w-0 flex-1 truncate font-head font-bold">{text(offer.item.name)}</span>
             <span className="font-head font-bold text-[#f1c75b]">{t('hero.gold', { n: offer.price })}</span>
           </button>
@@ -83,7 +85,7 @@ function BuySheet({ offer, stackable, gold, onDone }: { offer: ShopOffer; stacka
   });
   return (
     <div className="grid gap-4">
-      <ItemDetails item={offer.item} />
+      <ItemCard item={offer.item} />
       <div className="flex flex-wrap gap-2">
         {(stackable ? [1, 5] : [1]).map((n) => (
           <button key={n} type="button" className="btn btn-primary flex-1" disabled={busy || gold < offer.price * n} onClick={() => buy(n)}>
@@ -106,7 +108,7 @@ function SellSheet({ item, rate, onDone }: { item: ItemView; rate: number; onDon
   });
   return (
     <div className="grid gap-4">
-      <ItemDetails item={item} />
+      <ItemCard item={item} />
       {item.tier === 'relic' ? (
         <p className="m-0 text-sm text-muted">{t('shop.noRelics')}</p>
       ) : (

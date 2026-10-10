@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type { HeroView, ItemView, OpenChestResult } from '@dark/shared';
 import { api } from '../../api';
 import { Loading } from '../../components/Building';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { ItemPicker } from '../../components/ItemPicker';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
@@ -50,7 +52,7 @@ export function Loot() {
             const keys = count(`key-${g}`);
             return (
               <div key={g} className="panel flex items-center gap-3 p-2.5">
-                <ItemChip item={{ ...chest, quantity: count(`chest-${g}`) }} size={52} />
+                <ItemTile item={{ ...chest, quantity: count(`chest-${g}`) }} size={52} />
                 <span className="grid min-w-0 flex-1">
                   <span className="truncate font-head font-bold">{text(chest.name)}</span>
                   <span className="text-xs text-muted">{t('loot.keys', { n: keys })}</span>
@@ -114,7 +116,7 @@ function IdentifySheet({ item, scrolls, free, onDone, onClose }: { item: ItemVie
   }
   return (
     <div className="grid gap-4">
-      <ItemDetails item={item} />
+      <ItemCard item={item} />
       <button type="button" className="btn btn-primary" disabled={busy || (!free && scrolls === 0)} onClick={() => void run(async () => {
         const r = await api.identify(item.id);
         setRevealed(r.item);
