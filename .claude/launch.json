@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5180
+    },
+    {
+      "name": "solo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:solo", "-w", "@dark/web"],
+      "port": 5181
     }
   ]
 }

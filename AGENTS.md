@@ -1,12 +1,13 @@
 # Dark Corner (Тёмный уголок)
 
-A dark-fantasy browser dungeon game for a small group of friends that runs in seasons, at `dark.ugolok.world`. One developer (the owner) builds it with two AI agents: Claude Code and Codex.
+A dark-fantasy dungeon game for a small group of friends. It ran online in Seasons at `dark.ugolok.world`, and is becoming a solo game for Android with no server. One developer (the owner) builds it with two AI agents: Claude Code and Codex.
 
 ## Read first
 
 - `CONTEXT.md`: the glossary. Use its terms in code, UI text and commits: Hero, Labyrinth, Run, Bonus stat.
 - `docs/design.md`: gameplay rules and numbers. It is the source of truth for how the game plays. Numbers tagged *(v0)* can be tuned.
 - `docs/architecture.md`: the stack, the repo layout, and the rules the code follows.
+- `docs/plan-solo-offline.md`: the solo, offline Android version: its settled decisions, its architecture, and the phase under way.
 
 ## Who owns what
 
@@ -14,6 +15,7 @@ A dark-fantasy browser dungeon game for a small group of friends that runs in se
   - `packages/shared`, the contract
   - `packages/engine`, the rules and content
   - `apps/api`
+  - `packages/solo`, the solo game's local backend
   - connecting `apps/web` screens to the API
 - **Codex** owns self-contained visual work in `apps/web`:
   - PixiJS scenes (fight playback, the Chest Spin, the identify reveal, drop effects)
@@ -29,7 +31,7 @@ A dark-fantasy browser dungeon game for a small group of friends that runs in se
 
 - Use one branch per task: `claude/<topic>` or `codex/<topic>`. Open a pull request, and the owner merges it.
 - A change to `packages/shared` needs the owner's approval in the pull request, because it is the contract between the two agents.
-- The server makes every random roll and every change to gold or Items. The web shows the results.
-- Every player-facing string is written in both `en` and `ru`. English capitalizes glossary terms (Stamina, Floor, Item). Russian uses one word per term: Hero герой, Level up новый уровень, Floor этаж, Room комната, Door дверь, Clue подсказка, Map карта, Stamina выносливость, Run вылазка, Waypoint путевой камень, Town Portal портал, Camp лагерь, Grave могила, Bag сумка, Storage хранилище, Item предмет, Tier ранг, Chest сундук, Key ключ, Treasure room клад, Vault сокровищница, Boss gate врата босса, Blessing благословение, Broadcast оповещение, Notification уведомление, Delve спуск, Boon дар, Barbarian варвар, Ranger следопыт, Rage ярость, Hunter's mark метка охотника, Paladin паладин, Warlock колдун, Monk монах, Druid друид, Bard бард, Sorcerer чародей, Action Surge всплеск действий, Divine smite божественная кара, Lay on hands наложение рук, Hex порча, Flurry of blows шквал ударов, Wild shape дикий облик, Bardic inspiration вдохновение барда, Sorcery points очки чародейства, Listing объявление, Retire отправить на покой, Wipe вайп, Feed лента, Hall of Fame зал славы, Stance стойка, Threat угроза, Sneak прокрасться, Retreat отступить, Escape roll бросок побега, Bomb бомба, Elite элита, Path путь, Talent талант, Bounty задание, Hunt охота, Omen знамение, Hidden room потайная комната, Deed подвиг, Title титул, Duo дуэт, Partner напарник, Manual fight бой по ходам, Auto авто, Dodge уклонение, Help помощь, Guard прикрытие, Pull up поднять, Twin door парная дверь, Twin Wardens стражи-близнецы, Bond ring кольцо уз, Oathstone камень клятв, Duo Chest сундук дуэта, Academy академия, Training grounds плац, Off-hand вторая рука, Two-handed двуручное, Route маршрут. Phrase anything about the Player's Hero without gendered verbs or adjectives (present tense, or restructure).
+- The server makes every random roll and every change to gold or Items; in the solo game, the local backend in `packages/solo` does. The web shows the results.
+- Every player-facing string is written in both `en` and `ru`. English capitalizes glossary terms (Stamina, Floor, Item). Russian uses one word per term: Hero герой, Level up новый уровень, Floor этаж, Room комната, Door дверь, Clue подсказка, Map карта, Stamina выносливость, Run вылазка, Waypoint путевой камень, Town Portal портал, Camp лагерь, Grave могила, Bag сумка, Storage хранилище, Item предмет, Tier ранг, Chest сундук, Key ключ, Treasure room клад, Vault сокровищница, Boss gate врата босса, Blessing благословение, Broadcast оповещение, Notification уведомление, Delve спуск, Boon дар, Barbarian варвар, Ranger следопыт, Rage ярость, Hunter's mark метка охотника, Paladin паладин, Warlock колдун, Monk монах, Druid друид, Bard бард, Sorcerer чародей, Action Surge всплеск действий, Divine smite божественная кара, Lay on hands наложение рук, Hex порча, Flurry of blows шквал ударов, Wild shape дикий облик, Bardic inspiration вдохновение барда, Sorcery points очки чародейства, Listing объявление, Retire отправить на покой, Wipe вайп, Feed лента, Hall of Fame зал славы, Stance стойка, Threat угроза, Sneak прокрасться, Retreat отступить, Escape roll бросок побега, Bomb бомба, Elite элита, Path путь, Talent талант, Bounty задание, Hunt охота, Omen знамение, Hidden room потайная комната, Deed подвиг, Title титул, Duo дуэт, Partner напарник, Manual fight бой по ходам, Auto авто, Dodge уклонение, Help помощь, Guard прикрытие, Pull up поднять, Twin door парная дверь, Twin Wardens стражи-близнецы, Bond ring кольцо уз, Oathstone камень клятв, Duo Chest сундук дуэта, Academy академия, Training grounds плац, Off-hand вторая рука, Two-handed двуручное, Route маршрут, Save сохранение, Day день, Chapter глава, Companion спутник, Chronicle летопись, Iron mode железный режим. Phrase anything about the Player's Hero without gendered verbs or adjectives (present tense, or restructure).
 - Design screens for a phone held upright first, then widen them for desktop.
 - When a gameplay rule changes, update `docs/design.md` in the same pull request. When you add a new game term, add it to `CONTEXT.md`.

@@ -29,6 +29,21 @@ Every feature serves at least one of these:
 - **Money:** no real money, ever. No purchases, no donations for perks, no cash-out.
 - **Game clock:** Astana time (UTC+5). Players see times in their own time zone.
 
+## The solo game (in progress)
+
+Online Seasons have ended. Next comes a solo version for Android that needs no server ([plan-solo-offline.md](plan-solo-offline.md)). The owner settled its shape on 2026-10-10:
+- **In-game Days** instead of the real clock.
+- **Chapters** instead of Seasons.
+- **A Companion** for the Duo content.
+- **Offline only.**
+- **Story, Normal or Hard**, chosen when a Save starts.
+- **Death as below**, plus an optional **Iron mode**.
+
+Until those land, the solo build plays by this document, except for these:
+- **One Player per device,** always signed in: no hub, no approval.
+- **Time stands still until the Hero sleeps.** A night at the Tavern is that sleep: the Hero rests, and the next Day begins (Lodging's one-night-a-day rule counts Days). Camps don't end the Day yet, so their four-hour rest never finishes in the solo build.
+- **Nothing reaches anyone else:** no push Notifications, no Broadcasts, and no other Players at the Market or in the Tavern.
+
 ## Seasons
 
 - **Length:** a Season lasts about 4–6 weeks. It starts with a newly generated Labyrinth and ends with a Wipe.

@@ -18,6 +18,13 @@ export class ApiRequestError extends Error {
 }
 
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
+  // The solo build answers every call on the device (src/solo.ts), with the server's responses.
+  if (__SOLO__) {
+    const { soloRequest } = await import('./solo');
+    const answer = await soloRequest(method, url, body);
+    if (answer.status >= 400) throw new ApiRequestError(answer.status, answer.body as ApiErrorBody | null);
+    return answer.body as T;
+  }
   const response = await fetch(url, {
     method,
     credentials: 'include',

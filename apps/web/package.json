@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:solo": "vite --mode solo",
     "build": "vite build",
+    "build:solo": "vite build --mode solo",
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },
   "dependencies": {
     "@dark/shared": "*",
+    "@dark/solo": "*",
     "pixi.js": "^8.21.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

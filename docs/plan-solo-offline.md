@@ -7,26 +7,23 @@
 - the solo game it becomes
 - a plan in phases
 
-Nothing here is built yet. The decisions in section 1 are the owner's, so settle them before building.
+The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phase 1 is under way on the branch `claude/android-prep`.
 
 Read with [design.md](design.md), [architecture.md](architecture.md) and [CONTEXT.md](../CONTEXT.md). design.md stays the source of truth for every rule this doc doesn't change.
 
-## 1. Decisions to settle with the owner first
+## 1. Decisions (settled 2026-10-10)
 
-Each one changes what gets built. A recommendation follows each.
-
-1. **Pacing.** Today the game runs on the real clock:
+1. **Pacing: in-game days.** Today the game runs on the real clock:
    - Stamina refills one point every 24 minutes, up to 20.
    - A Camp rest takes 4 hours, and Training 8.
    - The Omen, Bounties, the Daily Delve and the Mini-bosses' return follow the calendar.
 
-   Offline, either keep real time (a mobile game you come back to, with local notifications), or switch to **in-game days**, where a day ends when the Hero sleeps.
-   *Recommendation: in-game days.* A solo player plays when it suits them. With nobody to keep pace with, real-time waiting only frustrates, and changing the phone's clock would cheat it anyway.
-2. **The arc that replaces the Season.** *Recommendation: Chapters.* A Chapter is one Labyrinth (a new seed) and its Boss. Beating the Boss ends the Chapter: the Hero enters the player's own Hall of Fame, and the player either keeps playing that world or starts the next Chapter with a small legacy. Chapters after the first need new Bosses, which is the content a Season 1 would have needed anyway.
-3. **Duo content** (Twin doors and the Twin Wardens, Bond rings, Oathstones, Duo Chests). *Recommendation: a Companion,* an AI-played partner Hero (section 4), so that this content stays. The alternative is to cut it.
-4. **The server.** *Recommendation: offline only.* Keep the server code in case an optional online layer comes later (cloud saves, a Daily Delve board), but make nothing depend on it.
-5. **Difficulty.** *Recommendation:* Story, Normal and Hard, chosen when a save starts. Normal is today's numbers for a Hero alone.
-6. **Death.** *Recommendation:* as today, with an optional Iron mode (one life) chosen when a save starts. Today a dead Hero leaves a Grave to walk back to, and wakes at the Temple.
+   Solo, a day ends when the Hero sleeps. A solo player plays when it suits them. With nobody to keep pace with, real-time waiting only frustrates, and changing the phone's clock would cheat it anyway.
+2. **The arc: Chapters.** A Chapter is one Labyrinth (a new seed) and its Boss. Beating the Boss ends the Chapter: the Hero enters the player's own Hall of Fame, and the player either keeps playing that world or starts the next Chapter with a small legacy. Chapters after the first need new Bosses, which is the content a Season 1 would have needed anyway.
+3. **Duo content stays, with a Companion:** an AI-played partner Hero (section 4). That keeps Twin doors and the Twin Wardens, Bond rings, Oathstones and Duo Chests.
+4. **The server: offline only.** Nothing in the app depends on a server. The server code stays in the repo in case an optional online layer comes later (cloud saves, a Daily Delve board). The live site keeps running as it is until the owner retires it.
+5. **Difficulty: Story, Normal and Hard,** chosen when a save starts. Normal is today's numbers for a Hero alone.
+6. **Death: as today, plus an optional Iron mode** (one life) chosen when a save starts. Today a dead Hero leaves a Grave to walk back to, and wakes at the Temple.
 
 ## 2. What stays
 
@@ -123,6 +120,13 @@ Each one changes what gets built. A recommendation follows each.
 - Running Fastify, Postgres and Prisma on the phone. Prisma has no Android runtime, and nodejs-mobile is heavy and fragile.
 - An online-first app that syncs. It keeps all the cost of a server for a single player.
 
+**As built in Phase 1** (details in [architecture.md](architecture.md#the-solo-build)). The handlers were copied rather than rewritten. Phase 1's routes import nearly the whole service layer: 49 files and about 7,700 lines. So `packages/solo` holds a copy of every service and route, running on an in-memory database: the slice of Prisma's client they use, over the World's tables.
+- **The services are almost unchanged.** `new Date()` became the game clock, and Fastify became a small router. They still typecheck against Prisma's own types.
+- **The server's scenarios are the proof.** Every API test except sign-in, push and one Postgres migration runs on the solo backend and passes.
+- **All or nothing, twice over.** Each request runs on the World and is undone if it throws. A failed `$transaction` is undone inside it, as in Postgres.
+- **The Clock** is a moment of in-game time that stands still until the Hero sleeps. That keeps every rule the server counts in hours (Stamina, rests, Training, Graves) working over nights. The job queue stays: jobs run on that clock.
+- **Storage:** IndexedDB in a browser for now. The Android file comes in Phase 4.
+
 **Porting map** (`apps/api/src/services`):
 - **Port:**
   - labyrinth (1,403 lines, the bulk of the work), events, heroes
@@ -150,11 +154,25 @@ Each phase ends on something a person can try.
    - Port: creating a Hero, the City's basics, entering the Labyrinth, Move and Face, fights (Auto and by hand), loot, the Bag and equipping, and going home.
 
    *Done when* a new player, in a browser with the network off, makes a Hero, clears a Floor 1 Room, puts on its loot, goes back to the City, reloads the page, and finds everything as it was.
+
+   **Done, 2026-10-10.**
+   - The loop is played in `packages/solo/test/backend.test.ts`, with fixed dice so it runs the same every time.
+   - In a browser, the solo build (`npm run dev:solo -w @dark/web`, port 5181) made a Fighter, won four Floor 1 fights and wore the longsword one dropped. The Hero went home, and a reload found it all as it was.
+   - The game made no request to an API or a sign-in at any point.
+   - Only the Google Fonts stylesheet still uses the network: Phase 4 bundles the fonts.
 2. **Everything single-player.**
    - Port the rest: events, the Daily Delve, Forge, Shop, Bounties, Deeds, First steps, Academy, Training, Lodging, Temple, Relics, Vaults and the Boss.
    - Port the scenarios in `apps/api/test` so they run against the local backend.
 
    *Done when* every screen that solo keeps works offline, and the ported tests pass.
+
+   **Mostly came with Phase 1.** Every service is ported, and the ported scenarios pass. What is left: walking each screen in the solo build and fixing what shows.
+   - Already seen in Phase 1, for Phase 3, are texts that still speak of real time:
+     - Stamina "+1 in 0:00"
+     - the gate's "one point every 24 minutes"
+     - a Run that took "0 minutes"
+   - The Duo panel says nobody is in the City.
+   - Push settings answer `push_offline`.
 3. **The solo game.**
    - Build: days, the Companion, the Chronicle, records and the Hall of Fame, Chapters, and difficulty.
    - Hide what solo removes.
@@ -170,9 +188,10 @@ Each phase ends on something a person can try.
 
 ## 7. Gotchas
 
-- **`new Date()` is all over the services.** Every call that means game time must go through the Clock, or days break.
-- **The job queue can't be fast-forwarded.** The API's daily jobs reschedule from the real clock, so `runDueJobs` with a future time loops forever. Replace the queue rather than porting it.
+- **`new Date()` is all over the services.** Every call that means game time must go through the Clock, or days break. *(Phase 1: the solo copies call `gameNow()`; keep new code on it too.)*
+- **The job queue can't be fast-forwarded.** The API's daily jobs reschedule from the real clock, so `runDueJobs` with a future time loops forever. *(Phase 1: in solo every job reschedules from the game clock, and jobs queued during a pass wait for the next one.)*
+- **Camps.** A Camp rest waits four hours of in-game time, which never pass while the clock stands still. Until Phase 3 makes sleeping in a Camp end the Day, only a night at the Tavern moves the clock.
 - **Keep manual fights as a seed plus choices.** They are stored that way and replayed on every turn. That is what makes a fight come back the same after the app is killed.
 - **Pick the balance numbers by who fights.** With a Companion, Duo balance applies (`alone = false`). Without one, the extra difficulty from Floor 3 (`floorMight`) does.
 - **Text.** Strings for removed screens can go. Everything that stays keeps both `en` and `ru`.
-- **Docs.** Once the decisions in section 1 are made, update design.md in the same pull request (Seasons, Duos, Social, the Market, Notifications, the Scope) and add the new terms to CONTEXT.md: Companion, Chapter, Chronicle, Day.
+- **Docs.** The decisions are in design.md's "The solo game" and the new terms in CONTEXT.md. As each one is built, rewrite the design.md sections it changes in the same pull request (Seasons, Duos, Social, the Market, Notifications, the Scope).

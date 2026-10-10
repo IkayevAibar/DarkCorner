@@ -456,6 +456,32 @@ Choices for a Hero's turn: blows at it have disadvantage until its next turn; it
 A small, permanent group of Players.
 _Avoid_: clan, faction
 
+### The solo game
+
+**Save** (сохранение):
+One solo game on one device: its Hero, its Labyrinth and its Day, kept between sessions.
+_Avoid_: profile, file, slot (a slot holds a Save)
+
+**Day** (день):
+An in-game day of the solo game. Time stands still while the Hero plays; the Day ends when the Hero sleeps, and waking brings Stamina, short rests and cleared Rooms back.
+_Avoid_: turn, cycle
+
+**Chapter** (глава):
+The solo game's arc in place of a Season: one Labyrinth and its Boss. The Boss's fall ends it.
+_Avoid_: act, episode, level
+
+**Companion** (спутник):
+An AI-played partner Hero in the solo game. It takes the second Hero's place in Duo content.
+_Avoid_: follower, hireling, pet
+
+**Chronicle** (летопись):
+The solo game's record of its Hero's story, in place of the Tavern's Feed.
+_Avoid_: log, journal, diary
+
+**Iron mode** (железный режим):
+A Save with one life: a Hero who dies is gone. Chosen when the Save starts.
+_Avoid_: hardcore, permadeath
+
 ### Dice
 
 **Check**:

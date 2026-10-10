@@ -14,6 +14,7 @@ COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
 COPY packages/engine/package.json packages/engine/
 COPY packages/shared/package.json packages/shared/
+COPY packages/solo/package.json packages/solo/
 # The API's postinstall runs `prisma generate`, which needs the schema.
 COPY apps/api/prisma apps/api/prisma
 RUN npm ci --no-audit --no-fund

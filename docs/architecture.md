@@ -1,6 +1,6 @@
 # Dark Corner: Architecture
 
-Status: weeks 1–5 of the [Season 0 plan](plan-season-0.md) are built: sign-in and admin approval, Heroes and Items, the Labyrinth and fights, loot and the economy (Shops, Forge, Market, Temple, Event rooms), the Season's life (Boss gate, the Dragon, Vaults, Relics, the Wipe, the Hall of Fame), the Feed and Broadcasts, admin tools, and the production deployment ([deploy.md](deploy.md)). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
+Status: weeks 1–5 of the [Season 0 plan](plan-season-0.md) are built: sign-in and admin approval, Heroes and Items, the Labyrinth and fights, loot and the economy (Shops, Forge, Market, Temple, Event rooms), the Season's life (Boss gate, the Dragon, Vaults, Relics, the Wipe, the Hall of Fame), the Feed and Broadcasts, admin tools, and the production deployment ([deploy.md](deploy.md)). The solo, offline version is under way ([plan-solo-offline.md](plan-solo-offline.md); how it runs: [The solo build](#the-solo-build)). For gameplay rules, see [design.md](design.md). For terms, see [CONTEXT.md](../CONTEXT.md).
 
 ## Stack
 
@@ -21,6 +21,7 @@ apps/
 packages/
   shared/     the contract: zod schemas and types for API payloads, fight replays, item views
   engine/     pure, deterministic game rules and content: dice, fights, loot, Labyrinth generation, Forge odds
+  solo/       the solo build's local backend: the API's services on an in-memory World, saved on the device
 ```
 
 ## Rules the code follows
@@ -86,9 +87,28 @@ The engine splits a Hero's decision from the dice: `playFight(rng, input, { manu
 | Service | Port |
 |---|---|
 | Web (Vite; proxies `/api` and `/auth` to the API) | 5180 |
+| Web, solo build (`npm run dev:solo -w @dark/web`; no API needed) | 5181 |
 | API | 4100 |
 | Postgres (Docker Compose project `dark-corner-dev`) | 5433 |
 
 ## Environment variables
 
 Listed with comments in `apps/api/.env.example`: `DATABASE_URL`, `SESSION_SECRET`, `API_PORT`, `API_HOST`, `PUBLIC_WEB_URL`, `SSO_SECRET`, `ACCOUNT_ORIGIN`, `ADMIN_DISCORD_IDS`, `DISCORD_WEBHOOK_URL`, `SERVER_TIMEZONE`, and the optional `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`.
+
+## The solo build
+
+The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web's API calls on the device. `vite --mode solo` sets `__SOLO__`, and `request()` in `apps/web/src/api.ts` then asks `apps/web/src/solo.ts` instead of `fetch`. The normal build leaves all of it out.
+
+- **The services are the server's, copied.** `packages/solo/src/services` and `routes` are `apps/api/src`'s, ported once (as of `9969d96`, the last change there): `new Date()` became the game clock, and a small router stands in for Fastify. They now change on their own; the server's stay as they are. The solo versions of push and the hub sign-in do nothing.
+- **The World** (`world.ts`) is a Save: the server's tables, a clock and the Save's settings, written as JSON (Dates and BigInts tagged).
+- **The in-memory database** (`db/memdb.ts`) is the slice of Prisma's client the services use, typed as Prisma's own client, so the services compile unchanged. It keeps Postgres's habits where the services can tell:
+  - Reads are copies.
+  - NULL matches no `not`, `in` or comparison, and never clashes in a unique key.
+  - Json is stored as JSON.
+  - A throwing `$transaction` is undone.
+  - Row locks do nothing.
+
+  `db/schema.gen.ts` describes the tables. It is generated from `apps/api/prisma/schema.prisma` by `npm run gen:schema -w @dark/solo`.
+- **The game clock** (`gameClock.ts`): in `'days'` mode in-game time stands still until the Hero sleeps, then jumps to the next morning, 08:00 UTC. Jobs come due over nights and run before each request. `'real'` mode follows the device's clock, as the server does.
+- **The backend** (`backend.ts`) runs one request at a time. A request that throws leaves the World as it was. After any change it saves: IndexedDB in a browser, falling back to memory.
+- **Tests:** `packages/solo/test` runs the server's API scenarios on the solo backend (a `solo_player` cookie plays several Players at once there), plus the in-memory database's own tests and `backend.test.ts` for Saves and Days.
