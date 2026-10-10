@@ -9,6 +9,7 @@ export function sound(event: FightEventView): void {
     case 'surprise': play('crit', { rate: 0.85, volume: 0.7 }); break;
     case 'escape':
       play('die');
+      if (event.natural === 20) buzz(60);
       if (event.success) play('step', { delay: 350 });
       break;
     case 'attack':
@@ -16,7 +17,7 @@ export function sound(event: FightEventView): void {
       else if (event.crit) {
         play('crit');
         play('hit', { delay: 70 });
-        if (event.actor === 'hero' && event.natural === 20) buzz(60);
+        if ((event.actor === 'hero' || event.actor === 'ally') && event.natural === 20) buzz(60);
       } else play('hit');
       break;
     case 'burst':
@@ -33,7 +34,11 @@ export function sound(event: FightEventView): void {
       if (event.natural === 20) buzz([60, 40, 60]);
       break;
     case 'rise': play('equip'); break;
-    case 'save': play('die'); break;
+    case 'save':
+    case 'revive':
+      play('die');
+      if (event.natural === 20) buzz(60);
+      break;
     case 'feature':
       if (event.feature === 'indomitable') play('equip', { rate: 0.8 });
       else if (event.feature === 'relentless') { play('crit', { rate: 0.65, volume: 0.7 }); play('equip', { rate: 0.8, delay: 90 }); }

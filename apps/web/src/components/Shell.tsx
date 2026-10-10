@@ -127,6 +127,7 @@ function AccountSheet() {
               key={String(value)}
               type="button"
               className={`btn btn-small ${value === soundOn ? 'btn-primary' : ''}`}
+              aria-pressed={value === soundOn}
               onClick={() => setSoundOn(value)}
             >
               {value ? t('account.on') : t('account.off')}
