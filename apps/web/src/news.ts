@@ -19,6 +19,13 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-anvil-ink',
+    date: '2026-10-10',
+    title: t('The hammer falls', 'Удар молота'),
+    items: [t('Upgrades now land on the anvil: sparks, cracks, a burning Protection scroll or shattered metal. A success to +10 shines brightest. The recorded roll and chance stay visible after the strike.',
+      'Улучшение происходит на наковальне: искры, трещины, сгорающий свиток защиты или осколки металла. Успех до +10 сияет ярче всего. После удара видны результат броска и шанс.')],
+  },
+  {
     id: '2026-10-10-boss-paths',
     date: '2026-10-10',
     title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),

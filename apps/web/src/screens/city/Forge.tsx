@@ -11,15 +11,7 @@ import { useI18n } from '../../i18n';
 import { play } from '../../sound';
 import { BulkPanel } from './BulkPanel';
 import { NeedHero } from './NeedHero';
-
-/** What an Upgrade sounds like once the hammer lands. */
-const UPGRADE_SOUND: Record<UpgradeResult['outcome'], () => void> = {
-  success: () => play('chips', { delay: 180 }),
-  failed: () => play('miss', { delay: 180 }),
-  saved: () => play('page', { delay: 180 }),
-  dropped: () => play('creak', { delay: 180 }),
-  destroyed: () => play('grave', { delay: 180 }),
-};
+import { UpgradeStrike } from '../../components/forge/UpgradeStrike';
 
 const MATERIALS = ['scrap', 'essence', 'soulstone'];
 
@@ -93,6 +85,9 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
   const { busy, error, run } = useAction();
   const [protect, setProtect] = useState(true);
   const [last, setLast] = useState<UpgradeResult | null>(null);
+  const [before, setBefore] = useState(item);
+  const [strike, setStrike] = useState(0);
+  const [revealing, setRevealing] = useState(false);
   const [destroyed, setDestroyed] = useState(false);
 
   const after = async () => {
@@ -103,8 +98,8 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
   if (destroyed) {
     return (
       <div className="grid gap-3">
-        {last && <UpgradeLine result={last} />}
-        <button type="button" className="btn" onClick={closeSheet}>{t('close')}</button>
+        {last && <UpgradeStrike key={strike} item={before} result={last} onDone={() => setRevealing(false)} />}
+        {!revealing && <button type="button" className="btn" onClick={closeSheet}>{t('close')}</button>}
       </div>
     );
   }
@@ -115,8 +110,9 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
 
   return (
     <div className="grid gap-4">
+      {last && <UpgradeStrike key={strike} item={before} result={last} onDone={() => setRevealing(false)} />}
+      <div className="grid gap-4" hidden={revealing} style={revealing ? { display: 'none' } : undefined}>
       <ItemDetails item={q.item} />
-      {last && <UpgradeLine result={last} />}
       {q.blocked && <p className="m-0 text-sm text-muted">{t(`err.${q.blocked as 'identify_first'}`)}</p>}
 
       {up && (
@@ -138,9 +134,10 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
             className="btn btn-primary"
             disabled={busy || !affordable(up.cost, gold)}
             onClick={() => void run(async () => {
-              play('anvil');
               const r = await api.upgrade(item.id, up.risky && protect && up.protectionScrolls > 0);
-              UPGRADE_SOUND[r.outcome]();
+              setBefore(q.item);
+              setStrike(n => n + 1);
+              setRevealing(true);
               setLast(r);
               if (r.outcome === 'destroyed') {
                 setDestroyed(true);
@@ -186,6 +183,7 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
         </div>
       )}
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
+      </div>
     </div>
   );
 }
@@ -194,17 +192,6 @@ function SalvageLine({ min, max, name }: { min: number; max: number; name: { en:
   const { t } = useI18n();
   const text = useText();
   return <span className="text-sm">{t('forge.salvageGives', { range: min === max ? String(min) : `${min}–${max}`, name: text(name) })}</span>;
-}
-
-function UpgradeLine({ result }: { result: UpgradeResult }) {
-  const { t } = useI18n();
-  const tone = result.outcome === 'success' ? 'text-gold' : result.outcome === 'destroyed' ? 'text-tier-mythic' : 'text-bone';
-  return (
-    <div className="panel anim-pop grid gap-0.5 p-3">
-      <span className={`font-head text-xl font-extrabold ${tone}`}>{t(`forge.outcome.${result.outcome}`, { n: result.item?.upgrade ?? 0 })}</span>
-      <span className="text-sm text-muted">{t('forge.roll', { r: result.roll, p: result.chance })}</span>
-    </div>
-  );
 }
 
 function CraftRow({ recipe, hero, onDone }: { recipe: { id: string; makes: { name: { en: string; ru: string } }; materials: ForgeCost['materials']; canCraft: boolean }; hero: HeroView; onDone: () => void }) {
