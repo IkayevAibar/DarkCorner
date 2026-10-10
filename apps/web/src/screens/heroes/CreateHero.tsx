@@ -6,6 +6,7 @@ import { api, ApiRequestError } from '../../api';
 import { useText } from '../../components/items/ItemChip';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';
+import { AbilityRoll } from '../../components/dice/AbilityRoll';
 import type { MessageKey } from '../../i18n/en';
 
 const STEPS = ['race', 'class', 'abilities', 'talents', 'look', 'confirm'] as const;
@@ -32,6 +33,8 @@ export function CreateHero({ options, initialDraft, onCreated }: {
   const [race, setRace] = useState<RaceId | null>(null);
   const [cls, setCls] = useState<ClassId | null>(null);
   const [draft, setDraft] = useState(initialDraft);
+  const [reveal, setReveal] = useState<AbilitySetView | null>(null);
+  const [rolling, setRolling] = useState(false);
   const [setIndex, setSetIndex] = useState(initialDraft ? initialDraft.sets.length - 1 : 0);
   const [talents, setTalents] = useState<TalentId[]>([]);
   const [portrait, setPortrait] = useState<string | null>(null);
@@ -51,7 +54,7 @@ export function CreateHero({ options, initialDraft, onCreated }: {
   const ready: Record<Step, boolean> = {
     race: race !== null,
     class: cls !== null,
-    abilities: draft !== null,
+    abilities: draft !== null && !rolling,
     talents: talents.length === picks,
     look: portrait !== null && portraits.some((p) => p.id === portrait) && name.trim().length >= 2,
     confirm: true,
@@ -75,6 +78,8 @@ export function CreateHero({ options, initialDraft, onCreated }: {
     const { draft: next } = draft ? await api.rerollDraft() : await api.startDraft();
     setDraft(next);
     setSetIndex(next.sets.length - 1);
+    setReveal(next.sets[next.sets.length - 1]!);
+    setRolling(true);
   });
 
   const submit = () => run(async () => {
@@ -143,10 +148,11 @@ export function CreateHero({ options, initialDraft, onCreated }: {
               {t('create.keyAbilities', { cls: text(classOption.name), ability: t(`ability.${classOption.primary}`) })}
             </p>
           )}
-          {draft?.sets.map((set, i) => (
+          {reveal && <AbilityRoll key={draft?.sets.length} set={reveal} onDone={() => setRolling(false)} />}
+          {draft?.sets.map((set, i) => rolling && i === draft.sets.length - 1 ? null : (
             <AbilitySetCard key={i} set={set} keys={keyAbilities} selected={i === setIndex} onClick={() => setSetIndex(i)} />
           ))}
-          <button type="button" className={`btn ${draft ? '' : 'btn-primary'}`} disabled={busy || (draft !== null && draft.rerollsLeft === 0)} onClick={() => void roll()}>
+          <button type="button" className={`btn ${draft ? '' : 'btn-primary'}`} disabled={busy || rolling || (draft !== null && draft.rerollsLeft === 0)} onClick={() => void roll()}>
             {!draft ? t('create.roll') : draft.rerollsLeft > 0 ? t('create.reroll', { n: draft.rerollsLeft }) : t('create.noRerolls')}
           </button>
         </div>
@@ -230,7 +236,7 @@ export function CreateHero({ options, initialDraft, onCreated }: {
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
 
       <footer className="flex gap-2">
-        <button type="button" className="btn flex-1" disabled={step === 0 || busy} onClick={() => setStep((s) => s - 1)}>
+        <button type="button" className="btn flex-1" disabled={step === 0 || busy || rolling} onClick={() => { setReveal(null); setStep((s) => s - 1); }}>
           {t('create.back')}
         </button>
         {current === 'confirm' ? (
@@ -238,7 +244,7 @@ export function CreateHero({ options, initialDraft, onCreated }: {
             {t('create.submit')}
           </button>
         ) : (
-          <button type="button" className="btn btn-primary flex-[2]" disabled={!ready[current] || busy} onClick={() => setStep((s) => s + 1)}>
+          <button type="button" className="btn btn-primary flex-[2]" disabled={!ready[current] || busy} onClick={() => { setReveal(null); setStep((s) => s + 1); }}>
             {t('create.next')}
           </button>
         )}

@@ -19,6 +19,13 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-first-roll',
+    date: '2026-10-10',
+    title: t('The first roll, in bone and brass', 'Первый бросок — кость и латунь'),
+    items: [t('When creating a Hero, watch four dice settle for each ability, the lowest fall away and the score appear. Reduced motion reveals the whole set immediately.',
+      'При создании героя четыре кости замирают для каждой характеристики: наименьшая отбрасывается, появляется итог. При уменьшении движения весь набор виден сразу.')],
+  },
+  {
     id: '2026-10-10-boss-paths',
     date: '2026-10-10',
     title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),
