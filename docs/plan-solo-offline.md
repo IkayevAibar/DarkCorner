@@ -7,7 +7,7 @@
 - the solo game it becomes
 - a plan in phases
 
-The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phase 1 is under way on the branch `claude/android-prep`.
+The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phase 1 and the Android shell are on `main`. Phase 2 is done on the branch `claude/solo-phase-2`, and Phase 3 comes next.
 
 Read with [design.md](design.md), [architecture.md](architecture.md) and [CONTEXT.md](../CONTEXT.md). design.md stays the source of truth for every rule this doc doesn't change.
 
@@ -166,17 +166,32 @@ Each phase ends on something a person can try.
 
    *Done when* every screen that solo keeps works offline, and the ported tests pass.
 
-   **Mostly came with Phase 1.** Every service is ported, and the ported scenarios pass. What is left: walking each screen in the solo build and fixing what shows.
-   - Already seen in Phase 1, for Phase 3, are texts that still speak of real time:
-     - Stamina "+1 in 0:00"
-     - the gate's "one point every 24 minutes"
-     - a Run that took "0 minutes"
-   - The Duo panel says nobody is in the City.
-   - Push settings answer `push_offline`.
+   **Done, 2026-10-11.** Every service came with Phase 1, and the ported scenarios pass.
+   - **The bots play offline.** `npm run playtest -w @dark/solo` runs the server's playtest bots on the solo backend. Twelve bots played a whole Season in 31 days, through the Boss gate, eight Dragon kills and the Wipe, with no server errors.
+   - **Every screen was walked** in the solo build, with no errors:
+     - the City and its buildings, and the Tavern's panels
+     - the Labyrinth: events, fights, Treasure, Camps and the Map's Routes
+     - the Well, Loot, and Heroes: levelling up, Retiring and making a new Hero
+   - **Fixed on the way:**
+     - **A Hero could be stuck for good.** A Hero who woke rested and began Training could neither enter the Labyrinth nor sleep, and only sleep moves the clock. Solo, a rested Hero may now take a night at the Tavern.
+     - **The screens counted time on the phone's clock,** while the game's clock stands still until the Hero sleeps. Countdowns now follow the World's clock, and redraw when it moves.
+     - **The screens asked again every few seconds** for news from other Players. Solo, they look again only when the day turns.
+     - **Server leftovers:** the Duo card, push settings, Sign out and the approval status are gone from the solo build.
+   - **Left for Phase 3,** because each needs its rules:
+     - **What a night costs.** A night at the Tavern is the only way time passes, and each costs half again as much as the last. Within a week or two a Hero can't pay for one, and selling gear is the only way out. Free sleep at a Camp, and a price for the Tavern's night, belong with Days.
+     - **Words for real time:**
+       - Stamina's "+1 in 24:00", and "1 point every 24 minutes"
+       - a Camp's "full rest at" an hour that never comes, and "Waiting heals slowly", by the hour
+       - Training's 8 hours, and Blessings' 3 hours, which last the whole day offline
+       - the Graves' 48 hours
+       - the Shop's, the Well's and the Bounties' countdowns to midnight
+       - a Run that took "0 min"
+     - **Things made for other Players:** the Market, where nobody buys; the Well's board; the server's Hunt; Rankings; the Feed's clock times; and the Hall of Fame.
+     - **Words about the Season** in the Guide, the Academy, the Training grounds and Retiring.
 3. **The solo game.**
    - Build: days, the Companion, the Chronicle, records and the Hall of Fame, Chapters, and difficulty.
    - Hide what solo removes.
-   - Point the bots in `apps/api/scripts/playtest.ts` at the local backend.
+   - Teach the solo bots (`packages/solo/scripts/playtest.ts`) to play by Days: they still play on the device's clock.
 
    *Done when* the bots play a Chapter from level 1 to the Dragon's fall without errors, and par Heroes (`balance:par`) still land where design.md says.
 4. **Android.**
@@ -205,7 +220,7 @@ Each phase ends on something a person can try.
    - **Fonts in the app:** the Google Fonts stylesheet still needs the network.
    - **Save export and import.**
    - **A release key:** the owner's, kept out of the repo.
-   - **Speed on a real phone:** the Threat cost, and fights.
+   - **Speed on a real phone:** the Threat cost, and fights. Each request also deep-copies the World: once for the request's undo, and once for each `$transaction`. That cost grows with the Save. A World copied only where it changes would make it small.
    - **The store listing.**
 
    **Before friends install it**, the owner confirms the app id, `world.ugolok.darkcorner`. A Save belongs to the app id: changing the id later leaves every Save behind.

@@ -112,7 +112,12 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
   `db/schema.gen.ts` describes the tables. It is generated from `apps/api/prisma/schema.prisma` by `npm run gen:schema -w @dark/solo`.
 - **The game clock** (`gameClock.ts`): in `'days'` mode in-game time stands still until the Hero sleeps, then jumps to the next morning, 08:00 UTC. Jobs come due over nights and run before each request. `'real'` mode follows the device's clock, as the server does.
 - **The backend** (`backend.ts`) runs one request at a time. A request that throws leaves the World as it was. After any change it saves: IndexedDB in a browser, falling back to memory.
+- **The screens follow the World,** not the device:
+  - `src/solo.ts` hands the World's clock to `src/time.ts`. Countdowns, `useNow` and `useAt` count in game time, and redraw when the Hero sleeps. Code that needs the time for a countdown takes it from `useNow()` or `clockNow()`, never from `Date.now()`.
+  - Nothing polls. `useRefresh` does nothing offline, and every `useLoad` loads again when the day turns.
+  - The Duo card, push settings, Sign out and the approval status are left out of the solo build.
 - **Tests:** `packages/solo/test` runs the server's API scenarios on the solo backend (a `solo_player` cookie plays several Players at once there), plus the in-memory database's own tests and `backend.test.ts` for Saves and Days.
+- **The bots:** `npm run playtest -w @dark/solo [-- days]` runs the server's playtest bots (`apps/api/scripts/playtest.ts`, copied) on the solo backend, on the device's clock. It skips the Save's compaction, so long runs slow down as the roll log grows.
 - **The Android app** (`apps/android`) is Capacitor 8 around the solo build: the WebView serves `apps/web/dist-solo` from the APK at `https://localhost`, and the Save lives in that WebView's IndexedDB.
   - `npm run apk -w @dark/android` builds the web app, copies it in and builds a debug APK with the Gradle wrapper. Use JDK 21: Android Studio's own Java 25 is too new for the pinned Gradle.
   - `npm run open -w @dark/android` opens the project in Android Studio.
