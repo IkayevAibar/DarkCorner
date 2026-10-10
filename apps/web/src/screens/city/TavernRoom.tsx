@@ -25,8 +25,8 @@ export function TavernRoom({ view, hall, lodging, bounties, rankings, initialTab
     </header>
     <SeasonNotice season={view.season} />
     <nav className="tavern-tabs" aria-label={t('city.tavern')}>
-      {/* Solo: Rankings of one Hero would only repeat its sheet. */}
-      {(__SOLO__ ? (['feed', 'hall'] as const) : (['feed', 'rankings', 'hall'] as const)).map(key => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)} data-tavern-tab={key}>
+      {/* Solo, Rankings are the Player's own Records: its best Hero of the Chapter on each. */}
+      {(['feed', 'rankings', 'hall'] as const).map(key => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)} data-tavern-tab={key}>
         <TavernMark kind={key === 'feed' ? 'notice' : key === 'rankings' ? 'crown' : 'stone'} /><span>{t(`tavern.${key}`)}</span>
       </button>)}
     </nav>

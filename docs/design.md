@@ -57,7 +57,7 @@ The solo build plays by this document, except for these:
   - **No Market.** Nobody else lists or buys, and the Shops buy everything but Relics. The Free market Omen never comes.
   - **The week's Hunt is the Hero's own,** sized for one Hero: reaching it pays a Gold Chest.
   - **The Daily Delve pays by Rooms won:** all six for a Gold Chest, four or five for a Silver one, two or three for an Iron one, taken at the Well the next day.
-  - **The Tavern** keeps the Hall of Fame, and its Feed becomes the Chronicle, dated by Day. Rankings and who is online are gone.
+  - **The Tavern** keeps the Hall of Fame. Its Feed becomes the Chronicle, dated by Day, and its Rankings become Records: on each, the Player's best Hero of the Chapter. Who is online is gone.
 
 ## Seasons
 
