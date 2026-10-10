@@ -191,6 +191,7 @@ Each phase ends on something a person can try.
 - **`new Date()` is all over the services.** Every call that means game time must go through the Clock, or days break. *(Phase 1: the solo copies call `gameNow()`; keep new code on it too.)*
 - **The job queue can't be fast-forwarded.** The API's daily jobs reschedule from the real clock, so `runDueJobs` with a future time loops forever. *(Phase 1: in solo every job reschedules from the game clock, and jobs queued during a pass wait for the next one.)*
 - **Camps.** A Camp rest waits four hours of in-game time, which never pass while the clock stands still. Until Phase 3 makes sleeping in a Camp end the Day, only a night at the Tavern moves the clock.
+- **Two copies of the scenarios.** `packages/solo/test` holds copies of `apps/api/test`. An engine or content change that needs a server scenario updated (new portrait ids, say) needs the same update in the solo copy.
 - **Keep manual fights as a seed plus choices.** They are stored that way and replayed on every turn. That is what makes a fight come back the same after the app is killed.
 - **Pick the balance numbers by who fights.** With a Companion, Duo balance applies (`alone = false`). Without one, the extra difficulty from Floor 3 (`floorMight`) does.
 - **Text.** Strings for removed screens can go. Everything that stays keeps both `en` and `ru`.
