@@ -1,0 +1,34 @@
+{
+  "viewport": [
+    375,
+    812
+  ],
+  "locale": "ru",
+  "screenshots": [
+    "smite",
+    "lay-on-hands",
+    "agathys",
+    "hex",
+    "eldritch",
+    "dark-blessing",
+    "hex-moves",
+    "entropic-ward",
+    "flurry",
+    "wholeness",
+    "cloak-of-shadows",
+    "wild-shape",
+    "beast-claw",
+    "beast-hurt",
+    "beast-ends",
+    "thorn",
+    "inspiration",
+    "mockery",
+    "cutting-words",
+    "quickened",
+    "fire",
+    "action-surge"
+  ],
+  "partnerReplays": 7,
+  "reducedMotion": true,
+  "errors": []
+}
