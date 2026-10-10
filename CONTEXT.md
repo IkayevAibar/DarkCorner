@@ -482,6 +482,10 @@ _Avoid_: log, journal, diary
 A Save with one life: a Hero who dies is gone. Chosen when the Save starts.
 _Avoid_: hardcore, permadeath
 
+**Difficulty** (сложность):
+How hard a Save's monsters are: Story, Normal or Hard (сюжет, обычная, трудная). Chosen when the Save starts.
+_Avoid_: level, mode (Iron mode is the other choice)
+
 ### Dice
 
 **Check**:

@@ -17,6 +17,7 @@ import { combatOf, combatant, foeOf, t } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, dayNumber, earnGold, giveStack, lockHero } from './ledger.js';
+import { monsterOmen } from './difficulty.js';
 import { omenOf } from './omens.js';
 import { currentSeason } from './seasons.js';
 import { finishTraining, requireNotTraining } from './training.js';
@@ -59,7 +60,7 @@ function delveInput(hero: HeroWithItems, run: Delve, room: number, stance: Stanc
 function nextRoom(hero: HeroWithItems, run: Delve, season: Season, now: Date): DelveRun['next'] {
   if (run.end !== null || run.rooms >= DELVE_ROOMS) return null;
   const room = run.rooms;
-  const omen = omenOf(season, now);
+  const omen = monsterOmen(season, now);
   const monsters = delveEncounter(delveSeed(season.seed, run.day), run.floor, room, omen);
   const rate = (stance: StanceId) =>
     threatOf(fightOdds(`${delveSeed(season.seed, run.day)}:${hero.id}:threat:${room}:${stance}`, delveInput(hero, run, room, stance, omen, season.seed)));
@@ -223,7 +224,7 @@ export async function delveFight(player: Player, boon: BoonId | null): Promise<D
       });
     }
 
-    const omen = omenOf(season, now);
+    const omen = monsterOmen(season, now);
     const input = delveInput(hero, run, room, hero.stance as StanceId, omen, season.seed);
     const fightSeed = newSeed();
     const fought = simulateFight(createRng(fightSeed), input);

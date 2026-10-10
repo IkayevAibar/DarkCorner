@@ -1,3 +1,4 @@
+import { useSettings } from './settings.js';
 import { type SoloApp, buildApp } from './app.js';
 import { cloneState } from './db/memdb.js';
 import { memdb, prisma } from './db.js';
@@ -25,9 +26,10 @@ export interface Backend {
   readonly world: World;
 }
 
-/** Points the database and the clock at a World. */
+/** Points the database, the clock and the settings at a World. */
 export function bindWorld(world: World): void {
   useClock(world.clock);
+  useSettings(world.settings);
   memdb.state = world.db;
 }
 
@@ -80,16 +82,17 @@ export async function createBackend(options: { storage: SaveStorage } & NewWorld
 
   async function run(method: string, url: string, body: unknown): Promise<SoloResult> {
     bindWorld(world);
-    const before = { db: cloneState(world.db), clock: { ...world.clock } };
+    const before = { db: cloneState(world.db), clock: { ...world.clock }, settings: { ...world.settings } };
     memdb.writes = 0;
     await runDueJobs();
     const response = await router.handle(method, url, body);
     if (response.error !== undefined) {
-      world = { ...world, db: before.db, clock: before.clock };
+      world = { ...world, db: before.db, clock: before.clock, settings: before.settings };
       bindWorld(world);
       return { status: response.status, body: response.body };
     }
-    if (memdb.writes > 0 || world.clock.now !== before.clock.now) {
+    const settled = world.settings.difficulty !== before.settings.difficulty || world.settings.iron !== before.settings.iron;
+    if (memdb.writes > 0 || world.clock.now !== before.clock.now || settled) {
       await compactWorld();
       try {
         await options.storage.save(serializeWorld(world));

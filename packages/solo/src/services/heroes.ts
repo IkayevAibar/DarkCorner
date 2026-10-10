@@ -212,6 +212,14 @@ function luckView(hero: HeroWithItems, now: Date): HeroView['luck'] {
   };
 }
 
+/**
+ * Solo: a Hero that fell in Iron mode (retired with no health left). It doesn't use
+ * up the Chapter's one Retire, and the next Hero keeps its gold and Storage.
+ */
+const fallen = (hero: Pick<Hero, 'retiredAt' | 'hp'>): boolean => hero.retiredAt !== null && hero.hp === 0;
+/** The Heroes that count toward a Chapter's two: the first, and one after a Retire. */
+const counted = (heroes: Pick<Hero, 'retiredAt' | 'hp'>[]): number => heroes.filter((h) => !fallen(h)).length;
+
 async function seasonHeroes(playerId: string, seasonId: string) {
   return prisma.hero.findMany({ where: { playerId, seasonId }, include: { items: true }, orderBy: { createdAt: 'asc' } });
 }
@@ -227,8 +235,8 @@ export async function myHeroState(player: Player): Promise<MyHeroResponse> {
     season: season.number,
     hero: active ? toHeroView(active) : null,
     draft: draft ? toDraftView(draft) : null,
-    canCreate: !active && heroes.length < 2,
-    canRetire: Boolean(active) && heroes.length < 2,
+    canCreate: !active && counted(heroes) < 2,
+    canRetire: Boolean(active) && counted(heroes) < 2,
   };
 }
 
@@ -303,10 +311,11 @@ export async function createHero(player: Player, request: CreateHeroRequest): Pr
     if (claimed.count === 0) throw ApiError.conflict('no_draft', 'Roll ability scores first');
 
     const heroes = await tx.hero.findMany({ where: { playerId: player.id, seasonId: season.id } });
-    if (heroes.some((h) => !h.retiredAt) || heroes.length >= 2) {
+    if (heroes.some((h) => !h.retiredAt) || counted(heroes) >= 2) {
       throw ApiError.conflict('cannot_create', 'You already have a Hero this Season');
     }
-    const retired = heroes.find((h) => h.retiredAt) ?? null;
+    // The Hero this one follows, the latest to step aside or fall.
+    const retired = [...heroes].reverse().find((h) => h.retiredAt) ?? null;
 
     const maxHp = startingHealth(request.class, request.race, request.talents, set.scores.con);
     const hero = await tx.hero.create({
@@ -472,8 +481,8 @@ export async function retireHero(player: Player): Promise<void> {
     const active = await lockHero(tx, player, season.id);
     // The Temple is in the City: a Hero in the Labyrinth has to come home first.
     requireCity(active);
-    const heroes = await tx.hero.count({ where: { playerId: player.id, seasonId: season.id } });
-    if (heroes >= 2) throw ApiError.conflict('retire_used', 'You have already retired a Hero this Season');
+    const heroes = await tx.hero.findMany({ where: { playerId: player.id, seasonId: season.id }, select: { retiredAt: true, hp: true } });
+    if (counted(heroes) >= 2) throw ApiError.conflict('retire_used', 'You have already retired a Hero this Season');
     await tx.item.updateMany({
       where: { heroId: active.id, place: { in: ['WORN', 'BAG'] } },
       data: { place: 'STORAGE', slot: null },

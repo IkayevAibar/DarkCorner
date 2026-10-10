@@ -9,6 +9,7 @@ import { itemRoutes } from './routes/items.js';
 import { labyrinthRoutes } from './routes/labyrinth.js';
 import { meRoutes } from './routes/me.js';
 import { pushRoutes } from './routes/push.js';
+import { soloRoutes } from './routes/solo.js';
 import { stepsRoutes } from './routes/steps.js';
 import { tavernRoutes } from './routes/tavern.js';
 import './services/jobs.js';
@@ -37,5 +38,6 @@ export async function buildApp(): Promise<SoloApp> {
   await delveRoutes(app);
   await stepsRoutes(app);
   await duoRoutes(app);
+  await soloRoutes(app);
   return app;
 }

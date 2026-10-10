@@ -7,6 +7,16 @@ import type {
   BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView, OathChoice, AcademyView, TalentId, TrainingView, AbilityId, BulkTier, BulkSellResult, BulkSalvageResult
 } from '@dark/shared';
 
+/**
+ * Solo only (docs/plan-solo-offline.md, decisions 5 and 6): a Save's difficulty and
+ * Iron mode, open to change until its first Hero is made (`locked`).
+ */
+export interface SoloSettings {
+  difficulty: 'story' | 'normal' | 'hard';
+  iron: boolean;
+  locked: boolean;
+}
+
 export class ApiRequestError extends Error {
   constructor(
     readonly status: number,
@@ -96,6 +106,9 @@ export const api = {
   shortRest: () => request<LabyrinthResult>('POST', '/api/labyrinth/short-rest'),
   /** Solo only (docs/plan-solo-offline.md → Days): the server's Camps rest by the clock. */
   sleepInCamp: () => request<LabyrinthResult>('POST', '/api/labyrinth/sleep'),
+  /** Solo only: the Save's difficulty and Iron mode, chosen before its first Hero. */
+  soloSettings: () => request<SoloSettings>('GET', '/api/solo/settings'),
+  setSoloSettings: (body: Omit<SoloSettings, 'locked'>) => request<SoloSettings>('PUT', '/api/solo/settings', body),
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
   eventAction: (action: EventAction) => request<LabyrinthResult>('POST', '/api/labyrinth/event', action),
   face: (action: FaceAction) => request<LabyrinthResult>('POST', '/api/labyrinth/face', action),

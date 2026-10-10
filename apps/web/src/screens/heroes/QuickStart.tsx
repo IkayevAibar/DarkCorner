@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { AbilityId, ClassId, HeroDraft, LocalizedText, RaceId, TalentId } from '@dark/shared';
 import { api } from '../../api';
+import { SaveSettings } from '../../components/SaveSettings';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
@@ -71,6 +72,7 @@ export function QuickStart({ onCreated, onCustom }: { onCreated: () => void; onC
         <span className="sub-heading">{t('quick.title')}</span>
         <p className="m-0 text-sm">{t('quick.body')}</p>
       </div>
+      {__SOLO__ && <SaveSettings />}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {CLASSES.map((cls) => {
           const def = classes.find((c) => c.id === cls);

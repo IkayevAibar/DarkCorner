@@ -3,6 +3,7 @@ import type { Locale } from '@dark/shared';
 import { Guide } from './Guide';
 import { InstallCard } from './InstallCard';
 import { PushSettings } from './PushSettings';
+import { SaveSettings } from './SaveSettings';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
 import { markNewsRead, newsUnread } from '../newsState';
@@ -136,6 +137,7 @@ function AccountSheet() {
         </div>
       </div>
       {/* Solo has no server: no push, no admin, no account to sign out of. */}
+      {__SOLO__ && <SaveSettings summary />}
       {!__SOLO__ && <PushSettings />}
       <InstallCard />
       {!__SOLO__ && player.isAdmin && (

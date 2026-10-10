@@ -8,6 +8,8 @@ import {
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { weakeningFrom } from './chapters.js';
+import { monsterOmen } from './difficulty.js';
+import { worldSettings } from '../settings.js';
 import { feed } from './feed.js';
 import { giveStarterKit, portraitUrlOf } from './heroes.js';
 import type { HeroWithItems, Tx } from './ledger.js';
@@ -130,7 +132,7 @@ export const WARDENS_MS = 7 * DAY_MS;
 /** The monsters waiting for one Hero in a Room: personal, and the same group all day. */
 export function monstersFor(season: Season, hero: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: FightKind, now: Date) {
   const spawnSeed = `${season.seed}:${hero.id}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
-  return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(weakeningFrom(season), now), omenOf(season, now)) };
+  return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(weakeningFrom(season), now), monsterOmen(season, now)) };
 }
 
 /** The Bond rings two Heroes join: pairs of which each wears a half. */
@@ -381,8 +383,8 @@ export function duoMonstersFor(season: Season, a: Pick<Hero, 'id'>, b: Pick<Hero
   const spawnSeed = `${season.seed}:duo:${pair}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
   const rng = createRng(spawnSeed);
   const monsters = kind === 'twin'
-    ? spawnEncounter(rng, floor.number, 'twin', 0, omenOf(season, now))
-    : duoEncounter(rng, floor.number, kind, weakeningAt(weakeningFrom(season), now), omenOf(season, now));
+    ? spawnEncounter(rng, floor.number, 'twin', 0, monsterOmen(season, now))
+    : duoEncounter(rng, floor.number, kind, weakeningAt(weakeningFrom(season), now), monsterOmen(season, now));
   return { spawnSeed, monsters };
 }
 
@@ -400,7 +402,11 @@ export function duoInput(hero: HeroWithItems, partner: HeroWithItems, monsters: 
   };
 }
 
-/** Death: everything carried goes into a Grave here; the Hero wakes at the Temple with a Starter kit. */
+/**
+ * Death: everything carried goes into a Grave here; the Hero wakes at the Temple with a
+ * Starter kit. In Iron mode (solo, docs/plan-solo-offline.md, decision 6) a Hero lives
+ * once: it falls for good, and the next Hero keeps the City's gold and Storage.
+ */
 export async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumber: number, roomId: number, out: Outcome): Promise<void> {
   const grave = await tx.grave.create({
     data: {
@@ -420,12 +426,22 @@ export async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumb
       spellUses: uses.spells, healUses: uses.heals, deathless: true, lucky: true, campSince: null, facing: false,
     },
   });
-  await giveStarterKit(tx, updated, season.id);
   out.died = true;
   out.runEnd = { gold: hero.carriedGold };
   await feed(tx, season, hero, 'death', { floor: floorNumber, grave: grave.id });
+  if (worldSettings().iron) {
+    // Fallen: retired with no health left, which is how the Heroes it leaves behind tell it from a Retire.
+    await tx.hero.update({ where: { id: hero.id }, data: { retiredAt: gameNow(), hp: 0, partnerId: null } });
+    await tx.hero.updateMany({ where: { partnerId: hero.id }, data: { partnerId: null } });
+    out.notices.push(t(
+      `You died, and in Iron mode a Hero lives once: ${hero.name}'s story ends here. What you carried lies in a Grave for two nights. Make a new Hero in the City, where your gold and Storage wait.`,
+      `Вы погибли, а в железном режиме герой живёт один раз: история ${hero.name} окончена. Всё, что было при вас, две ночи лежит в могиле. Создайте нового героя в городе: там ждут ваше золото и хранилище.`,
+    ));
+    return;
+  }
+  await giveStarterKit(tx, updated, season.id);
   out.notices.push(t(
-    'You died. Everything you carried lies in a Grave for 48 hours. You wake at the Temple with a Starter kit.',
-    'Вы погибли. Всё, что было при вас, лежит в могиле 48 часов. Вы очнулись в храме с начальным снаряжением.',
+    'You died. Everything you carried lies in a Grave for two nights. You wake at the Temple with a Starter kit.',
+    'Вы погибли. Всё, что было при вас, две ночи лежит в могиле. Вы очнулись в храме с начальным снаряжением.',
   ));
 }
