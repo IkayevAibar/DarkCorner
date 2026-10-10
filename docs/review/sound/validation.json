@@ -1,0 +1,529 @@
+{
+  "phone": [
+    375,
+    812
+  ],
+  "desktop": [
+    1280,
+    900
+  ],
+  "languages": [
+    "ru",
+    "en"
+  ],
+  "sounds": 20,
+  "decodedFiles": 27,
+  "tierLayers": [
+    1,
+    1,
+    1,
+    2,
+    3,
+    4,
+    4
+  ],
+  "firstTap": true,
+  "accountSwitch": true,
+  "mutedSilent": true,
+  "mutePersists": true,
+  "report": {
+    "started": [
+      {
+        "file": "/sfx/latch.ogg",
+        "when": 0,
+        "time": 0,
+        "duration": 0.2613333333333333
+      },
+      {
+        "file": "/sfx/door-2.ogg",
+        "when": 0.272,
+        "time": 0.272,
+        "duration": 1.4133125
+      },
+      {
+        "file": "/sfx/creak.ogg",
+        "when": 0.392,
+        "time": 0.392,
+        "duration": 0.6610416666666666
+      },
+      {
+        "file": "/sfx/step-2.ogg",
+        "when": 0.52,
+        "time": 0.52,
+        "duration": 0.2690208333333333
+      },
+      {
+        "file": "/sfx/draw.ogg",
+        "when": 0.64,
+        "time": 0.64,
+        "duration": 0.39970833333333333
+      },
+      {
+        "file": "/sfx/hit-2.ogg",
+        "when": 0.76,
+        "time": 0.76,
+        "duration": 0.5687916666666667
+      },
+      {
+        "file": "/sfx/miss.ogg",
+        "when": 0.88,
+        "time": 0.88,
+        "duration": 0.6610416666666666
+      },
+      {
+        "file": "/sfx/crit.ogg",
+        "when": 1.0213333333333334,
+        "time": 1.0213333333333334,
+        "duration": 0.9377708333333333
+      },
+      {
+        "file": "/sfx/grave.ogg",
+        "when": 1.16,
+        "time": 1.16,
+        "duration": 0.603375
+      },
+      {
+        "file": "/sfx/anvil.ogg",
+        "when": 1.28,
+        "time": 1.28,
+        "duration": 1.4604583333333334
+      },
+      {
+        "file": "/sfx/die-1.ogg",
+        "when": 1.4,
+        "time": 1.4,
+        "duration": 0.5318541666666666
+      },
+      {
+        "file": "/sfx/dice.ogg",
+        "when": 1.5306666666666666,
+        "time": 1.5306666666666666,
+        "duration": 0.6324583333333333
+      },
+      {
+        "file": "/sfx/shake.ogg",
+        "when": 1.6613333333333333,
+        "time": 1.6613333333333333,
+        "duration": 1.4805625
+      },
+      {
+        "file": "/sfx/coins-1.ogg",
+        "when": 1.7706666666666666,
+        "time": 1.7706666666666666,
+        "duration": 0.8455208333333334
+      },
+      {
+        "file": "/sfx/chips.ogg",
+        "when": 1.9013333333333333,
+        "time": 1.9013333333333333,
+        "duration": 0.2845625
+      },
+      {
+        "file": "/sfx/loot.ogg",
+        "when": 2.021333333333333,
+        "time": 2.021333333333333,
+        "duration": 0.41508333333333336
+      },
+      {
+        "file": "/sfx/latch.ogg",
+        "when": 2.1413333333333333,
+        "time": 2.1413333333333333,
+        "duration": 0.2613333333333333
+      },
+      {
+        "file": "/sfx/tick-1.ogg",
+        "when": 2.272,
+        "time": 2.272,
+        "duration": 0.16958333333333334
+      },
+      {
+        "file": "/sfx/reveal.ogg",
+        "when": 2.4,
+        "time": 2.4,
+        "duration": 0.937375
+      },
+      {
+        "file": "/sfx/page.ogg",
+        "when": 2.52,
+        "time": 2.52,
+        "duration": 0.4304375
+      },
+      {
+        "file": "/sfx/equip.ogg",
+        "when": 2.6613333333333333,
+        "time": 2.6613333333333333,
+        "duration": 0.27670833333333333
+      },
+      {
+        "file": "/sfx/loot.ogg",
+        "when": 2.832,
+        "time": 2.832,
+        "duration": 0.41508333333333336
+      },
+      {
+        "file": "/sfx/loot.ogg",
+        "when": 3.501333333333333,
+        "time": 3.501333333333333,
+        "duration": 0.41508333333333336
+      },
+      {
+        "file": "/sfx/reveal.ogg",
+        "when": 4.1706666666666665,
+        "time": 4.1706666666666665,
+        "duration": 0.937375
+      },
+      {
+        "file": "/sfx/reveal.ogg",
+        "when": 4.832,
+        "time": 4.832,
+        "duration": 0.937375
+      },
+      {
+        "file": "/sfx/chips.ogg",
+        "when": 4.9719999999999995,
+        "time": 4.832,
+        "duration": 0.2845625
+      },
+      {
+        "file": "/sfx/reveal.ogg",
+        "when": 5.512,
+        "time": 5.512,
+        "duration": 0.937375
+      },
+      {
+        "file": "/sfx/coins-2.ogg",
+        "when": 5.622,
+        "time": 5.512,
+        "duration": 0.33820833333333333
+      },
+      {
+        "file": "/sfx/chips.ogg",
+        "when": 5.811999999999999,
+        "time": 5.512,
+        "duration": 0.2845625
+      },
+      {
+        "file": "/sfx/reveal.ogg",
+        "when": 6.192,
+        "time": 6.192,
+        "duration": 0.937375
+      },
+      {
+        "file": "/sfx/crit.ogg",
+        "when": 6.282,
+        "time": 6.192,
+        "duration": 0.9377708333333333
+      },
+      {
+        "file": "/sfx/coins-2.ogg",
+        "when": 6.392,
+        "time": 6.192,
+        "duration": 0.33820833333333333
+      },
+      {
+        "file": "/sfx/chips.ogg",
+        "when": 6.612,
+        "time": 6.192,
+        "duration": 0.2845625
+      },
+      {
+        "file": "/sfx/reveal.ogg",
+        "when": 6.8613333333333335,
+        "time": 6.8613333333333335,
+        "duration": 0.937375
+      },
+      {
+        "file": "/sfx/crit.ogg",
+        "when": 6.951333333333333,
+        "time": 6.8613333333333335,
+        "duration": 0.9377708333333333
+      },
+      {
+        "file": "/sfx/coins-1.ogg",
+        "when": 7.061333333333334,
+        "time": 6.8613333333333335,
+        "duration": 0.8455208333333334
+      },
+      {
+        "file": "/sfx/chips.ogg",
+        "when": 7.281333333333333,
+        "time": 6.8613333333333335,
+        "duration": 0.2845625
+      },
+      {
+        "file": "/sfx/die-2.ogg",
+        "when": 7.52,
+        "time": 7.52,
+        "duration": 0.7330833333333333
+      },
+      {
+        "file": "/sfx/crit.ogg",
+        "when": 7.67,
+        "time": 7.52,
+        "duration": 0.9377708333333333
+      },
+      {
+        "file": "/sfx/reveal.ogg",
+        "when": 9.141333333333334,
+        "time": 9.141333333333334,
+        "duration": 0.937375
+      },
+      {
+        "file": "/sfx/crit.ogg",
+        "when": 9.231333333333334,
+        "time": 9.141333333333334,
+        "duration": 0.9377708333333333
+      },
+      {
+        "file": "/sfx/coins-2.ogg",
+        "when": 9.341333333333333,
+        "time": 9.141333333333334,
+        "duration": 0.33820833333333333
+      },
+      {
+        "file": "/sfx/chips.ogg",
+        "when": 9.561333333333334,
+        "time": 9.141333333333334,
+        "duration": 0.2845625
+      }
+    ],
+    "stopped": 5,
+    "ended": 43,
+    "decoded": [
+      {
+        "duration": 0.24025,
+        "channels": 2
+      },
+      {
+        "duration": 0.5995416666666666,
+        "channels": 2
+      },
+      {
+        "duration": 0.5687916666666667,
+        "channels": 2
+      },
+      {
+        "duration": 0.9189583333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.5318541666666666,
+        "channels": 2
+      },
+      {
+        "duration": 1.4133125,
+        "channels": 2
+      },
+      {
+        "duration": 0.6610416666666666,
+        "channels": 2
+      },
+      {
+        "duration": 0.7330833333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.41508333333333336,
+        "channels": 2
+      },
+      {
+        "duration": 0.16958333333333334,
+        "channels": 2
+      },
+      {
+        "duration": 0.33820833333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.2613333333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.2270625,
+        "channels": 2
+      },
+      {
+        "duration": 0.8455208333333334,
+        "channels": 2
+      },
+      {
+        "duration": 0.6610416666666666,
+        "channels": 2
+      },
+      {
+        "duration": 0.2690208333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.39970833333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.9377708333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.603375,
+        "channels": 2
+      },
+      {
+        "duration": 1.4604583333333334,
+        "channels": 2
+      },
+      {
+        "duration": 0.6324583333333333,
+        "channels": 2
+      },
+      {
+        "duration": 1.4805625,
+        "channels": 2
+      },
+      {
+        "duration": 0.2845625,
+        "channels": 2
+      },
+      {
+        "duration": 0.937375,
+        "channels": 2
+      },
+      {
+        "duration": 0.4304375,
+        "channels": 2
+      },
+      {
+        "duration": 0.27670833333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.9189583333333333,
+        "channels": 2
+      },
+      {
+        "duration": 1.4133125,
+        "channels": 2
+      },
+      {
+        "duration": 0.6610416666666666,
+        "channels": 2
+      },
+      {
+        "duration": 0.24885416666666665,
+        "channels": 2
+      },
+      {
+        "duration": 0.2690208333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.39970833333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.5995416666666666,
+        "channels": 2
+      },
+      {
+        "duration": 0.5687916666666667,
+        "channels": 2
+      },
+      {
+        "duration": 0.24025,
+        "channels": 2
+      },
+      {
+        "duration": 0.6610416666666666,
+        "channels": 2
+      },
+      {
+        "duration": 0.9377708333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.603375,
+        "channels": 2
+      },
+      {
+        "duration": 1.4604583333333334,
+        "channels": 2
+      },
+      {
+        "duration": 0.5318541666666666,
+        "channels": 2
+      },
+      {
+        "duration": 0.7330833333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.6324583333333333,
+        "channels": 2
+      },
+      {
+        "duration": 1.4805625,
+        "channels": 2
+      },
+      {
+        "duration": 0.8455208333333334,
+        "channels": 2
+      },
+      {
+        "duration": 0.33820833333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.2845625,
+        "channels": 2
+      },
+      {
+        "duration": 0.41508333333333336,
+        "channels": 2
+      },
+      {
+        "duration": 0.2613333333333333,
+        "channels": 2
+      },
+      {
+        "duration": 0.16958333333333334,
+        "channels": 2
+      },
+      {
+        "duration": 0.2270625,
+        "channels": 2
+      },
+      {
+        "duration": 0.937375,
+        "channels": 2
+      },
+      {
+        "duration": 0.4304375,
+        "channels": 2
+      },
+      {
+        "duration": 0.27670833333333333,
+        "channels": 2
+      }
+    ],
+    "vibrations": [
+      [
+        70,
+        50,
+        140
+      ],
+      [
+        70,
+        50,
+        140
+      ],
+      60,
+      0,
+      [
+        70,
+        50,
+        140
+      ],
+      0
+    ],
+    "contexts": 1
+  },
+  "errors": []
+}
