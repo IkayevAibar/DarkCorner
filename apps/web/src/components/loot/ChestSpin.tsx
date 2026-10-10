@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { OpenChestResult } from '@dark/shared';
-import { ItemChip, ItemDetails } from '../items/ItemChip';
+import { ItemTile } from '../items/ItemTile';
+import { ItemCard } from '../items/ItemCard';
 import { useI18n } from '../../i18n';
 import { play, playTier } from '../../sound';
 import { useReducedMotion } from './motion';
@@ -81,12 +82,12 @@ function Spin({ result, onDone }: { result: OpenChestResult; onDone: () => void 
         </header>
         <div className="spin-window" aria-hidden="true" inert>
           <div ref={strip} className="spin-strip" style={{ transform: `translateX(-${stripOffset(complete ? 1 : 0)}px)` }}>
-            {tiles.map(item => <ItemChip key={item.id} item={item} size={TILE} />)}
+            {tiles.map(item => <ItemTile key={item.id} item={item} size={TILE} />)}
           </div>
           <div className="spin-needle" />
         </div>
         {complete ? <div className="spin-prize" aria-live="polite">
-          <TierBurst tier={result.prize.tier}><ItemDetails item={result.prize} /></TierBurst>
+          <TierBurst tier={result.prize.tier}><ItemCard item={result.prize} /></TierBurst>
         </div> : <p className="spin-hint">{t('loot.turning')}</p>}
         <button ref={action} type="button" className={`btn ${complete ? 'btn-primary' : ''}`} onClick={() => next.current()}>
           {complete ? t('report.dismiss') : t('fight.skip')}

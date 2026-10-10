@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ItemView } from '@dark/shared';
-import { ItemDetails } from '../items/ItemChip';
+import { ItemCard } from '../items/ItemCard';
 import { useI18n } from '../../i18n';
 import { play, playTier } from '../../sound';
 import { useReducedMotion } from './motion';
@@ -33,7 +33,7 @@ function Reveal({ before, after, onDone }: { before: ItemView; after: ItemView; 
     if (complete && !cue.current) { cue.current = true; playTier(after.tier); }
   }, [complete, after.tier]);
 
-  const card = <ItemDetails item={shown === 0 ? before : after} revealStep={complete || shown === 0 ? undefined : shown} />;
+  const card = <ItemCard item={shown === 0 ? before : after} revealStep={complete || shown === 0 ? undefined : shown} />;
   return <div className="identify-reveal" data-reveal-complete={complete} data-reveal-step={shown}>
     <div className={`identify-card ${shown === 0 ? 'identify-sealed' : ''} ${complete && after.radiant ? 'identify-radiant' : ''}`}>
       {complete ? <TierBurst tier={after.tier}>{card}</TierBurst> : card}

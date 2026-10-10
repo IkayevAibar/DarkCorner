@@ -1,6 +1,6 @@
 import type { DeedView, HeroView } from '@dark/shared';
 import { api } from '../../api';
-import { useText } from '../../components/items/ItemChip';
+import { useText } from '../../components/items/text';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useI18n } from '../../i18n';

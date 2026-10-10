@@ -1,6 +1,6 @@
 import { api } from '../../api';
 import { Building, Loading } from '../../components/Building';
-import { useText } from '../../components/items/ItemChip';
+import { useText } from '../../components/items/text';
 import { useAction } from '../../components/useAction';
 import { useLoad } from '../../components/useLoad';
 import { useI18n } from '../../i18n';

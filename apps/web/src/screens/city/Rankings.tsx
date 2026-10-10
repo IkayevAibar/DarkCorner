@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { RANKINGS, type Ranking, type RankingKind, type RankingRow, type RankingsView } from '@dark/shared';
 import { api } from '../../api';
-import { useText } from '../../components/items/ItemChip';
+import { useText } from '../../components/items/text';
 import { Token } from '../../components/Token';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { useI18n } from '../../i18n';

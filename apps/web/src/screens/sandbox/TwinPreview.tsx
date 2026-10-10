@@ -6,7 +6,9 @@ import { BondedPortraits } from '../../components/BondedPortraits';
 import { Token } from '../../components/Token';
 import { FloorMap } from '../../components/map/FloorMap';
 import { MiniMap } from '../../components/map/MiniMap';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { useSheet } from '../../components/Sheet';
 import { DoorMarker } from '../labyrinth/DoorMarker';
 import { roomArt } from '../labyrinth/roomArt';
@@ -54,7 +56,7 @@ export function TwinPreview({ onFight }: { onFight: (replay: FightReplay) => voi
     </div>
     {mode === 'duo' && <><DuoStrip hero={HERO} partner={partner} busy={false} onLeave={() => setMode('solo')} /><button className="btn btn-small" data-bond-toggle aria-pressed={bonded} onClick={() => setBonded(value => !value)}>{bonded ? copy.apart : copy.joined}</button></>}
     <details open={mapOpen} onToggle={e => setMapOpen(e.currentTarget.open)}><summary>{copy.map}</summary><FloorMap {...props} /></details>
-    <div className="twin-preview-bag"><strong>{t('lab.bagButton')}</strong>{[...RINGS, REVEALS.rare].map(item => <ItemChip key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />)}</div>
+    <div className="twin-preview-bag"><strong>{t('lab.bagButton')}</strong>{[...RINGS, REVEALS.rare].map(item => <ItemTile key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemCard item={item} /> })} />)}</div>
     <div className="twin-preview-controls"><button className="btn" data-twin-fight="hero" onClick={() => onFight(FIGHTS['duo-twin-wardens']!)}>{copy.own}</button><button className="btn" data-twin-fight="ally" onClick={() => onFight(FIGHTS['duo-twin-wardens-partner']!)}>{copy.partner}</button></div>
   </section>;
 }

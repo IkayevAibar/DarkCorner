@@ -4,7 +4,7 @@ import { api } from '../../api';
 import { Building, Loading } from '../../components/Building';
 import { EliteBadge } from '../../components/EliteBadge';
 import { FightScene, preloadFightScene } from '../../components/fight/FightScene';
-import { useText } from '../../components/items/ItemChip';
+import { useText } from '../../components/items/text';
 import { useSheet } from '../../components/Sheet';
 import { ThreatChip } from '../../components/ThreatChip';
 import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';

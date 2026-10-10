@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type { BountiesView, BountyView, HuntView, LodgingView } from '@dark/shared';
 import { api } from '../../api';
 import { Loading } from '../../components/Building';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { Meter } from '../../components/Meter';
 import { useSheet } from '../../components/Sheet';
 import { describeError } from '../../errors';
@@ -153,7 +155,7 @@ function BountyCard({ bounty, busy = false, onSwap }: { bounty: BountyView; busy
       {!bounty.done && bounty.target > 1 && <Meter label="" value={bounty.progress} max={bounty.target} kind="stamina" />}
       <div className="flex items-center gap-2 text-sm">
         <span className="text-[#f1c75b]">{t('bounty.reward', { n: bounty.reward.gold })}</span>
-        {item && <ItemChip item={item} size={34} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />}
+        {item && <ItemTile item={item} size={34} onClick={() => openSheet({ title: text(item.name), body: <ItemCard item={item} /> })} />}
         {bounty.done && <span className="ml-auto font-head text-xs font-bold text-tier-uncommon">{t('bounty.done')}</span>}
       </div>
     </div>

@@ -13,6 +13,7 @@ import { useI18n } from '../i18n';
 import { FightScene } from '../components/fight/FightScene';
 import { FIGHTS } from './sandbox/fightExamples';
 import { FightLog } from './labyrinth/FightLog';
+import { ItemPreview } from './sandbox/ItemPreview';
 
 /**
  * Codex builds visual components here against @dark/shared types with fake
@@ -27,6 +28,7 @@ export function Sandbox() {
       <h1 className="sub-heading m-0">{t('sandbox.title')}</h1>
       <p className="m-0 text-muted">{t('sandbox.body')}</p>
 
+      <ItemPreview />
       <CupsPreview />
       <LockPreview />
       <TrustPreview />

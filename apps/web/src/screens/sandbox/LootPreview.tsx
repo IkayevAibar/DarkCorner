@@ -3,7 +3,7 @@ import { TIERS, type OpenChestResult } from '@dark/shared';
 import { ChestSpin } from '../../components/loot/ChestSpin';
 import { IdentifyReveal } from '../../components/loot/IdentifyReveal';
 import { TierBurst } from '../../components/loot/TierBurst';
-import { ItemChip } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
 import { useSheet } from '../../components/Sheet';
 import { useI18n } from '../../i18n';
 import { playTier } from '../../sound';
@@ -31,7 +31,7 @@ export function LootPreview() {
     </button>
     <div className="flex flex-wrap gap-x-4 gap-y-6" key={burst}>
       {TIERS.map(tier => <div className="grid justify-items-center gap-1" key={tier}>
-        <TierBurst tier={tier}><ItemChip item={{ ...REVEALS.rare, tier }} /></TierBurst>
+        <TierBurst tier={tier}><ItemTile item={{ ...REVEALS.rare, tier }} /></TierBurst>
         <span className="text-xs" style={{ color: `var(--color-tier-${tier})` }}>{t(`tier.${tier}`)}</span>
       </div>)}
     </div>

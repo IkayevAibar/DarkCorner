@@ -2,7 +2,8 @@ import { useState } from 'react';
 import type { ForgeCost, HeroView, ItemView, UpgradeResult } from '@dark/shared';
 import { api } from '../../api';
 import { Building, Loading } from '../../components/Building';
-import { ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { ItemPicker } from '../../components/ItemPicker';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
@@ -115,7 +116,7 @@ function ForgeSheet({ item, worn, onChanged }: { item: ItemView; worn: boolean; 
 
   return (
     <div className="grid gap-4">
-      <ItemDetails item={q.item} />
+      <ItemCard item={q.item} />
       {last && <UpgradeLine result={last} />}
       {q.blocked && <p className="m-0 text-sm text-muted">{t(`err.${q.blocked as 'identify_first'}`)}</p>}
 

@@ -1,12 +1,13 @@
-import type { ReactNode } from 'react';
-import type { GearFactsView, HeroView, ItemView, LocalizedText } from '@dark/shared';
+import type { CSSProperties, ReactNode } from 'react';
+import type { GearFactsView, HeroView, ItemView } from '@dark/shared';
 import { api } from '../../api';
 import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
 import { useLoad } from '../useLoad';
-import { ICON_VIEWBOX, iconPath } from './icons';
+import { ItemArt } from './ItemTile';
+import { useText } from './text';
+import { useItemStyles } from './itemStyles';
 import { type InfoId, InfoLine, useOpenLine, useStatInfo } from './StatInfo';
-import { TwinMark } from '../TwinMark';
 
 /** Makes a line explain itself when tapped (one at a time on a card); `null` leaves lines plain. */
 type Explain = ((key: string, info: InfoId, line: ReactNode) => ReactNode) | null;
@@ -15,61 +16,9 @@ type Explain = ((key: string, info: InfoId, line: ReactNode) => ReactNode) | nul
 const BETTER = '#9cc48a';
 const WORSE = '#d98a74';
 
-/** Picks the current language out of engine content. */
-export function useText() {
-  const { locale } = useI18n();
-  return (text: LocalizedText) => text[locale];
-}
-
-/**
- * A small square for one Item, framed in its Tier color.
- *
- * Stand-in until Codex's ItemTile lands (docs/tasks/codex-01-item-card.md): same
- * props shape, so swapping it is a one-line change where it is used.
- */
-export function ItemChip({ item, size = 62, onClick }: { item: ItemView; size?: number; onClick?: () => void }) {
-  const color = `var(--color-tier-${item.tier})`;
-  const text = useText();
-  return (
-    <button
-      type="button"
-      aria-label={text(item.name)}
-      onClick={onClick}
-      className="relative grid shrink-0 place-items-center overflow-hidden rounded-[2px] border-2 p-0"
-      style={{
-        width: size,
-        height: size,
-        borderColor: color,
-        background: `radial-gradient(circle at 50% 42%, color-mix(in srgb, ${color} 42%, #000) 0%, color-mix(in srgb, ${color} 14%, #0b0a09) 72%)`,
-        color: '#efe3cf',
-      }}
-    >
-      {item.art ? (
-        <img src={item.art} alt="" className="size-[96%] object-contain" draggable={false} />
-      ) : (
-        <svg
-          viewBox={item.base === 'bond-ring' ? '0 0 24 24' : ICON_VIEWBOX}
-          fill="currentColor"
-          className={`size-[62%] drop-shadow-[0_2px_2px_rgb(0_0_0/0.6)] ${item.identified ? '' : 'opacity-50'}`}
-          aria-hidden="true"
-        >
-          {item.base === 'bond-ring' ? <TwinMark /> : <path d={iconPath(item.icon)} />}
-        </svg>
-      )}
-      {!item.identified && (
-        <span className="absolute top-0.5 right-1.5 font-head text-base font-extrabold text-white [text-shadow:0_1px_2px_#000]">?</span>
-      )}
-      {item.quantity > 1 && (
-        <span className="absolute right-1 bottom-0.5 font-head text-xs font-extrabold text-bone [text-shadow:0_1px_2px_#000]">
-          ×{item.quantity}
-        </span>
-      )}
-    </button>
-  );
-}
-
-/** The full Item: stand-in for Codex's ItemCard, shown in the bottom sheet. Its lines explain themselves when tapped. */
-export function ItemDetails({ item, revealStep = Infinity }: { item: ItemView; revealStep?: number }) {
+/** The full Item, with reveal steps and the live worn-gear comparison preserved. */
+export function ItemCard({ item, revealStep = Infinity }: { item: ItemView; revealStep?: number }) {
+  useItemStyles();
   const { t } = useI18n();
   const text = useText();
   const color = `var(--color-tier-${item.tier})`;
@@ -83,24 +32,30 @@ export function ItemDetails({ item, revealStep = Infinity }: { item: ItemView; r
   const lines = useOpenLine();
   const about = useStatInfo(hero);
   const known = item.kind === 'gear' && item.identified;
+  const mystery = item.kind === 'gear' && !item.identified;
+  const radiant = known && item.radiant && revealStep >= finalStep;
   const explain: Explain = (key, info, line) => (
     <InfoLine info={about(info)} open={lines.isOpen(key)} onToggle={() => lines.toggle(key)}>{line}</InfoLine>
   );
   return (
-    <div className="grid gap-3">
-      <div className="flex items-center gap-3">
-        <ItemChip item={item} size={84} />
-        <div className="grid min-w-0 flex-1 gap-0.5">
-          <span className="font-head text-xl leading-tight font-extrabold" style={{ color }}>
+    <article className={`item-card tier-${item.tier}${mystery ? ' unidentified' : ''}${radiant ? ' radiant' : ''}`} data-item-card data-item-id={item.id} style={{ '--tier': color } as CSSProperties}>
+      <div className="item-card-top">
+        <ItemArt item={item}/>
+        {mystery && <span className="card-mystery" aria-hidden="true">?</span>}
+        {radiant && <span className="radiant-stamp" aria-hidden="true">{t('item.radiant')}</span>}
+        {known && item.serial && <span className="card-copy" aria-hidden="true">#{item.serial.number}/{item.serial.of}</span>}
+      </div>
+      <div className="item-card-body">
+        <div className="grid min-w-0 gap-1">
+          <h3 className="item-card-name">
             {text(item.name)}
             {item.upgrade > 0 && ` +${item.upgrade}`}
-          </span>
+          </h3>
           {item.kind === 'gear'
             ? explain('level', 'level', <span className="text-sm text-muted">{`${t(`tier.${item.tier}`)} · ${t('item.level', { n: item.itemLevel })}`}</span>)
             : <span className="text-sm text-muted">{t('item.quantity', { n: item.quantity })}</span>}
-          {item.radiant && <span {...reveal(finalStep)}>{explain('radiant', 'radiant', <span className="text-sm font-bold text-gold">{t('item.radiant')}</span>)}</span>}
+          {known && item.radiant && <span {...reveal(finalStep)}>{explain('radiant', 'radiant', <span className="text-sm font-bold text-gold">{t('item.radiant')}</span>)}</span>}
         </div>
-      </div>
       {item.kind === 'gear' && !item.identified && (
         <p className="m-0 text-sm text-muted italic">
           <strong className="text-bone not-italic">{t('item.unidentified')}.</strong> {t('item.unidentifiedHint')}
@@ -108,16 +63,18 @@ export function ItemDetails({ item, revealStep = Infinity }: { item: ItemView; r
       )}
       {item.gear && <div {...reveal(finalStep)}><GearFacts gear={item.gear} hero={hero} barred={barred} explain={explain} /></div>}
       {item.about && <div {...reveal(finalStep)}><p className="m-0 text-[15px]">{text(item.about)}</p></div>}
-      {item.quality !== null && <div {...reveal(2)}>{explain('quality', 'quality', <span className="text-sm">{t('item.quality', { n: item.quality })}</span>)}</div>}
+      {known && item.quality !== null && <div {...reveal(2)}>{explain('quality', 'quality', <span className="item-quality"><span>{t('item.quality', { n: item.quality })}</span><span className="item-quality-track" aria-hidden="true"><i style={{ width: `${item.quality}%` }}/></span></span>)}</div>}
       {known && item.upgrade > 0 && <div {...reveal(2)}>{explain('upgrade', 'upgrade', <span className="text-sm">{t('item.upgradeLine', { n: item.upgrade })}</span>)}</div>}
-      {item.serial && <div {...reveal(finalStep)}><span className="font-head text-sm font-bold text-gold">{t('item.serial', { n: item.serial.number, m: item.serial.of })}</span></div>}
-      <BonusLines item={item} visible={revealStep - 2} explain={explain} />
-      {item.power && <div {...reveal(3 + (item.bonusStats?.length ?? 0))}><p className="m-0 italic" style={{ color }}>{text(item.power)}</p></div>}
+      {known && item.serial && <div {...reveal(finalStep)}><span className="font-head text-sm font-bold text-gold">{t('item.serial', { n: item.serial.number, m: item.serial.of })}</span></div>}
+      {known && <BonusLines item={item} visible={revealStep - 2} explain={explain} />}
+      {mystery && <div className="item-mystery-lines" aria-hidden="true"><span>◆ ???</span><span>◆ ???</span></div>}
+      {known && item.power && <div {...reveal(3 + (item.bonusStats?.length ?? 0))}><p className="item-card-power">{text(item.power)}</p></div>}
       {known && <div {...reveal(finalStep)}><p className="m-0 text-xs text-muted">{t('info.hint')}</p></div>}
       {item.gear && hero && !barred && <div {...reveal(finalStep)}><Compare item={item} gear={item.gear} hero={hero} /></div>}
-      {item.owners && <div {...reveal(finalStep)}><span className="text-sm text-muted">{t('item.owners', { list: item.owners.join(' → ') })}</span></div>}
+      {known && item.owners && <div {...reveal(finalStep)}><span className="text-sm text-muted">{t('item.owners', { list: item.owners.join(' → ') })}</span></div>}
       {item.worth > 0 && <div {...reveal(finalStep)}><span className="text-xs text-muted">{t('item.worth', { n: item.worth.toLocaleString() })}</span></div>}
-    </div>
+      </div>
+    </article>
   );
 }
 
@@ -144,9 +101,9 @@ function BonusLines({ item, muted = false, visible = Infinity, explain = null }:
   );
 }
 
-const casts = (hero: HeroView | null) => hero?.class === 'wizard' || hero?.class === 'cleric';
+const casts = (hero: HeroView | null) => hero !== null && ['wizard', 'cleric', 'warlock', 'druid', 'bard', 'sorcerer'].includes(hero.class);
 /** The ability a weapon attack adds, as fights pick it: DEX for bows and Rogues, else STR. */
-const attackAbility = (gear: GearFactsView, hero: HeroView) => (gear.group === 'bow' || hero.class === 'rogue' || hero.class === 'ranger' ? 'dex' : 'str');
+const attackAbility = (gear: GearFactsView, hero: HeroView) => (gear.group === 'bow' || ['rogue', 'ranger', 'monk'].includes(hero.class) ? 'dex' : 'str');
 const modifier = (score: number) => Math.floor((score - 10) / 2);
 /** What a piece's armor is worth to this Hero: body armor with as much DEX as it lets count. */
 const armorFor = (gear: GearFactsView, hero: HeroView) => {

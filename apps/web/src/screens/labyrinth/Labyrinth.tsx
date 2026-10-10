@@ -8,7 +8,9 @@ import {
 import { api, ApiRequestError } from '../../api';
 import { CenterModal } from '../../components/CenterModal';
 import { Guide } from '../../components/Guide';
-import { ItemChip, ItemDetails, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { ItemCard } from '../../components/items/ItemCard';
+import { useText } from '../../components/items/text';
 import { useLoad, useRefresh } from '../../components/useLoad';
 import { DuoCard } from '../../components/DuoCard';
 import { DuoStrip } from '../../components/DuoStrip';
@@ -728,7 +730,7 @@ function BagCard({ onClose }: { onClose: () => void }) {
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(62px,1fr))] gap-2">
           {hero.bag.map((item) => (
-            <ItemChip key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />
+            <ItemTile key={item.id} item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemCard item={item} /> })} />
           ))}
         </div>
       )}
@@ -1133,7 +1135,7 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
             <div className="flex flex-wrap gap-2">
               {result.loot.map((item) => (
                 <TierBurst key={item.id} tier={item.tier}>
-                  <ItemChip item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemDetails item={item} /> })} />
+                  <ItemTile item={item} onClick={() => openSheet({ title: text(item.name), body: <ItemCard item={item} /> })} />
                 </TierBurst>
               ))}
             </div>

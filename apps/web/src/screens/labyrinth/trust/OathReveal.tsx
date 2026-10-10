@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { LocalizedText } from '@dark/shared';
 import { useI18n } from '../../../i18n';
-import { useText } from '../../../components/items/ItemChip';
+import { useText } from '../../../components/items/text';
 import { useReducedMotion } from '../../../components/loot/motion';
 import { OathScene, type SettledOath, type TrustPair } from './OathScene';
 import { useTrustCopy } from './copy';

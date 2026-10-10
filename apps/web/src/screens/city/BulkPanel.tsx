@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { BULK_TIERS, type BulkTier, type ItemView, takenInBulk } from '@dark/shared';
 import { api } from '../../api';
-import { ItemChip, useText } from '../../components/items/ItemChip';
+import { ItemTile } from '../../components/items/ItemTile';
+import { useText } from '../../components/items/text';
 import { useSheet } from '../../components/Sheet';
 import { useAction } from '../../components/useAction';
 import { useI18n } from '../../i18n';
@@ -105,7 +106,7 @@ function BulkConfirm({ mode, items, gold, upTo, onDone }: { mode: 'sell' | 'salv
   return (
     <div className="grid gap-4">
       <div className="grid grid-cols-[repeat(auto-fill,minmax(56px,1fr))] gap-2">
-        {items.map((item) => <ItemChip key={item.id} item={item} size={52} />)}
+        {items.map((item) => <ItemTile key={item.id} item={item} size={52} />)}
       </div>
       <button type="button" className="btn btn-primary" disabled={busy} onClick={go}>
         {mode === 'sell' ? t('bulk.sellGo', { n: items.length, gold: gold.toLocaleString() }) : t('bulk.salvageGo', { n: items.length })}

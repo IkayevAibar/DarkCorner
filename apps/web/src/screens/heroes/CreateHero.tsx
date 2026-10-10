@@ -3,7 +3,7 @@ import {
   ABILITY_IDS, type AbilityId, type AbilitySetView, type ClassId, type CreationOptions, type HeroDraft, type RaceId, type TalentId,
 } from '@dark/shared';
 import { api, ApiRequestError } from '../../api';
-import { useText } from '../../components/items/ItemChip';
+import { useText } from '../../components/items/text';
 import { useI18n } from '../../i18n';
 import { play } from '../../sound';
 import type { MessageKey } from '../../i18n/en';
