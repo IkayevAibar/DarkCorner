@@ -11,6 +11,10 @@ export interface FighterState {
   ward: number;
   raging: boolean;
   marked: string | null;
+  hexed: string | null;
+  beast: boolean;
+  beastMax: number;
+  smite: string | null;
 }
 export interface Frame {
   fighters: Record<string, FighterState>;
@@ -21,7 +25,7 @@ export function initialFrame(replay: FightReplay): Frame {
   return {
     fighters: Object.fromEntries([replay.hero, ...(replay.ally ? [replay.ally] : []), ...replay.monsters].map(who => [who.key, {
       hp: who.hp, fallen: false, fled: false, enraged: false, statuses: {},
-      saves: null, ward: 0, raging: false, marked: null,
+      saves: null, ward: 0, raging: false, marked: null, hexed: null, beast: false, beastMax: 0, smite: null,
     }])),
     order: [],
   };
@@ -40,7 +44,10 @@ export function advance(frame: Frame, event: FightEventView): Frame {
   const hp = (key: string, value: number) => { const f = who(key); if (f) f.hp = value; };
   switch (event.type) {
     case 'initiative': next.order = [...event.order]; break;
-    case 'attack': hp(event.target, event.targetHp); break;
+    case 'attack':
+      hp(event.target, event.targetHp);
+      if (actor) actor.smite = null;
+      break;
     case 'burst': for (const hit of event.targets) hp(hit.key, hit.hp); break;
     case 'heal':
       hp(event.actor, event.hp);
@@ -49,10 +56,13 @@ export function advance(frame: Frame, event: FightEventView): Frame {
     case 'feature':
       if (!actor) break;
       if (event.hp !== undefined) actor.hp = event.hp;
-      // A Druid's beast shows its health as a ward does; a Warlock's Hex as a Hunter's mark.
       if (event.feature === 'ward' || event.feature === 'wild-shape') actor.ward = event.left ?? actor.ward;
+      if (event.feature === 'wild-shape') actor.beast = actor.ward > 0;
+      if (event.feature === 'wild-shape' && event.amount === undefined && event.left) actor.beastMax = event.left;
       if (event.feature === 'rage') actor.raging = true;
-      if ((event.feature === 'mark' || event.feature === 'hex') && event.target && who(event.target)) actor.marked = event.target;
+      if (event.feature === 'mark' && event.target && who(event.target)) actor.marked = event.target;
+      if (event.feature === 'hex' && event.target && who(event.target)) actor.hexed = event.target;
+      if (event.feature === 'smite' && event.target && who(event.target)) actor.smite = event.target;
       break;
     case 'power':
       if (event.hp !== undefined) hp(
@@ -76,6 +86,7 @@ export function advance(frame: Frame, event: FightEventView): Frame {
         actor.hp = 0;
         actor.fallen = true;
         actor.statuses = {};
+        actor.beast = false; actor.smite = null;
         actor.saves = { successes: 0, failures: 0 };
       }
       break;
@@ -89,7 +100,7 @@ export function advance(frame: Frame, event: FightEventView): Frame {
       }
       break;
     case 'end':
-      for (const f of Object.values(next.fighters)) { f.statuses = {}; f.raging = false; f.marked = null; }
+      for (const f of Object.values(next.fighters)) { f.statuses = {}; f.raging = false; f.marked = null; f.hexed = null; f.beast = false; f.smite = null; }
       break;
     default: break;
   }

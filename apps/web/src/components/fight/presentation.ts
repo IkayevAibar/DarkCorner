@@ -40,6 +40,13 @@ export function sound(event: FightEventView): void {
       else if (event.feature === 'ward') play('crit', { rate: 1.4, volume: 0.4 });
       else if (event.feature === 'rage') play('crit', { rate: 0.55, volume: 0.9 });
       else if (event.feature === 'mark') play('equip', { rate: 1.4, volume: 0.6 });
+      else if (event.feature === 'smite') { play('draw', { rate: 1.2 }); play('crit', { rate: 1.35, volume: .5, delay: 160 }); }
+      else if (event.feature === 'hex') play('reveal', { rate: .7, volume: .6 });
+      else if (event.feature === 'wild-shape') play(event.left ? 'creak' : 'loot', { rate: .75, volume: .6 });
+      else if (event.feature === 'flurry') { play('miss', { rate: 1.5 }); play('miss', { rate: 1.3, delay: 100 }); }
+      else if (event.feature === 'inspiration' || event.feature === 'cutting-words') play('chips', { rate: event.feature === 'inspiration' ? 1.4 : .8, volume: .5 });
+      else if (event.feature === 'quickened') { play('reveal', { rate: 1.4, volume: .5 }); play('reveal', { rate: 1.6, volume: .4, delay: 140 }); }
+      else if (event.feature === 'action-surge') play('draw', { rate: .85 });
       break;
     case 'tick': play('hit', { rate: 1.3, volume: 0.5 }); break;
     case 'fled': play('step'); play('step', { delay: 180 }); break;

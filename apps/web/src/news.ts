@@ -54,6 +54,17 @@ export const NEWS: NewsEntry[] = [
       'Маршрут огибает значки комнат и заканчивается флажком. Мини-карта показывает путь через каждую комнату, а увеличенный вид карты помогает выбрать маршрут на телефоне.')],
   },
   {
+    id: '2026-10-10-power-ink',
+    date: '2026-10-10',
+    title: t('Each Class leaves its mark in a fight', 'У каждого класса свой облик в бою'),
+    items: [
+      t('Divine smite, Hex, Flurry of blows, Wild shape, Bardic inspiration, Quickened spells and Action Surge now have their own effects.',
+        'Божественная кара, порча, шквал ударов, дикий облик, вдохновение барда, ускоренные заклинания и всплеск действий теперь выглядят по-разному.'),
+      t('Watch frost take a blow, a Hex move to the next monster, and Lay on hands reach your Partner. Both sides of a Duo see the same powers.',
+        'Мороз принимает удар, порча переходит к следующему монстру, а наложение рук помогает напарнику. Оба участника дуэта видят одни и те же силы.'),
+    ],
+  },
+  {
     id: '2026-10-10-boss-paths',
     date: '2026-10-10',
     title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),

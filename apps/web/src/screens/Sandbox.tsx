@@ -15,6 +15,9 @@ import { useI18n } from '../i18n';
 import { FightScene } from '../components/fight/FightScene';
 import { FIGHTS } from './sandbox/fightExamples';
 import { FightLog } from './labyrinth/FightLog';
+import { classPowerFixtures } from '../components/fight/classPowerFixtures';
+
+const POWER_FIGHTS = classPowerFixtures(FIGHTS['goblins-victory-crit']!);
 
 /**
  * Codex builds visual components here against @dark/shared types with fake
@@ -42,7 +45,7 @@ export function Sandbox() {
       <TurnPreview />
       <h2 className="sub-heading m-0">{t('fight.title')}</h2>
       <div className="flex flex-wrap gap-2">
-        {Object.entries(FIGHTS).map(([name, replay]) => (
+        {Object.entries({ ...POWER_FIGHTS, ...FIGHTS }).map(([name, replay]) => (
           <button key={name} type="button" className="btn btn-small" onClick={() => setFight(replay)}>
             {name}
           </button>
