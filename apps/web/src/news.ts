@@ -19,6 +19,13 @@ const t = (en: string, ru: string): LocalizedText => ({ en, ru });
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '2026-10-10-lock-ink',
+    date: '2026-10-10',
+    title: t('Feel the lock give', 'Щелчок замка'),
+    items: [t('Lockpicking now shows the lock’s three pins, the picks that snap, and the final turn before the Chest appears. The timing stays the same.',
+      'При взломе видны три штифта, сломанные отмычки и поворот замка перед появлением сундука. Момент нажатия определяется по прежним правилам.')],
+  },
+  {
     id: '2026-10-10-boss-paths',
     date: '2026-10-10',
     title: t('Evokers and Wild Magic against the Dragon', 'Воплотители и дикая магия против дракона'),

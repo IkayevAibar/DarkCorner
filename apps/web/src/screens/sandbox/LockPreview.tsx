@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { type LockPin, lockPinSets } from '@dark/shared';
 import { useI18n } from '../../i18n';
-import { LockPick, type LockView } from '../labyrinth/LockPick';
+import { LockPick, lockTurnDelay, type LockView } from '../labyrinth/LockPick';
 
 const pins = (period: number, width: number): LockPin[] => [
   { period, phase: 0.73, center: 0.68, width },
@@ -42,14 +42,14 @@ export function LockPreview() {
     window.setTimeout(() => {
       setAt((a) => (lockPinSets(lock.pins[a.set]!, ms) ? { ...a, set: a.set + 1 } : { ...a, broken: a.broken + 1 }));
       setBusy(false);
-    }, 250);
+    }, Math.max(250, lockTurnDelay(view, ms)));
   };
   return (
     <section className="grid gap-2" data-lock-preview>
       <h2 className="sub-heading m-0">{t('event.lockpicking')}</h2>
       <div className="flex flex-wrap gap-2">
         {(Object.keys(LOCKS) as (keyof typeof LOCKS)[]).map((k) => (
-          <button key={k} type="button" className="btn btn-small" aria-pressed={kind === k} onClick={() => reset(k)}>{copy[k]}</button>
+          <button key={k} type="button" className="btn btn-small" disabled={busy} aria-pressed={kind === k} onClick={() => reset(k)}>{copy[k]}</button>
         ))}
       </div>
       {done ? (
