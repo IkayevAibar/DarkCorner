@@ -498,6 +498,8 @@ export const en = {
   'lab.recovering': 'Waiting heals slowly: a twentieth of full health an hour.',
   'camp.bed': 'A safe Camp: sleep here, and the night passes. You wake with full health, abilities, Stamina and both short rests.',
   'camp.sleep': 'Sleep here',
+  'camp.rough': 'No Camp here: a night on the stones brings back Stamina, abilities and both short rests, but only half your missing health.',
+  'camp.roughSleep': 'Sleep on the stones',
   'lab.map': 'Map of Floor {n}',
   'lab.hud': 'Lv {level} · Floor {floor}',
   'lab.hudCity': 'Lv {level} · in the City',

@@ -225,9 +225,14 @@ describe('the local backend', () => {
     // The Camp's own rest doesn't come again on the next look.
     expect((await look(backend)).notices).toEqual([]);
 
-    // Only in a Camp.
+    // Anywhere else, a rough night: everything back but half the missing health.
     await walkIn(backend, steps.length > 1 ? steps.at(-2)! : floor.landing);
-    expect((await backend.handle('POST', '/api/labyrinth/sleep', {})).body).toMatchObject({ error: 'not_in_camp' });
+    await arrange(backend, () => prisma.hero.updateMany({ data: { hp: 99, stamina: 0, shortRests: 0 } }));
+    const full = (await look(backend)).view.hero.maxHp;
+    const rough = labyrinthResultSchema.parse(await call(backend, 'POST', '/api/labyrinth/sleep'));
+    expect(backend.world.clock.now).toBe(morning + 2 * 86_400_000);
+    expect(rough.view.hero).toMatchObject({ stamina: 20, shortRests: { left: 2, of: 2 }, hp: 99 + Math.ceil((full - 99) / 2) });
+    expect(rough.notices.map((n) => n.en)).toContainEqual(expect.stringMatching(/^You sleep on the bare stones, and Day 3 begins/));
   });
 
   it('keeps a Town Portal open through one night: home to sleep, and back in the morning', async () => {

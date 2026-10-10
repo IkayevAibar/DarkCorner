@@ -35,7 +35,7 @@ import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
 import { chestOf, chestView, duoTreasure, oathView, swear, takeTurns } from './trust.js';
 import { finishTraining, requireNotTraining } from './training.js';
-import { wokenRested } from './sleep.js';
+import { roughNight, wokenRested } from './sleep.js';
 import { gameNow, gameNowMs, nextMorning, sleepTonight, worldDay } from '../gameClock.js';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -1260,11 +1260,14 @@ export async function shortRest(player: Player): Promise<LabyrinthResult> {
 }
 
 /**
- * Solo: a night's sleep in a Camp (docs/plan-solo-offline.md → Days). The night
- * passes, and the Hero wakes here the next morning with the Camp's full rest.
- * Online, the same rest comes after four hours of waiting in the Camp.
+ * Solo: a night's sleep in the Labyrinth (docs/plan-solo-offline.md → Days). The
+ * night passes, and the Hero wakes here the next morning. In a Camp it is the
+ * Camp's full rest; anywhere else a rough night on the stones gives back only half
+ * the missing health. A Hero may sleep wherever it stands, so nothing (no Stamina,
+ * no short rests, no Town Portal, no Camp in reach) keeps it from the next Day.
+ * Online, a Camp's rest comes after four hours of waiting, and Stamina by the clock.
  */
-export async function sleepInCamp(player: Player): Promise<LabyrinthResult> {
+export async function sleepHere(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
   const lab = labyrinthFor(season);
   const now = gameNow();
@@ -1274,17 +1277,22 @@ export async function sleepInCamp(player: Player): Promise<LabyrinthResult> {
     const { hero, partner } = await actors(tx, player, season, now, outcome, true);
     await noFight(tx, hero.id);
     const { floor } = whereIs(hero, lab);
-    if (floor.rooms[hero.room!]!.type !== 'camp') throw ApiError.conflict('not_in_camp', 'Only in a Camp');
+    const camp = floor.rooms[hero.room!]!.type === 'camp';
     if (await stillFacing(tx, hero, partner, season, floor, now)) throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
-    // The Camp's own four-hour rest starts from the morning, so it doesn't come again at once.
     for (const h of partner ? [hero, partner] : [hero]) {
-      await tx.hero.update({ where: { id: h.id }, data: { ...wokenRested(h, morning), campSince: morning } });
+      // A Camp's own four-hour rest starts from the morning, so it doesn't come again at once.
+      await tx.hero.update({ where: { id: h.id }, data: camp ? { ...wokenRested(h, morning), campSince: morning } : roughNight(h, morning) });
     }
     const day = worldDay(morning.getTime());
-    outcome.notices.push(t(
-      `You sleep in the Camp, and Day ${day} begins: health, abilities, Stamina and both short rests are back.`,
-      `Вы спите в лагере, и начинается день ${day}: здоровье, способности, выносливость и оба коротких отдыха восстановлены.`,
-    ));
+    outcome.notices.push(camp
+      ? t(
+        `You sleep in the Camp, and Day ${day} begins: health, abilities, Stamina and both short rests are back.`,
+        `Вы спите в лагере, и начинается день ${day}: здоровье, способности, выносливость и оба коротких отдыха восстановлены.`,
+      )
+      : t(
+        `You sleep on the bare stones, and Day ${day} begins: abilities, Stamina and both short rests are back, and half your wounds have closed.`,
+        `Вы спите на голых камнях, и начинается день ${day}: способности, выносливость и оба коротких отдыха восстановлены, а половина ран затянулась.`,
+      ));
     return hero.id;
   });
   sleepTonight();

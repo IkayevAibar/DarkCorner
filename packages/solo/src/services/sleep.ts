@@ -15,3 +15,12 @@ export function wokenRested(hero: Hero & { items: Item[] }, morning: Date) {
     stamina: STAMINA_MAX, staminaAt: morning, shortRests: SHORT_RESTS, shortRestsAt: morning,
   };
 }
+
+/**
+ * A rough night, on the stones of a Room that is no Camp: everything a night gives
+ * back, but only half the health the Hero is missing.
+ */
+export function roughNight(hero: Hero & { items: Item[] }, morning: Date) {
+  const rested = wokenRested(hero, morning);
+  return { ...rested, hp: Math.min(rested.hp, hero.hp + Math.ceil((rested.hp - hero.hp) / 2)) };
+}

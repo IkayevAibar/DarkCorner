@@ -436,7 +436,14 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
       {__SOLO__ && room.type === 'camp' && !facing && (
         <section className="grid gap-2 px-1">
           <p className="m-0 text-sm text-muted">{t('camp.bed')}</p>
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void act(() => api.sleepInCamp())}>{t('camp.sleep')}</button>
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void act(() => api.sleepHere())}>{t('camp.sleep')}</button>
+        </section>
+      )}
+      {/* Solo, late in the Day: a night where the Hero stands, so nothing keeps it from the next. */}
+      {__SOLO__ && room.type !== 'camp' && !facing && hero.stamina <= 4 && (
+        <section className="grid gap-2 px-1">
+          <p className="m-0 text-sm text-muted">{t('camp.rough')}</p>
+          <button type="button" className="btn btn-small justify-self-start" disabled={busy} onClick={() => void act(() => api.sleepHere())}>{t('camp.roughSleep')}</button>
         </section>
       )}
 

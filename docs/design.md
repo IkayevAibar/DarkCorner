@@ -41,8 +41,9 @@ Online Seasons have ended. Next comes a solo version for Android that needs no s
 
 The solo build plays by this document, except for these:
 - **One Player per device,** always signed in: no hub, no approval.
-- **Days.** In-game time stands still while the Hero plays. A Day ends when the Hero sleeps: in a bed upstairs at the Tavern, or in a Camp in the Labyrinth.
+- **Days.** In-game time stands still while the Hero plays. A Day ends when the Hero sleeps: in a bed upstairs at the Tavern, in a Camp, or anywhere else in the Labyrinth.
   - **A night costs nothing,** and a rested Hero may sleep too. The Hero wakes the next morning where it slept, with full health, abilities, Stamina and both short rests.
+  - **Elsewhere in the Labyrinth it is a rough night on the stones:** everything comes back except health, and only half of the missing health returns. A Hero can always sleep where it stands, so running out of Stamina far from a bed never stops the Days.
   - **Stamina doesn't come back while the Hero plays.** A Day's Stamina, with the two short rests, is a Day's exploring.
   - **Each morning** brings back cleared Rooms and Mini-bosses, and a new Omen, Bounties, Shop gear and Daily Delve.
   - **What the server counts in hours waits for a night.** Training ends overnight, and keeps the Hero in the City until then. A Blessing lasts until the Hero sleeps. A Town Portal stays open through one night, until the end of the next Day, so the Hero can sleep at home and step back through. A Grave lasts two nights.

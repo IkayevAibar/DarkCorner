@@ -104,8 +104,8 @@ export const api = {
   leaveLabyrinth: () => request<LabyrinthResult>('POST', '/api/labyrinth/leave'),
   readPortal: () => request<LabyrinthResult>('POST', '/api/labyrinth/portal'),
   shortRest: () => request<LabyrinthResult>('POST', '/api/labyrinth/short-rest'),
-  /** Solo only (docs/plan-solo-offline.md → Days): the server's Camps rest by the clock. */
-  sleepInCamp: () => request<LabyrinthResult>('POST', '/api/labyrinth/sleep'),
+  /** Solo only (docs/plan-solo-offline.md → Days): a night where the Hero stands, a Camp's or a rough one. */
+  sleepHere: () => request<LabyrinthResult>('POST', '/api/labyrinth/sleep'),
   /** Solo only: the Save's difficulty and Iron mode, chosen before its first Hero. */
   soloSettings: () => request<SoloSettings>('GET', '/api/solo/settings'),
   setSoloSettings: (body: Omit<SoloSettings, 'locked'>) => request<SoloSettings>('PUT', '/api/solo/settings', body),
