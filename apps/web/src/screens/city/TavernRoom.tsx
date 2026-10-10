@@ -72,7 +72,7 @@ function SeasonNotice({ season }: { season: SeasonView }) {
   const until = (iso: string) => formatDuration(t, Date.parse(iso) - now);
   const gateOpen = season.bossGateAt !== null && Date.parse(season.bossGateAt) <= now;
   return <section className={`tavern-season ${season.status === 'finale' ? 'is-finale' : ''}`}>
-    <div className="season-name"><TavernMark kind={season.status === 'finale' ? 'crown' : 'notice'} /><div><h2>{t('tavern.season', { n: season.number })}</h2><span>{t(`season.${season.status}`)}</span></div></div>
+    <div className="season-name"><TavernMark kind={season.status === 'finale' ? 'crown' : 'notice'} /><div><h2>{t('tavern.season', { n: season.number })}</h2><span>{__SOLO__ && season.podium.length > 0 ? t('chapter.complete') : t(`season.${season.status}`)}</span></div></div>
     <div className="season-notice">
       {season.status === 'planned' && <p>{t('tavern.notStarted')}</p>}
       {season.wipeAt && <strong className="season-countdown">{t('tavern.wipeIn', { time: until(season.wipeAt) })}</strong>}
@@ -82,7 +82,7 @@ function SeasonNotice({ season }: { season: SeasonView }) {
       <small>{t('tavern.relicsLeft', { n: season.relicsLeft })}</small>
     </div>
     {season.podium.length > 0 && <ol className="season-podium">{[...season.podium].sort((a,b) => a.place-b.place).map(p => <li key={p.place}>
-      <span>{t(`tavern.place.${p.place as 1 | 2 | 3}`)}</span><strong>{p.hero}</strong><small>{p.player}</small>
+      <span>{t(`tavern.place.${p.place as 1 | 2 | 3}`)}</span><strong>{p.hero}</strong>{!__SOLO__ && <small>{p.player}</small>}
     </li>)}</ol>}
   </section>;
 }
@@ -98,7 +98,7 @@ export function Hall({ entries }: { entries: HallEntry[] | null }) {
       <h3><span>{copy.chronicle}</span>{t('tavern.season', { n: season })}</h3>
       {entries.filter(e => e.season === season).sort((a,b) => HALL_ORDER.indexOf(a.kind)-HALL_ORDER.indexOf(b.kind)).map((e,i) => <div className={`hall-record hall-${e.kind}`} key={i}>
         {e.kind === 'champion' && <TavernMark kind="crown" />}
-        <span className="hall-kind">{t(`hall.${e.kind}`)}</span><div><strong>{e.hero}</strong><small>{e.player}</small>{e.detail && <p>{text(e.detail)}</p>}</div>
+        <span className="hall-kind">{t(`hall.${e.kind}`)}</span><div><strong>{e.hero}</strong>{!__SOLO__ && <small>{e.player}</small>}{e.detail && <p>{text(e.detail)}</p>}</div>
       </div>)}
     </article>)}
   </section>;

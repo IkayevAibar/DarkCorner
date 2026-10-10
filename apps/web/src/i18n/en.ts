@@ -266,6 +266,7 @@ export const en = {
   'rankings.dragon.empty': 'The Dragon still lives.',
   'season.planned': 'not started',
   'season.active': 'under way',
+  'chapter.complete': 'complete',
   'season.finale': 'the Finale',
   'season.ended': 'over',
   'hall.champion': 'Champion',

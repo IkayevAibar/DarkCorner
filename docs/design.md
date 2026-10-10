@@ -46,6 +46,10 @@ The solo build plays by this document, except for these:
   - **Stamina doesn't come back while the Hero plays.** A Day's Stamina, with the two short rests, is a Day's exploring.
   - **Each morning** brings back cleared Rooms and Mini-bosses, and a new Omen, Bounties, Shop gear and Daily Delve.
   - **What the server counts in hours waits for a night.** Training ends overnight, and keeps the Hero in the City until then. A Blessing lasts until the Hero sleeps, and so does an open Town Portal. A Grave lasts two nights.
+- **Chapters.** A Chapter is a Season without its Finale and its Wipe.
+  - **The Boss gate** opens the first time the Hero reaches Floor 10, or four weeks in at the latest. The Dragon's weakening counts from the gate.
+  - **The Dragon's fall ends the Chapter.** The Hero enters the Hall of Fame as its Champion, and the world goes on: the Dragon returns the next day, hoard and all.
+  - **A next Chapter** needs new Bosses, so for now there is only Chapter 1.
 - **Alone.** Nothing reaches anyone else: no push Notifications or Broadcasts, and no Duo card, push settings or Sign out.
   - **No Market.** Nobody else lists or buys, and the Shops buy everything but Relics. The Free market Omen never comes.
   - **The week's Hunt is the Hero's own,** sized for one Hero: reaching it pays a Gold Chest.

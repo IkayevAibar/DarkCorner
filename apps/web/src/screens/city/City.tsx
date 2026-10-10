@@ -42,7 +42,7 @@ export function City() {
     <div className="city-surface grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="sub-heading m-0">{t('tab.city')}</h1>
-        {data && <span className="chip">{t('tavern.season', { n: data.season.number })} · {t(`season.${data.season.status}`)}</span>}
+        {data && <span className="chip">{t('tavern.season', { n: data.season.number })} · {__SOLO__ && data.season.podium.length > 0 ? t('chapter.complete') : t(`season.${data.season.status}`)}</span>}
       </div>
       {failed ? <div className="flex flex-wrap items-center gap-2 text-sm text-muted" role="status">
         <span>{t('city.statusUnavailable')}</span>

@@ -7,6 +7,7 @@ import {
   partnerRaises, simulateFight, spawnEncounter,
 } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
+import { weakeningFrom } from './chapters.js';
 import { feed } from './feed.js';
 import { giveStarterKit, portraitUrlOf } from './heroes.js';
 import type { HeroWithItems, Tx } from './ledger.js';
@@ -129,7 +130,7 @@ export const WARDENS_MS = 7 * DAY_MS;
 /** The monsters waiting for one Hero in a Room: personal, and the same group all day. */
 export function monstersFor(season: Season, hero: Pick<Hero, 'id'>, floor: Floor, roomId: number, kind: FightKind, now: Date) {
   const spawnSeed = `${season.seed}:${hero.id}:${floor.number}:${roomId}:${Math.floor(now.getTime() / DAY_MS)}`;
-  return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(season.startsAt, now), omenOf(season, now)) };
+  return { spawnSeed, monsters: spawnEncounter(createRng(spawnSeed), floor.number, kind, weakeningAt(weakeningFrom(season), now), omenOf(season, now)) };
 }
 
 /** The Bond rings two Heroes join: pairs of which each wears a half. */
@@ -381,7 +382,7 @@ export function duoMonstersFor(season: Season, a: Pick<Hero, 'id'>, b: Pick<Hero
   const rng = createRng(spawnSeed);
   const monsters = kind === 'twin'
     ? spawnEncounter(rng, floor.number, 'twin', 0, omenOf(season, now))
-    : duoEncounter(rng, floor.number, kind, weakeningAt(season.startsAt, now), omenOf(season, now));
+    : duoEncounter(rng, floor.number, kind, weakeningAt(weakeningFrom(season), now), omenOf(season, now));
   return { spawnSeed, monsters };
 }
 

@@ -5,7 +5,12 @@ const COPY = {
   en: { hearth: 'A fire. A story. A place to return.', upstairs: 'Rooms upstairs', board: 'From the Labyrinth', wanted: 'The week’s Hunt', stone: 'What the Wipe cannot take', hall: 'Names cut into stone. Glory kept from Season to Season.', notice: 'Notice', chronicle: 'Chronicle', making: 'A Hero takes shape', quiet: 'The hearth is still warm.' },
   ru: { hearth: 'Огонь. Истории. Место, куда возвращаются.', upstairs: 'Комнаты наверху', board: 'Из Лабиринта', wanted: 'Охота недели', stone: 'То, что не заберёт вайп', hall: 'Имена высечены в камне. Слава остаётся от сезона к сезону.', notice: 'Объявление', chronicle: 'Летопись', making: 'Создание героя', quiet: 'В очаге ещё тепло.' },
 };
-export const useTavernCopy = () => COPY[useI18n().locale];
+/** Solo: Chapters instead of Seasons, and nothing is wiped. */
+const SOLO_COPY = {
+  en: { ...COPY.en, stone: 'What the years cannot take', hall: 'Names cut into stone. Glory kept from Chapter to Chapter.' },
+  ru: { ...COPY.ru, stone: 'То, что не отнимут годы', hall: 'Имена высечены в камне. Слава остаётся от главы к главе.' },
+};
+export const useTavernCopy = () => (__SOLO__ ? SOLO_COPY : COPY)[useI18n().locale];
 const PATHS = {
   fire: 'M12 2C14 8 20 8 20 15a8 8 0 0 1-16 0c0-3 2-5 4-7 0 4 2 5 3 5 2-3 0-6 1-11ZM12 15c-3 3-3 6 0 7 3-1 3-4 0-7Z',
   stairs: 'M2 21h20M3 20v-5h5v-5h5V5h6V2M3 7l17-5M20 2v19',

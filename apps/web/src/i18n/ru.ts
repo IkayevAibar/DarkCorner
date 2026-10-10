@@ -267,6 +267,7 @@ export const ru: Record<MessageKey, string> = {
   'rankings.dragon.empty': 'Дракон ещё жив.',
   'season.planned': 'не начался',
   'season.active': 'идёт',
+  'chapter.complete': 'завершена',
   'season.finale': 'финал',
   'season.ended': 'окончен',
   'hall.champion': 'Чемпион',

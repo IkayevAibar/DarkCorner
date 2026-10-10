@@ -17,6 +17,7 @@ import { onJob, schedule } from './scheduler.js';
 import { nextOmenAt, omenView } from './omens.js';
 import { notifyAll } from './push.js';
 import { currentSeason } from './seasons.js';
+import { weakeningFrom } from './chapters.js';
 import { gameNow } from '../gameClock.js';
 
 // The Season's life (docs/design.md → Seasons): an admin starts it, jobs open the
@@ -52,7 +53,7 @@ export async function seasonView(season: Season, now = gameNow()): Promise<Seaso
     startsAt: season.startsAt?.toISOString() ?? null,
     bossGateAt: season.bossGateAt?.toISOString() ?? null,
     wipeAt: season.finaleAt ? new Date(season.finaleAt.getTime() + FINALE_MS).toISOString() : null,
-    weakening: weakeningAt(season.startsAt, now),
+    weakening: weakeningAt(weakeningFrom(season), now),
     podium: kills.map((k) => ({ place: k.place, hero: k.heroName, player: nameOf(k.playerId), at: k.createdAt.toISOString() })),
     relicsLeft: copies - Object.values(found).reduce((s, n) => s + n, 0),
     omen: omenView(season, now),
@@ -214,7 +215,7 @@ onJob('boss-gate', async (payload) => {
 onJob('weaken', async (payload) => {
   const season = await liveSeason(payload.seasonId);
   if (!season) return;
-  const percent = Math.round(weakeningAt(season.startsAt, gameNow()) * 100);
+  const percent = Math.round(weakeningAt(weakeningFrom(season), gameNow()) * 100);
   await prisma.$transaction(async (tx) => {
     await tx.feedEvent.create({ data: { seasonId: season.id, kind: 'weaken', data: { percent } } });
     await broadcast(tx, {

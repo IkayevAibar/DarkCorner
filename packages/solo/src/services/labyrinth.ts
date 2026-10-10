@@ -13,6 +13,7 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { bossVictory } from './boss.js';
+import { GATE_FLOOR, openGateEarly } from './chapters.js';
 import { trackBounties } from './bounties.js';
 import { omenOf, omenView } from './omens.js';
 import { enterEvent, eventAction, eventView, withLuck } from './events.js';
@@ -1102,6 +1103,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
       }
       await trackBounties(tx, h, { type: 'depth', floor: next.number }, out, now);
       await countDeeds(tx, h, {}, out, { depth: next.number });
+      if (next.number >= GATE_FLOOR && h.bestFloor < GATE_FLOOR) await openGateEarly(tx, season, now, out);
       await tx.hero.update({
         where: { id: h.id },
         data: {

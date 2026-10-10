@@ -160,7 +160,7 @@ describe('the Season', () => {
     expect(tavern.online.map((o: { name: string }) => o.name)).toContain('Admira');
   });
 
-  it('crowns a Champion, starts the Finale, fills the podium, and wipes', async () => {
+  it('crowns a Champion and ends the Chapter with no Finale, fills the podium, and ends when told', async () => {
     await post(admin, '/api/admin/season', { action: 'start' });
     await post(admin, '/api/admin/season', { action: 'gate' });
     const boss = roomOfType('boss');
@@ -173,9 +173,10 @@ describe('the Season', () => {
     expect(won.fight?.outcome).toBe('victory');
     expect(won.loot.length).toBeGreaterThanOrEqual(3);
 
+    // Solo, the Dragon's fall ends the Chapter (docs/plan-solo-offline.md → Chapters): no Finale, no Wipe.
     let season = await prisma.season.findFirstOrThrow();
-    expect(season.status).toBe('FINALE');
-    expect(await prisma.job.count({ where: { kind: 'wipe', doneAt: null } })).toBe(1);
+    expect(season.status).toBe('ACTIVE');
+    expect(await prisma.job.count({ where: { kind: 'wipe', doneAt: null } })).toBe(0);
 
     // Coming back the same day: a quiet lair, no second podium place.
     await champion(first.id, boss.floor, boss.from);

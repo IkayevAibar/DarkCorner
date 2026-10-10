@@ -1,7 +1,7 @@
 // Ported from apps/api/test/finale.test.ts: the same scenario, on the solo backend.
 import type { SoloApp as FastifyInstance } from '../src/app.js';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { DAY_MS, FINALE_MS, doorsOf, generateLabyrinth } from '@dark/engine';
+import { DAY_MS, doorsOf, generateLabyrinth } from '@dark/engine';
 import { labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
@@ -100,10 +100,31 @@ describe('the end of a Season, rehearsed', () => {
 
     const facing = result(await post(admin, '/api/labyrinth/move', { to: boss.room }));
     expect(facing.view.room?.facing).toMatchObject({ kind: 'boss', sneak: null });
-    expect(facing.view.room?.facing?.monsters.map((m) => [m.name.en, m.maxHp])).toEqual([['The Ancient Dragon', 1400]]);
+    // Solo counts the weakening from the gate, which can open early (docs/plan-solo-offline.md →
+    // Chapters): its first tenth comes with the gate, as it does online on the gate's own day.
+    expect(facing.view.room?.facing?.monsters.map((m) => [m.name.en, m.maxHp])).toEqual([['The Ancient Dragon', 1260]]);
   });
 
-  it('crowns a Champion from a fight played by hand, and wipes on its own 72 hours later', async () => {
+  it('opens the gate early the first time a Hero reaches Floor 10, and the weakening follows it', async () => {
+    await post(admin, '/api/admin/season', { action: 'start' });
+    const hero = await prisma.hero.findFirstOrThrow({ where: { name: 'Admira' } });
+    const stairs = lab.floors[8]!.rooms.find((r) => r.type === 'stairs')!;
+    await prisma.hero.update({
+      where: { id: hero.id },
+      data: { location: 'LABYRINTH', floor: 9, room: stairs.id, prevRoom: stairs.id, bestFloor: 9, level: 20, maxHp: 99_999, hp: 99_999, stamina: 20, staminaAt: new Date() },
+    });
+    const down = result(await post(admin, '/api/labyrinth/descend', {}));
+    expect(down.view.floor?.number).toBe(10);
+    expect(down.notices.map((n) => n.en)).toContain('Floor 10, at last. Far below, the Boss gate grinds open: the Ancient Dragon waits.');
+    const season = await prisma.season.findFirstOrThrow();
+    expect(season.bossGateAt!.getTime()).toBeLessThanOrEqual(Date.now());
+    const steps = await prisma.job.findMany({ where: { kind: 'weaken' }, orderBy: { runAt: 'asc' } });
+    expect(steps.map((j) => Math.round((j.runAt.getTime() - season.bossGateAt!.getTime()) / DAY_MS))).toEqual([0, 7, 14, 21]);
+    await runDueJobs();
+    expect(await prisma.feedEvent.count({ where: { kind: 'gate-open' } })).toBe(1);
+  });
+
+  it('ends the Chapter when the Dragon falls to a fight played by hand, with no Finale and no Wipe', async () => {
     await post(admin, '/api/admin/season', { action: 'start' });
     await post(admin, '/api/admin/season', { action: 'gate' });
     const hero = await prisma.hero.findFirstOrThrow({ where: { name: 'Admira' } });
@@ -115,28 +136,21 @@ describe('the end of a Season, rehearsed', () => {
     expect(started.view.fight?.turn?.hero).toBe('hero');
     const won = result(await post(admin, '/api/labyrinth/fight', { action: { kind: 'auto' } }));
     expect(won.fight?.outcome).toBe('victory');
-    expect(won.notices.map((n) => n.en)).toContain('The Dragon falls. You are the Champion of this Season! The Finale has begun.');
+    expect(won.notices.map((n) => n.en)).toContainEqual(expect.stringMatching(
+      /^The Ancient Dragon falls on Day \d+\. Chapter 0 is complete: Admira enters the Hall of Fame\. The world goes on/,
+    ));
     expect(won.loot.length).toBeGreaterThanOrEqual(4);
 
+    // Solo (docs/plan-solo-offline.md → Chapters): the Champion enters the Hall of Fame, and the
+    // world goes on as it was: no Finale, no Wipe, and the Chapter keeps running.
     const season = await prisma.season.findFirstOrThrow();
-    expect(season.status).toBe('FINALE');
-    const wipe = await prisma.job.findFirstOrThrow({ where: { kind: 'wipe', doneAt: null } });
-    expect(wipe.runAt.getTime()).toBe(season.finaleAt!.getTime() + FINALE_MS);
+    expect(season).toMatchObject({ status: 'ACTIVE', finaleAt: null });
+    expect(await prisma.job.count({ where: { kind: 'wipe' } })).toBe(0);
     const tavern = (await get(admin, '/api/tavern')).json();
-    expect(tavern.season).toMatchObject({ status: 'finale', wipeAt: wipe.runAt.toISOString(), podium: [{ place: 1, hero: 'Admira' }] });
-    expect((await broadcasts()).some((text) => text.startsWith('🐉 Admira has slain the Ancient Dragon and is the Champion of Season 0!'))).toBe(true);
-
-    // Until its time nothing ends; when the time comes the Season does, with no admin. (The marks move to now
-    // instead of the queue running days ahead: the daily jobs schedule their next run from the real clock.)
+    expect(tavern.season).toMatchObject({ status: 'active', wipeAt: null, podium: [{ place: 1, hero: 'Admira' }] });
+    expect((await prisma.hallEntry.findMany()).map((e) => [e.kind, e.heroName])).toEqual([['champion', 'Admira']]);
     await runDueJobs();
-    expect((await prisma.season.findFirstOrThrow()).status).toBe('FINALE');
-    await prisma.job.update({ where: { id: wipe.id }, data: { runAt: new Date(Date.now() - 1000) } });
-    await runDueJobs();
-    expect((await prisma.season.findFirstOrThrow({ where: { number: 0 } })).status).toBe('ENDED');
-    expect((await broadcasts()).at(-1)).toBe('🌑 Season 0 is over. Everything is wiped; only Glory remains. A new Season begins soon.');
-    const hall = (await get(admin, '/api/hall')).json().entries;
-    expect(hall.map((e: { kind: string }) => e.kind).filter((k: string) => k !== 'best-drop').sort()).toEqual(['champion', 'deepest', 'highest-level']);
-    expect(await prisma.job.count({ where: { doneAt: null, kind: { not: 'broadcast' } } })).toBe(0);
+    expect((await prisma.season.findFirstOrThrow()).status).toBe('ACTIVE');
   }, 20_000);
 
   it('fills the podium with three, pays a fourth only the hoard, and gives no Player two places', async () => {
@@ -162,7 +176,8 @@ describe('the end of a Season, rehearsed', () => {
     expect(podium.map((p: { place: number; hero: string }) => [p.place, p.hero])).toEqual(places);
     expect((await prisma.hallEntry.findMany({ orderBy: { createdAt: 'asc' } })).map((e) => [e.kind, e.heroName]))
       .toEqual([['champion', 'Admira'], ['second', 'Bryn'], ['third', 'Cato']]);
-    expect(await prisma.job.count({ where: { kind: 'wipe', doneAt: null } })).toBe(1);
+    // Solo: no Wipe follows.
+    expect(await prisma.job.count({ where: { kind: 'wipe', doneAt: null } })).toBe(0);
   });
 
   it('turns a Duo away at the lair: the Dragon is faced alone', async () => {
