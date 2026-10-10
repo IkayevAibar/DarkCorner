@@ -190,13 +190,19 @@ Each phase ends on something a person can try.
    - the dragon icon and a dark splash
    - "Тёмный уголок" as its name on Russian phones
    - portrait only
-   - edge to edge, the top bar padded below the status bar
+   - edge to edge: dark system bars with light icons, and the top bar padded below the status bar
+   - the phone's back button: it closes the open sheet, card or fight, else goes back a screen, and on the first screen puts the game away
 
-   `npm run apk -w @dark/android` builds a debug APK, and `npm run open -w @dark/android` opens the project in Android Studio. The APK was checked by its contents only: no phone or emulator image was at hand.
+   `npm run apk -w @dark/android` builds a debug APK, and `npm run open -w @dark/android` opens the project in Android Studio.
+
+   **Tested on an emulator, 2026-10-10:** a Pixel 7 image with Android 16, in airplane mode.
+   - A new Fighter went through the gate, won fights in the fight scene, wore a dropped saber, answered two riddles, came back to the City and reached level 2.
+   - The app was force-stopped twice: in the City, and in the middle of a turn-by-turn fight. Each time the Save came back unchanged, and the fight went on from the same turn.
+   - The log showed no errors.
+   - The emulator draws with a software GPU, so it says nothing about speed.
 
    Still to do in Phase 4:
    - **Fonts in the app:** the Google Fonts stylesheet still needs the network.
-   - **The back button:** it should close sheets and fights first.
    - **Save export and import.**
    - **A release key:** the owner's, kept out of the repo.
    - **Speed on a real phone:** the Threat cost, and fights.

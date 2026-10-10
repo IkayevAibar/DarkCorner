@@ -28,7 +28,7 @@ window.addEventListener('appinstalled', () => {
 });
 
 /** Inside the Android app: Capacitor's bridge is on the page, and the game is installed already. */
-const inApp = (): boolean => {
+export const inApp = (): boolean => {
   const bridge = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   return bridge?.isNativePlatform?.() === true;
 };
