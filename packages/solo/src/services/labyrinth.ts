@@ -292,8 +292,12 @@ function restsBackAt(hero: Hero, now: Date): string | null {
   return at > now.getTime() ? new Date(at).toISOString() : null;
 }
 
-/** A Town Portal stays open for a day behind the Hero who read it (v0). */
-const PORTAL_MS = 24 * HOUR_MS;
+/**
+ * Solo: a Town Portal stays open through one night, until the end of the next Day
+ * (docs/plan-solo-offline.md → Days). Online it stays a day of the real clock,
+ * which is the same thing: home, a night's sleep, and back through it.
+ */
+const portalUntil = (now: number): Date => new Date(nextMorning(now) + 16 * HOUR_MS);
 
 /** The Hero's open Town Portal, if it has one. */
 function portalOf(hero: Hero, now: Date): { floor: number; closesAt: string } | null {
@@ -1313,12 +1317,12 @@ export async function readPortal(player: Player): Promise<LabyrinthResult> {
     const floor = hero.floor;
     const room = hero.facing ? (hero.prevRoom ?? floorOf(labyrinthFor(season), floor).landing) : hero.room;
     await goHome(tx, hero, outcome);
-    await tx.hero.update({ where: { id: hero.id }, data: { portalFloor: floor, portalRoom: room, portalUntil: new Date(gameNowMs() + PORTAL_MS) } });
+    await tx.hero.update({ where: { id: hero.id }, data: { portalFloor: floor, portalRoom: room, portalUntil: portalUntil(gameNowMs()) } });
     return hero.id;
   });
   outcome.notices.unshift(t(
-    'You step through to the City. The portal stays open behind you for a day: step back through it from the Labyrinth gate.',
-    'Вы шагаете сквозь портал в город. Он останется открытым сутки: вернуться можно от врат лабиринта.',
+    'You step through to the City. The portal stays open behind you through the night, until tomorrow ends: step back through it from the Labyrinth gate.',
+    'Вы шагаете сквозь портал в город. Он останется открытым на ночь и до конца завтрашнего дня: вернуться можно от врат лабиринта.',
   ));
   return respond(heroId, season, outcome);
 }

@@ -45,7 +45,7 @@ The solo build plays by this document, except for these:
   - **A night costs nothing,** and a rested Hero may sleep too. The Hero wakes the next morning where it slept, with full health, abilities, Stamina and both short rests.
   - **Stamina doesn't come back while the Hero plays.** A Day's Stamina, with the two short rests, is a Day's exploring.
   - **Each morning** brings back cleared Rooms and Mini-bosses, and a new Omen, Bounties, Shop gear and Daily Delve.
-  - **What the server counts in hours waits for a night.** Training ends overnight, and keeps the Hero in the City until then. A Blessing lasts until the Hero sleeps, and so does an open Town Portal. A Grave lasts two nights.
+  - **What the server counts in hours waits for a night.** Training ends overnight, and keeps the Hero in the City until then. A Blessing lasts until the Hero sleeps. A Town Portal stays open through one night, until the end of the next Day, so the Hero can sleep at home and step back through. A Grave lasts two nights.
 - **Chapters.** A Chapter is a Season without its Finale and its Wipe.
   - **The Boss gate** opens the first time the Hero reaches Floor 10, or four weeks in at the latest. The Dragon's weakening counts from the gate.
   - **The Dragon's fall ends the Chapter.** The Hero enters the Hall of Fame as its Champion, and the world goes on: the Dragon returns the next day, hoard and all.

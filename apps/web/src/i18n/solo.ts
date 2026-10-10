@@ -13,7 +13,7 @@ export const soloEn: Lines = {
   'lab.gate.body': 'Ten Floors down, the Ancient Dragon waits. Each new Room costs 1 Stamina, and a night’s sleep fills it again. Walking back through known Rooms is free.',
   'lab.staminaNext': 'full again after a night’s sleep',
   'lab.recovering': 'Health comes back with a night’s sleep, a potion or a short rest.',
-  'lab.portalCloses': 'It closes when you sleep.',
+  'lab.portalCloses': 'It stays open until tomorrow ends.',
   'rest.backAt': 'Used ones come back after a night’s sleep.',
   'err.no_stamina': 'Out of Stamina. A night’s sleep fills it, and a short rest gives 10. Doors marked free still open.',
   'lodging.about': 'A bed upstairs: sleep, and the next Day begins with full Stamina and both short rests.',
@@ -87,7 +87,7 @@ export const soloEn: Lines = {
   'guide.season.body': 'Ten Floors down waits the Dragon. The Boss gate opens the first time you reach Floor 10, or four weeks in at the latest, and from then on the Dragon weakens a little every week. Its fall ends the Chapter: your Hero enters the Hall of Fame, and the world goes on.',
   // The Guide.
   'guide.moves.body': 'A Move into a Room you have never stood in costs 1 Stamina; walking back through Rooms you know is free, unless something new waits in one today. Stamina lasts the Day: sleep at the Tavern or in a Camp, and the next Day begins with it full. Each Run also has two short rests that give back half of it. The Clue on each Door hints at what is behind it, and sometimes lies. Your Map remembers every Room you have stood in.',
-  'guide.alive.body': 'Damage carries over from Room to Room. Drink potions, take a short rest, or sleep: a night at the Tavern or in a Camp brings full health, and so does the City. A Town Portal scroll takes you home from anywhere, and stays open until you sleep, so you can step back through.',
+  'guide.alive.body': 'Damage carries over from Room to Room. Drink potions, take a short rest, or sleep: a night at the Tavern or in a Camp brings full health, and so does the City. A Town Portal scroll takes you home from anywhere, and stays open through the night, so you can sleep at home and step back through.',
   'guide.death.body': 'When a Hero dies, its gear and its Bag lie in a Grave for two nights. Go back for them: a Smoke bomb makes Sneaking past the monsters sure. Levels, abilities, Talents and your Path are never lost.',
 };
 
@@ -95,7 +95,7 @@ export const soloRu: Lines = {
   'lab.gate.body': 'Десятью этажами ниже ждёт Древний дракон. Каждая новая комната стоит 1 единицу выносливости, а ночь сна восстанавливает её. По знакомым комнатам ходить бесплатно.',
   'lab.staminaNext': 'полная снова после ночи сна',
   'lab.recovering': 'Здоровье вернут ночь сна, зелье или короткий отдых.',
-  'lab.portalCloses': 'Он закроется, когда вы ляжете спать.',
+  'lab.portalCloses': 'Он открыт до конца завтрашнего дня.',
   'rest.backAt': 'Потраченные вернутся после ночи сна.',
   'err.no_stamina': 'Нет выносливости. Ночь сна восстановит её, а короткий отдых даёт 10. Двери с пометкой «бесплатно» по-прежнему открыты.',
   'lodging.about': 'Кровать наверху: выспитесь, и новый день начнётся с полной выносливостью и обоими короткими отдыхами.',
@@ -165,6 +165,6 @@ export const soloRu: Lines = {
   'guide.season.title': 'Глава',
   'guide.season.body': 'Через десять этажей, на самом дне, ждёт дракон. Врата босса открываются, когда вы впервые дойдёте до 10-го этажа, или самое позднее через четыре недели, и с тех пор дракон каждую неделю понемногу слабеет. Его падение завершает главу: герой входит в зал славы, а мир живёт дальше.',
   'guide.moves.body': 'Ход в комнату, где вы ещё не были, стоит 1 единицу выносливости; по знакомым комнатам можно ходить бесплатно, если сегодня там не появилось ничего нового. Выносливости хватает на день: выспитесь в таверне или в лагере, и новый день начнётся с полной шкалой. На каждой вылазке есть ещё два коротких отдыха, каждый возвращает половину шкалы. Подсказка на двери говорит, что за ней, — но иногда лжёт. Карта помнит каждую комнату, где вы побывали.',
-  'guide.alive.body': 'Урон переходит из комнаты в комнату. Пейте зелья, делайте короткий отдых или спите: ночь в таверне или в лагере возвращает всё здоровье, как и город. Свиток портала вернёт домой откуда угодно, и портал открыт, пока вы не ляжете спать, чтобы шагнуть обратно.',
+  'guide.alive.body': 'Урон переходит из комнаты в комнату. Пейте зелья, делайте короткий отдых или спите: ночь в таверне или в лагере возвращает всё здоровье, как и город. Свиток портала вернёт домой откуда угодно, и портал остаётся открытым на ночь: можно выспаться дома и шагнуть обратно.',
   'guide.death.body': 'Когда герой гибнет, его снаряжение и сумка две ночи лежат в могиле. Вернитесь за ними: с дымовой бомбой прокрасться мимо монстров удастся наверняка. Уровни, характеристики, таланты и путь не теряются никогда.',
 };

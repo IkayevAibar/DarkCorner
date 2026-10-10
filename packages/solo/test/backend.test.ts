@@ -230,6 +230,27 @@ describe('the local backend', () => {
     expect((await backend.handle('POST', '/api/labyrinth/sleep', {})).body).toMatchObject({ error: 'not_in_camp' });
   });
 
+  it('keeps a Town Portal open through one night: home to sleep, and back in the morning', async () => {
+    const backend = await createBackend({ storage: memoryStorage(), seed: SEED });
+    await newHero(backend);
+    await call(backend, 'POST', '/api/labyrinth/enter', { floor: 1 });
+    await walkTo(backend, fightNextToLanding);
+    await arrange(backend, async () => {
+      const hero = await prisma.hero.findFirstOrThrow();
+      await prisma.item.create({ data: { heroId: hero.id, seasonId: hero.seasonId, place: 'BAG', base: 'scroll-portal', quantity: 1, tier: 'common', identified: true } });
+    });
+    const home = labyrinthResultSchema.parse(await call(backend, 'POST', '/api/labyrinth/portal'));
+    expect(home.view.location).toBe('city');
+    expect(home.view.portal?.floor).toBe(1);
+
+    // A night at the Tavern: the portal is still there in the morning.
+    await call(backend, 'POST', '/api/tavern/lodging');
+    expect((await look(backend)).view.portal?.floor).toBe(1);
+    // The next night closes it.
+    await call(backend, 'POST', '/api/tavern/lodging');
+    expect((await look(backend)).view.portal).toBeNull();
+  });
+
   it('forgets what a refused request wrote, and does not save it', async () => {
     const storage = memoryStorage();
     const backend = await createBackend({ storage, seed: SEED });
