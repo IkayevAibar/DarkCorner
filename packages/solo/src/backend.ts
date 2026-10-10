@@ -54,8 +54,8 @@ const ROLLS_KEPT = 1000;
 /** Done jobs are forgotten after two in-game weeks. */
 const JOBS_KEPT_MS = 14 * DAY_MS;
 
-/** Keeps the save from growing without end. */
-async function compact(): Promise<void> {
+/** Keeps the save from growing without end (after any change; the playtest calls it too). */
+export async function compactWorld(): Promise<void> {
   const rolls = memdb.state.tables.RollLog ?? [];
   if (rolls.length > ROLLS_KEPT) rolls.splice(0, rolls.length - ROLLS_KEPT);
   await prisma.job.deleteMany({ where: { doneAt: { lt: new Date(gameNowMs() - JOBS_KEPT_MS) } } });
@@ -90,7 +90,7 @@ export async function createBackend(options: { storage: SaveStorage } & NewWorld
       return { status: response.status, body: response.body };
     }
     if (memdb.writes > 0 || world.clock.now !== before.clock.now) {
-      await compact();
+      await compactWorld();
       try {
         await options.storage.save(serializeWorld(world));
       } catch (error) {

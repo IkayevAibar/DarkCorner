@@ -9,6 +9,7 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
+    "playtest": "tsx scripts/playtest.ts",
     "gen:schema": "node scripts/gen-schema.mjs"
   },
   "dependencies": {
