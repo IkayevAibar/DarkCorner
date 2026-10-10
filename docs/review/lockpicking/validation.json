@@ -1,0 +1,26 @@
+{
+  "viewport": [
+    375,
+    812
+  ],
+  "locales": [
+    "ru",
+    "en"
+  ],
+  "fixtures": [
+    "shallow",
+    "deep",
+    "rogue"
+  ],
+  "reducedMotion": true,
+  "timing": {
+    "pollDoesNotRestart": true,
+    "duplicateGuard": true,
+    "elapsed": [
+      350,
+      120
+    ],
+    "keyboard": true
+  },
+  "errors": []
+}
