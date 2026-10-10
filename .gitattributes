@@ -6,3 +6,7 @@
 *.webp binary
 *.mp3 binary
 *.ogg binary
+*.jar binary
+
+# Windows batch files (the Android project's gradlew.bat) break on LF alone.
+*.bat text eol=crlf
