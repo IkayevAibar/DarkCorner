@@ -14,14 +14,17 @@
  * once a Floor is well explored, handle Event rooms, drink potions when hurt, take
  * a short rest when Stamina runs low, go back for their Grave with a Smoke bomb,
  * and in the City identify, equip, sell, salvage, upgrade, restock and grow.
- * PLAYTEST_NO_RESTS=1 plays without short rests; PLAYTEST_CLASSES=cleric,ranger plays only those. The World is compacted every
- * night, as the app compacts a Save, and server errors here are the solo backend's.
+ * PLAYTEST_NO_RESTS=1 plays without short rests; PLAYTEST_CLASSES=cleric,ranger plays only those. PLAYTEST_COMPANION=1
+ * hires a Companion once five mornings of its wage are spare, dresses it from the Bag, picks at Duo Chests (now and
+ * then taking it all) and swears at Oathstones (mostly sharing). The World is compacted every night, as the app
+ * compacts a Save, and server errors here are the solo backend's.
  */
 import type {
   ClassId, ForgeQuote, HeroDraft, HeroView, LabyrinthResult, LabyrinthView, MyHeroResponse, Stance, Threat, UpgradeResult,
 } from '@dark/shared';
 import type { GearBase } from '@dark/engine';
 import type { World } from '../src/world.js';
+import type { CompanionView } from '../src/services/companion.js';
 
 const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
@@ -38,6 +41,9 @@ const DAYS = Number(process.argv[2] ?? 14);
 const RESTS = !process.env.PLAYTEST_NO_RESTS;
 /** PLAYTEST_TRACE_DAY=N: every step of that Day's session, to see why a bot does what it does. */
 const TRACE_DAY = Number(process.env.PLAYTEST_TRACE_DAY ?? 0);
+const COMPANION = Boolean(process.env.PLAYTEST_COMPANION);
+/** The Player every Companion belongs to (services/companion.ts): left out of what the report says of the bot's own Hero. */
+const COMPANION_PLAYER = 'companion';
 const THREAT_RANK: Record<Threat, number> = { trivial: 0, easy: 1, risky: 2, dangerous: 3, deadly: 4 };
 
 const app = await buildApp();
@@ -48,6 +54,7 @@ interface Stats {
   minibosses: number; minibossWins: number; chests: number; dropped: number; rests: number; nights: number; camps: number; rough: number; newRooms: number;
   salvaged: number; forge: Record<string, number>; goldForged: number; portals: number; dragon: string[];
   threats: Record<Threat, number>; errors: string[]; deathLog: string[];
+  companion: { hired: number; wages: number; falls: number; back: number; left: number; given: number; picks: number; tookAll: number; oaths: number; waited: number };
 }
 interface Bot {
   name: string;
@@ -74,7 +81,20 @@ interface Bot {
 const newStats = (): Stats => ({
   fights: 0, won: 0, escaped: 0, survived: 0, deaths: 0, sneaks: 0, caught: 0, retreats: 0, events: 0, bounties: 0, hidden: 0, graves: 0,
   moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, rests: 0, nights: 0, camps: 0, rough: 0, newRooms: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, dragon: [], threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
+  companion: { hired: 0, wages: 0, falls: 0, back: 0, left: 0, given: 0, picks: 0, tookAll: 0, oaths: 0, waited: 0 },
 });
+
+/** What the Companion's lines say happened to it: its wage, a fall, its return, its leaving, the lair's door. */
+function companionNews(bot: Bot, notices: { en: string }[]) {
+  const c = bot.stats.companion;
+  for (const { en } of notices) {
+    if (en.includes('takes this morning\'s wage')) c.wages++;
+    if (en.includes(' falls, and ')) c.falls++;
+    if (en.includes('is back on its feet')) c.back++;
+    if (en.includes('leaves your service')) c.left++;
+    if (en.includes('waits at the lair\'s door')) c.waited++;
+  }
+}
 
 async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: object): Promise<{ ok: boolean; status: number; body: T & { error?: string } }> {
   const response = await app.inject({ method, url, headers: { cookie: bot.cookie }, ...(method === 'POST' ? { payload: payload ?? {} } : {}) });
@@ -113,6 +133,38 @@ function tally(bot: Bot, result: LabyrinthResult, before: LabyrinthView | null) 
   for (const n of result.notices) {
     if (n.en.startsWith('Bounty done')) bot.stats.bounties++;
     if (n.en.startsWith('A hidden hoard')) bot.stats.hidden++;
+  }
+  companionNews(bot, result.notices);
+}
+
+/**
+ * PLAYTEST_COMPANION: in the City, a Companion is hired once five mornings of its wage are
+ * spare, and handed the Bag's gear it can wear that outranks what it wears there.
+ */
+async function companion(bot: Bot) {
+  let view = (await call<CompanionView>(bot, 'GET', '/api/companion')).body;
+  companionNews(bot, view.notices);
+  if (!view.companion) {
+    const offer = view.offers[0];
+    if (!offer || view.gold < offer.wage * 5) return;
+    const hired = await call<CompanionView>(bot, 'POST', '/api/companion/hire', { offer: 0 });
+    if (!hired.ok) return;
+    bot.stats.companion.hired++;
+    view = hired.body;
+  }
+  const c = view.companion;
+  if (!c || c.backAt || c.waiting) return;
+  const hero = await me(bot);
+  for (const item of [...hero.bag, ...hero.storage].filter((i) => i.kind === 'gear' && i.identified && i.gear)) {
+    if (item.gear!.classes && !item.gear!.classes.includes(c.class)) continue;
+    const there = c.gear.filter((w) => w.gear?.slot === item.gear!.slot).map((w) => rank(w.tier));
+    if (there.length > 0 && Math.min(...there) >= rank(item.tier)) continue;
+    const given = await call<CompanionView>(bot, 'POST', '/api/companion/give', { itemId: item.id });
+    if (!given.ok) continue;
+    bot.stats.companion.given++;
+    view = given.body;
+    if (!view.companion) return;
+    c.gear = view.companion.gear;
   }
 }
 
@@ -210,6 +262,7 @@ async function city(bot: Bot) {
     hero = await me(bot);
   }
   await equipBest(bot);
+  if (COMPANION) await companion(bot);
   hero = await me(bot);
   // Commons (and what can't be read) sell; the rest is Salvaged into Materials for the Forge.
   for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.tier !== 'relic')) {
@@ -481,6 +534,22 @@ async function session(bot: Bot) {
       await faceMonsters(bot, view);
       continue;
     }
+    // With a Companion: a Duo Chest is picked in turns (now and then the Player takes it all), and an Oathstone sworn by.
+    if (view.chest?.turn === 'me') {
+      const all = Math.random() < 0.2;
+      const r = all ? await act(bot, '/api/labyrinth/chest/all') : await act(bot, '/api/labyrinth/chest', { index: view.chest.items.findIndex((i) => i.takenBy === null) });
+      if (r) {
+        if (all) bot.stats.companion.tookAll++;
+        else bot.stats.companion.picks++;
+        continue;
+      }
+    }
+    if (room.oath?.state === 'open' && room.oath.mine === null && view.duo) {
+      if (await act(bot, '/api/labyrinth/oath', { choice: Math.random() < 0.8 ? 'share' : 'take' })) {
+        bot.stats.companion.oaths++;
+        continue;
+      }
+    }
     if (room.eventView && (await eventAction(bot, view))) continue;
     // Each Grave once per visit: with a full Bag the rest waits for the next trip.
     const fresh = view.graves.filter((g) => !bot.looted.has(g.id));
@@ -711,13 +780,14 @@ for (let day = 1; day <= DAYS && finished.size < bots.length; day++) {
     }
     bot.avoid.clear();
     bot.handled.clear();
-    const h = await prisma.hero.findFirstOrThrow({ where: { retiredAt: null }, include: { items: { where: { place: 'WORN' } } } });
+    const h = await prisma.hero.findFirstOrThrow({ where: { retiredAt: null, playerId: { not: COMPANION_PLAYER } }, include: { items: { where: { place: 'WORN' } } } });
     const best = h.items.reduce((top, i) => Math.max(top, rank(i.tier)), 0);
     const s = bot.stats;
     rows.push(`${bot.cls.padEnd(9)} lv ${String(h.level).padStart(2)} F${String(h.bestFloor).padStart(2)} ${(h.path ?? '-').padEnd(9)} gold ${String(h.gold).padStart(5)} `
       + `worn ${TIERS[best]!.padEnd(9)} won ${s.won}/${s.fights} ran ${s.escaped} dead ${s.deaths} graves ${s.graves} sneak ${s.sneaks - s.caught}/${s.sneaks} `
       + `back ${s.retreats} boss ${s.minibossWins}/${s.minibosses} chests ${s.chests} bounties ${s.bounties} hidden ${s.hidden} portals ${s.portals} wp ${h.waypoints.length} `
-      + `moves ${s.moves} (new ${s.newRooms}) rests ${s.rests} nights ${s.nights} camps ${s.camps} rough ${s.rough}`);
+      + `moves ${s.moves} (new ${s.newRooms}) rests ${s.rests} nights ${s.nights} camps ${s.camps} rough ${s.rough}`
+      + (COMPANION ? ` companion ${(await prisma.hero.findFirst({ where: { retiredAt: null, playerId: COMPANION_PLAYER } }))?.class ?? '-'}` : ''));
   }
   console.log(`— day ${day}\n${rows.join('\n')}`);
 }
@@ -727,7 +797,7 @@ for (const bot of bots) console.log(`  ${bot.cls.padEnd(9)} ${Object.entries(bot
 console.log('\nThe Forge:');
 for (const bot of bots) {
   bindWorld(bot.world);
-  const worn = await prisma.item.findMany({ where: { hero: { retiredAt: null }, place: 'WORN' } });
+  const worn = await prisma.item.findMany({ where: { hero: { retiredAt: null, playerId: { not: COMPANION_PLAYER } }, place: 'WORN' } });
   const ups = worn.map((i) => `+${i.upgrade}`).join(' ');
   console.log(`  ${bot.cls.padEnd(9)} salvaged ${bot.stats.salvaged}, upgrades ${JSON.stringify(bot.stats.forge)}, gold spent on successes ${bot.stats.goldForged}; worn ${ups}`);
 }
@@ -753,10 +823,14 @@ console.log(`Vaults announced: ${vaults}; Relics found: ${relics}`);
 console.log('\nBags at the end (kind × stacks):');
 for (const bot of bots) {
   bindWorld(bot.world);
-  const bag = await prisma.item.findMany({ where: { hero: { retiredAt: null }, place: 'BAG' } });
+  const bag = await prisma.item.findMany({ where: { hero: { retiredAt: null, playerId: { not: COMPANION_PLAYER } }, place: 'BAG' } });
   const kinds = new Map<string, number>();
   for (const item of bag) kinds.set(item.base.startsWith('chest-') ? item.base : isGear(baseById(item.base)) ? 'gear' : item.base, (kinds.get(item.base.startsWith('chest-') ? item.base : isGear(baseById(item.base)) ? 'gear' : item.base) ?? 0) + 1);
   console.log(`  ${bot.cls.padEnd(9)} ${bag.length} stacks: ${[...kinds].map(([k, n]) => `${k} ${n}`).join(', ')}`);
+}
+if (COMPANION) {
+  console.log('\nCompanions (hired, wages paid, falls, back, left, gear given, Chest picks, took it all, oaths, lair waits):');
+  for (const bot of bots) console.log(`  ${bot.cls.padEnd(9)} ${Object.entries(bot.stats.companion).map(([k, v]) => `${k} ${v}`).join(', ')}`);
 }
 console.log('\nDeaths:');
 for (const bot of bots) for (const d of bot.stats.deathLog) console.log(`  ${bot.cls.padEnd(9)} ${d}`);
