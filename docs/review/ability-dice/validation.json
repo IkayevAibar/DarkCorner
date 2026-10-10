@@ -1,0 +1,22 @@
+{
+  "viewport": [
+    375,
+    812
+  ],
+  "locales": [
+    "ru",
+    "en"
+  ],
+  "recordedScores": [
+    3,
+    18,
+    15,
+    16,
+    14,
+    9
+  ],
+  "droppedDice": 6,
+  "replacement": true,
+  "reducedMotion": true,
+  "errors": []
+}
