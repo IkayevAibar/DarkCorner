@@ -41,8 +41,13 @@ Online Seasons have ended. Next comes a solo version for Android that needs no s
 
 Until those land, the solo build plays by this document, except for these:
 - **One Player per device,** always signed in: no hub, no approval.
-- **Time stands still until the Hero sleeps.** A night at the Tavern is that sleep: the Hero rests, and the next Day begins (Lodging's one-night-a-day rule counts Days). Camps don't end the Day yet, so their four-hour rest never finishes in the solo build.
+- **Time stands still until the Hero sleeps.** A night at the Tavern is that sleep: the Hero rests, and the next Day begins (Lodging's one-night-a-day rule counts Days).
+  - Camps don't end the Day yet, so their four-hour rest never finishes in the solo build.
+  - Each night still costs half again as much as the last. A long solo game can't keep paying that, so the Days rules must settle what a night costs.
+  - A fully rested Hero may still take a night, since a night is how the Day passes. Training, which keeps the Hero in the City, ends with that night.
+  - Anything else timed in hours also waits for a night: a Blessing lasts the whole Day.
 - **Nothing reaches anyone else:** no push Notifications, no Broadcasts, and no other Players at the Market or in the Tavern.
+- **No Duos, push or Sign out:** the solo build leaves out the Duo card, the push settings and the Sign out button.
 
 ## Seasons
 

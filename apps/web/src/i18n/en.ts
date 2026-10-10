@@ -230,6 +230,7 @@ export const en = {
   'lodging.tomorrow': 'One night a day: the next from {time}.',
   'lodging.inside': 'Only for a Hero in the City.',
   'lodging.rested': 'Fully rested already.',
+  'lodging.nextDay': 'Fully rested, but a night here still starts the next Day.',
   'lodging.gold': 'You have {n} gold.',
   'lodging.done': 'Rested: Stamina is full again.',
   'tavern.rankings': 'Rankings',

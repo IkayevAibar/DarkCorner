@@ -51,7 +51,9 @@ function Lodging() {
 
 export function LodgingCard({ data, busy = false, error = null, slept = false, onSleep }: { data: LodgingView; busy?: boolean; error?: string | null; slept?: boolean; onSleep: () => void }) {
   const { t, locale } = useI18n(), copy = useTavernCopy();
-  const rested = data.stamina >= data.staminaMax && data.shortRests.left >= data.shortRests.of;
+  const full = data.stamina >= data.staminaMax && data.shortRests.left >= data.shortRests.of;
+  // Solo: a night is also how the Day passes, so a rested Hero may still take one.
+  const rested = full && !__SOLO__;
   const tomorrow = data.availableAt !== null, short = data.gold < data.price;
   return (
     <section className="tavern-lodging" data-lodging>
@@ -69,6 +71,7 @@ export function LodgingCard({ data, busy = false, error = null, slept = false, o
           : tomorrow ? t('lodging.tomorrow', { time: formatClock(locale, data.availableAt!) })
           : rested ? t('lodging.rested')
           : short ? t('lodging.gold', { n: data.gold.toLocaleString() })
+          : full ? t('lodging.nextDay')
           : t('lodging.rising')}
       </span>
       {slept && <p className="m-0 text-sm text-tier-uncommon">{t('lodging.done')}</p>}

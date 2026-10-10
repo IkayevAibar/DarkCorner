@@ -231,6 +231,7 @@ export const ru: Record<MessageKey, string> = {
   'lodging.tomorrow': 'Одна ночь в сутки: следующая с {time}.',
   'lodging.inside': 'Только для героя в городе.',
   'lodging.rested': 'Отдых пока не нужен.',
+  'lodging.nextDay': 'Отдых не нужен, но ночь здесь всё равно начнёт новый день.',
   'lodging.gold': 'У вас {n} золота.',
   'lodging.done': 'Выносливость снова полная.',
   'tavern.rankings': 'Рейтинг',

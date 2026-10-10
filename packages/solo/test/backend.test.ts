@@ -178,6 +178,22 @@ describe('the local backend', () => {
     expect(await prisma.job.count({ where: { kind: 'omen', doneAt: null } })).toBe(1);
   });
 
+  it('lets a rested Hero away training sleep, and wake trained', async () => {
+    const backend = await createBackend({ storage: memoryStorage(), seed: SEED });
+    const hero = await newHero(backend);
+    // Fresh from the Tavern's door: full Stamina, both short rests, gold for Training and a night.
+    await arrange(backend, () => prisma.hero.updateMany({ data: { gold: 1050 } }));
+    await call(backend, 'POST', '/api/training/start', { ability: 'str' });
+    // Training keeps the Hero out of the Labyrinth, and time stands still: only a night moves it on.
+    expect((await backend.handle('POST', '/api/labyrinth/enter', { floor: 1 })).body).toMatchObject({ error: 'training' });
+    const morning = backend.world.clock.now;
+    await call(backend, 'POST', '/api/tavern/lodging');
+    expect(backend.world.clock.now).toBe(morning + 86_400_000);
+    const trained = await call<{ current: unknown; hero: HeroView }>(backend, 'GET', '/api/training');
+    expect(trained.current).toBeNull();
+    expect(trained.hero.abilities.str).toBe(hero.abilities.str + 1);
+  });
+
   it('forgets what a refused request wrote, and does not save it', async () => {
     const storage = memoryStorage();
     const backend = await createBackend({ storage, seed: SEED });

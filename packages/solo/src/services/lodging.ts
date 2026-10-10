@@ -45,8 +45,9 @@ export async function takeLodging(player: Player): Promise<LodgingView> {
     const hero = await lockHero(tx, player, season.id);
     requireCity(hero);
     if (availableAt(hero, now)) throw ApiError.conflict('lodged_today', 'One night a day at the Tavern');
-    const stamina = currentStamina(hero.stamina, hero.staminaAt, now).stamina;
-    if (stamina >= STAMINA_MAX && hero.shortRests >= SHORT_RESTS) throw ApiError.conflict('rested', 'Already fully rested');
+    // Solo: a night is also how the Day passes, so a fully rested Hero may still
+    // take one. A Hero away training must: Training keeps it out of the Labyrinth
+    // until its hours are up, and only a night brings them.
     await spendGold(tx, hero, lodgingPrice(hero.tavernNights));
     const uses = restUses(hero.class as ClassId, hero.level, hero.path as PathId | null);
     const rested = {

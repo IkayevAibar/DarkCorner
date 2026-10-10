@@ -558,10 +558,9 @@ describe('walking back and resting', () => {
     await prisma.hero.updateMany({ data: { stamina: 0, staminaAt: new Date() } });
     expect((await post('/api/tavern/lodging')).json().error).toBe('lodged_today');
 
-    // The next day: fully rested is nothing to pay for; tired, the night costs more.
+    // The next day the night costs more. Solo, a fully rested Hero may still take
+    // it: a night is how the Day passes (the server refuses it as 'rested').
     await prisma.hero.updateMany({ data: { lodgedAt: new Date(Date.now() - DAY), stamina: 20, staminaAt: new Date() } });
-    expect((await post('/api/tavern/lodging')).json().error).toBe('rested');
-    await prisma.hero.updateMany({ data: { stamina: 0, staminaAt: new Date() } });
     expect(lodging(await post('/api/tavern/lodging'))).toMatchObject({ price: 110, nights: 2, gold: 870 });
 
     // Only in the City, and only with the gold.
