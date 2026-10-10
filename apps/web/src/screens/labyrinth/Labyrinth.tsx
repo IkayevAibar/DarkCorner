@@ -20,7 +20,7 @@ import { BOSS_RING, MONSTER_RING, Token } from '../../components/Token';
 import { describeError } from '../../errors';
 import { useI18n } from '../../i18n';
 import type { MessageKey } from '../../i18n/en';
-import { play, playTier } from '../../sound';
+import { buzz, play, playTier } from '../../sound';
 import { formatClock, formatDuration, useAt, useNow } from '../../time';
 import { Belt, BeltIcon, type BeltPick } from './Belt';
 import { EventPanel } from './EventPanel';
@@ -1098,6 +1098,7 @@ function Report({ result, onClose }: { result: LabyrinthResult; onClose: () => v
 
   useEffect(() => {
     if (result.checks.length > 0 || result.duel) play('die');
+    if (result.checks.some(check => check.natural === 20) || result.duel?.hero === 20) buzz(60);
     const best = result.loot.reduce<number>((top, item) => Math.max(top, TIERS.indexOf(item.tier)), -1);
     if (best >= 0) playTier(TIERS[best]!);
     else if (result.gold > 0 && !result.fight) play('coins');

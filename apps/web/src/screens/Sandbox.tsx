@@ -10,6 +10,7 @@ import { LockPreview } from './sandbox/LockPreview';
 import { CupsPreview } from './sandbox/CupsPreview';
 import { DicePreview } from './sandbox/DicePreview';
 import { ForgePreview } from './sandbox/ForgePreview';
+import { SoundPreview } from './sandbox/SoundPreview';
 import type { FightReplay } from '@dark/shared';
 import { useI18n } from '../i18n';
 import { FightScene } from '../components/fight/FightScene';
@@ -34,6 +35,7 @@ export function Sandbox() {
 
       <DicePreview />
       <ForgePreview />
+      <SoundPreview />
       <CupsPreview />
       <LockPreview />
       <TrustPreview />

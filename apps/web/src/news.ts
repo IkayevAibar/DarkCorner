@@ -62,6 +62,16 @@ export const NEWS: NewsEntry[] = [
         'Божественная кара, порча, шквал ударов, дикий облик, вдохновение барда, ускоренные заклинания и всплеск действий теперь выглядят по-разному.'),
       t('Watch frost take a blow, a Hex move to the next monster, and Lay on hands reach your Partner. Both sides of a Duo see the same powers.',
         'Мороз принимает удар, порча переходит к следующему монстру, а наложение рук помогает напарнику. Оба участника дуэта видят одни и те же силы.'),
+  },
+  {
+    id: '2026-10-10-sound-ink',
+    date: '2026-10-10',
+    title: t('Steel, dice and silence', 'Сталь, кости и тишина'),
+    items: [
+      t('Turning sound off now stops every playing sound and every delayed reveal, together with vibration.',
+        'Выключение звука теперь останавливает все звуки, отложенные эффекты раскрытия и вибрацию.'),
+      t('Natural 20s in Checks, Saves and your Partner’s attacks also vibrate on supported phones.',
+        'Натуральная 20 в проверках, спасбросках и атаках напарника тоже вызывает вибрацию на телефонах с её поддержкой.'),
     ],
   },
   {
