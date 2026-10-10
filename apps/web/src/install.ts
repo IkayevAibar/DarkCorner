@@ -27,9 +27,15 @@ window.addEventListener('appinstalled', () => {
   notify();
 });
 
-/** Already opened from the home screen. */
+/** Inside the Android app: Capacitor's bridge is on the page, and the game is installed already. */
+const inApp = (): boolean => {
+  const bridge = (window as Window & { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  return bridge?.isNativePlatform?.() === true;
+};
+
+/** Already opened from the home screen, or the app. */
 export const isStandalone = (): boolean =>
-  window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+  inApp() || window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
 const agent = navigator.userAgent;
 /** iPads report themselves as Macs, with a touch screen. */

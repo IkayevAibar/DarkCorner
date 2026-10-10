@@ -1,6 +1,7 @@
 **/node_modules
 **/dist
 **/dist-solo
+apps/android/android
 .git
 .github
 .claude

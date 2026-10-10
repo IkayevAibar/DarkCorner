@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Dark Corner</string>
+    <string name="title_activity_main">Dark Corner</string>
+    <string name="package_name">world.ugolok.darkcorner</string>
+    <string name="custom_url_scheme">world.ugolok.darkcorner</string>
+</resources>

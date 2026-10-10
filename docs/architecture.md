@@ -18,6 +18,7 @@ The stack mostly matches the owner's Minecraft project (`D:\MS_DS_Project`), so 
 apps/
   api/        Fastify server: sign-in, game actions, admin, scheduler, Discord webhook
   web/        React app: screens, i18n (en, ru), PixiJS scenes, /sandbox page with fake data
+  android/    the Android app: a Capacitor project around the web app's solo build
 packages/
   shared/     the contract: zod schemas and types for API payloads, fight replays, item views
   engine/     pure, deterministic game rules and content: dice, fights, loot, Labyrinth generation, Forge odds
@@ -112,3 +113,8 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
 - **The game clock** (`gameClock.ts`): in `'days'` mode in-game time stands still until the Hero sleeps, then jumps to the next morning, 08:00 UTC. Jobs come due over nights and run before each request. `'real'` mode follows the device's clock, as the server does.
 - **The backend** (`backend.ts`) runs one request at a time. A request that throws leaves the World as it was. After any change it saves: IndexedDB in a browser, falling back to memory.
 - **Tests:** `packages/solo/test` runs the server's API scenarios on the solo backend (a `solo_player` cookie plays several Players at once there), plus the in-memory database's own tests and `backend.test.ts` for Saves and Days.
+- **The Android app** (`apps/android`) is Capacitor 8 around the solo build: the WebView serves `apps/web/dist-solo` from the APK at `https://localhost`, and the Save lives in that WebView's IndexedDB.
+  - `npm run apk -w @dark/android` builds the web app, copies it in and builds a debug APK with the Gradle wrapper. Use JDK 21: Android Studio's own Java 25 is too new for the pinned Gradle.
+  - `npm run open -w @dark/android` opens the project in Android Studio.
+  - `npm run icons -w @dark/android` remakes the launcher icons and splash screens from the web app's icons with ffmpeg.
+  - `apps/android/android` is the native project. Capacitor generated it; the edits are the app name in `values-ru`, the portrait lock, the splash colour, and edge to edge in `MainActivity`. Build output and the copied web app stay out of git.

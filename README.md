@@ -24,6 +24,8 @@ Open <http://localhost:5180>. The dev login lets you sign in as anyone. Tick "ad
 |---|---|
 | `npm run dev` | Starts the database, the API (:4100) and the web app (:5180) |
 | `npm run dev:solo -w @dark/web` | Starts the solo, offline game (:5181): no database, no API, the Save in the browser |
+| `npm run apk -w @dark/android` | Builds the solo game as an Android debug APK (needs the Android SDK and JDK 21) |
+| `npm run open -w @dark/android` | Opens the Android project in Android Studio |
 | `npm test` | Runs every package's tests. API tests use their own database, `dark_corner_test` |
 | `npm run typecheck` | Type-checks every package |
 | `npm run build` | Builds the API bundle and the web app |

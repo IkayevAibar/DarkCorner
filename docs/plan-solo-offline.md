@@ -186,12 +186,31 @@ Each phase ends on something a person can try.
 
    *Done when* the APK, installed on a phone in airplane mode, takes a new Hero to Floor 3 smoothly, and its save survives the app being killed mid-fight.
 
+   **The shell came early, 2026-10-10,** at the owner's ask. `apps/android` is a Capacitor 8.5 project around the solo build:
+   - the dragon icon and a dark splash
+   - "Тёмный уголок" as its name on Russian phones
+   - portrait only
+   - edge to edge, the top bar padded below the status bar
+
+   `npm run apk -w @dark/android` builds a debug APK, and `npm run open -w @dark/android` opens the project in Android Studio. The APK was checked by its contents only: no phone or emulator image was at hand.
+
+   Still to do in Phase 4:
+   - **Fonts in the app:** the Google Fonts stylesheet still needs the network.
+   - **The back button:** it should close sheets and fights first.
+   - **Save export and import.**
+   - **A release key:** the owner's, kept out of the repo.
+   - **Speed on a real phone:** the Threat cost, and fights.
+   - **The store listing.**
+
+   **Before friends install it**, the owner confirms the app id, `world.ugolok.darkcorner`. A Save belongs to the app id: changing the id later leaves every Save behind.
+
 ## 7. Gotchas
 
 - **`new Date()` is all over the services.** Every call that means game time must go through the Clock, or days break. *(Phase 1: the solo copies call `gameNow()`; keep new code on it too.)*
 - **The job queue can't be fast-forwarded.** The API's daily jobs reschedule from the real clock, so `runDueJobs` with a future time loops forever. *(Phase 1: in solo every job reschedules from the game clock, and jobs queued during a pass wait for the next one.)*
 - **Camps.** A Camp rest waits four hours of in-game time, which never pass while the clock stands still. Until Phase 3 makes sleeping in a Camp end the Day, only a night at the Tavern moves the clock.
 - **Two copies of the scenarios.** `packages/solo/test` holds copies of `apps/api/test`. An engine or content change that needs a server scenario updated (new portrait ids, say) needs the same update in the solo copy.
+- **Android Studio's own Java is too new.** Capacitor 8 pins Gradle 8.14.3, which fails on Studio's bundled Java 25. Build with JDK 21: set Studio's Gradle JDK to `JAVA_HOME` (Settings → Build, Execution, Deployment → Build Tools → Gradle). The command-line build uses `JAVA_HOME` already.
 - **Keep manual fights as a seed plus choices.** They are stored that way and replayed on every turn. That is what makes a fight come back the same after the app is killed.
 - **Pick the balance numbers by who fights.** With a Companion, Duo balance applies (`alone = false`). Without one, the extra difficulty from Floor 3 (`floorMight`) does.
 - **Text.** Strings for removed screens can go. Everything that stays keeps both `en` and `ru`.

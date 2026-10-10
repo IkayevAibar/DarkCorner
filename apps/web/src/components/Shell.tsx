@@ -43,7 +43,7 @@ function TopBar() {
   const player = session.state === 'signedIn' ? session.player : null;
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-[rgb(11_10_9/0.92)] px-4 py-2.5 backdrop-blur-md">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-[rgb(11_10_9/0.92)] px-4 pt-[calc(0.625rem+env(safe-area-inset-top))] pb-2.5 backdrop-blur-md">
       <span className="truncate font-head text-[21px] font-extrabold tracking-wide text-[#e8cf9a] [text-shadow:0_0_18px_rgb(224_184_106/0.25)]">
         {t('brand')}
       </span>

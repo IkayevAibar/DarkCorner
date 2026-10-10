@@ -15,7 +15,7 @@ A dark-fantasy dungeon game for a small group of friends. It ran online in Seaso
   - `packages/shared`, the contract
   - `packages/engine`, the rules and content
   - `apps/api`
-  - `packages/solo`, the solo game's local backend
+  - `packages/solo` and `apps/android`, the solo game's local backend and its Android app
   - connecting `apps/web` screens to the API
 - **Codex** owns self-contained visual work in `apps/web`:
   - PixiJS scenes (fight playback, the Chest Spin, the identify reveal, drop effects)

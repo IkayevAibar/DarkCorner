@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
+COPY apps/android/package.json apps/android/
 COPY packages/engine/package.json packages/engine/
 COPY packages/shared/package.json packages/shared/
 COPY packages/solo/package.json packages/solo/

@@ -1,0 +1,16 @@
+{
+  "appId": "world.ugolok.darkcorner",
+  "appName": "Dark Corner",
+  "webDir": "../web/dist-solo",
+  "backgroundColor": "#0b0a09",
+  "android": {
+    "backgroundColor": "#0b0a09"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "native",
+      "initialViewportFitValueHint": "cover",
+      "style": "DARK"
+    }
+  }
+}

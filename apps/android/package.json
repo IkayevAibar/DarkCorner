@@ -1,0 +1,19 @@
+{
+  "name": "@dark/android",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "npm run build:solo -w @dark/web && cap sync android",
+    "apk": "npm run sync && node scripts/gradle.mjs assembleDebug",
+    "open": "node scripts/studio.mjs",
+    "icons": "node scripts/assets.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/core": "^8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.3"
+  }
+}
