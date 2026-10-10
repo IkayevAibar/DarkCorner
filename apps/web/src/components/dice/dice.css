@@ -1,0 +1,18 @@
+.ability-roll { box-sizing: border-box; width: 100%; max-width: 480px; justify-self: center; padding: 14px; overflow: hidden; background: var(--noise), radial-gradient(ellipse at 50% 40%, var(--color-panel-2), var(--color-panel)); }
+.ability-roll-heading { display: flex; justify-content: space-between; color: var(--color-muted); font: 700 14px var(--font-head); letter-spacing: .08em; padding-bottom: 10px; border-bottom: 1px solid var(--color-line); }
+.ability-roll-scores { margin: 4px 0; padding: 0; list-style: none; }
+.ability-roll-row { display: grid; grid-template-columns: 36px 1fr 36px; gap: 10px; align-items: center; min-height: 57px; border-bottom: 1px solid var(--color-line); }
+.ability-roll-label { color: var(--color-brass); font: 800 14px var(--font-head); }
+.ability-roll-dice { display: flex; justify-content: center; gap: 9px; perspective: 300px; }
+.ability-die { position: relative; display: block; width: clamp(30px, 9vw, 39px); aspect-ratio: 1; border: 1px solid var(--color-brass); border-radius: 5px; background: linear-gradient(145deg, var(--color-bone), #b7a383); color: var(--color-panel); box-shadow: inset 2px 2px 0 #fff3, inset -2px -2px 0 #0005, 2px 4px 0 #0009; }
+.ability-die svg { display: block; width: 100%; height: 100%; }
+.ability-die.dropped { opacity: .35; background: var(--color-panel-2); color: var(--color-muted); box-shadow: none; }
+.ability-die.dropped::after { content: ''; position: absolute; height: 2px; background: var(--color-bone); top: 50%; left: -4px; right: -4px; transform: rotate(-40deg); }
+.ability-roll-total { text-align: center; color: var(--color-muted); font: 800 29px var(--font-head); }
+.ability-roll-total.revealed { color: var(--color-gold); animation: ability-total .25s ease-out both; text-shadow: 0 0 15px #e0b86a30; }
+.ability-roll-sum { min-height: 24px; padding-top: 10px; text-align: right; color: var(--color-gold); font: 700 18px var(--font-head); }
+.ability-roll-row.waiting .ability-die { opacity: .12; background: var(--color-panel-2); color: transparent; box-shadow: none; }
+.ability-roll-row.tumbling .ability-die { animation: ability-tumble .29s linear infinite; }
+@keyframes ability-tumble { 0%, 100% { transform: translateY(1px) rotate(-10deg) rotateX(-12deg); } 50% { transform: translateY(-5px) rotate(13deg) rotateX(24deg); } }
+@keyframes ability-total { from { transform: scale(1.3); opacity: .2; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ability-roll *, .ability-roll *::after { animation: none !important; transition: none !important; } }
