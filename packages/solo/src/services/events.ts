@@ -12,6 +12,7 @@ import {
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { type CheckOutcome, type Outcome, fight, heroFloor, markCleared, t } from './fights.js';
+import { blessingText } from './days.js';
 import { fullHealth, scoresOf } from './heroes.js';
 import { gearData, rollView, toItemView } from './items.js';
 import {
@@ -279,7 +280,7 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
       if (prayer.outcome === 'blessing') {
         const b = BLESSINGS[prayer.blessing!];
         await tx.hero.update({ where: { id: hero.id }, data: { blessing: b.id, blessingUntil: new Date(now.getTime() + BLESSING_MS) } });
-        out.notices.push(t(`The Shrine blesses you: ${b.name.en}. ${b.description.en}`, `Святилище благословляет вас: ${b.name.ru}. ${b.description.ru}`));
+        out.notices.push(t(`The Shrine blesses you: ${b.name.en}. ${blessingText(b.id).en}`, `Святилище благословляет вас: ${b.name.ru}. ${blessingText(b.id).ru}`));
       } else if (prayer.outcome === 'curse') {
         const lost = Math.max(0, Math.min(hero.hp - 1, Math.round(fullHealth(hero) * 0.25)));
         await tx.hero.update({ where: { id: hero.id }, data: { hp: hero.hp - lost } });
@@ -790,8 +791,8 @@ export async function eventAction(tx: Tx, hero: HeroWithItems, season: Season, f
         await logRoll(tx, hero, rollSeed, { event: kind, buried: true, blessing: b.id });
         await tx.hero.update({ where: { id: hero.id }, data: { blessing: b.id, blessingUntil: new Date(now.getTime() + BLESSING_MS) } });
         out.notices.push(t(
-          `You lay the champion to rest, and feel them watching over you: ${b.name.en}. ${b.description.en}`,
-          `Вы предаёте чемпиона земле и чувствуете, что он теперь хранит вас: ${b.name.ru}. ${b.description.ru}`,
+          `You lay the champion to rest, and feel them watching over you: ${b.name.en}. ${blessingText(b.id).en}`,
+          `Вы предаёте чемпиона земле и чувствуете, что он теперь хранит вас: ${b.name.ru}. ${blessingText(b.id).ru}`,
         ));
         return;
       }

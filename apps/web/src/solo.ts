@@ -11,7 +11,7 @@ let backend: Promise<Backend> | null = null;
 export function soloRequest(method: string, url: string, body?: unknown): Promise<SoloResult> {
   backend ??= createBackend({ storage: browserStorage() }).then((b) => {
     // Countdowns and timers on the screens count in the World's time, not the phone's.
-    if (b.world.clock.mode === 'days') followGameClock(() => b.world.clock.now);
+    if (b.world.clock.mode === 'days') followGameClock(() => b.world.clock.now, b.world.clock.start);
     return b;
   });
   return backend.then(async (b) => {

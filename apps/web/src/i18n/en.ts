@@ -483,6 +483,8 @@ export const en = {
   'camp.leave.stay': 'Stay and rest',
   'camp.leave.go': 'Leave anyway',
   'lab.recovering': 'Waiting heals slowly: a twentieth of full health an hour.',
+  'camp.bed': 'A safe Camp: sleep here, and the night passes. You wake with full health, abilities, Stamina and both short rests.',
+  'camp.sleep': 'Sleep here',
   'lab.map': 'Map of Floor {n}',
   'lab.hud': 'Lv {level} · Floor {floor}',
   'lab.hudCity': 'Lv {level} · in the City',
@@ -938,6 +940,9 @@ export const en = {
 
   'time.hm': '{h}h {m}m',
   'time.dh': '{d}d {h}h',
+  'time.tomorrow': 'tomorrow',
+  'time.inDays': 'in {n} days',
+  'time.day': 'Day {n}',
   'route.hint': 'Tap any Room on the Map to plan a Route there.',
   'route.here': 'Your Hero stands here.',
   'route.unknown': 'Not visited yet.',

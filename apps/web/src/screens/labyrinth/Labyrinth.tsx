@@ -232,7 +232,7 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
       <div className="grid gap-1 px-1 text-sm text-muted">
         {view.bestFloor > 0 && <span>{t('lab.bestFloor', { n: view.bestFloor })}</span>}
         {shut && <span className="font-bold text-[#ff9a8a]">{t('lab.notStarted')}</span>}
-        {training && <span className="font-bold text-gold">{t('lab.training', { time: formatClock(locale, training) })}</span>}
+        {training && <span className="font-bold text-gold">{t('lab.training', { time: formatClock(locale, training, t) })}</span>}
       </div>
       {view.season.omen && <OmenNote omen={view.season.omen} />}
 
@@ -243,7 +243,7 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
             <button type="button" className="btn btn-primary" disabled={busy || shut} onClick={() => enter(view.portal!.floor, true)}>
               {t('lab.portalBack', { n: view.portal.floor })}
             </button>
-            <span className="justify-self-center text-xs text-muted">{t('lab.portalCloses', { time: formatClock(locale, view.portal.closesAt) })}</span>
+            <span className="justify-self-center text-xs text-muted">{t('lab.portalCloses', { time: formatClock(locale, view.portal.closesAt, t) })}</span>
           </div>
         )}
         {floors.map((n) => (
@@ -338,7 +338,8 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
   /** The Door, or the Route, the Player chose while a Camp's rest was under way, waiting for a yes. */
   const [leaving, setLeaving] = useState<number[] | null>(null);
   const hero = view.hero;
-  const resting = room.type === 'camp' && room.restedAt !== null && new Date(room.restedAt).getTime() > now
+  // Solo, a Camp is a bed: nothing to wait for, so leaving loses nothing (docs/plan-solo-offline.md → Days).
+  const resting = !__SOLO__ && room.type === 'camp' && room.restedAt !== null && new Date(room.restedAt).getTime() > now
     && (hero.hp < hero.maxHp || hero.stamina < hero.staminaMax || hero.shortRests.left < hero.shortRests.of);
   // A Route picked on the Map (docs/design.md → Routes): its goal outlives a fight on the way.
   const [goal, setGoal] = useRouteGoal(floor.number);
@@ -421,17 +422,23 @@ function Inside({ view, busy, error, act, covered = false }: { view: LabyrinthVi
         </span>
         {hero.staminaNextAt && <span>{t('hero.stamina')} {hero.stamina}/{hero.staminaMax} · {t('lab.staminaNext', { time: formatDuration(t, new Date(hero.staminaNextAt).getTime() - now) })}</span>}
         {hero.hp < hero.maxHp && room.type !== 'camp' && <span>{t('lab.recovering')}</span>}
-        {room.restedAt && <span>{t('lab.restedAt', { time: formatClock(locale, room.restedAt) })}</span>}
+        {room.restedAt && !__SOLO__ && <span>{t('lab.restedAt', { time: formatClock(locale, room.restedAt) })}</span>}
         {room.vault && (
           <span className="text-gold">
             {room.vault.state === 'sealed' && room.vault.opensAt
-              ? t('lab.vault.sealed', { time: formatClock(locale, room.vault.opensAt) })
+              ? t('lab.vault.sealed', { time: formatClock(locale, room.vault.opensAt, t) })
               : t(`lab.vault.${room.vault.state}`)}
           </span>
         )}
       </div>
       {view.season.omen && <OmenNote omen={view.season.omen} />}
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
+      {__SOLO__ && room.type === 'camp' && !facing && (
+        <section className="grid gap-2 px-1">
+          <p className="m-0 text-sm text-muted">{t('camp.bed')}</p>
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void act(() => api.sleepInCamp())}>{t('camp.sleep')}</button>
+        </section>
+      )}
 
       {facing && aside && (
         <button type="button" className="btn btn-primary" onClick={() => setAside(false)}>{t('lab.decide')}</button>
@@ -1190,7 +1197,8 @@ function RunCard({ run }: { run: RunSummary }) {
   ];
   return (
     <div className="grid gap-1.5">
-      <span className="sub-heading">{t('run.title')} · {time}</span>
+      {/* Solo, the game's clock stands still through a Run: it has no length to show. */}
+      <span className="sub-heading">{__SOLO__ ? t('run.title') : `${t('run.title')} · ${time}`}</span>
       <div className="grid grid-cols-3 gap-1.5">
         {tiles.map(([value, label, tone]) => (
           <div key={label} className="grid content-start justify-items-center gap-0.5 rounded-sm border border-bone/15 bg-black/20 px-1 py-1.5 text-center">

@@ -94,6 +94,8 @@ export const api = {
   leaveLabyrinth: () => request<LabyrinthResult>('POST', '/api/labyrinth/leave'),
   readPortal: () => request<LabyrinthResult>('POST', '/api/labyrinth/portal'),
   shortRest: () => request<LabyrinthResult>('POST', '/api/labyrinth/short-rest'),
+  /** Solo only (docs/plan-solo-offline.md → Days): the server's Camps rest by the clock. */
+  sleepInCamp: () => request<LabyrinthResult>('POST', '/api/labyrinth/sleep'),
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),
   eventAction: (action: EventAction) => request<LabyrinthResult>('POST', '/api/labyrinth/event', action),
   face: (action: FaceAction) => request<LabyrinthResult>('POST', '/api/labyrinth/face', action),

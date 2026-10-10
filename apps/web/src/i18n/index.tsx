@@ -2,8 +2,10 @@ import { createContext, type ReactNode, useCallback, useContext, useEffect, useM
 import type { Locale } from '@dark/shared';
 import { en, type MessageKey } from './en';
 import { ru } from './ru';
+import { soloEn, soloRu } from './solo';
 
-const dictionaries: Record<Locale, Record<MessageKey, string>> = { en, ru };
+// The solo build reads some lines differently: it passes a night at a time, alone (./solo.ts).
+const dictionaries: Record<Locale, Record<MessageKey, string>> = __SOLO__ ? { en: { ...en, ...soloEn }, ru: { ...ru, ...soloRu } } : { en, ru };
 
 /** `?lang=` wins (the hub passes it along), then the browser's language. */
 function initialLocale(): Locale {

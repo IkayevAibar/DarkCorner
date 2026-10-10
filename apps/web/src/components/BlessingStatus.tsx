@@ -13,7 +13,8 @@ export function BlessingStatus({ blessing }: { blessing: NonNullable<HeroView['l
     </svg>
     <div><small>{blessing.curse ? (locale === 'ru' ? 'Проклятие' : 'Curse') : t('temple.blessings')}</small>
       <strong>{text(blessing.name)}</strong><p>{text(blessing.description)}</p>
-      <span>{t('temple.left', { time: formatDuration(t, new Date(blessing.until).getTime() - now) })}</span>
+      {/* Solo, the description already says it lasts until the Hero sleeps. */}
+      {!__SOLO__ && <span>{t('temple.left', { time: formatDuration(t, new Date(blessing.until).getTime() - now) })}</span>}
     </div>
   </section>;
 }

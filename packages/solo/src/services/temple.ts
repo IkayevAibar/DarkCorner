@@ -5,6 +5,7 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { toHeroView } from './heroes.js';
 import { lockHero, requireCity, spendGold } from './ledger.js';
+import { blessingText } from './days.js';
 import { currentSeason } from './seasons.js';
 import { gameNowMs } from '../gameClock.js';
 
@@ -13,7 +14,7 @@ export async function templeView(player: Player): Promise<TempleView> {
   const hero = await prisma.hero.findFirst({ where: { playerId: player.id, seasonId: season.id, retiredAt: null }, include: { items: true } });
   if (!hero) throw ApiError.conflict('no_hero', 'Create a Hero first');
   return {
-    blessings: BLESSING_IDS.map((id) => ({ id, name: BLESSINGS[id].name, description: BLESSINGS[id].description, price: BLESSINGS[id].price })),
+    blessings: BLESSING_IDS.map((id) => ({ id, name: BLESSINGS[id].name, description: blessingText(id), price: BLESSINGS[id].price })),
     hero: toHeroView(hero),
   };
 }

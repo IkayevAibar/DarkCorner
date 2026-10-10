@@ -484,6 +484,8 @@ export const ru: Record<MessageKey, string> = {
   'camp.leave.stay': 'Остаться и отдохнуть',
   'camp.leave.go': 'Всё равно уйти',
   'lab.recovering': 'Ожидание понемногу лечит: двадцатая часть здоровья в час.',
+  'camp.bed': 'Безопасный лагерь: выспитесь здесь, и ночь пройдёт. Вы проснётесь с полным здоровьем, способностями, выносливостью и обоими короткими отдыхами.',
+  'camp.sleep': 'Заночевать здесь',
   'lab.map': 'Карта этажа {n}',
   'lab.hud': 'Ур. {level} · этаж {floor}',
   'lab.hudCity': 'Ур. {level} · в городе',
@@ -939,6 +941,9 @@ export const ru: Record<MessageKey, string> = {
 
   'time.hm': '{h} ч {m} мин',
   'time.dh': '{d} д {h} ч',
+  'time.tomorrow': 'завтра',
+  'time.inDays': 'через {n} дн.',
+  'time.day': 'День {n}',
   'route.hint': 'Нажмите на любую комнату на карте, чтобы проложить туда маршрут.',
   'route.here': 'Ваш герой здесь.',
   'route.unknown': 'Здесь ещё не были.',

@@ -6,7 +6,7 @@ import {
 import { requireApproved } from '../lib/session.js';
 import {
   actInEvent, actInFight, ascend, descend, enterLabyrinth, face, labyrinthState, leaveByWaypoint, lootGrave, moveTo, pickFromChest, readPortal, setStance, walkRoute,
-  shortRest, swearOath,
+  shortRest, sleepInCamp, swearOath,
 } from '../services/labyrinth.js';
 
 export async function labyrinthRoutes(app: FastifyInstance) {
@@ -50,6 +50,8 @@ export async function labyrinthRoutes(app: FastifyInstance) {
     actInEvent(request.player!, eventActionSchema.parse(request.body)));
   app.post('/api/labyrinth/portal', guard, async (request): Promise<LabyrinthResult> => readPortal(request.player!));
   app.post('/api/labyrinth/short-rest', guard, async (request): Promise<LabyrinthResult> => shortRest(request.player!));
+  // Solo only: the server's Camps rest by the clock instead.
+  app.post('/api/labyrinth/sleep', guard, async (request): Promise<LabyrinthResult> => sleepInCamp(request.player!));
 
   app.post<{ Params: { id: string } }>('/api/labyrinth/graves/:id/loot', guard, async (request): Promise<LabyrinthResult> =>
     lootGrave(request.player!, request.params.id));

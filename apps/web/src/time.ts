@@ -7,10 +7,28 @@ import type { I18n } from './i18n';
  * while the Hero plays and moves on only when the Hero sleeps.
  */
 let gameClock: (() => number) | null = null;
+/** Solo: the World's first morning, so a moment past can be told by its Day. */
+let firstMorning = 0;
 
-/** The solo build: read the time from the World from now on (null goes back to the device's clock). */
-export function followGameClock(read: (() => number) | null): void {
+/**
+ * The solo build: read the time from the World from now on, and count Days from
+ * its first morning (null goes back to the device's clock).
+ */
+export function followGameClock(read: (() => number) | null, dayOne = 0): void {
   gameClock = read;
+  firstMorning = dayOne;
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Solo: a moment `ms` ahead, in nights. The game's clock moves only when the Hero
+ * sleeps, from one morning to the next, so what lies ahead comes tomorrow, or in
+ * a few days.
+ */
+function inNights(t: I18n['t'], ms: number): string {
+  const nights = Math.ceil(ms / DAY_MS);
+  return nights <= 1 ? t('time.tomorrow') : t('time.inDays', { n: nights });
 }
 
 /** Now, in the game's time. */
@@ -74,8 +92,9 @@ export function useAt(iso: string | null | undefined, callback: () => void): voi
   }, [iso]);
 }
 
-/** "12:05" under an hour, "3h 20m" under two days, "6d 23h" above (localized). */
+/** "12:05" under an hour, "3h 20m" under two days, "6d 23h" above (localized). Solo: "tomorrow", "in 3 days". */
 export function formatDuration(t: I18n['t'], ms: number): string {
+  if (gameClock && ms > 0) return inNights(t, ms);
   const total = Math.max(0, Math.ceil(ms / 1000));
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
@@ -85,6 +104,12 @@ export function formatDuration(t: I18n['t'], ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export function formatClock(locale: string, iso: string): string {
+/** A time of day ("21:00"). Solo, given `t`: a moment ahead in nights, and one past as its Day. */
+export function formatClock(locale: string, iso: string, t?: I18n['t']): string {
+  if (gameClock && t) {
+    const at = new Date(iso).getTime();
+    const ahead = at - clockNow();
+    return ahead > 0 ? inNights(t, ahead) : t('time.day', { n: Math.floor((at - firstMorning) / DAY_MS) + 1 });
+  }
   return new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }

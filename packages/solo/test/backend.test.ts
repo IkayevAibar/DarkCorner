@@ -19,6 +19,13 @@ const SEED = (() => {
   }
 })();
 const floor1: Floor = generateLabyrinth(SEED).floors[0]!;
+/** A Labyrinth whose Floor 1 has a Camp the landing reaches over ordinary Doors. */
+const CAMP_SEED = (() => {
+  for (let i = 0; ; i++) {
+    const floor = generateLabyrinth(`camp-${i}`).floors[0]!;
+    if (floor.rooms.some((r) => r.type === 'camp' && path(floor, floor.landing, r.id).length > 0)) return `camp-${i}`;
+  }
+})();
 const fightNextToLanding = doorsOf(floor1, floor1.landing).find(({ door, to }) => door.kind === 'open' && floor1.rooms[to]!.type === 'fight')!.to;
 
 // Every roll on the device comes from crypto.getRandomValues: made repeatable
@@ -181,8 +188,8 @@ describe('the local backend', () => {
   it('lets a rested Hero away training sleep, and wake trained', async () => {
     const backend = await createBackend({ storage: memoryStorage(), seed: SEED });
     const hero = await newHero(backend);
-    // Fresh from the Tavern's door: full Stamina, both short rests, gold for Training and a night.
-    await arrange(backend, () => prisma.hero.updateMany({ data: { gold: 1050 } }));
+    // Fresh from the Tavern's door: full Stamina, both short rests, and gold for Training.
+    await arrange(backend, () => prisma.hero.updateMany({ data: { gold: 1000 } }));
     await call(backend, 'POST', '/api/training/start', { ability: 'str' });
     // Training keeps the Hero out of the Labyrinth, and time stands still: only a night moves it on.
     expect((await backend.handle('POST', '/api/labyrinth/enter', { floor: 1 })).body).toMatchObject({ error: 'training' });
@@ -192,6 +199,35 @@ describe('the local backend', () => {
     const trained = await call<{ current: unknown; hero: HeroView }>(backend, 'GET', '/api/training');
     expect(trained.current).toBeNull();
     expect(trained.hero.abilities.str).toBe(hero.abilities.str + 1);
+  });
+
+  it('sleeps in a Camp: the night passes, and the Hero wakes rested where it lay down', async () => {
+    const floor = generateLabyrinth(CAMP_SEED).floors[0]!;
+    const camp = floor.rooms.find((r) => r.type === 'camp' && path(floor, floor.landing, r.id).length > 0)!;
+    const backend = await createBackend({ storage: memoryStorage(), seed: CAMP_SEED });
+    await newHero(backend);
+    await call(backend, 'POST', '/api/labyrinth/enter', { floor: 1 });
+    const steps = path(floor, floor.landing, camp.id);
+    for (const step of steps) {
+      await arrange(backend, () => prisma.hero.updateMany({ data: { maxHp: 999, hp: 999, stamina: 20 } }));
+      await walkIn(backend, step);
+    }
+    // Hurt and tired, and the clock stands still.
+    await arrange(backend, () => prisma.hero.updateMany({ data: { hp: 5, stamina: 3, shortRests: 0 } }));
+    const morning = backend.world.clock.now;
+
+    const slept = labyrinthResultSchema.parse(await call(backend, 'POST', '/api/labyrinth/sleep'));
+    expect(backend.world.clock.now).toBe(morning + 86_400_000);
+    expect(slept.view.room).toMatchObject({ id: camp.id, type: 'camp' });
+    expect(slept.view.hero).toMatchObject({ stamina: 20, shortRests: { left: 2, of: 2 } });
+    expect(slept.view.hero.hp).toBe(slept.view.hero.maxHp);
+    expect(slept.notices.map((n) => n.en)).toContainEqual(expect.stringMatching(/^You sleep in the Camp, and Day 2 begins/));
+    // The Camp's own rest doesn't come again on the next look.
+    expect((await look(backend)).notices).toEqual([]);
+
+    // Only in a Camp.
+    await walkIn(backend, steps.length > 1 ? steps.at(-2)! : floor.landing);
+    expect((await backend.handle('POST', '/api/labyrinth/sleep', {})).body).toMatchObject({ error: 'not_in_camp' });
   });
 
   it('forgets what a refused request wrote, and does not save it', async () => {

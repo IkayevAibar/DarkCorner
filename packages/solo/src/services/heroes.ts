@@ -16,6 +16,7 @@ import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { gearData, toItemView } from './items.js';
+import { blessingText } from './days.js';
 import { deedViews, isDone } from './deeds.js';
 import { type Tx, lockHero, requireCity } from './ledger.js';
 import { levelReady, raiseLevel } from './progression.js';
@@ -204,7 +205,7 @@ function luckView(hero: HeroWithItems, now: Date): HeroView['luck'] {
     goldFind: luck.goldFind,
     blessing: blessing
       ? {
-        id: blessing, name: BLESSINGS[blessing].name, description: BLESSINGS[blessing].description, until: hero.blessingUntil!.toISOString(),
+        id: blessing, name: BLESSINGS[blessing].name, description: blessingText(blessing), until: hero.blessingUntil!.toISOString(),
         curse: BLESSINGS[blessing].curse === true,
       }
       : null,

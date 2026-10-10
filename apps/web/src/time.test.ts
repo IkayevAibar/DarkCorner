@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { clockNow, followGameClock, gameClockMoved, onGameClockMoved, waitFor } from './time';
+import { clockNow, followGameClock, formatClock, formatDuration, gameClockMoved, onGameClockMoved, waitFor } from './time';
+import { en } from './i18n/en';
+
+/** The English lines, as the screens see them. */
+const t = (key: keyof typeof en, vars?: Record<string, string | number>) =>
+  en[key].replace(/\{(\w+)\}/g, (_, name: string) => String(vars?.[name] ?? `{${name}}`));
 
 const at = (iso: string) => Date.parse(iso);
 
@@ -48,5 +53,28 @@ describe('waiting for a moment', () => {
     // A Camp's four-hour rest: the device's clock is past it, but the game's
     // clock reaches it only when the Hero sleeps.
     expect(waitFor('2026-10-10T12:00:00Z')).toBeNull();
+  });
+});
+
+describe('time in words', () => {
+  const HOUR = 3_600_000;
+
+  it('online, in hours and minutes', () => {
+    expect(formatDuration(t, 16 * HOUR)).toBe('16h 0m');
+    expect(formatDuration(t, 5 * 60_000)).toBe('5:00');
+  });
+
+  it('solo, in nights: the clock moves only from one morning to the next', () => {
+    const morning = at('2026-10-12T08:00:00Z');
+    followGameClock(() => morning, at('2026-10-10T08:00:00Z'));
+    // Midnight, and the next morning, come with the first night; anything later with more.
+    expect(formatDuration(t, 16 * HOUR)).toBe('tomorrow');
+    expect(formatDuration(t, 24 * HOUR)).toBe('tomorrow');
+    expect(formatDuration(t, 25 * HOUR)).toBe('in 2 days');
+    expect(formatDuration(t, 6 * 24 * HOUR)).toBe('in 6 days');
+    // A moment ahead in nights, and one past by its Day.
+    expect(formatClock('en', '2026-10-12T21:00:00Z', t)).toBe('tomorrow');
+    expect(formatClock('en', '2026-10-10T08:00:00Z', t)).toBe('Day 1');
+    expect(formatClock('en', '2026-10-12T08:00:00Z', t)).toBe('Day 3');
   });
 });

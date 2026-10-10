@@ -46,6 +46,9 @@ export function nextMorning(at: number): number {
 export const dayOf = (clock: WorldClock, at: number = clock.mode === 'days' ? clock.now : Date.now()): number =>
   Math.floor((at - clock.start) / DAY_MS) + 1;
 
+/** The loaded World's Day number at `at` (Day 1 is its first morning). */
+export const worldDay = (at: number = gameNowMs()): number => (current ? dayOf(current, at) : 1);
+
 /** A night's sleep: in 'days' mode the clock moves on to the next morning. */
 export function sleepUntilMorning(clock: WorldClock): void {
   if (clock.mode === 'days') clock.now = nextMorning(clock.now);
