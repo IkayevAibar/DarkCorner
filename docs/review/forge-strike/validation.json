@@ -1,0 +1,18 @@
+{
+  "viewport": [
+    375,
+    812
+  ],
+  "locales": [
+    "ru",
+    "en"
+  ],
+  "outcomes": 6,
+  "reducedMotion": true,
+  "apiIntegration": {
+    "upgrades": 2,
+    "protection": true,
+    "destroyedActionsRemoved": true
+  },
+  "errors": []
+}
