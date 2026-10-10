@@ -7,7 +7,7 @@
 - the solo game it becomes
 - a plan in phases
 
-The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phase 1 and the Android shell are on `main`. Phase 2 is done on the branch `claude/solo-phase-2`, and Phase 3 comes next.
+The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phases 1 and 2 and the Android shell are on `main`. Phase 3 is under way on the branch `claude/solo-phase-3`: Days, Chapters, difficulty, Iron mode and the bots are built. The Companion waits for the owner to confirm the proposal in section 6, and the Chapter's end screen is still to come.
 
 Read with [design.md](design.md), [architecture.md](architecture.md) and [CONTEXT.md](../CONTEXT.md). design.md stays the source of truth for every rule this doc doesn't change.
 
@@ -57,7 +57,7 @@ Read with [design.md](design.md), [architecture.md](architecture.md) and [CONTEX
 
 ## 4. The solo game
 
-**Days.** A day ends when the Hero sleeps, at the Tavern (Lodging) or at a Camp.
+**Days.** A day ends when the Hero sleeps: at the Tavern (Lodging), in a Camp, or rough on the stones of any other Room.
 - On waking: Stamina is full, the short rests are back, cleared Rooms and Mini-bosses return, and there is a new Omen, new Bounties and a new Daily Delve.
 - Stamina stays as the measure of how far a Hero gets in a day.
 - Training finishes after one night.
@@ -191,9 +191,42 @@ Each phase ends on something a person can try.
 3. **The solo game.**
    - Build: days, the Companion, the Chronicle, records and the Hall of Fame, Chapters, and difficulty.
    - Hide what solo removes.
-   - Teach the solo bots (`packages/solo/scripts/playtest.ts`) to play by Days: they still play on the device's clock.
+   - Teach the solo bots (`packages/solo/scripts/playtest.ts`) to play by Days.
 
    *Done when* the bots play a Chapter from level 1 to the Dragon's fall without errors, and par Heroes (`balance:par`) still land where design.md says.
+
+   **Under way, 2026-10-11,** on `claude/solo-phase-3`. design.md → The solo game has the rules.
+   - **Days:**
+     - A night costs nothing: at the Tavern, in a Camp, or rough on the stones of any other Room, which gives back only half the missing health. No Hero is ever stuck in a Day.
+     - The screens count in nights and Days instead of hours.
+     - A Town Portal stays open through one night.
+   - **Chapters:**
+     - The Boss gate opens early when the Hero first reaches Floor 10, and the Dragon's weakening counts from the gate.
+     - The Dragon's first fall completes the Chapter and puts the Hero in the Hall of Fame. There is no Wipe: the world goes on.
+   - **The Save's settings,** chosen before its first Hero:
+     - Story, Normal or Hard: monsters' health and damage ×0.75, ×1 or ×1.25.
+     - Iron mode: a fallen Hero is gone for good.
+   - **Alone:**
+     - The Market is hidden, and the Free market Omen never comes.
+     - The Hunt is sized for one Hero, and the Daily Delve gives a Chest for the Rooms won.
+     - The Feed is the Chronicle, stamped with Days, and Rankings are the Records.
+     - Other Players are gone from the Tavern and the Well.
+   - **The solo wording** lives in `apps/web/src/i18n/solo.ts`: Chapters instead of Seasons, nights instead of hours, one Player instead of many.
+   - **The bots play by Days:** a World each, a Day of Stamina, then bed. In 80 Days, all twelve reached level 20 and Floor 10, and ten saw the Dragon fall, between Day 25 and Day 60. The Monk and the Bard kept escaping from it to the end. Eight opened the Boss gate early, between Day 14 and Day 27; the other four found it open on Day 29. There were no server errors, and every bot could always sleep: 0 to 9 rough nights each.
+     - **Fixed on the way:**
+       - A Hero with no Stamina, no short rests, no Town Portal and no Camp in reach couldn't sleep, so its Days stopped. The rough night ends that.
+       - The bots went home whenever four Items waited to be identified, and looped on a Floor's landing at bedtime.
+   - **Par Heroes are unchanged.** Phase 3 changed nothing in `packages/engine`, where par Heroes fight, and Normal difficulty leaves monsters as they are. `balance:par` on 2026-10-11, by Class: Rooms from Floor 3 kill 2–6% of the time, and Mini-bosses are won 38–68% of the time. By Path, late-Season Heroes beat the Dragon 9–56% of the time. design.md's ranges hold.
+
+   **Still to build in Phase 3:**
+   - **The Companion.** The owner confirms this proposal first *(v0 numbers)*:
+     - Hired at the Tavern each morning, for 20 gold × its level.
+     - A Hero of another Class, played by the AI at the Duo numbers. It levels with the Hero, and wears the gear the player gives it.
+     - A fallen Companion comes back the next morning. In Iron mode it is gone for good.
+     - Loyalty runs from 0 to 10 and starts at 5. At a Duo Chest, sharing earns 1 and taking costs 2. At 0 the Companion leaves.
+     - Built on the Duo code, with the Companion as a second Player's Hero inside the World. If its views change `packages/shared`, that needs the owner's approval.
+   - **The Chapter's end:** an end screen, and Chapter 2 started with a legacy. Chapter 2 also needs new Bosses and re-themed deep Floors.
+   - **Rivals:** Retired and fallen Heroes, back as ghosts deep in the Labyrinth.
 4. **Android.**
    - Build: the Capacitor shell, and save slots with export and import.
    - Check the Threat cost on a real phone.
