@@ -1,76 +1,60 @@
 /**
- * A headless playtest: bots play the real game through the API for a number of
- * days, on a fake clock, to catch what breaks and to show the pacing: levels,
- * depth, deaths, loot and bounties per day. It wipes and uses the test database.
+ * A headless playtest of the solo game: bots play it through its API, each in a
+ * World of its own, in in-game Days (docs/plan-solo-offline.md, Phase 3), to catch
+ * what breaks and to show the pacing: levels, depth, deaths, loot and bounties per
+ * Day, and the Chapter's end.
  *
  * Run: npm run playtest -w @dark/solo [-- days]
  *
- * apps/api/scripts/playtest.ts pointed at the solo backend: the same bots and the
- * same fake clock, playing the World's copies of the services on the in-memory
- * database (a 'real'-clock World, as the ported scenarios use). Server errors here
- * are the solo backend's. After each session the World is compacted, as the app
- * compacts a Save, so it stays as small as a real one.
- *
- * The bots play like a careful friend with 20 minutes three times a day: they
- * pick the Stance with the best Threat, fight what looks winnable, Sneak or
- * Retreat from the rest, explore toward unknown Rooms, take the stairs once a
- * Floor is well explored, handle Event rooms, drink potions when hurt, rest at
- * Camps, take a short rest when Stamina runs low, go back for their Grave with a
- * Smoke bomb, and in the City identify, equip, sell, restock, grow and, when rich
- * and tired, take Lodging. PLAYTEST_NO_RESTS=1 plays without short rests and Lodging.
+ * apps/api/scripts/playtest.ts, moved to Days. The bots play like a careful friend:
+ * each Day they spend their Stamina, then go to bed, in a Camp when they stand in
+ * one, else at the Tavern (a night is free, and the only thing that moves the
+ * clock). They pick the Stance with the best Threat, fight what looks winnable,
+ * Sneak or Retreat from the rest, explore toward unknown Rooms, take the stairs
+ * once a Floor is well explored, handle Event rooms, drink potions when hurt, take
+ * a short rest when Stamina runs low, go back for their Grave with a Smoke bomb,
+ * and in the City identify, equip, sell, salvage, upgrade, restock and grow.
+ * PLAYTEST_NO_RESTS=1 plays without short rests; PLAYTEST_CLASSES=cleric,ranger plays only those. The World is compacted every
+ * night, as the app compacts a Save, and server errors here are the solo backend's.
  */
 import type {
-  ClassId, ForgeQuote, HeroDraft, HeroView, LabyrinthResult, LabyrinthView, LodgingView, MarketView, MyHeroResponse, Stance, Threat, UpgradeResult,
+  ClassId, ForgeQuote, HeroDraft, HeroView, LabyrinthResult, LabyrinthView, MyHeroResponse, Stance, Threat, UpgradeResult,
 } from '@dark/shared';
 import type { GearBase } from '@dark/engine';
-
-// ─── A fake clock, installed before the app loads ─────────────────────────
-const RealDate = Date;
-let offset = 0;
-class ClockDate extends RealDate {
-  constructor(...args: unknown[]) {
-    if (args.length === 0) super(RealDate.now() + offset);
-    else super(...(args as ConstructorParameters<DateConstructor>));
-  }
-  static override now(): number {
-    return RealDate.now() + offset;
-  }
-}
-globalThis.Date = ClockDate as unknown as DateConstructor;
-const advance = (hours: number) => {
-  offset += hours * 3_600_000;
-};
+import type { World } from '../src/world.js';
 
 const { buildApp } = await import('../src/app.js');
 const { prisma } = await import('../src/db.js');
-const { resetDatabase, devLogin } = await import('../test/helpers.js');
 const { runDueJobs } = await import('../src/services/scheduler.js');
-const { compactWorld } = await import('../src/backend.js');
+const { bindWorld, compactWorld, newWorld } = await import('../src/backend.js');
+const { gameNowMs, sleepUntilMorning, worldDay } = await import('../src/gameClock.js');
 const { CLASS_DEFS, CLUES, RIDDLES, TIERS, baseById, breaksWalls, canUse, isGear } = await import('@dark/engine');
 /** What a Door says when a Waypoint is behind it (it can lie, as Clues do). */
 const WAYPOINT_CLUES = new Set((CLUES.waypoint as { en: string }[]).map((c) => c.en));
+/** What a Door says when a Camp is behind it: in Days a Camp is a bed, and a bed near is a Day not lost. */
+const CAMP_CLUES = new Set((CLUES.camp as { en: string }[]).map((c) => c.en));
 
 const DAYS = Number(process.argv[2] ?? 14);
 const RESTS = !process.env.PLAYTEST_NO_RESTS;
-const SESSIONS_PER_DAY = 3;
+/** PLAYTEST_TRACE_DAY=N: every step of that Day's session, to see why a bot does what it does. */
+const TRACE_DAY = Number(process.env.PLAYTEST_TRACE_DAY ?? 0);
 const THREAT_RANK: Record<Threat, number> = { trivial: 0, easy: 1, risky: 2, dangerous: 3, deadly: 4 };
 
 const app = await buildApp();
-await resetDatabase();
-await prisma.season.create({ data: { number: 0, seed: 'playtest' } });
 
 interface Stats {
   fights: number; won: number; escaped: number; survived: number; deaths: number; sneaks: number; caught: number; retreats: number;
   events: number; bounties: number; hidden: number; graves: number; moves: number; xp: number; items: Record<string, number>;
-  minibosses: number; minibossWins: number; chests: number; dropped: number; rests: number; nights: number; newRooms: number;
+  minibosses: number; minibossWins: number; chests: number; dropped: number; rests: number; nights: number; camps: number; rough: number; newRooms: number;
   salvaged: number; forge: Record<string, number>; goldForged: number; portals: number; dragon: string[];
-  market: { listed: number; bought: number; spent: number; expired: number };
   threats: Record<Threat, number>; errors: string[]; deathLog: string[];
 }
 interface Bot {
   name: string;
   cls: ClassId;
   cookie: string;
+  /** Its own World: solo has one Hero to a Save. */
+  world: World;
   stats: Stats;
   /** Rooms to leave alone today: "floor:room". */
   avoid: Set<string>;
@@ -89,7 +73,7 @@ interface Bot {
 
 const newStats = (): Stats => ({
   fights: 0, won: 0, escaped: 0, survived: 0, deaths: 0, sneaks: 0, caught: 0, retreats: 0, events: 0, bounties: 0, hidden: 0, graves: 0,
-  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, rests: 0, nights: 0, newRooms: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, dragon: [], market: { listed: 0, bought: 0, spent: 0, expired: 0 }, threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
+  moves: 0, xp: 0, items: {}, minibosses: 0, minibossWins: 0, chests: 0, dropped: 0, rests: 0, nights: 0, camps: 0, rough: 0, newRooms: 0, salvaged: 0, forge: {}, goldForged: 0, portals: 0, dragon: [], threats: { trivial: 0, easy: 0, risky: 0, dangerous: 0, deadly: 0 }, errors: [], deathLog: [],
 });
 
 async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: object): Promise<{ ok: boolean; status: number; body: T & { error?: string } }> {
@@ -99,15 +83,15 @@ async function call<T>(bot: Bot, method: 'GET' | 'POST', url: string, payload?: 
   return { ok: response.statusCode === 200, status: response.statusCode, body };
 }
 
-/** Thrown when the Season has been wiped under the bots: the playtest ends there. */
+/** Thrown when the bot has no Hero any more: its playtest ends there. */
 class SeasonOver extends Error {}
 const me = async (bot: Bot) => {
   const hero = (await call<MyHeroResponse>(bot, 'GET', '/api/heroes/me')).body.hero;
   if (!hero) throw new SeasonOver();
   return hero;
 };
-/** The fake clock's day of the Season, from 1. */
-const today = () => Math.floor(offset / 86_400_000) + 1;
+/** The bot's World's Day, from 1. */
+const today = () => worldDay();
 const kills: string[] = [];
 const look = async (bot: Bot) => (await call<LabyrinthResult>(bot, 'GET', '/api/labyrinth')).body.view;
 
@@ -123,7 +107,7 @@ function tally(bot: Bot, result: LabyrinthResult, before: LabyrinthView | null) 
     bot.stats.deaths++;
     const h = before?.hero;
     bot.stats.deathLog.push(`F${before?.floor?.number ?? '?'} lv${h?.level ?? '?'} ${h?.hp ?? '?'}/${h?.maxHp ?? '?'} hp, ${bot.doing}`);
-    if (before?.floor && before.room) bot.grave = { floor: before.floor.number, room: before.room.id, until: Date.now() + 47 * 3_600_000 };
+    if (before?.floor && before.room) bot.grave = { floor: before.floor.number, room: before.room.id, until: gameNowMs() + 47 * 3_600_000 };
   }
   for (const item of result.loot) if (item.kind === 'gear') bot.stats.items[item.tier] = (bot.stats.items[item.tier] ?? 0) + 1;
   for (const n of result.notices) {
@@ -227,8 +211,6 @@ async function city(bot: Bot) {
   }
   await equipBest(bot);
   hero = await me(bot);
-  await market(bot);
-  hero = await me(bot);
   // Commons (and what can't be read) sell; the rest is Salvaged into Materials for the Forge.
   for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.tier !== 'relic')) {
     if (item.tier === 'common' || !item.identified) await call(bot, 'POST', `/api/items/${item.id}/sell`, {});
@@ -254,41 +236,6 @@ async function city(bot: Bot) {
   if (count('scroll-portal') < 2 && hero.gold >= 200) await call(bot, 'POST', '/api/shop/buy', { offer: 'scroll-portal', quantity: 2 - count('scroll-portal') });
   if (bot.grave && count('bomb-smoke') < 1 && hero.gold >= 30) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-smoke', quantity: 1 });
   if (count('bomb-fire') < 1 && hero.gold >= 400) await call(bot, 'POST', '/api/shop/buy', { offer: 'bomb-fire', quantity: 1 });
-  // Tired and rich: a bed at the Tavern, while it costs a third of the gold or less.
-  if (RESTS) {
-    const bed = (await call<LodgingView>(bot, 'GET', '/api/tavern/lodging')).body;
-    if (bed.availableAt === null && bed.stamina <= 5 && bed.gold >= bed.price * 3 && (await call(bot, 'POST', '/api/tavern/lodging')).ok) bot.stats.nights++;
-  }
-}
-
-/**
- * The Market between the bots: list Rare-or-better gear this Class can't use at four
- * times its Shop price, buy what beats the worn piece, and take back what expired.
- */
-async function market(bot: Bot) {
-  let view = (await call<MarketView>(bot, 'GET', '/api/market')).body;
-  for (const listing of view.mine.filter((l) => l.expired)) {
-    if ((await call(bot, 'POST', `/api/market/${listing.id}/cancel`)).ok) bot.stats.market.expired++;
-  }
-  const hero = await me(bot);
-  for (const item of hero.bag.filter((i) => i.kind === 'gear' && i.identified && rank(i.tier) >= 2 && i.tier !== 'relic')) {
-    if (canUse(bot.cls, baseById(item.base) as never)) continue;
-    if ((await call(bot, 'POST', '/api/market/list', { itemId: item.id, price: Math.max(50, item.worth * 4) })).ok) bot.stats.market.listed++;
-  }
-  view = (await call<MarketView>(bot, 'GET', '/api/market')).body;
-  for (const listing of view.listings) {
-    const base = baseById(listing.item.base);
-    if (!isGear(base) || !canUse(bot.cls, base)) continue;
-    const slot = base.slot === 'ring' ? 'ring1' : base.slot;
-    const worn = (await me(bot)).worn.find((w) => w.slot === slot)?.item;
-    if (worn && rank(listing.item.tier) <= rank(worn.tier)) continue;
-    if ((await me(bot)).gold < listing.price + 500) continue;
-    if ((await call(bot, 'POST', `/api/market/${listing.id}/buy`)).ok) {
-      bot.stats.market.bought++;
-      bot.stats.market.spent += listing.price;
-    }
-  }
-  await equipBest(bot);
 }
 
 /** Upgrades worn gear, weapon and armor first, up to +7: never below 40%, and past +5 only under a Protection scroll. */
@@ -317,7 +264,7 @@ async function forge(bot: Bot) {
 
 async function enter(bot: Bot): Promise<boolean> {
   const view = await look(bot);
-  if (bot.grave && bot.grave.until < Date.now()) bot.grave = null;
+  if (bot.grave && bot.grave.until < gameNowMs()) bot.grave = null;
   bot.looted.clear();
   // Back through the open Town Portal, unless a Grave waits on another Floor.
   if (view.portal && (!bot.grave || bot.grave.floor === view.portal.floor)) {
@@ -514,6 +461,9 @@ async function faceMonsters(bot: Bot, view: LabyrinthView) {
 }
 
 async function session(bot: Bot) {
+  const trace = (line: string) => {
+    if (TRACE_DAY && today() === TRACE_DAY) console.log(`  · ${bot.cls} ${line}`);
+  };
   await grow(bot);
   bot.blocked.clear();
   for (let step = 0; step < 150; step++) {
@@ -565,7 +515,10 @@ async function session(bot: Bot) {
       continue;
     }
     if (hero.hp < hero.maxHp * 0.4 && hero.potions > 0 && (await drink(bot))) continue;
-    const goHome = bag.bag.length >= bag.bagSlots - 2 || (hero.hp < hero.maxHp * 0.3 && hero.potions === 0) || unknown.length >= 4;
+    // Home when the Bag is all but full, or when hurt with nothing to drink. (The server's bots also went home
+    // for four Unidentified Items; in Days a trip home costs the rest of the Day, and a Mini-boss by the Town
+    // Portal's Room would send a bot home every Day.)
+    const goHome = bag.bag.length >= bag.bagSlots - 2 || (hero.hp < hero.maxHp * 0.3 && hero.potions === 0);
     if (goHome && hero.portalScrolls > 0) {
       await act(bot, '/api/labyrinth/portal');
       continue;
@@ -577,13 +530,13 @@ async function session(bot: Bot) {
       }
     }
     // Hurt with no potions: wait out the rest of the session at a Camp.
-    if (room.type === 'camp' && hero.hp < hero.maxHp * 0.6) return;
+    if (room.type === 'camp' && hero.hp < hero.maxHp * 0.6) return trace('return: hurt in a Camp');
     // Out of Stamina: only known Rooms are free, so only the way home is still open.
-    if (hero.stamina <= 0 && !goHome) return;
+    if (hero.stamina <= 0 && !goHome) return trace('return: out of Stamina');
 
     const known = new Map(view.map!.rooms.map((r) => [r.id, r]));
     const explored = view.map!.rooms.filter((r) => r.visited).length / (view.floor!.width * view.floor!.height);
-    const grave = bot.grave && bot.grave.until > Date.now() ? bot.grave : null;
+    const grave = bot.grave && bot.grave.until > gameNowMs() ? bot.grave : null;
     const met = bot.seen.get(floor) ?? { all: 0, trivial: 0 };
     const easyFloor = met.all >= 4 && met.trivial / met.all >= 0.6;
     const wantStairs = !goHome && floor < 10 && (grave ? grave.floor > floor : explored > 0.35 || hero.level > floor + 1 || easyFloor);
@@ -609,8 +562,13 @@ async function session(bot: Bot) {
     const exits = view.exits.filter((e) => e.passable && !bot.avoid.has(`${floor}:${e.to}`) && !bot.blocked.has(`${floor}:${e.to}`));
     // A Door that hums like a Waypoint on a Floor whose Waypoint isn't woken yet: take it.
     const waypointDoor = !view.waypoints.includes(floor) && !goHome ? exits.find((e) => !e.visited && WAYPOINT_CLUES.has(e.clue.en)) : undefined;
-    const to = waypointDoor?.to ?? target ?? exits[Math.floor(Math.random() * exits.length)]?.to;
-    if (to === undefined) return;
+    // Late in the Day with no bed known on this Floor: a Door that smells of a Camp.
+    const bedKnown = view.map!.rooms.some((r) => r.type === 'camp') || view.waypoints.includes(floor);
+    const campDoor = !bedKnown && !goHome && hero.stamina <= 8 ? exits.find((e) => !e.visited && CAMP_CLUES.has(e.clue.en)) : undefined;
+    const to = waypointDoor?.to ?? campDoor?.to ?? target ?? exits[Math.floor(Math.random() * exits.length)]?.to;
+    const stairsKnown = view.map!.rooms.filter((r) => r.type === 'stairs').map((r) => r.id);
+    trace(`F${floor}:${room.id}(${room.type}) st ${hero.stamina} hp ${hero.hp}/${hero.maxHp} bag ${bag.bag.length}/${bag.bagSlots} home ${goHome} stairs? ${wantStairs} known stairs [${stairsKnown}] target ${target} → ${to}`);
+    if (to === undefined) return trace('return: nowhere to go');
     bot.doing = `walking into F${floor} room ${to}`;
     const moved = await act(bot, '/api/labyrinth/move', { to }, view);
     if (!moved) {
@@ -621,6 +579,75 @@ async function session(bot: Bot) {
     bot.stats.moves++;
     if (moved.view.hero.stamina < hero.stamina) bot.stats.newRooms++;
   }
+}
+
+/**
+ * The Day ends: to bed in a Camp if the Hero stands in one or one is near, else
+ * home to the Tavern. A night is free, and only a night moves the World's clock.
+ */
+async function bedtime(bot: Bot) {
+  /** The way to bed, for a finding if none is reached. */
+  const trail: string[] = [];
+  const tried = async (what: string, url: string, payload?: object, before?: LabyrinthView) => {
+    const r = await call<LabyrinthResult>(bot, 'POST', url, payload);
+    if (r.ok) tally(bot, r.body, before ?? null);
+    trail.push(`${what}${r.ok ? '' : ` refused: ${r.body.error}`}`);
+    return r.ok;
+  };
+  for (let step = 0; step < 120; step++) {
+    const view = await look(bot);
+    if (view.location !== 'city') trail.push(`F${view.floor!.number}:${view.room!.id}(${view.room!.type})`);
+    if (view.location === 'city') {
+      await city(bot);
+      if ((await call(bot, 'POST', '/api/tavern/lodging')).ok) {
+        bot.stats.nights++;
+        return;
+      }
+      break;
+    }
+    const room = view.room!;
+    const floor = view.floor!.number;
+    if (room.facing) {
+      trail.push('fight');
+      await faceMonsters(bot, view);
+      continue;
+    }
+    if (room.type === 'camp') {
+      if (await tried('sleep', '/api/labyrinth/sleep')) {
+        bot.stats.camps++;
+        return;
+      }
+      break;
+    }
+    if ((floor === 1 && room.type === 'landing') || (room.type === 'waypoint' && view.waypoints.includes(floor))) {
+      await tried('leave', '/api/labyrinth/leave');
+      continue;
+    }
+    const known = new Map(view.map!.rooms.map((r) => [r.id, r]));
+    // A bed on this Floor first: a Camp, or a woken Waypoint home. Failing that, the landing, to climb toward
+    // the City; and from the landing itself, straight up.
+    const rest = (id: number) => known.get(id)?.type === 'camp' || (known.get(id)?.type === 'waypoint' && view.waypoints.includes(floor));
+    const out = (id: number) => known.get(id)?.type === 'landing';
+    // A Town Portal stays open through the night: home to bed, and back to this Floor in the morning.
+    if (nextStep(bot, view, rest) === null && view.hero.portalScrolls > 0 && (await tried('portal', '/api/labyrinth/portal'))) continue;
+    const to = nextStep(bot, view, rest) ?? (room.type === 'landing' ? null : nextStep(bot, view, out));
+    if (to !== null) {
+      bot.doing = `going to bed through F${floor} room ${to}`;
+      if (await tried(`→${to}`, '/api/labyrinth/move', { to }, view)) continue;
+    }
+    if (room.type === 'landing' && floor > 1 && (await tried('ascend', '/api/labyrinth/ascend'))) continue;
+    // No bed in reach: a rough night where the Hero stands.
+    if (await tried('sleep on the stones', '/api/labyrinth/sleep')) {
+      bot.stats.rough++;
+      return;
+    }
+    trail.push(`stuck: next ${to}, portals ${view.hero.portalScrolls}`);
+    break;
+  }
+  // No bed in reach: a Save stuck here is a finding. The night is forced, so the playtest goes on.
+  const view = await look(bot);
+  bot.stats.errors.push(`no bed on day ${today()}: ${view.location === 'city' ? 'in the City' : `F${view.floor?.number} room ${view.room?.id} (${view.room?.type})`}, stamina ${view.hero.stamina}; last steps ${trail.slice(-10).join(' ')}`);
+  sleepUntilMorning(bot.world.clock);
 }
 
 // ─── Play ─────────────────────────────────────────────────────────────────
@@ -634,11 +661,12 @@ const CLASSES: [ClassId, string, string][] = [
   ['bard', 'halfling', 'halfling-bard-1'], ['sorcerer', 'human', 'human-sorcerer-1'],
 ];
 const bots: Bot[] = [];
-for (const [cls, race, portrait] of CLASSES) {
+const only = process.env.PLAYTEST_CLASSES?.split(',').map((c) => c.trim()).filter(Boolean);
+for (const [cls, race, portrait] of CLASSES.filter(([c]) => !only?.length || only.includes(c))) {
   const name = `${cls[0]!.toUpperCase()}${cls.slice(1)}bot`;
-  const cookie = await devLogin(app, name, bots.length === 0);
-  await prisma.player.updateMany({ where: { username: name }, data: { approvedAt: new Date() } });
-  const bot: Bot = { name, cls, cookie, stats: newStats(), avoid: new Set(), blocked: new Set(), handled: new Set(), grave: null, doing: '', seen: new Map(), looted: new Set() };
+  // A World of its own (newWorld binds it): the same Labyrinth for every bot, a Chapter under way.
+  const world = await newWorld({ clock: 'days', seed: 'playtest' });
+  const bot: Bot = { name, cls, cookie: '', world, stats: newStats(), avoid: new Set(), blocked: new Set(), handled: new Set(), grave: null, doing: '', seen: new Map(), looted: new Set() };
   // Like a Player would: use every reroll, then keep the set with the best primary ability (and CON).
   let draft = (await call<{ draft: HeroDraft }>(bot, 'POST', '/api/heroes/draft')).body.draft;
   while (draft.rerollsLeft > 0) draft = (await call<{ draft: HeroDraft }>(bot, 'POST', '/api/heroes/draft/reroll')).body.draft;
@@ -651,78 +679,87 @@ for (const [cls, race, portrait] of CLASSES) {
   bots.push(bot);
 }
 
-// The admin bot starts the Season as an admin would: the Boss gate, Omens, Vaults and weakening get scheduled.
-const started = await call(bots[0]!, 'POST', '/api/admin/season', { action: 'start' });
-if (!started.ok) throw new Error(`starting the Season failed: ${JSON.stringify(started.body)}`);
 let jobsRun = 0;
-console.log(`Playtest: ${bots.length} bots, ${DAYS} days, ${SESSIONS_PER_DAY} sessions a day${RESTS ? '' : ', no short rests or Lodging'}\n`);
-let wipedOn: number | null = null;
-for (let day = 1; day <= DAYS && wipedOn === null; day++) {
-  try {
-    for (let s = 0; s < SESSIONS_PER_DAY; s++) {
-      for (const bot of bots) await session(bot);
-      advance(24 / SESSIONS_PER_DAY);
-      // What the server's scheduler would have done while the clock moved on.
-      jobsRun += await runDueJobs(new Date());
-      await compactWorld();
-    }
-  } catch (e) {
-    if (!(e instanceof SeasonOver)) throw e;
-    wipedOn = day;
-    break;
+const jobKinds = new Map<string, number>();
+/** Runs what came due overnight, as the app does before each request, and counts it. */
+async function morning(): Promise<void> {
+  const before = await prisma.job.findMany({ where: { doneAt: { not: null } }, select: { id: true } });
+  const done = new Set(before.map((j) => j.id));
+  jobsRun += await runDueJobs();
+  for (const j of await prisma.job.findMany({ where: { doneAt: { not: null } }, select: { id: true, kind: true } })) {
+    if (!done.has(j.id)) jobKinds.set(j.kind, (jobKinds.get(j.kind) ?? 0) + 1);
   }
-  for (const bot of bots) {
-    bot.avoid.clear();
-    bot.handled.clear();
-  }
+}
+
+console.log(`Playtest in Days: ${bots.length} bots, a World each, ${DAYS} Days${RESTS ? '' : ', no short rests'}\n`);
+const finished = new Set<string>();
+for (let day = 1; day <= DAYS && finished.size < bots.length; day++) {
   const rows: string[] = [];
   for (const bot of bots) {
-    const h = await prisma.hero.findFirstOrThrow({ where: { name: bot.name, retiredAt: null }, include: { items: { where: { place: 'WORN' } } } });
+    if (finished.has(bot.name)) continue;
+    bindWorld(bot.world);
+    try {
+      await morning();
+      await session(bot);
+      await bedtime(bot);
+      await morning();
+      await compactWorld();
+    } catch (e) {
+      if (!(e instanceof SeasonOver)) throw e;
+      finished.add(bot.name);
+      continue;
+    }
+    bot.avoid.clear();
+    bot.handled.clear();
+    const h = await prisma.hero.findFirstOrThrow({ where: { retiredAt: null }, include: { items: { where: { place: 'WORN' } } } });
     const best = h.items.reduce((top, i) => Math.max(top, rank(i.tier)), 0);
     const s = bot.stats;
-    rows.push(`${bot.cls.padEnd(7)} lv ${String(h.level).padStart(2)} F${String(h.bestFloor).padStart(2)} ${(h.path ?? '-').padEnd(9)} gold ${String(h.gold).padStart(5)} `
+    rows.push(`${bot.cls.padEnd(9)} lv ${String(h.level).padStart(2)} F${String(h.bestFloor).padStart(2)} ${(h.path ?? '-').padEnd(9)} gold ${String(h.gold).padStart(5)} `
       + `worn ${TIERS[best]!.padEnd(9)} won ${s.won}/${s.fights} ran ${s.escaped} dead ${s.deaths} graves ${s.graves} sneak ${s.sneaks - s.caught}/${s.sneaks} `
       + `back ${s.retreats} boss ${s.minibossWins}/${s.minibosses} chests ${s.chests} bounties ${s.bounties} hidden ${s.hidden} portals ${s.portals} wp ${h.waypoints.length} `
-      + `moves ${s.moves} (new ${s.newRooms}) rests ${s.rests} nights ${s.nights}`);
+      + `moves ${s.moves} (new ${s.newRooms}) rests ${s.rests} nights ${s.nights} camps ${s.camps} rough ${s.rough}`);
   }
   console.log(`— day ${day}\n${rows.join('\n')}`);
 }
 
 console.log('\nThreats met (after choosing a Stance):');
-for (const bot of bots) console.log(`  ${bot.cls.padEnd(7)} ${Object.entries(bot.stats.threats).map(([k, v]) => `${k} ${v}`).join(', ')}`);
+for (const bot of bots) console.log(`  ${bot.cls.padEnd(9)} ${Object.entries(bot.stats.threats).map(([k, v]) => `${k} ${v}`).join(', ')}`);
 console.log('\nThe Forge:');
 for (const bot of bots) {
-  const worn = await prisma.item.findMany({ where: { hero: { name: bot.name, retiredAt: null }, place: 'WORN' } });
+  bindWorld(bot.world);
+  const worn = await prisma.item.findMany({ where: { hero: { retiredAt: null }, place: 'WORN' } });
   const ups = worn.map((i) => `+${i.upgrade}`).join(' ');
-  console.log(`  ${bot.cls.padEnd(7)} salvaged ${bot.stats.salvaged}, upgrades ${JSON.stringify(bot.stats.forge)}, gold spent on successes ${bot.stats.goldForged}; worn ${ups}`);
-}
-console.log('\nThe Market:');
-for (const bot of bots) {
-  const m = bot.stats.market;
-  const open = await prisma.listing.count({ where: { seller: { username: bot.name } } });
-  console.log(`  ${bot.cls.padEnd(7)} listed ${m.listed}, still up ${open}, took back ${m.expired}, bought ${m.bought} for ${m.spent} gold`);
+  console.log(`  ${bot.cls.padEnd(9)} salvaged ${bot.stats.salvaged}, upgrades ${JSON.stringify(bot.stats.forge)}, gold spent on successes ${bot.stats.goldForged}; worn ${ups}`);
 }
 console.log('\nGear found:');
-for (const bot of bots) console.log(`  ${bot.cls.padEnd(7)} ${TIERS.map((t) => `${t} ${bot.stats.items[t] ?? 0}`).join(', ')}`);
-console.log('\nThe Dragon:');
-for (const bot of bots) if (bot.stats.dragon.length) console.log(`  ${bot.cls.padEnd(7)} ${bot.stats.dragon.join('; ')}`);
-// The Season that was played: after a Wipe the newest one is the next, still PLANNED.
-const season = await prisma.season.findFirstOrThrow({ where: { status: { not: 'PLANNED' } }, orderBy: { createdAt: 'desc' } });
-const places = await prisma.bossKill.findMany({ where: { seasonId: season.id }, orderBy: { place: 'asc' } });
-console.log(`  Season ${season.status}${wipedOn ? `, wiped on day ${wipedOn}` : ''}; podium: ${places.map((p) => `${p.place}. ${p.heroName}`).join(', ') || 'nobody yet'}`);
+for (const bot of bots) console.log(`  ${bot.cls.padEnd(9)} ${TIERS.map((t) => `${t} ${bot.stats.items[t] ?? 0}`).join(', ')}`);
+console.log('\nThe Dragon, and the Chapter:');
+let vaults = 0;
+let relics = 0;
+const failed: string[] = [];
+for (const bot of bots) {
+  bindWorld(bot.world);
+  const kill = await prisma.bossKill.findFirst({ orderBy: { place: 'asc' } });
+  const gate = (await prisma.season.findFirstOrThrow()).bossGateAt;
+  const tries = bot.stats.dragon.length ? `; ${bot.stats.dragon.join('; ')}` : '';
+  console.log(`  ${bot.cls.padEnd(9)} gate day ${gate ? worldDay(gate.getTime()) : '-'}, ${kill ? `Chapter complete on day ${worldDay(kill.createdAt.getTime())}` : 'Chapter under way'}${tries}`);
+  vaults += await prisma.vaultOpening.count().catch(() => 0);
+  relics += await prisma.relicFind.count().catch(() => 0);
+  for (const j of await prisma.job.findMany({ where: { lastError: { not: null } }, select: { kind: true, lastError: true } })) failed.push(`${bot.cls} ${j.kind}: ${j.lastError?.slice(0, 120)}`);
+}
 if (kills.length) console.log(`  Dragon kills: ${kills.join('; ')}`);
-// The in-memory database has no groupBy: count the finished jobs by kind here.
-const done = await prisma.job.findMany({ where: { doneAt: { not: null } }, select: { kind: true } });
-const byKind = new Map<string, number>();
-for (const j of done) byKind.set(j.kind, (byKind.get(j.kind) ?? 0) + 1);
-const jobs = [...byKind].map(([kind, n]) => ({ kind, _count: { _all: n } }));
-const failed = await prisma.job.findMany({ where: { lastError: { not: null } }, select: { kind: true, lastError: true } });
-console.log(`\nJobs run: ${jobsRun} (${jobs.map((j) => `${j.kind} ${j._count._all}`).join(', ')})${failed.length ? `; failed: ${failed.map((j) => `${j.kind}: ${j.lastError?.slice(0, 120)}`).join('; ')}` : ''}`);
-const vaults = await prisma.vaultOpening.count().catch(() => 0);
-const relics = await prisma.relicFind.count().catch(() => 0);
-console.log(`Vaults opened: ${vaults}; Relics found: ${relics}`);
+console.log(`\nJobs run: ${jobsRun} (${[...jobKinds].map(([k, n]) => `${k} ${n}`).join(', ')})${failed.length ? `; failed: ${failed.join('; ')}` : ''}`);
+console.log(`Vaults announced: ${vaults}; Relics found: ${relics}`);
+console.log('\nBags at the end (kind × stacks):');
+for (const bot of bots) {
+  bindWorld(bot.world);
+  const bag = await prisma.item.findMany({ where: { hero: { retiredAt: null }, place: 'BAG' } });
+  const kinds = new Map<string, number>();
+  for (const item of bag) kinds.set(item.base.startsWith('chest-') ? item.base : isGear(baseById(item.base)) ? 'gear' : item.base, (kinds.get(item.base.startsWith('chest-') ? item.base : isGear(baseById(item.base)) ? 'gear' : item.base) ?? 0) + 1);
+  console.log(`  ${bot.cls.padEnd(9)} ${bag.length} stacks: ${[...kinds].map(([k, n]) => `${k} ${n}`).join(', ')}`);
+}
 console.log('\nDeaths:');
-for (const bot of bots) for (const d of bot.stats.deathLog) console.log(`  ${bot.cls.padEnd(7)} ${d}`);
+for (const bot of bots) for (const d of bot.stats.deathLog) console.log(`  ${bot.cls.padEnd(9)} ${d}`);
 const errors = bots.flatMap((b) => b.stats.errors.map((e) => `${b.name}: ${e}`));
-console.log(errors.length ? `\nServer errors (${errors.length}):\n${[...new Set(errors)].slice(0, 20).join('\n')}` : '\nNo server errors.');
+console.log(errors.length ? `\nErrors (${errors.length}):\n${[...new Set(errors)].slice(0, 30).join('\n')}` : '\nNo server errors.');
 await app.close();

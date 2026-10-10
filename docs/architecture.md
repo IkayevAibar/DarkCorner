@@ -111,13 +111,19 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
 
   `db/schema.gen.ts` describes the tables. It is generated from `apps/api/prisma/schema.prisma` by `npm run gen:schema -w @dark/solo`.
 - **The game clock** (`gameClock.ts`): in `'days'` mode in-game time stands still until the Hero sleeps, then jumps to the next morning, 08:00 UTC. Jobs come due over nights and run before each request. `'real'` mode follows the device's clock, as the server does.
+- **The solo game's own rules** live in the copies, each with its reason beside it (design.md → The solo game):
+  - Days: a night's rest in `services/sleep.ts`, free Lodging, `sleepHere` in `services/labyrinth.ts` (a Camp's full rest, or a rough night anywhere else), and wording for what lasts until the night in `services/days.ts`.
+  - Chapters: the early Boss gate and the gate-based weakening in `services/chapters.ts`; the Dragon's fall in `services/boss.ts` ends the Chapter.
+  - The Save's settings: `settings.ts` holds the loaded World's, as `gameClock.ts` holds its clock. Difficulty is `services/difficulty.ts`; Iron mode is in `die` in `services/fights.ts`. `routes/solo.ts` is the only route the server lacks besides `POST /api/labyrinth/sleep`.
+  - Alone: the Hunt sized for one Hero, the Daily Delve's Chests by Rooms won, and no Free market Omen.
 - **The backend** (`backend.ts`) runs one request at a time. A request that throws leaves the World as it was. After any change it saves: IndexedDB in a browser, falling back to memory.
 - **The screens follow the World,** not the device:
   - `src/solo.ts` hands the World's clock to `src/time.ts`. Countdowns, `useNow` and `useAt` count in game time, and redraw when the Hero sleeps. Code that needs the time for a countdown takes it from `useNow()` or `clockNow()`, never from `Date.now()`.
   - Nothing polls. `useRefresh` does nothing offline, and every `useLoad` loads again when the day turns.
-  - The Duo card, push settings, Sign out and the approval status are left out of the solo build.
+  - The Duo card, push settings, Sign out, the approval status and the Market are left out of the solo build.
+  - `src/i18n/solo.ts` lays the solo build's own lines over `en` and `ru`: nights instead of hours, Chapters instead of Seasons, one Player instead of many. A line that reads differently offline goes there, in both languages.
 - **Tests:** `packages/solo/test` runs the server's API scenarios on the solo backend (a `solo_player` cookie plays several Players at once there), plus the in-memory database's own tests and `backend.test.ts` for Saves and Days.
-- **The bots:** `npm run playtest -w @dark/solo [-- days]` runs the server's playtest bots (`apps/api/scripts/playtest.ts`, copied) on the solo backend, on the device's clock. It skips the Save's compaction, so long runs slow down as the roll log grows.
+- **The bots:** `npm run playtest -w @dark/solo [-- days]` plays the server's playtest bots (`apps/api/scripts/playtest.ts`, moved to Days) on the solo backend: a World each, a Day's Stamina, then bed in a Camp or at the Tavern, or a rough night where it stands. `PLAYTEST_CLASSES=cleric,ranger` plays only those, and `PLAYTEST_TRACE_DAY=N` prints each step of that Day. A bot that still cannot sleep is a finding in the report.
 - **The Android app** (`apps/android`) is Capacitor 8 around the solo build: the WebView serves `apps/web/dist-solo` from the APK at `https://localhost`, and the Save lives in that WebView's IndexedDB.
   - `npm run apk -w @dark/android` builds the web app, copies it in and builds a debug APK with the Gradle wrapper. Use JDK 21: Android Studio's own Java 25 is too new for the pinned Gradle.
   - `npm run open -w @dark/android` opens the project in Android Studio.
