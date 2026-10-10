@@ -2,6 +2,7 @@ import type { Season } from '@prisma/client';
 import { createRng, rollBondRings } from '@dark/engine';
 import { newSeed } from '../lib/seed.js';
 import { feed } from './feed.js';
+import { isCompanion, wearBondRing } from './companion.js';
 import { type Outcome, t } from './fights.js';
 import { gearData, toItemView } from './items.js';
 import type { HeroWithItems, Tx } from './ledger.js';
@@ -28,6 +29,11 @@ export async function grantBondRings(tx: Tx, season: Season, floor: number, pair
       `The Wardens leave a pair of Bond rings: one for you, one for ${other.name}. Worn by you both in a Duo, they count twice.`,
       `Стражи оставляют пару колец уз: одно вам, другое — герою ${other.name}. Если в дуэте носить оба, их бонусы считаются дважды.`,
     ));
+    // A Companion puts its half on at once (companion.ts).
+    if (isCompanion(hero)) {
+      await wearBondRing(tx, hero, item, other);
+      pair[1 - i as 0 | 1][1].notices.push(t(`${hero.name} puts its half on.`, `${hero.name} надевает свою половину.`));
+    }
   }
   const [[a], [b]] = pair;
   await tx.rollLog.create({ data: { playerId: a.playerId, kind: 'drop', seed, detail: { floor, source: 'twin', tier: halves[0].tier, partner: b.id } } });

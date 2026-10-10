@@ -4,3 +4,4 @@ export { type Backend, type SaveStorage, type SoloResult, bindWorld, createBacke
 export { browserStorage, indexedDbStorage, memoryStorage } from './storage.js';
 export { type World, type WorldSettings, parseWorld, serializeWorld } from './world.js';
 export { dayOf } from './gameClock.js';
+export type { CompanionOffer, CompanionView } from './services/companion.js';

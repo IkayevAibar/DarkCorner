@@ -11,6 +11,7 @@ import { rollView } from './items.js';
 import { type HeroWithItems, type Tx, freePlace } from './ledger.js';
 import { type Drop, dropChest, giveDrop, rollDrop, withGoldFind } from './loot.js';
 import { omenOf } from './omens.js';
+import { SHARE_EARNS, TAKE_COSTS, companionOath, isCompanion, shiftLoyalty } from './companion.js';
 
 // Trust and greed (docs/design.md → Duos → Trust and greed): two things a Duo decides
 // between its own two Players. At an Oathstone each swears in secret to share or to take;
@@ -64,11 +65,14 @@ export async function swear(tx: Tx, hero: HeroWithItems, partner: HeroWithItems 
   if (view.mine) throw ApiError.conflict('already_sworn', 'Your oath is sworn');
   const [a, b] = inOrder(hero, partner);
   const field = hero.id === a.id ? 'choiceA' : 'choiceB';
-  const row = await tx.oath.upsert({
+  let row = await tx.oath.upsert({
     where: { seasonId_floor_room_heroAId_heroBId: { seasonId: season.id, floor: floor.number, room, heroAId: a.id, heroBId: b.id } },
     create: { seasonId: season.id, floor: floor.number, room, heroAId: a.id, heroBId: b.id, [field]: choice },
     update: { [field]: choice },
   });
+  // A Companion swears at once, by its loyalty (companion.ts).
+  const theirs = field === 'choiceA' ? 'choiceB' : 'choiceA';
+  if (isCompanion(partner) && !row[theirs]) row = await tx.oath.update({ where: { id: row.id }, data: { [theirs]: await companionOath(tx) } });
   if (!row.choiceA || !row.choiceB) {
     out.notices.push(t(`You swear by the stone, in secret. Now ${partner.name} must choose.`, `Вы втайне клянётесь камнем. Теперь выбор за героем ${partner.name}.`));
     partnerOut.notices.push(t(`${hero.name} has sworn by the Oathstone. Your turn: share, or take.`, `${hero.name} клянётся камнем. Ваш черёд: поделиться или забрать.`));
@@ -77,6 +81,8 @@ export async function swear(tx: Tx, hero: HeroWithItems, partner: HeroWithItems 
   const outs = new Map([[hero.id, out], [partner.id, partnerOut]]);
   await settleOaths(tx, season, floor, room, [a, b], [row.choiceA as Oath, row.choiceB as Oath], outs, now);
   await tx.oath.delete({ where: { id: row.id } });
+  // Sharing with a Companion earns its loyalty, and taking costs it.
+  if (isCompanion(partner)) await shiftLoyalty(tx, hero, choice === 'share' ? SHARE_EARNS : -TAKE_COSTS, out);
 }
 
 /** Both have sworn: the gifts, the curse, the Feed, and a week before this stone answers either again. */
@@ -87,8 +93,8 @@ async function settleOaths(tx: Tx, season: Season, floor: Floor, room: number, p
     const out = outs.get(hero.id)!;
     // The reveal, for the screen: both oaths, from this Hero's side.
     out.oath = { mine: oaths[i]!, partner: oaths[1 - i]! };
-    for (let g = 0; g < gifts[i]!; g++) {
-      // A gift the stone gives goes into the Bag even when it is full.
+    // A gift the stone gives goes into the Bag even when it is full. A Companion's gifts are its own.
+    for (let g = 0; g < gifts[i]! && !isCompanion(hero); g++) {
       await giveDrop(tx, hero, season, await rollDrop(tx, hero, season, { floor: floor.number, odds: oathOdds(floor.number), source: 'oathstone' }), out, true);
     }
     if (cursed) {
@@ -98,7 +104,7 @@ async function settleOaths(tx: Tx, season: Season, floor: Floor, room: number, p
     }
     await markCleared(tx, await heroFloor(tx, hero.id, floor.number), room, now);
     // Both sharing is a kept oath for each; taking from a partner who shares, a broken one.
-    await countDeeds(tx, hero, { 'oaths-kept': !cursed && gifts[0] === 1 ? 1 : 0, 'oaths-broken': gifts[i] === 2 ? 1 : 0 }, out);
+    if (!isCompanion(hero)) await countDeeds(tx, hero, { 'oaths-kept': !cursed && gifts[0] === 1 ? 1 : 0, 'oaths-broken': gifts[i] === 2 ? 1 : 0 }, out);
   }
   const [a, b] = pair;
   const said = (h: HeroWithItems, other: HeroWithItems, en: string, ru: string) => outs.get(h.id)!.notices.push(t(en.replaceAll('{other}', other.name), ru.replaceAll('{other}', other.name)));
@@ -148,6 +154,11 @@ export async function duoTreasure(tx: Tx, pair: [HeroWithItems, HeroWithItems], 
     let r = rng.next() * LOOT.treasureItems.reduce((sum, [, w]) => sum + w, 0);
     const count = LOOT.treasureItems.find(([, w]) => (r -= w) < 0)?.[0] ?? 1;
     for (let i = 0; i < count; i++) pool.push(await rollDrop(tx, hero, season, { floor: floor.number, source: 'treasure' }));
+    // A Companion's share is in the Duo Chest: the Treasure's gold and Chest are the Hero's alone.
+    if (isCompanion(hero)) {
+      await markCleared(tx, hf, room, now);
+      continue;
+    }
     if (rng.chance(LOOT.treasureChest)) await dropChest(tx, hero, season, floor.number, out);
     const gold = withGoldFind(hero, Math.round(rng.int(5, 15) * (floor.number + 1) * (omenOf(season, now)?.gold ?? 1)));
     await tx.hero.update({ where: { id: hero.id }, data: { carriedGold: { increment: gold } } });
@@ -164,7 +175,7 @@ export async function openDuoChest(tx: Tx, season: Season, floor: Floor, room: n
   outs: Map<string, Outcome>, now: Date): Promise<void> {
   if (pool.length === 0) return;
   const [first, second] = createRng(newSeed()).chance(0.5) ? pair : [pair[1], pair[0]];
-  await tx.duoChest.create({
+  const chest = await tx.duoChest.create({
     data: {
       seasonId: season.id, floor: floor.number, room, heroAId: first.id, heroBId: second.id,
       items: pool as unknown as Prisma.InputJsonValue, turnAt: now,
@@ -180,6 +191,8 @@ export async function openDuoChest(tx: Tx, season: Season, floor: Floor, room: n
   }
   outs.get(second.id)?.notices.push(t(`A Duo Chest with ${n} Items! A coin says ${first.name} picks first, then you: take turns.`,
     `Сундук дуэта, предметов: ${n}! Монетка решила: сначала выбирает ${first.name}, потом вы, и так по очереди.`));
+  // A Companion with the first pick takes it at once.
+  if (isCompanion(first)) await takeTurns(tx, chest, new Map(pair.map((h) => [h.id, h])), season, outs, now);
 }
 
 /**
@@ -194,11 +207,13 @@ export async function takeTurns(tx: Tx, chest: DuoChest, heroes: Map<string, Her
   const picks = [...picksOf(chest)];
   const taken = new Set(picks.map((p) => p.index));
   const order = [chest.heroAId, chest.heroBId] as const;
-  const canCarry = (id: string) => freePlace(heroes.get(id)!) !== null;
+  // A Companion picks at once on its turns, and keeps what it picks: nothing for it to carry (companion.ts).
+  const companion = [...heroes.values()].find((h) => isCompanion(h)) ?? null;
+  const canCarry = (id: string) => id === companion?.id || freePlace(heroes.get(id)!) !== null;
   let turnAt = chest.turnAt;
   let picked = false;
   const give = async (heroId: string, index: number) => {
-    await giveDrop(tx, heroes.get(heroId)!, season, items[index]!, outs.get(heroId)!);
+    if (heroId !== companion?.id) await giveDrop(tx, heroes.get(heroId)!, season, items[index]!, outs.get(heroId)!);
     taken.add(index);
     picks.push({ heroId, index });
   };
@@ -210,6 +225,11 @@ export async function takeTurns(tx: Tx, chest: DuoChest, heroes: Map<string, Her
       if (opts.pick.index >= items.length || taken.has(opts.pick.index)) throw ApiError.conflict('already_taken', 'That Item is taken');
       await give(due, opts.pick.index);
       picked = true;
+      turnAt = now;
+      continue;
+    }
+    if (due === companion?.id) {
+      await give(due, bestLeft(items.map((d) => d.roll), taken)!);
       turnAt = now;
       continue;
     }
@@ -231,9 +251,36 @@ export async function takeTurns(tx: Tx, chest: DuoChest, heroes: Map<string, Her
         ? t('Neither of you can carry more: the rest of the Duo Chest stays behind.', 'Никто из вас больше не унесёт: остальное в сундуке дуэта остаётся.')
         : t('The Duo Chest is empty.', 'Сундук дуэта опустел.'));
     }
+    // Letting a Companion take its picks earns its loyalty.
+    const master = companion ? [...heroes.values()].find((h) => h.id !== companion.id) : undefined;
+    if (companion && master && picks.some((p) => p.heroId === companion.id)) await shiftLoyalty(tx, master, SHARE_EARNS, outs.get(master.id)!);
     return null;
   }
   return tx.duoChest.update({ where: { id: chest.id }, data: { picks: picks as unknown as Prisma.InputJsonValue, turnAt } });
+}
+
+/**
+ * With a Companion, the Player takes every Item left at once, as far as the Bag holds (the
+ * rest stays behind), and the Chest closes. The Companion minds: it costs loyalty.
+ */
+export async function takeAll(tx: Tx, chest: DuoChest, hero: HeroWithItems, companion: HeroWithItems, season: Season, out: Outcome, now: Date): Promise<void> {
+  const items = itemsOf(chest);
+  const picks = [...picksOf(chest)];
+  const taken = new Set(picks.map((p) => p.index));
+  for (const [index, drop] of items.entries()) {
+    if (taken.has(index)) continue;
+    if (freePlace(hero) === null) break;
+    await giveDrop(tx, hero, season, drop, out);
+    taken.add(index);
+    picks.push({ heroId: hero.id, index });
+  }
+  await tx.duoChest.delete({ where: { id: chest.id } });
+  const last = { ...chest, picks: picks as unknown as Prisma.JsonValue, turnAt: now };
+  out.closedChest = { ...chestView(last, hero.id, new Map([[hero.id, hero], [companion.id, companion]])), turn: null };
+  out.notices.push(taken.size < items.length
+    ? t('You take all you can carry from the Duo Chest; the rest stays behind.', 'Вы забираете из сундука дуэта всё, что можете унести; остальное остаётся.')
+    : t('You take everything in the Duo Chest.', 'Вы забираете всё из сундука дуэта.'));
+  await shiftLoyalty(tx, hero, -TAKE_COSTS, out);
 }
 
 /** A Duo Chest as one of its Players sees it. */

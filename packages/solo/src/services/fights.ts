@@ -11,6 +11,7 @@ import { weakeningFrom } from './chapters.js';
 import { monsterOmen } from './difficulty.js';
 import { worldSettings } from '../settings.js';
 import { feed } from './feed.js';
+import { companionFalls, isCompanion, releaseCompanion } from './companion.js';
 import { giveStarterKit, portraitUrlOf } from './heroes.js';
 import type { HeroWithItems, Tx } from './ledger.js';
 import { type Drop, addBadLuck, dropChest, dropGear, dropStack, rollDrop, withGoldFind } from './loot.js';
@@ -235,16 +236,20 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
     out.notices.push(t(`A thief got away with ${side.goldStolen} of your gold.`, `Вор ушёл с вашим золотом: ${side.goldStolen}.`));
   }
 
+  // A Companion (solo) takes no XP, gold or loot of its own: its level is its Hero's (companion.ts).
+  const companion = isCompanion(hero);
   if (side.outcome === 'dead') {
+    // A Companion falls its own way: back in the morning, or in Iron mode for good.
+    if (companion) await companionFalls(tx, hero, season, floor.number, roomId, out);
     // Nobody can Sneak past the Boss, so a Grave in its lair could never be reached: it lies on the doorstep.
-    await die(tx, hero, season, floor.number, kind === 'boss' ? (hero.prevRoom ?? floor.landing) : roomId, out);
+    else await die(tx, hero, season, floor.number, kind === 'boss' ? (hero.prevRoom ?? floor.landing) : roomId, out);
     return;
   }
 
   const rng = createRng(`${fought.seed}:after${suffix}`);
   // A Duo splits what its fight pays: each Hero takes a share (DUO.share) of the XP and gold.
   const share = opts.share ?? 1;
-  const xp = await boostedXp(tx, hero, season, Math.round(fought.xp * share * (omen?.xp ?? 1)));
+  const xp = companion ? 0 : await boostedXp(tx, hero, season, Math.round(fought.xp * share * (omen?.xp ?? 1)));
   const levelUp = gainXp(hero, xp);
   out.xp += xp;
   out.levelUp = levelUp.newLevel ?? out.levelUp;
@@ -262,11 +267,11 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
   Object.assign(hero, after);
   // Going down and living through it is a Deed's worth; a natural 20 that stands the Hero up, another.
   const mine = (e: FightEvent) => ('actor' in e && e.actor ? e.actor : 'hero') === key;
-  if (fought.events.some((e) => e.type === 'down' && mine(e))) {
+  if (!companion && fought.events.some((e) => e.type === 'down' && mine(e))) {
     await countDeeds(tx, hero, { saved: 1, rose: fought.events.some((e) => e.type === 'rise' && mine(e)) ? 1 : 0 }, out);
   }
   // So is standing a fallen partner back up.
-  await countDeeds(tx, hero, { raised: partnerRaises(fought.events, key) }, out);
+  if (!companion) await countDeeds(tx, hero, { raised: partnerRaises(fought.events, key) }, out);
 
   if (side.outcome === 'survived') {
     out.notices.push(t('Barely alive, you crawl back to the last safe Room.', 'Едва живы, вы отползаете в последнюю безопасную комнату.'));
@@ -289,6 +294,16 @@ export async function settle(tx: Tx, hero: HeroWithItems, key: 'hero' | 'ally', 
       create: { seasonId: season.id, floor: floor.number, room: roomId, heroId: hero.id },
       update: { heroId: hero.id, claimedAt: now },
     });
+  }
+  if (companion) {
+    // Nothing is a Companion's to find but its part of the Wardens' hoard, which goes into the Duo Chest.
+    if (opts.pool) {
+      const elites = monsters.filter((m) => fought.defeated.includes(m.key) && m.elite !== null).length;
+      for (let i = 0; i < LOOT.minibossItems + elites; i++) {
+        opts.pool.push(await rollDrop(tx, hero, season, { floor: floor.number, source: kind, odds: dropOdds(Math.min(10, floor.number + 2)) }));
+      }
+    }
+    return;
   }
   await addBadLuck(tx, hero, kind === 'fight' ? BAD_LUCK_PER_FIGHT : BAD_LUCK_PER_MINIBOSS);
   // Gold from every monster that fell (a thief that ran pays nothing); Gilded elites pay triple.
@@ -430,6 +445,8 @@ export async function die(tx: Tx, hero: HeroWithItems, season: Season, floorNumb
   out.runEnd = { gold: hero.carriedGold };
   await feed(tx, season, hero, 'death', { floor: floorNumber, grave: grave.id });
   if (worldSettings().iron) {
+    // Its Companion leaves too: what it wore goes to Storage, for the next Hero.
+    await releaseCompanion(tx, hero);
     // Fallen: retired with no health left, which is how the Heroes it leaves behind tell it from a Retire.
     await tx.hero.update({ where: { id: hero.id }, data: { retiredAt: gameNow(), hp: 0, partnerId: null } });
     await tx.hero.updateMany({ where: { partnerId: hero.id }, data: { partnerId: null } });

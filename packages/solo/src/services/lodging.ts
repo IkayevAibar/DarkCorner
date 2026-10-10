@@ -6,6 +6,7 @@ import { ApiError } from '../lib/errors.js';
 import { dayNumber, lockHero, requireCity } from './ledger.js';
 import { currentSeason } from './seasons.js';
 import { wokenRested } from './sleep.js';
+import { companionOf } from './companion.js';
 import { gameNow, nextMorning, sleepTonight } from '../gameClock.js';
 
 // A night at the Tavern. Online (docs/design.md → The City) it is City gold for
@@ -50,6 +51,9 @@ export async function takeLodging(player: Player): Promise<LodgingView> {
     // A fully rested Hero may sleep too. A Hero away training must: Training keeps
     // it out of the Labyrinth until its hours are up, and only a night brings them.
     await tx.hero.update({ where: { id: hero.id }, data: { ...wokenRested(hero, morning), tavernNights: hero.tavernNights + 1, lodgedAt: now } });
+    // Its Companion sleeps at the Tavern too.
+    const companion = await companionOf(tx, hero);
+    if (companion) await tx.hero.update({ where: { id: companion.id }, data: wokenRested(companion, morning) });
     return hero.id;
   });
   sleepTonight();

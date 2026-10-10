@@ -6,6 +6,7 @@ import { ApiError } from '../lib/errors.js';
 import { type Outcome, emptyOutcome, joinedBonds, t } from './fights.js';
 import { fullHealth, portraitUrlOf } from './heroes.js';
 import { type HeroWithItems, type Tx, noFight } from './ledger.js';
+import { COMPANION_PLAYER, isCompanion, tendCompanion } from './companion.js';
 import { notify } from './push.js';
 import { currentSeason } from './seasons.js';
 import { gameNow } from '../gameClock.js';
@@ -26,7 +27,8 @@ export const INVITE_MS = 10 * 60_000;
 export type PartnerRow = HeroWithItems & { player: Player };
 
 const seenAgo = (player: Pick<Player, 'lastSeenAt'>, now: Date) => (player.lastSeenAt ? now.getTime() - player.lastSeenAt.getTime() : Infinity);
-export const isOnline = (player: Pick<Player, 'lastSeenAt'>, now: Date) => seenAgo(player, now) <= ONLINE_MS;
+/** A Companion's Player is always there: the AI plays it (solo, companion.ts). */
+export const isOnline = (player: Pick<Player, 'id' | 'lastSeenAt'>, now: Date) => player.id === COMPANION_PLAYER || seenAgo(player, now) <= ONLINE_MS;
 
 /** The partner as its Duo sees it; `mine` is the watching Hero's own Items, to tell whether their Bond rings are joined. */
 export function partnerView(partner: PartnerRow, now: Date, mine: Pick<Item, 'place' | 'bond'>[]): DuoPartner {
@@ -75,7 +77,9 @@ export function mergeOutcomes(older: Outcome, newer: Outcome): Outcome {
 /** Leaves what an action brought a Hero for its Player's next look, after anything still unseen. */
 export async function addNews(tx: Tx, heroId: string, outcome: Outcome, run: RunSummary | null = null): Promise<void> {
   if (nothingNew(outcome) && !run) return;
-  const row = await tx.hero.findUniqueOrThrow({ where: { id: heroId }, select: { duoNews: true } });
+  const row = await tx.hero.findUniqueOrThrow({ where: { id: heroId }, select: { duoNews: true, playerId: true } });
+  // A Companion has no Player to look: nothing waits for it.
+  if (isCompanion(row)) return;
   const old = row.duoNews as News | null;
   const news: News = old ? { outcome: mergeOutcomes(old.outcome, outcome), run: run ?? old.run } : { outcome, run };
   await tx.hero.update({ where: { id: heroId }, data: { duoNews: news as unknown as Prisma.InputJsonValue } });
@@ -105,15 +109,18 @@ const note = (en: string, ru: string): Outcome => ({ ...emptyOutcome(), notices:
 
 /**
  * The Player's living Hero and its Duo partner, both locked in id order (two Players
- * acting at once never wait on each other in a circle), or the Hero alone.
+ * acting at once never wait on each other in a circle), or the Hero alone. Solo, a
+ * Companion is tended first (its wage, its level, back at its Hero's side), and
+ * what that brings goes into `out`.
  */
-export async function loadActors(tx: Tx, player: Pick<Player, 'id'>, seasonId: string): Promise<{ hero: HeroWithItems; partner: PartnerRow | null }> {
+export async function loadActors(tx: Tx, player: Pick<Player, 'id'>, seasonId: string, out?: Pick<Outcome, 'notices'>): Promise<{ hero: HeroWithItems; partner: PartnerRow | null }> {
   const row = await tx.hero.findFirst({ where: { playerId: player.id, seasonId, retiredAt: null }, select: { id: true, partnerId: true } });
   if (!row) throw ApiError.conflict('no_hero', 'Create a Hero first');
   const ids = [row.id, ...(row.partnerId ? [row.partnerId] : [])].sort();
   for (const id of ids) await tx.$queryRaw`SELECT id FROM "Hero" WHERE id = ${id} FOR UPDATE`;
   const hero = await tx.hero.findUniqueOrThrow({ where: { id: row.id }, include: { items: true } });
   if (hero.retiredAt) throw ApiError.conflict('no_hero', 'Create a Hero first');
+  await tendCompanion(tx, hero, gameNow(), out);
   if (!hero.partnerId) return { hero, partner: null };
   // Paired a moment ago, between the look and the lock: hold the partner too.
   if (hero.partnerId !== row.partnerId) await tx.$queryRaw`SELECT id FROM "Hero" WHERE id = ${hero.partnerId} FOR UPDATE`;
@@ -150,7 +157,7 @@ export async function activePartner(tx: Tx, hero: HeroWithItems, partner: Partne
     out.notices.push(t(`You and ${partner.name} are apart now: the Duo is over.`, `Вы с героем ${partner.name} разлучены: дуэт распался.`));
     return null;
   }
-  if (seenAgo(partner.player, now) > AWAY_END_MS) {
+  if (!isCompanion(partner) && seenAgo(partner.player, now) > AWAY_END_MS) {
     await endDuo(tx, hero, partner, { en: `You were away too long: the Duo with ${hero.name} is over.`, ru: `Вас долго не было: дуэт с героем ${hero.name} распался.` });
     out.notices.push(t(`${partner.name} has been away too long: the Duo is over.`, `Напарник ${partner.name} слишком долго не отвечает: дуэт распался.`));
     return null;

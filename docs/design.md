@@ -54,6 +54,17 @@ The solo build plays by this document, except for these:
 - **The Save's settings,** chosen before its first Hero and fixed after it:
   - **Difficulty.** Story gives monsters a quarter less health and damage, and Hard a quarter more *(v0)*. Normal is this document's numbers.
   - **Iron mode.** A Hero lives once. One who dies falls for good: what it carried lies in its Grave for two nights, and the next Hero keeps the gold and Storage left in the City, as after a Retire. A fall doesn't use up the Chapter's Retire.
+- **The Companion** *(v0)*: a Hero of another Class, hired at the Tavern and played by the AI as the Hero's Partner. The Duo rules hold: it walks beside the Hero, opens Twin doors with it, meets a Duo's monsters, swears at Oathstones and shares Duo Chests, and each takes 65% of a fight's XP and gold.
+  - **Hiring.** The Tavern offers three each Day, at the Hero's level. The wage is 20 gold × its level each morning, the first paid on hiring. On a morning the Hero can't pay, it leaves.
+  - **One of the pair.** It is always its Hero's level, with its Path and growth chosen for it. The AI plays it in every fight. It finds no loot, events or hoards of its own, pays no Stamina, and keeps its share of the gold. It rests whenever the Hero rests.
+  - **Wherever the Hero goes,** through a Town Portal and back through it too, but not into the Dragon's lair: there it waits at the door until the Hero comes back out or goes home.
+  - **Gear.** It comes in its Class's Starter kit and wears what the Player gives it from the Bag (or Storage, in the City). It gives anything back when asked.
+  - **Loyalty**, from 0 to 10, starts at 5.
+    - At an Oathstone the Companion swears at once: Share while its loyalty is 5 or more, Take below that. The Player's Share earns 1, and Take costs 2.
+    - At a Duo Chest it picks at once on its turns, and keeps what it picks. Letting it pick earns 1; taking every Item left instead costs 2.
+    - At 0 it leaves.
+  - **Falling.** A Companion that falls in a fight is back at the Hero's side the next morning, with all its gear. In Iron mode it is gone for good, and what it wore lies in its Grave.
+  - **Leaving.** Dismissed at the Tavern, unpaid or disloyal, it gives back what it wears, into the Bag (or Storage, when the Bag is full in the City). When its Hero Retires or falls for good, what it wore goes to Storage.
 - **Alone.** Nothing reaches anyone else: no push Notifications or Broadcasts, and no Duo card, push settings or Sign out.
   - **No Market.** Nobody else lists or buys, and the Shops buy everything but Relics. The Free market Omen never comes.
   - **The week's Hunt is the Hero's own,** sized for one Hero: reaching it pays a Gold Chest.

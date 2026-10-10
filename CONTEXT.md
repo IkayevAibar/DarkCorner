@@ -471,8 +471,12 @@ The solo game's arc in place of a Season: one Labyrinth and its Boss. The Boss's
 _Avoid_: act, episode, level
 
 **Companion** (спутник):
-An AI-played partner Hero in the solo game. It takes the second Hero's place in Duo content.
+An AI-played partner Hero in the solo game, hired at the Tavern for a wage each morning. It takes the second Hero's place in Duo content.
 _Avoid_: follower, hireling, pet
+
+**Loyalty** (верность):
+How faithful a Companion is, from 0 to 10: sharing with it at an Oathstone or a Duo Chest raises it, and taking lowers it. At 0 the Companion leaves.
+_Avoid_: trust, morale, affection
 
 **Chronicle** (летопись):
 The solo game's record of its Hero's story, in place of the Tavern's Feed.

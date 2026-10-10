@@ -18,6 +18,7 @@ import { newSeed } from '../lib/seed.js';
 import { gearData, toItemView } from './items.js';
 import { blessingText } from './days.js';
 import { deedViews, isDone } from './deeds.js';
+import { releaseCompanion } from './companion.js';
 import { type Tx, lockHero, requireCity } from './ledger.js';
 import { levelReady, raiseLevel } from './progression.js';
 import { currentSeason } from './seasons.js';
@@ -378,7 +379,7 @@ export async function giveStarterKit(tx: Prisma.TransactionClient, hero: Hero, s
 }
 
 /** At level 3 and up, once: the Hero chooses one of its Class's two Paths. */
-async function applyPath(tx: Tx, hero: Hero, path: PathId): Promise<void> {
+export async function applyPath(tx: Tx, hero: Hero, path: PathId): Promise<void> {
   if (hero.path) throw ApiError.conflict('path_chosen', 'This Hero has already chosen its Path');
   if (hero.level < PATH_LEVEL) throw ApiError.conflict('too_early', 'A Path is chosen at level 3');
   if (PATH_DEFS[path].class !== hero.class) throw ApiError.badRequest('wrong_class', 'That Path is for another Class');
@@ -390,7 +391,7 @@ async function applyPath(tx: Tx, hero: Hero, path: PathId): Promise<void> {
  * two, or one of the three Talents offered to it. Tough counts for every level
  * already gained.
  */
-async function applyGrowth(tx: Tx, hero: Hero, request: GrowRequest): Promise<void> {
+export async function applyGrowth(tx: Tx, hero: Hero, request: GrowRequest): Promise<void> {
   const growths = hero.growths as unknown as Growth[];
   if (!pendingGrowth(hero.level, growths).includes(request.level)) throw ApiError.conflict('no_growth', 'Nothing to choose at that level');
   const choice = request.choice as GrowthChoice;
@@ -483,6 +484,8 @@ export async function retireHero(player: Player): Promise<void> {
     requireCity(active);
     const heroes = await tx.hero.findMany({ where: { playerId: player.id, seasonId: season.id }, select: { retiredAt: true, hp: true } });
     if (counted(heroes) >= 2) throw ApiError.conflict('retire_used', 'You have already retired a Hero this Season');
+    // Its Companion leaves too (solo): what it wore goes to Storage with the rest.
+    await releaseCompanion(tx, active);
     await tx.item.updateMany({
       where: { heroId: active.id, place: { in: ['WORN', 'BAG'] } },
       data: { place: 'STORAGE', slot: null },

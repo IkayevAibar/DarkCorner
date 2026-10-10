@@ -18,6 +18,7 @@ import { nextOmenAt, omenView } from './omens.js';
 import { notifyAll } from './push.js';
 import { currentSeason } from './seasons.js';
 import { weakeningFrom } from './chapters.js';
+import { COMPANION_PLAYER } from './companion.js';
 import { gameNow } from '../gameClock.js';
 
 // The Season's life (docs/design.md → Seasons): an admin starts it, jobs open the
@@ -131,7 +132,7 @@ export async function discardSeason(seasonId: string, now = gameNow()): Promise<
 
 /** Records for the Hall of Fame at the Wipe: the deepest Floor and the highest level. */
 async function recordRecords(tx: Tx, season: Season): Promise<void> {
-  const heroes = await tx.hero.findMany({ where: { seasonId: season.id }, include: { player: true } });
+  const heroes = await tx.hero.findMany({ where: { seasonId: season.id, playerId: { not: COMPANION_PLAYER } }, include: { player: true } });
   if (heroes.length === 0) return;
   const deepest = [...heroes].sort((a, b) => b.bestFloor - a.bestFloor || a.createdAt.getTime() - b.createdAt.getTime())[0]!;
   const highest = [...heroes].sort((a, b) => b.level - a.level || b.xp - a.xp)[0]!;
@@ -160,7 +161,7 @@ async function recordRecords(tx: Tx, season: Season): Promise<void> {
  * game time today (or in `minutes`, for testing). Returns null when no Floor qualifies.
  */
 export async function announceVault(season: Season, now = gameNow(), minutes?: number): Promise<{ floor: number; opensAt: Date } | null> {
-  const heroes = await prisma.hero.findMany({ where: { seasonId: season.id, retiredAt: null }, select: { bestFloor: true } });
+  const heroes = await prisma.hero.findMany({ where: { seasonId: season.id, retiredAt: null, playerId: { not: COMPANION_PLAYER } }, select: { bestFloor: true } });
   // With fewer Heroes than that (a test server), one is enough.
   const need = Math.max(1, Math.min(VAULT_MIN_HEROES, heroes.length));
   const floors: number[] = [];

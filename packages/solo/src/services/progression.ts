@@ -1,4 +1,5 @@
 import type { Hero, Prisma, Season } from '@prisma/client';
+import { COMPANION_PLAYER } from './companion.js';
 import {
   type ClassId, MAX_LEVEL, type PathId, type RaceId, type Rng, type TalentId, lateJoinerBoost, levelForXp, medianLevel, restUses,
   rollLevelHealth,
@@ -12,7 +13,8 @@ import {
 export async function boostedXp(tx: Prisma.TransactionClient, hero: Hero, season: Season, gained: number): Promise<number> {
   const boost = lateJoinerBoost(season.startsAt, hero.createdAt);
   if (boost === 0 || gained === 0) return gained;
-  const levels = await tx.hero.findMany({ where: { seasonId: season.id, retiredAt: null }, select: { level: true } });
+  // A Companion is no Hero of the Season's (companion.ts).
+  const levels = await tx.hero.findMany({ where: { seasonId: season.id, retiredAt: null, playerId: { not: COMPANION_PLAYER } }, select: { level: true } });
   if (hero.level >= medianLevel(levels.map((l) => l.level))) return gained;
   return Math.round(gained * (1 + boost));
 }

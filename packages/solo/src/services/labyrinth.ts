@@ -33,8 +33,9 @@ import { countDeeds } from './deeds.js';
 import { newRun, tallyRun, tallyRunIn } from './runs.js';
 import { currentSeason } from './seasons.js';
 import { enterVault, vaultState } from './vaults.js';
-import { chestOf, chestView, duoTreasure, oathView, swear, takeTurns } from './trust.js';
+import { chestOf, chestView, duoTreasure, oathView, swear, takeAll, takeTurns } from './trust.js';
 import { finishTraining, requireNotTraining } from './training.js';
+import { companionOf, isCompanion, tendCompanion, waitAtLair } from './companion.js';
 import { roughNight, wokenRested } from './sleep.js';
 import { gameNow, gameNowMs, nextMorning, sleepTonight, worldDay } from '../gameClock.js';
 
@@ -539,6 +540,8 @@ async function respond(heroId: string, season: Season, outcome: Outcome): Promis
 
 /** A Duo partner's side of an action: into its Run now, and waiting for its Player's next look. */
 async function tellPartner(tx: Tx, partner: Hero, out: Outcome, now: Date): Promise<void> {
+  // A Companion has no Player to tell, and keeps no Run of its own.
+  if (isCompanion(await tx.hero.findUnique({ where: { id: partner.id }, select: { playerId: true } }))) return;
   await addNews(tx, partner.id, out, await tallyRunIn(tx, partner.id, out, now));
 }
 
@@ -562,7 +565,7 @@ async function fightLive(tx: Tx, hero: HeroWithItems, partner: HeroWithItems | n
 
 /** The acting Hero and, in a Duo, its partner, ready to go with it (see activePartner). */
 async function actors(tx: Tx, player: Player, season: Season, now: Date, out: Outcome, looks = false) {
-  const { hero, partner } = await loadActors(tx, player, season.id);
+  const { hero, partner } = await loadActors(tx, player, season.id, out);
   return { hero, partner: await activePartner(tx, hero, partner, now, out, looks) };
 }
 
@@ -635,7 +638,8 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
     requireNotTraining(hero, now, partner);
     if (season.status === 'PLANNED') throw ApiError.conflict('season_not_started', 'The Season has not started yet');
     if (partner) {
-      if (viaPortal) throw ApiError.conflict('duo_portal', 'A Town Portal takes one Hero: leave the Duo to step through');
+      // A Companion steps through beside its Hero; a friend's Hero can't.
+      if (viaPortal && !isCompanion(partner)) throw ApiError.conflict('duo_portal', 'A Town Portal takes one Hero: leave the Duo to step through');
       if (floorNumber !== 1 && !(hero.waypoints.includes(floorNumber) && partner.waypoints.includes(floorNumber))) {
         throw ApiError.conflict('no_waypoint', 'Both Heroes need that Waypoint');
       }
@@ -645,16 +649,18 @@ export async function enterLabyrinth(player: Player, floorNumber: number, viaPor
       if (!portalOf(hero, now)) throw ApiError.conflict('no_portal', 'You have no open Town Portal');
       const floor = floorOf(lab, hero.portalFloor!);
       const room = hero.portalRoom!;
-      // Monsters back in that Room by now: the Hero steps out in their doorway.
-      const waiting = await monstersWaiting(tx, hero, season, floor, room, now);
-      await tx.hero.update({
-        where: { id: hero.id },
-        data: {
-          location: 'LABYRINTH', floor: floor.number, room, prevRoom: waiting ? floor.landing : room, facing: waiting !== null,
-          deathless: true, lucky: true, campSince: floor.rooms[room]!.type === 'camp' ? now : null, hpAt: now,
-          portalFloor: null, portalRoom: null, portalUntil: null, ...restsOnEntry(hero, now), run: newRun(hero.level, floor.number, now),
-        },
-      });
+      // Monsters back in that Room by now: the Hero steps out in their doorway (with its Companion, solo).
+      const waiting = await pairWaiting(tx, hero, partner, season, floor, room, now);
+      for (const h of partner ? [hero, partner] : [hero]) {
+        await tx.hero.update({
+          where: { id: h.id },
+          data: {
+            location: 'LABYRINTH', floor: floor.number, room, prevRoom: waiting ? floor.landing : room, facing: waiting !== null,
+            deathless: true, lucky: true, campSince: floor.rooms[room]!.type === 'camp' ? now : null, hpAt: now,
+            portalFloor: null, portalRoom: null, portalUntil: null, ...restsOnEntry(h, now), run: newRun(h.level, floor.number, now),
+          },
+        });
+      }
       return hero.id;
     }
     if (floorNumber !== 1 && !hero.waypoints.includes(floorNumber)) {
@@ -712,7 +718,9 @@ export async function walkRoute(player: Player, route: number[]): Promise<Labyri
   const partnerOut = emptyOutcome();
 
   const heroId = await prisma.$transaction(async (tx) => {
-    const { hero, partner } = await actors(tx, player, season, now, outcome);
+    const actorsNow = await actors(tx, player, season, now, outcome);
+    const hero = actorsNow.hero;
+    let partner = actorsNow.partner;
     await noFight(tx, hero.id);
     await tendChest(tx, hero, partner, season, now, outcome, { finish: true, partnerOut });
     const { floor } = whereIs(hero, lab);
@@ -734,6 +742,8 @@ export async function walkRoute(player: Player, route: number[]): Promise<Labyri
           : t('The way on is shut: the walk stops here.', 'Дальше не пройти: путь обрывается здесь.'));
         break;
       }
+      // A Companion left at the lair's door, or met there again: the walk goes on with whoever is beside the Hero.
+      if ((partner?.id ?? null) !== hero.partnerId) partner = await partnerOf(tx, hero);
       if (i === route.length - 1) break;
       const quiet = step.free && !step.spotted && !hero.facing && brought(outcome) === before.mine && brought(partnerOut) === before.theirs;
       if (!quiet) break;
@@ -773,10 +783,16 @@ async function stepTo(
   if (target.type === 'boss' && (!season.bossGateAt || season.bossGateAt > now)) {
     throw ApiError.conflict('boss_gate_closed', 'The Boss gate is still sealed');
   }
+  // A Companion waits at the lair's door (companion.ts); a friend's Hero has to leave the Duo first.
+  if (target.type === 'boss' && partner && isCompanion(partner)) {
+    await waitAtLair(tx, hero, partner, outcome);
+    partner = null;
+    walkers.pop();
+  }
   if (target.type === 'boss' && partner) throw ApiError.conflict('duo_boss', 'The Dragon is faced alone: leave the Duo first');
-  // Walking back through known Rooms is free, unless something new waits in one today.
+  // Walking back through known Rooms is free, unless something new waits in one today. A Companion pays no Stamina.
   const costs = walkers.map((w, i) => ({
-    free: freeToEnter(floor, to, w.hf, now, partner ? walkers[1 - i]!.hf : undefined),
+    free: isCompanion(w.hero) || freeToEnter(floor, to, w.hf, now, partner ? walkers[1 - i]!.hf : undefined),
     stamina: currentStamina(w.hero.stamina, w.hero.staminaAt, now),
   }));
   if (!costs[0]!.free && costs[0]!.stamina.stamina < 1) throw ApiError.conflict('no_stamina', 'Out of Stamina');
@@ -800,7 +816,7 @@ async function stepTo(
     if (!w.hf.seen.includes(to)) {
       await tx.heroFloor.update({ where: { id: w.hf.id }, data: { seen: { push: to } } });
       w.out.explored++;
-      await countDeeds(tx, w.hero, { rooms: 1 }, w.out);
+      if (!isCompanion(w.hero)) await countDeeds(tx, w.hero, { rooms: 1 }, w.out);
     }
     const { free, stamina } = costs[i]!;
     await tx.hero.update({
@@ -818,7 +834,8 @@ async function stepTo(
   const shared = partner !== null && target.type === 'treasure';
   let spotted = false;
   for (const w of walkers) {
-    if (!waiting && !shared) await resolveRoom(tx, w.hero, season, floor, to, w.hf, now, w.out);
+    // A Companion finds no events, hoards or Treasure of its own: it only wakes the Waypoints its Hero does.
+    if (!waiting && !shared && (!isCompanion(w.hero) || target.type === 'waypoint')) await resolveRoom(tx, w.hero, season, floor, to, w.hf, now, w.out);
     // A sharp eye catches a way into a hidden room.
     const seenNow = new Set([...w.hf.seen, to]);
     for (const { door } of doorsOf(floor, to)) {
@@ -829,7 +846,9 @@ async function stepTo(
       }
     }
   }
-  if (!waiting && shared) await duoTreasure(tx, [hero, partner], season, floor, to, now, new Map([[hero.id, outcome], [partner.id, partnerOut]]));
+  if (!waiting && shared && partner) await duoTreasure(tx, [hero, partner], season, floor, to, now, new Map([[hero.id, outcome], [partner.id, partnerOut]]));
+  // Back out of the lair, the Hero meets its Companion again at the door.
+  if (!partner) await tendCompanion(tx, hero, now, outcome);
   return { free: costs.every((c) => c.free), spotted };
 }
 
@@ -1087,7 +1106,7 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
     const next = floorOf(lab, floor.number + 1);
     const walkers = [{ hero, out: outcome, hf: await heroFloor(tx, hero.id, next.number) }];
     if (partner) walkers.push({ hero: partner, out: partnerOut, hf: await heroFloor(tx, partner.id, next.number) });
-    payStairs(walkers.map((w) => ({ hero: w.hero, known: w.hf.seen.includes(next.landing) })), partner, now);
+    payStairs(walkers.filter((w) => !isCompanion(w.hero)).map((w) => ({ hero: w.hero, known: w.hf.seen.includes(next.landing) })), partner, now);
     for (const { hero: h, out, hf } of walkers) {
       const known = hf.seen.includes(next.landing);
       const stamina = currentStamina(h.stamina, h.staminaAt, now);
@@ -1097,7 +1116,9 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
       }
       out.depth = next.number;
       // A Floor never reached before is worth XP.
-      const firstXp = next.number > h.bestFloor ? await boostedXp(tx, h, season, NEW_FLOOR_XP * next.number) : 0;
+      // A Companion's level is its Hero's, and its depth is no news.
+      const companion = isCompanion(h);
+      const firstXp = next.number > h.bestFloor && !companion ? await boostedXp(tx, h, season, NEW_FLOOR_XP * next.number) : 0;
       const levelUp = firstXp > 0 ? gainXp(h, firstXp) : null;
       if (levelUp) {
         out.xp = firstXp;
@@ -1105,14 +1126,16 @@ export async function descend(player: Player): Promise<LabyrinthResult> {
         out.notices.push(t(`A new depth: Floor ${next.number}.`, `Новая глубина: этаж ${next.number}.`));
         await feed(tx, season, h, 'depth', { floor: next.number });
       }
-      await trackBounties(tx, h, { type: 'depth', floor: next.number }, out, now);
-      await countDeeds(tx, h, {}, out, { depth: next.number });
-      if (next.number >= GATE_FLOOR && h.bestFloor < GATE_FLOOR) await openGateEarly(tx, season, now, out);
+      if (!companion) {
+        await trackBounties(tx, h, { type: 'depth', floor: next.number }, out, now);
+        await countDeeds(tx, h, {}, out, { depth: next.number });
+        if (next.number >= GATE_FLOOR && h.bestFloor < GATE_FLOOR) await openGateEarly(tx, season, now, out);
+      }
       await tx.hero.update({
         where: { id: h.id },
         data: {
           floor: next.number, room: next.landing, prevRoom: next.landing, campSince: null,
-          ...(known ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }), bestFloor: Math.max(h.bestFloor, next.number),
+          ...(known || companion ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }), bestFloor: Math.max(h.bestFloor, next.number),
           ...levelUp?.data,
         },
       });
@@ -1159,7 +1182,7 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
     const room = (stairs.find((r) => hf.seen.includes(r.id)) ?? stairs[0]!).id;
     const walkers = [{ hero, hf }];
     if (partner) walkers.push({ hero: partner, hf: await heroFloor(tx, partner.id, above.number) });
-    payStairs(walkers.map((w) => ({ hero: w.hero, known: w.hf.seen.includes(room) })), partner, now);
+    payStairs(walkers.filter((w) => !isCompanion(w.hero)).map((w) => ({ hero: w.hero, known: w.hf.seen.includes(room) })), partner, now);
     for (const { hero: h, hf: f } of walkers) {
       const known = f.seen.includes(room);
       const stamina = currentStamina(h.stamina, h.staminaAt, now);
@@ -1167,7 +1190,8 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
       await tx.hero.update({
         where: { id: h.id },
         data: {
-          floor: above.number, room, prevRoom: room, campSince: null, ...(known ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }),
+          floor: above.number, room, prevRoom: room, campSince: null,
+          ...(known || isCompanion(h) ? {} : { stamina: stamina.stamina - 1, staminaAt: stamina.savedAt }),
         },
       });
     }
@@ -1183,7 +1207,7 @@ export async function ascend(player: Player): Promise<LabyrinthResult> {
 /** Back to the City: gold becomes safe, health and abilities come back. */
 async function goHome(tx: Tx, hero: HeroWithItems, out: Outcome) {
   out.runEnd = { gold: hero.carriedGold };
-  if (hero.carriedGold > 0) {
+  if (hero.carriedGold > 0 && !isCompanion(hero)) {
     await trackBounties(tx, hero, { type: 'bank', gold: hero.carriedGold }, out);
     await countDeeds(tx, hero, { banked: hero.carriedGold }, out);
   }
@@ -1239,9 +1263,12 @@ export async function shortRest(player: Player): Promise<LabyrinthResult> {
     await restIfDue(tx, hero, now, outcome);
     if (await stillFacing(tx, hero, partner, season, floor, now)) throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
     if (hero.shortRests < 1) throw ApiError.conflict('no_short_rests', 'No short rests left on this Run');
+    // A Companion rests with its Hero, while it has short rests of its own (companion.ts).
+    const companion = partner && isCompanion(partner) && partner.shortRests > 0 ? partner : null;
+    const companionFull = companion ? fullHealth(companion) : 0;
     const full = fullHealth(hero);
     const before = currentStamina(hero.stamina, hero.staminaAt, now).stamina;
-    if (hero.hp >= full && before >= STAMINA_MAX) throw ApiError.conflict('rested', 'Already fully rested');
+    if (hero.hp >= full && before >= STAMINA_MAX && !(companion && companion.hp < companionFull)) throw ApiError.conflict('rested', 'Already fully rested');
     const hp = Math.min(full, hero.hp + Math.ceil(full * SHORT_REST_SHARE));
     const stamina = addStamina(hero.stamina, hero.staminaAt, Math.ceil(STAMINA_MAX * SHORT_REST_SHARE), now);
     await tx.hero.update({
@@ -1250,10 +1277,16 @@ export async function shortRest(player: Player): Promise<LabyrinthResult> {
     });
     const healed = hp - hero.hp;
     const gained = stamina.stamina - before;
-    outcome.notices.push(t(
-      `A short rest: ${[healed > 0 && `+${healed} health`, gained > 0 && `+${gained} Stamina`].filter(Boolean).join(', ')}.`,
-      `Короткий отдых: ${[healed > 0 && `+${healed} здоровья`, gained > 0 && `+${gained} выносливости`].filter(Boolean).join(', ')}.`,
-    ));
+    const en = [healed > 0 && `+${healed} health`, gained > 0 && `+${gained} Stamina`].filter(Boolean).join(', ');
+    const ru = [healed > 0 && `+${healed} здоровья`, gained > 0 && `+${gained} выносливости`].filter(Boolean).join(', ');
+    outcome.notices.push(en ? t(`A short rest: ${en}.`, `Короткий отдых: ${ru}.`) : t('A short rest.', 'Короткий отдых.'));
+    if (companion) {
+      const rested = Math.min(companionFull, companion.hp + Math.ceil(companionFull * SHORT_REST_SHARE));
+      await tx.hero.update({ where: { id: companion.id }, data: { hp: rested, shortRests: companion.shortRests - 1 } });
+      if (rested > companion.hp) {
+        outcome.notices.push(t(`${companion.name} rests too: +${rested - companion.hp} health.`, `${companion.name} тоже отдыхает: +${rested - companion.hp} здоровья.`));
+      }
+    }
     return hero.id;
   });
   return respond(heroId, season, outcome);
@@ -1279,7 +1312,11 @@ export async function sleepHere(player: Player): Promise<LabyrinthResult> {
     const { floor } = whereIs(hero, lab);
     const camp = floor.rooms[hero.room!]!.type === 'camp';
     if (await stillFacing(tx, hero, partner, season, floor, now)) throw ApiError.conflict('facing', 'Fight, Sneak past or Retreat first');
-    for (const h of partner ? [hero, partner] : [hero]) {
+    const sleepers: HeroWithItems[] = partner ? [hero, partner] : [hero];
+    // A Companion waiting at the lair's door sleeps there too.
+    const waiting = partner ? null : await companionOf(tx, hero);
+    if (waiting && waiting.location === 'LABYRINTH') sleepers.push(waiting);
+    for (const h of sleepers) {
       // A Camp's own four-hour rest starts from the morning, so it doesn't come again at once.
       await tx.hero.update({ where: { id: h.id }, data: camp ? { ...wokenRested(h, morning), campSince: morning } : roughNight(h, morning) });
     }
@@ -1296,13 +1333,16 @@ export async function sleepHere(player: Player): Promise<LabyrinthResult> {
     return hero.id;
   });
   sleepTonight();
+  // The morning: a Companion's wage, and a fallen one back at the Hero's side.
+  await prisma.$transaction(async (tx) => tendCompanion(tx, await tx.hero.findUniqueOrThrow({ where: { id: heroId }, include: { items: true } }), gameNow(), outcome));
   return respond(heroId, season, outcome);
 }
 
 /**
  * Read a Town Portal scroll: home from anywhere, and the portal stays open behind the
  * Hero for a day, to step back through once (from a doorway, to the last safe Room).
- * It takes one Hero: reading it ends a Duo, and the partner goes on alone.
+ * It takes one Hero: reading it ends a Duo, and the partner goes on alone. Solo, a
+ * Companion steps through beside its Hero, and back again.
  */
 export async function readPortal(player: Player): Promise<LabyrinthResult> {
   const season = await currentSeason();
@@ -1314,7 +1354,7 @@ export async function readPortal(player: Player): Promise<LabyrinthResult> {
     if (hero.location !== 'LABYRINTH' || hero.floor === null || hero.room === null) throw ApiError.conflict('not_inside', 'Enter the Labyrinth first');
     const scroll = stackIn(hero, 'scroll-portal');
     if (!scroll) throw ApiError.conflict('no_scroll', 'You have no Town Portal scroll');
-    if (partner) {
+    if (partner && !isCompanion(partner)) {
       await endDuo(tx, hero, partner, {
         en: `${hero.name} reads a Town Portal and steps home: the Duo is over, you go on alone.`,
         ru: `${hero.name} читает свиток портала и уходит домой: дуэт распался, дальше вы одни.`,
@@ -1325,6 +1365,7 @@ export async function readPortal(player: Player): Promise<LabyrinthResult> {
     const floor = hero.floor;
     const room = hero.facing ? (hero.prevRoom ?? floorOf(labyrinthFor(season), floor).landing) : hero.room;
     await goHome(tx, hero, outcome);
+    if (partner && isCompanion(partner)) await goHome(tx, partner, emptyOutcome());
     await tx.hero.update({ where: { id: hero.id }, data: { portalFloor: floor, portalRoom: room, portalUntil: portalUntil(gameNowMs()) } });
     return hero.id;
   });
@@ -1429,6 +1470,28 @@ export async function swearOath(player: Player, choice: OathChoice): Promise<Lab
     const together = partner && partner.floor === hero.floor && partner.room === hero.room ? partner : null;
     await swear(tx, hero, together, season, floor, room, choice, now, outcome, partnerOut);
     if (together) await tellPartner(tx, together, partnerOut, now);
+    return hero.id;
+  });
+  return respond(heroId, season, outcome);
+}
+
+/**
+ * With a Companion, the Player may take every Item left in the Duo Chest at once, as far
+ * as the Bag holds, at a price in its loyalty (companion.ts).
+ */
+export async function takeWholeChest(player: Player): Promise<LabyrinthResult> {
+  const season = await currentSeason();
+  const now = gameNow();
+  const outcome = emptyOutcome();
+  const heroId = await prisma.$transaction(async (tx) => {
+    const { hero, partner } = await actors(tx, player, season, now, outcome, true);
+    await noFight(tx, hero.id);
+    const chest = await chestOf(tx, hero.id);
+    if (!chest) throw ApiError.conflict('no_chest', 'There is no Duo Chest here');
+    if (!partner || !isCompanion(partner) || ![chest.heroAId, chest.heroBId].includes(partner.id)) {
+      throw ApiError.conflict('not_with_companion', 'Only a Companion lets you take it all');
+    }
+    await takeAll(tx, chest, hero, partner, season, outcome, now);
     return hero.id;
   });
   return respond(heroId, season, outcome);

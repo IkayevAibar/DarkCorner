@@ -2,6 +2,7 @@ import { Router } from './router.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
 import { cityRoutes } from './routes/city.js';
+import { companionRoutes } from './routes/companion.js';
 import { delveRoutes } from './routes/delve.js';
 import { duoRoutes } from './routes/duo.js';
 import { heroRoutes } from './routes/heroes.js';
@@ -39,5 +40,6 @@ export async function buildApp(): Promise<SoloApp> {
   await stepsRoutes(app);
   await duoRoutes(app);
   await soloRoutes(app);
+  await companionRoutes(app);
   return app;
 }

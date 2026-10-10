@@ -7,6 +7,7 @@ import {
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
 import { bossVictory } from './boss.js';
+import { isCompanion } from './companion.js';
 import { endDuo, isOnline } from './duo.js';
 import {
   type FightKind, type Outcome, combatOf, combatant, duoInput, duoMonstersFor, emptyOutcome, fightInput, heroCombatant, monstersFor, settle, t,
@@ -91,7 +92,8 @@ export async function startFight(tx: Tx, hero: HeroWithItems, partner: HeroWithI
   const input = partner
     ? duoInput(hero, partner, spawned.monsters, { ...shared, surprise: opts.surprise })
     : fightInput(hero, combatOf(hero), spawned.monsters, { ...shared, spare: opts.threat === 'trivial' });
-  const manual: HeroKey[] = [...(opts.auto ? [] : ['hero' as const]), ...(partner ? ['ally' as const] : [])];
+  // A Companion is the AI's to play, on every turn (companion.ts).
+  const manual: HeroKey[] = [...(opts.auto ? [] : ['hero' as const]), ...(partner && !isCompanion(partner) ? ['ally' as const] : [])];
   const context: Context = {
     spawnSeed: spawned.spawnSeed ?? '', threat: opts.threat ?? null, bomb: Boolean(opts.bomb), surprise: opts.surprise ?? null, stance: input.stance ?? 'steady',
   };
@@ -206,15 +208,23 @@ async function finish(tx: Tx, fight: Fight, result: FightResult, choices: HeroCh
   }
 
   if (ally && allyOut) {
+    const companion = isCompanion(ally.hero);
     // Down at the end of a won fight: the partner hauled it up.
     if (result.outcome === 'victory' && stillDown(result.events, 'hero')) heroOut.notices.push(t(`${ally.hero.name} hauls you back to your feet.`, `${ally.hero.name} поднимает вас на ноги.`));
-    if (ally.side.outcome === 'victory' && stillDown(result.events, 'ally')) allyOut.notices.push(t(`${heroes.hero.name} hauls you back to your feet.`, `${heroes.hero.name} поднимает вас на ноги.`));
-    // A death ends the Duo; whoever still stands goes on alone.
+    if (ally.side.outcome === 'victory' && stillDown(result.events, 'ally')) {
+      if (companion) heroOut.notices.push(t(`You haul ${ally.hero.name} back to its feet.`, `Вы поднимаете спутника ${ally.hero.name} на ноги.`));
+      else allyOut.notices.push(t(`${heroes.hero.name} hauls you back to your feet.`, `${heroes.hero.name} поднимает вас на ноги.`));
+    }
+    // A death ends the Duo; whoever still stands goes on alone. A Companion's fall is told to its Hero.
     if (result.outcome === 'dead' || ally.side.outcome === 'dead') {
       await endDuo(tx, heroes.hero, ally.hero, null);
       const fell = (name: string) => t(`Death takes ${name}. The Duo is over: you go on alone.`, `Смерть забирает героя ${name}. Дуэт распался: дальше вы одни.`);
-      if (result.outcome === 'dead' && ally.side.outcome !== 'dead') allyOut.notices.push(fell(heroes.hero.name));
-      if (ally.side.outcome === 'dead' && result.outcome !== 'dead') heroOut.notices.push(fell(ally.hero.name));
+      if (companion) {
+        if (ally.side.outcome === 'dead') heroOut.notices.push(...allyOut.notices);
+      } else {
+        if (result.outcome === 'dead' && ally.side.outcome !== 'dead') allyOut.notices.push(fell(heroes.hero.name));
+        if (ally.side.outcome === 'dead' && result.outcome !== 'dead') heroOut.notices.push(fell(ally.hero.name));
+      }
     }
   }
   await tx.fight.delete({ where: { id: fight.id } });
