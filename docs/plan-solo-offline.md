@@ -7,7 +7,7 @@
 - the solo game it becomes
 - a plan in phases
 
-The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phases 1 and 2 and the Android shell are on `main`. Phase 3 is under way on the branch `claude/solo-phase-3`: Days, Chapters, difficulty, Iron mode and the bots are built. The Companion waits for the owner to confirm the proposal in section 6, and the Chapter's end screen is still to come.
+The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phases 1 and 2 and the Android shell are on `main`. Phase 3 is under way: Days, Chapters, difficulty, Iron mode and the bots are on `main`, and the Companion is built on the branch `claude/solo-companion`, as the owner confirmed it on 2026-10-11. The Chapter's end screen and Rivals are still to come.
 
 Read with [design.md](design.md), [architecture.md](architecture.md) and [CONTEXT.md](../CONTEXT.md). design.md stays the source of truth for every rule this doc doesn't change.
 
@@ -218,13 +218,19 @@ Each phase ends on something a person can try.
        - The bots went home whenever four Items waited to be identified, and looped on a Floor's landing at bedtime.
    - **Par Heroes are unchanged.** Phase 3 changed nothing in `packages/engine`, where par Heroes fight, and Normal difficulty leaves monsters as they are. `balance:par` on 2026-10-11, by Class: Rooms from Floor 3 kill 2–6% of the time, and Mini-bosses are won 38–68% of the time. By Path, late-Season Heroes beat the Dragon 9–56% of the time. design.md's ranges hold.
 
+   **The Companion, 2026-10-11,** on `claude/solo-companion`. The owner confirmed the proposal, and design.md → The solo game → The Companion has its rules.
+   - **Loyalty moves at both Oathstones and Duo Chests.** The proposal put sharing and taking at a Duo Chest, but a Duo Chest is picked in turns: the Share or Take choice is the Oathstone's. So the Player's oath moves Loyalty, and the Companion swears by it: Share at 5 or more. At a Duo Chest, letting the Companion take its turns earns 1, and taking every Item left costs 2.
+   - **Built on the Duo code.** A Companion is a Hero owned by a Player of its own, so `packages/shared` and the server's schema are unchanged. The screens are wired:
+     - a Companion card at the Tavern
+     - "Give to" on the Bag's gear
+     - the Duo strip in the Labyrinth
+     - "Take it all" at a Duo Chest
+   - **The bots hire Companions** with `PLAYTEST_COMPANION=1`. Twelve bots played 15 Days with no server errors. They hired, paid wages, fell and came back, dressed their Companions, shared and took at Duo Chests, swore at Oathstones, and left their Companions at the lair's door.
+     - **With a Companion, the bots level faster and die more often.** By Day 15 the average level was 12.8 against 11.4 alone, and the twelve died 30 times against 21.
+     - Nobody flees a Duo fight, and the bots fled 11 times against 55 alone. Whether a Duo with a Companion may retreat mid-fight is the owner's call *(v0)*.
+   - **One request for Codex:** the Duo Chest scene shows a 30-second pick timer. Offline, the Companion picks at once and the game clock stands still, so the timer always reads 30. The solo build should hide it.
+
    **Still to build in Phase 3:**
-   - **The Companion.** The owner confirms this proposal first *(v0 numbers)*:
-     - Hired at the Tavern each morning, for 20 gold × its level.
-     - A Hero of another Class, played by the AI at the Duo numbers. It levels with the Hero, and wears the gear the player gives it.
-     - A fallen Companion comes back the next morning. In Iron mode it is gone for good.
-     - Loyalty runs from 0 to 10 and starts at 5. At a Duo Chest, sharing earns 1 and taking costs 2. At 0 the Companion leaves.
-     - Built on the Duo code, with the Companion as a second Player's Hero inside the World. If its views change `packages/shared`, that needs the owner's approval.
    - **The Chapter's end:** an end screen, and Chapter 2 started with a legacy. Chapter 2 also needs new Bosses and re-themed deep Floors.
    - **Rivals:** Retired and fallen Heroes, back as ghosts deep in the Labyrinth.
 4. **Android.**
