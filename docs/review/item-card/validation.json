@@ -1,0 +1,22 @@
+{
+  "viewport": [
+    375,
+    812
+  ],
+  "locales": [
+    "ru",
+    "en"
+  ],
+  "fixtures": 11,
+  "sizes": [
+    62,
+    76,
+    84
+  ],
+  "comparisons": true,
+  "statExplanation": true,
+  "identifyReveal": true,
+  "chestSpin": true,
+  "reducedMotion": true,
+  "errors": []
+}
