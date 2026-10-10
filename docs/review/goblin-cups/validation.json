@@ -1,0 +1,14 @@
+{
+  "viewport": [
+    375,
+    812
+  ],
+  "locales": [
+    "ru",
+    "en"
+  ],
+  "scenarios": 4,
+  "reconnectSkipsShuffle": true,
+  "reducedMotion": true,
+  "errors": []
+}
