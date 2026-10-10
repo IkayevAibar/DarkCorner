@@ -38,10 +38,15 @@ function rewardText(def: StepDef): LocalizedText {
   return { en: parts.map((p) => p.en).join(', '), ru: parts.map((p) => p.ru).join(', ') };
 }
 
+/** Solo wording where a step speaks of other Players. */
+const SOLO_HOW: Partial<Record<string, StepDef['how']>> = {
+  delve: { en: 'The Daily Delve, at the Well in the City: six Rooms, once a day, and nothing to lose.', ru: 'Спуск дня у колодца в городе: шесть комнат, раз в день, и ничего не теряется.' },
+};
+
 function viewOf(hero: Hero, delves: number, claimed: Record<string, string>): StepsView {
   const facts = factsOf(hero, delves);
   const steps = STEPS.map((def) => ({
-    id: def.id, name: def.name, how: def.how, reward: rewardText(def), done: def.done(facts), claimed: Boolean(claimed[def.id]),
+    id: def.id, name: def.name, how: SOLO_HOW[def.id] ?? def.how, reward: rewardText(def), done: def.done(facts), claimed: Boolean(claimed[def.id]),
   }));
   return { steps, ready: steps.filter((s) => s.done && !s.claimed).length };
 }

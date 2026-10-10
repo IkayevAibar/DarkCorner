@@ -135,8 +135,9 @@ function HuntCard({ hunt }: { hunt: HuntView }) {
         {!hunt.done && <span className="text-xs text-muted">{t('hunt.ends', { time: formatDuration(t, new Date(hunt.endsAt).getTime() - now) })}</span>}
       </div>
       <Meter label={t('hunt.server')} value={hunt.total} max={hunt.target} kind="stamina" />
-      <span className="text-sm">{t('hunt.mine', { n: hunt.mine, min: hunt.min })}</span>
-      {hunt.top.length > 0 && (
+      {/* Solo, the bar is the Hero's own kills: no one else's count, and no one to lead. */}
+      {!__SOLO__ && <span className="text-sm">{t('hunt.mine', { n: hunt.mine, min: hunt.min })}</span>}
+      {!__SOLO__ && hunt.top.length > 0 && (
         <span className="text-sm text-muted">{t('hunt.top', { list: hunt.top.map((h) => `${h.hero} ${h.count}`).join(', ') })}</span>
       )}
       <span className="text-xs text-muted">{hunt.done ? t('hunt.done') : t('hunt.reward', { min: hunt.min })}</span>

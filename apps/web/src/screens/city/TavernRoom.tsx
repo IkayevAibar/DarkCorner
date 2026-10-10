@@ -25,12 +25,13 @@ export function TavernRoom({ view, hall, lodging, bounties, rankings, initialTab
     </header>
     <SeasonNotice season={view.season} />
     <nav className="tavern-tabs" aria-label={t('city.tavern')}>
-      {(['feed', 'rankings', 'hall'] as const).map(key => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)} data-tavern-tab={key}>
+      {/* Solo: Rankings of one Hero would only repeat its sheet. */}
+      {(__SOLO__ ? (['feed', 'hall'] as const) : (['feed', 'rankings', 'hall'] as const)).map(key => <button key={key} type="button" aria-pressed={tab === key} onClick={() => setTab(key)} data-tavern-tab={key}>
         <TavernMark kind={key === 'feed' ? 'notice' : key === 'rankings' ? 'crown' : 'stone'} /><span>{t(`tavern.${key}`)}</span>
       </button>)}
     </nav>
     {tab === 'feed' && <>
-      <Patrons online={view.online} />
+      {!__SOLO__ && <Patrons online={view.online} />}
       <div className="tavern-columns"><aside className="tavern-services">
         <details open={servicesOpen}><summary><TavernMark kind="stairs" />{t('lodging.title')}</summary>{lodging}</details>
         <details open={servicesOpen}><summary><TavernMark kind="hunt" />{t('bounty.title')}</summary>{bounties}</details>
@@ -60,7 +61,7 @@ function Feed({ entries }: { entries: TavernView['entries'] }) {
     {entries.length === 0 ? <div className="tavern-empty"><TavernMark kind="notice" /><p>{t('tavern.quiet')}</p></div> : <ol>
       {entries.map(e => <li key={e.id} data-feed-kind={e.kind} className={`feed-${e.kind} ${e.tier ? `feed-${e.tier}` : ''}`} style={e.tier ? { '--entry-ink': `var(--color-tier-${e.tier})` } as React.CSSProperties : undefined}>
         <TavernMark kind={feedSymbol(e.kind)} /><div>{e.kind === 'announcement' && <strong className="tavern-notice-label">{copy.notice}</strong>}<p>{text(e.text)}</p>
-          <time dateTime={e.at} title={new Date(e.at).toLocaleString(locale)}>{formatClock(locale, e.at)}</time></div>
+          <time dateTime={e.at} title={new Date(e.at).toLocaleString(locale)}>{formatClock(locale, e.at, t)}</time></div>
       </li>)}
     </ol>}
   </section>;

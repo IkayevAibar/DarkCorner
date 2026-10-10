@@ -15,8 +15,15 @@ import { gameNow } from '../gameClock.js';
 /** Today's Omen for a Season that is running, or null (a plain day, or no Season yet). */
 export function omenOf(season: Pick<Season, 'seed' | 'status'>, now = gameNow()): OmenDef | null {
   if (season.status !== 'ACTIVE' && season.status !== 'FINALE') return null;
-  const id = omenFor(season.seed, dayNumber(now));
+  const id = soloOmen(season.seed, dayNumber(now));
   return id ? OMEN_DEFS[id] : null;
+}
+
+/** Solo has no Market, so its Omen never comes: the day draws again, the same way every time. */
+function soloOmen(seed: string, day: number): ReturnType<typeof omenFor> {
+  let id = omenFor(seed, day);
+  for (let salt = 1; id === 'free-market'; salt++) id = omenFor(`${seed}:${salt}`, day);
+  return id;
 }
 
 export function omenView(season: Pick<Season, 'seed' | 'status'>, now = gameNow()): OmenView | null {

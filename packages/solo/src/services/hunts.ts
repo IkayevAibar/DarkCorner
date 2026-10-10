@@ -1,6 +1,6 @@
 import type { Hero, Hunt, Prisma, Season } from '@prisma/client';
 import type { HuntView } from '@dark/shared';
-import { HUNT_MIN, type MonsterKin, createRng, huntKin, huntTarget, huntTitle, weekOf } from '@dark/engine';
+import { HUNT_MIN, HUNT_PER_HERO, type MonsterKin, createRng, huntKin, huntTitle, weekOf } from '@dark/engine';
 import { deliver } from './bounties.js';
 import { feed } from './feed.js';
 import { type Outcome, t } from './fights.js';
@@ -10,6 +10,12 @@ import { type HeroWithItems, type Tx, dayNumber } from './ledger.js';
 // kin of monster, and every Hero who helped shares the reward when it is done.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Solo: one Hero's share of a week's Hunt (the server sizes it for three Heroes at
+ * least), and never fewer than the kills its reward needs.
+ */
+const soloTarget = (daysLeft: number): number => Math.max(HUNT_MIN, Math.round((HUNT_PER_HERO * Math.min(7, Math.max(1, daysLeft))) / 7));
 
 /** This week's Hunt, posted the first time anyone looks at the board or fights. */
 export async function huntOf(tx: Tx, season: Season, hero: Pick<Hero, 'playerId' | 'name'>, now: Date): Promise<Hunt> {
@@ -26,7 +32,7 @@ export async function huntOf(tx: Tx, season: Season, hero: Pick<Hero, 'playerId'
   const kin = huntKin(createRng(`${season.seed}:hunt:${week}`), depth);
   const hunt = await tx.hunt.upsert({
     where: { seasonId_week: { seasonId: season.id, week } },
-    create: { seasonId: season.id, week, kin, target: huntTarget(heroes.length, week + 7 - dayNumber(now)) },
+    create: { seasonId: season.id, week, kin, target: soloTarget(week + 7 - dayNumber(now)) },
     update: {},
   });
   if (hunt.total === 0 && now.getTime() - hunt.createdAt.getTime() < 5_000) {

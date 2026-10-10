@@ -11,7 +11,6 @@ import {
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { newSeed } from '../lib/seed.js';
-import { broadcast } from './broadcast.js';
 import { countDeeds, titleOf } from './deeds.js';
 import { feed } from './feed.js';
 import { combatOf, combatant, foeOf, t } from './fights.js';
@@ -19,7 +18,6 @@ import { fullHealth, portraitUrlOf } from './heroes.js';
 import { toItemView } from './items.js';
 import { type HeroWithItems, type Tx, dayNumber, earnGold, giveStack, lockHero } from './ledger.js';
 import { omenOf } from './omens.js';
-import { notify } from './push.js';
 import { currentSeason } from './seasons.js';
 import { finishTraining, requireNotTraining } from './training.js';
 import { gameNow } from '../gameClock.js';
@@ -295,12 +293,6 @@ export async function claimDelvePrize(player: Player): Promise<DelveResult> {
 
 // ─── Midnight ─────────────────────────────────────────────────────────────
 
-const PLACE_TEXT = [
-  { en: '🥇', ru: '🥇' },
-  { en: '🥈', ru: '🥈' },
-  { en: '🥉', ru: '🥉' },
-];
-
 /**
  * At midnight UTC (the Omen job): closes yesterday's Delve, and any older day that
  * still has one under way (a night the job missed).
@@ -312,8 +304,15 @@ export async function closeDelves(tx: Tx, season: Season, now: Date): Promise<vo
 }
 
 /**
- * Closes a day's Delve: Delves still under way stop and bank; the first three win
- * their Chests and hear about it, and the friends' channel is told. Safe to run twice.
+ * Solo: the Chest a Delve earns by the Rooms it won (kept as `place`: 1 Gold,
+ * 2 Silver, 3 Iron). The server gives them to the day's first three, which alone
+ * would be the one Hero, every day.
+ */
+const chestPlace = (rooms: number): number | null => (rooms >= DELVE_ROOMS ? 1 : rooms >= 4 ? 2 : rooms >= 2 ? 3 : null);
+
+/**
+ * Closes a day's Delve: Delves still under way stop and bank, and each earns its
+ * Chest by the Rooms it won. Safe to run twice.
  */
 async function closeDelveDay(tx: Tx, season: Season, day: number, now: Date): Promise<void> {
   const open = await tx.delve.findMany({ where: { seasonId: season.id, day, end: null } });
@@ -322,27 +321,8 @@ async function closeDelveDay(tx: Tx, season: Season, day: number, now: Date): Pr
     await finish(tx, run, hero, 'stopped', now, []);
   }
   if (await tx.delve.count({ where: { seasonId: season.id, day, place: { not: null } } }) > 0) return;
-  const podium = (await standings(tx, season.id, day)).filter((r) => r.score > 0).slice(0, DELVE_PRIZES.length);
-  if (podium.length === 0) return;
-  for (const [i, run] of podium.entries()) {
-    await tx.delve.update({ where: { id: run.id }, data: { place: i + 1 } });
-    const chest = DELVE_PRIZES[i]!;
-    const chestName = { gold: t('a Gold Chest', 'золотой сундук'), silver: t('a Silver Chest', 'серебряный сундук'), iron: t('an Iron Chest', 'железный сундук') }[chest];
-    await notify(tx, run.playerId, {
-      kind: 'delve',
-      title: t(`Place ${i + 1} in yesterday’s Delve`, `${i + 1}-е место во вчерашнем спуске`),
-      body: t(`${run.hero.name} scored ${run.score}. ${chestName.en[0]!.toUpperCase()}${chestName.en.slice(1)} waits for you at the Well.`,
-        `${run.hero.name}, очки: ${run.score}. У колодца вас ждёт ${chestName.ru}.`),
-      url: '/city/delve',
-      tag: `delve-${day}`,
-    });
+  for (const run of await standings(tx, season.id, day)) {
+    const place = chestPlace(run.rooms);
+    if (place !== null) await tx.delve.update({ where: { id: run.id }, data: { place } });
   }
-  await tx.feedEvent.create({
-    data: { seasonId: season.id, kind: 'delve-podium', data: { day, podium: podium.map((r) => ({ hero: r.hero.name, score: r.score })) } },
-  });
-  const lines = podium.map((r, i) => `${PLACE_TEXT[i]!.en} ${r.hero.name} ${r.score}`);
-  await broadcast(tx, {
-    en: `🕳️ Yesterday's Delve: ${lines.join(' · ')}`,
-    ru: `🕳️ Вчерашний спуск: ${lines.join(' · ')}`,
-  }, new Date(now.getTime() + 1000));
 }

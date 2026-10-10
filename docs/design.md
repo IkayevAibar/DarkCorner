@@ -46,8 +46,11 @@ The solo build plays by this document, except for these:
   - **Stamina doesn't come back while the Hero plays.** A Day's Stamina, with the two short rests, is a Day's exploring.
   - **Each morning** brings back cleared Rooms and Mini-bosses, and a new Omen, Bounties, Shop gear and Daily Delve.
   - **What the server counts in hours waits for a night.** Training ends overnight, and keeps the Hero in the City until then. A Blessing lasts until the Hero sleeps, and so does an open Town Portal. A Grave lasts two nights.
-- **Nothing reaches anyone else:** no push Notifications, no Broadcasts, and no other Players at the Market or in the Tavern.
-- **No Duos, push or Sign out:** the solo build leaves out the Duo card, the push settings and the Sign out button.
+- **Alone.** Nothing reaches anyone else: no push Notifications or Broadcasts, and no Duo card, push settings or Sign out.
+  - **No Market.** Nobody else lists or buys, and the Shops buy everything but Relics. The Free market Omen never comes.
+  - **The week's Hunt is the Hero's own,** sized for one Hero: reaching it pays a Gold Chest.
+  - **The Daily Delve pays by Rooms won:** all six for a Gold Chest, four or five for a Silver one, two or three for an Iron one, taken at the Well the next day.
+  - **The Tavern** keeps the Hall of Fame, and its Feed becomes the Chronicle, dated by Day. Rankings and who is online are gone.
 
 ## Seasons
 

@@ -1,7 +1,7 @@
 // Ported from apps/api/test/bounties.test.ts: the same scenario, on the solo backend.
 import type { SoloApp as FastifyInstance } from '../src/app.js';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { type Floor, MONSTERS, doorsOf, generateLabyrinth, huntTarget, weekOf } from '@dark/engine';
+import { type Floor, HUNT_MIN, HUNT_PER_HERO, MONSTERS, doorsOf, generateLabyrinth, weekOf } from '@dark/engine';
 import { bountiesViewSchema, labyrinthResultSchema } from '@dark/shared';
 import { buildApp } from '../src/app.js';
 import { prisma } from '../src/db.js';
@@ -107,11 +107,13 @@ describe('Tavern bounties', () => {
 });
 
 describe('the Hunt', () => {
-  it('posts a Hunt a week for the whole server and pays its hunters when the target falls', async () => {
+  it('posts a Hunt a week, sized for one Hero, and pays its hunter when the target falls', async () => {
     const posted = (await bounties()).hunt!;
-    // One Hero seen this week; a Hunt posted mid-week asks only its share for the days left.
+    // Solo, one Hero's share (the server counts three at least); posted mid-week, only for the days
+    // left, but never fewer than the kills the reward needs.
     const day = Math.floor(Date.now() / 86_400_000);
-    expect(posted).toMatchObject({ total: 0, mine: 0, min: 10, done: false, target: huntTarget(1, weekOf(day) + 7 - day) });
+    const daysLeft = weekOf(day) + 7 - day;
+    expect(posted).toMatchObject({ total: 0, mine: 0, min: 10, done: false, target: Math.max(HUNT_MIN, Math.round((HUNT_PER_HERO * Math.min(7, Math.max(1, daysLeft))) / 7)) });
     expect(await prisma.feedEvent.count({ where: { kind: 'hunt' } })).toBe(1);
 
     await act('/api/labyrinth/enter', { floor: 1 });

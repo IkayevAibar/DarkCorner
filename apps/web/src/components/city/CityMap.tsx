@@ -30,6 +30,9 @@ const BUILDINGS: Building[] = [
   { id: 'gate', to: '/labyrinth', name: 'city.gate', blurb: 'city.gate.blurb', x: .5, y: .795 },
 ];
 
+/** Solo has no Market: nobody else lists or buys, and the Shops buy everything. */
+const SHOWN = __SOLO__ ? BUILDINGS.filter((b) => b.id !== 'market') : BUILDINGS;
+
 const TORCHES = [[.373, .80], [.64, .80], [.43, .871], [.576, .871], [.565, .557], [.642, .553], [.57, .214]] as const;
 
 function BuildingIconView({ name }: { name: BuildingIcon }) {
@@ -63,7 +66,7 @@ export function CityMap({ season }: { season: SeasonView | null }) {
           <span className="city-fog city-fog-back" />
           {TORCHES.map(([x, y], i) => <span key={i} className="city-torch" style={{ left: `${x * 100}%`, top: `${y * 100}%`, animationDelay: `${-i * .37}s` }} />)}
         </div>
-        {BUILDINGS.map((b) => {
+        {SHOWN.map((b) => {
           const closed = b.id === 'gate' && gateClosed;
           const attention = b.id === 'tavern' && badge;
           const label = `${t(b.name)}${closed ? ` · ${t('city.gate.closed')}` : attention ? ` · ${badgeLabel}` : ''}`;
@@ -96,7 +99,7 @@ export function CityMap({ season }: { season: SeasonView | null }) {
           {gateClosed ? t('tavern.notStarted') : badgeLabel}
         </p>}
         <ul className="city-building-list">
-          {BUILDINGS.map((b) => {
+          {SHOWN.map((b) => {
             const closed = b.id === 'gate' && gateClosed;
             const content = <>
               <span className="city-card-title"><BuildingIconView name={b.id} />{t(b.name)}</span>

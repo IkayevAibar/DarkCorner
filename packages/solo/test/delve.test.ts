@@ -101,7 +101,7 @@ describe('the Daily Delve', () => {
     expect(fell.view.run!.score).toBe(fell.view.run!.end === 'fell' ? 50 : 100);
   });
 
-  it('closes the day at midnight: the first three win Chests, hear about it, and take them from the Well', async () => {
+  it('closes the day at midnight: each Delve earns its Chest by the Rooms it won, and takes it from the Well', async () => {
     const today = dayNumber(new Date());
     const players = await Promise.all(['Ann', 'Bo', 'Cy', 'Di'].map((n) => makeHero(n)));
     for (const [i, { hero }] of players.entries()) {
@@ -119,25 +119,29 @@ describe('the Daily Delve', () => {
 
     const rows = await prisma.delve.findMany({ orderBy: { place: 'asc' }, include: { hero: true } });
     const placed = rows.filter((r) => r.place !== null).map((r) => [r.hero.name, r.place]);
-    // Di's six Rooms, banked at midnight, top the board.
-    expect(placed).toEqual([['Di', 1], ['Cy', 2], ['Bo', 3]]);
+    // Solo, the Rooms won earn the Chest (1 Gold for six, 2 Silver for four or five, 3 Iron
+    // for two or three): alone, the day's first three would always be the one Hero.
+    // Di's six Rooms, banked at midnight, earn the Gold.
+    expect(placed).toEqual([['Di', 1], ['Bo', 2], ['Cy', 2], ['Ann', 3]]);
     expect(rows.find((r) => r.hero.name === 'Di')!.end).toBe('stopped');
-    // Solo sends no push notifications (services/push.ts).
+    // Solo sends no push notifications (services/push.ts), and posts no podium.
     expect(await prisma.job.count({ where: { kind: 'push' } })).toBe(0);
-    expect(await prisma.feedEvent.count({ where: { kind: 'delve-podium' } })).toBe(1);
+    expect(await prisma.feedEvent.count({ where: { kind: 'delve-podium' } })).toBe(0);
 
     // Twice is the same as once.
     await prisma.$transaction((tx) => closeDelves(tx, season, new Date()));
-    expect(await prisma.feedEvent.count({ where: { kind: 'delve-podium' } })).toBe(1);
+    expect(await prisma.delve.count({ where: { place: { not: null } } })).toBe(4);
 
     const di = players[3]!;
     const view = delveResultSchema.parse((await get(di.cookie, '/api/delve')).json()).view;
     expect(view.prize).toEqual({ day: today - 1, place: 1, chest: 'gold' });
-    expect(view.yesterday.map((r) => r.hero)).toEqual(['Di', 'Cy', 'Bo']);
+    // Yesterday's Chests, the best first (the solo screens leave this board out).
+    expect(view.yesterday.map((r) => r.hero)).toEqual(['Di', 'Bo', 'Cy', 'Ann']);
     const claimed = await act(di.cookie, '/api/delve/claim');
     expect(claimed.loot.map((i) => i.base)).toEqual(['chest-gold']);
     expect(claimed.view.prize).toBeNull();
     expect((await post(di.cookie, '/api/delve/claim')).json().error).toBe('no_prize');
-    expect((await post(players[0]!.cookie, '/api/delve/claim')).json().error).toBe('no_prize');
+    // Ann's three Rooms earned an Iron Chest.
+    expect((await act(players[0]!.cookie, '/api/delve/claim')).loot.map((i) => i.base)).toEqual(['chest-iron']);
   });
 });

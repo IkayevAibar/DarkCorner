@@ -51,8 +51,9 @@ export function Delve() {
         setData(await api.delve());
       })} />
       {error && <p className="m-0 text-sm text-tier-mythic">{error}</p>}
-      <Board title={t('delve.board')} rows={view.board} empty={t('delve.boardEmpty')} />
-      {view.yesterday.length > 0 && <Board title={t('delve.yesterday')} rows={view.yesterday} />}
+      {/* Solo, a board would only list the Hero's own Delve. */}
+      {!__SOLO__ && <Board title={t('delve.board')} rows={view.board} empty={t('delve.boardEmpty')} />}
+      {!__SOLO__ && view.yesterday.length > 0 && <Board title={t('delve.yesterday')} rows={view.yesterday} />}
       {playing?.fight && (
         <FightScene
           replay={playing.fight}
