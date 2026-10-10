@@ -255,7 +255,7 @@ function Gate({ view, busy, error, act, onDuo }: { view: LabyrinthView; busy: bo
         {duo && view.portal && <span className="px-1 text-xs text-muted">{t('err.duo_portal')}</span>}
       </section>
       {error && <p className="m-0 px-1 text-sm text-tier-mythic">{error}</p>}
-      {!duo && <DuoCard onChange={onDuo} />}
+      {!duo && !__SOLO__ && <DuoCard onChange={onDuo} />}
       {view.bestFloor === 0 && <FirstRunTips />}
       <FirstSteps />
 

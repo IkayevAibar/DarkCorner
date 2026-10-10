@@ -102,7 +102,7 @@ function AccountSheet() {
     <div className="grid gap-4">
       <div className="flex items-center gap-3">
         <span className="font-head text-xl font-extrabold">{player.name}</span>
-        <span className="chip">{t(`status.${player.status}`)}</span>
+        {!__SOLO__ && <span className="chip">{t(`status.${player.status}`)}</span>}
       </div>
       <div className="grid gap-2">
         <span className="sub-heading">{t('account.language')}</span>
@@ -135,23 +135,26 @@ function AccountSheet() {
           ))}
         </div>
       </div>
-      <PushSettings />
+      {/* Solo has no server: no push, no admin, no account to sign out of. */}
+      {!__SOLO__ && <PushSettings />}
       <InstallCard />
-      {player.isAdmin && (
+      {!__SOLO__ && player.isAdmin && (
         <NavLink to="/admin" className="btn text-center no-underline" onClick={closeSheet}>
           {t('account.admin')}
         </NavLink>
       )}
-      <button
-        type="button"
-        className="btn"
-        onClick={() => {
-          closeSheet();
-          void signOut();
-        }}
-      >
-        {t('signOut')}
-      </button>
+      {!__SOLO__ && (
+        <button
+          type="button"
+          className="btn"
+          onClick={() => {
+            closeSheet();
+            void signOut();
+          }}
+        >
+          {t('signOut')}
+        </button>
+      )}
       <details className="text-sm text-muted">
         <summary className="cursor-pointer font-head font-bold text-bone">{t('account.credits')}</summary>
         <div className="mt-2 grid gap-2">

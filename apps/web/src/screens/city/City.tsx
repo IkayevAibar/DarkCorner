@@ -49,7 +49,8 @@ export function City() {
         <button type="button" className="btn btn-small" onClick={() => void reload()}>{t('retry')}</button>
       </div> : !data && <p className="m-0 text-sm text-muted" role="status">{t('city.statusLoading')}</p>}
       {needsHero && <QuickStart onCreated={() => navigate('/labyrinth')} onCustom={() => navigate('/heroes?custom=1')} />}
-      {mine.data?.hero && <DuoCard />}
+      {/* Solo has nobody to walk with; the Companion (docs/plan-solo-offline.md) takes this place. */}
+      {mine.data?.hero && !__SOLO__ && <DuoCard />}
       {mine.data?.hero && <FirstSteps />}
       {offerInstall && (
         <InstallCard
