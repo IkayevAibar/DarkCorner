@@ -1,0 +1,18 @@
+{
+  "viewport": [
+    375,
+    812
+  ],
+  "locales": [
+    "ru",
+    "en"
+  ],
+  "desktop": [
+    1280,
+    900
+  ],
+  "minimumZoomTarget": 48,
+  "walkPrefixFrames": 4,
+  "reducedMotion": true,
+  "errors": []
+}
