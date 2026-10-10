@@ -629,10 +629,10 @@ async function session(bot: Bot) {
 const CLASSES: [ClassId, string, string][] = [
   ['fighter', 'human', 'human-fighter-1'], ['rogue', 'halfling', 'halfling-rogue-1'],
   ['wizard', 'elf', 'elf-wizard-1'], ['cleric', 'dwarf', 'dwarf-cleric-1'],
-  ['barbarian', 'dwarf', 'dwarf-fighter-1'], ['ranger', 'elf', 'elf-rogue-1'],
-  ['paladin', 'human', 'human-fighter-1'], ['warlock', 'elf', 'elf-wizard-1'],
-  ['monk', 'human', 'human-rogue-1'], ['druid', 'halfling', 'halfling-cleric-1'],
-  ['bard', 'halfling', 'halfling-rogue-1'], ['sorcerer', 'human', 'human-wizard-1'],
+  ['barbarian', 'dwarf', 'dwarf-barbarian-1'], ['ranger', 'elf', 'elf-ranger-1'],
+  ['paladin', 'human', 'human-paladin-1'], ['warlock', 'elf', 'elf-warlock-1'],
+  ['monk', 'human', 'human-monk-1'], ['druid', 'halfling', 'halfling-druid-1'],
+  ['bard', 'halfling', 'halfling-bard-1'], ['sorcerer', 'human', 'human-sorcerer-1'],
 ];
 const bots: Bot[] = [];
 for (const [cls, race, portrait] of CLASSES) {

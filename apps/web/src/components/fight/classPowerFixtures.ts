@@ -47,7 +47,7 @@ export function classPowerFixtures(base: FightReplay): Record<string, FightRepla
       hit(), { type: 'feature', feature: 'action-surge' }, hit('hero', 'weapon', 'm0', 20),
     ]],
   ];
-  const portraits = { paladin: 'human-fighter-2', warlock: 'human-wizard-1', monk: 'human-rogue-1', druid: 'human-cleric-1', bard: 'human-rogue-2', sorcerer: 'human-wizard-2', fighter: 'human-fighter-2' };
+  const portraits = { paladin: 'human-paladin-2', warlock: 'human-warlock-1', monk: 'human-monk-1', druid: 'human-druid-1', bard: 'human-bard-2', sorcerer: 'human-sorcerer-2', fighter: 'human-fighter-2' };
   const names = { paladin: 'Паладин', warlock: 'Колдун', monk: 'Монах', druid: 'Друид', bard: 'Бард', sorcerer: 'Чародей', fighter: 'Воин' };
   const result: Record<string, FightReplay> = {};
   for (const [calling, events] of examples) {

@@ -19,9 +19,8 @@ type TestClass = 'fighter' | 'wizard' | 'rogue' | 'cleric' | 'sorcerer' | 'bard'
 async function makeHero(name: string, cls: TestClass = 'fighter', talents: string[] = ['alert', 'tough']) {
   const cookie = await devLogin(app, name, true);
   await post(cookie, '/api/heroes/draft');
-  // A new Class wears a painted one's portraits until its own are in (a Sorcerer a Wizard's, a Bard a Rogue's).
   const portrait = {
-    fighter: 'human-fighter-1', wizard: 'elf-wizard-1', rogue: 'halfling-rogue-1', cleric: 'dwarf-cleric-1', sorcerer: 'human-wizard-1', bard: 'halfling-rogue-1',
+    fighter: 'human-fighter-1', wizard: 'elf-wizard-1', rogue: 'halfling-rogue-1', cleric: 'dwarf-cleric-1', sorcerer: 'human-sorcerer-1', bard: 'halfling-bard-1',
   }[cls];
   const race = { fighter: 'human', wizard: 'elf', rogue: 'halfling', cleric: 'dwarf', sorcerer: 'human', bard: 'halfling' }[cls];
   const created = await post(cookie, '/api/heroes', { name, race, class: cls, talents: race === 'human' ? talents : talents.slice(0, 1), portrait, banner: '#9e2a2a', set: 0 });

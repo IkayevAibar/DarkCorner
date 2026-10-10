@@ -1,4 +1,4 @@
-import type { ClassId } from './classes.js';
+import { CLASSES, type ClassId } from './classes.js';
 import type { RaceId } from './races.js';
 
 export interface PortraitDef {
@@ -11,10 +11,11 @@ export interface PortraitDef {
 }
 
 const RACES_PAINTED: RaceId[] = ['human', 'elf', 'dwarf', 'halfling'];
-const CLASSES_PAINTED: ClassId[] = ['fighter', 'rogue', 'wizard', 'cleric'];
+/** Every Class is painted (the last eight on 2026-10-10, Codex task 24). */
+const CLASSES_PAINTED: readonly ClassId[] = CLASSES;
 
 /**
- * Season 0's portraits: two painted for every Race and Class (sources under art/,
+ * The portraits: two painted for every Race and Class (sources under art/portraits,
  * 256 px WebP copies under apps/web/public), and a hooded silhouette for anyone.
  */
 export const PORTRAITS: PortraitDef[] = [
@@ -28,10 +29,11 @@ export function portraitById(id: string): PortraitDef | undefined {
   return PORTRAITS.find((p) => p.id === id);
 }
 
-/** Classes not painted yet borrow a painted Class's portraits for the same Race until they are. */
-const STAND_INS: Partial<Record<ClassId, ClassId>> = {
-  barbarian: 'fighter', ranger: 'rogue', paladin: 'fighter', warlock: 'wizard', monk: 'rogue', druid: 'cleric', bard: 'rogue', sorcerer: 'wizard',
-};
+/**
+ * A Class not painted yet borrows a painted Class's portraits for the same Race until it is
+ * (say `bard: 'rogue'`). None does now; Heroes made while theirs were borrowed keep the portrait they chose.
+ */
+const STAND_INS: Partial<Record<ClassId, ClassId>> = {};
 
 /** The Class whose portraits a Class wears: its own once they're painted, a stand-in's until then. */
 export const portraitClass = (cls: ClassId): ClassId =>

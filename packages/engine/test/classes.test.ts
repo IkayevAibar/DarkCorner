@@ -170,9 +170,9 @@ describe('the new Paths', () => {
 });
 
 describe('portraits', () => {
-  it('lends Barbarians the Fighter’s and Rangers the Rogue’s until their own are painted', () => {
-    expect(portraitsFor('dwarf', 'barbarian').map((p) => p.id)).toEqual(['dwarf-fighter-1', 'dwarf-fighter-2', 'hooded']);
-    expect(portraitsFor('elf', 'ranger').map((p) => p.id)).toEqual(['elf-rogue-1', 'elf-rogue-2', 'hooded']);
+  it('offers every Class its own, now that all are painted', () => {
+    expect(portraitsFor('dwarf', 'barbarian').map((p) => p.id)).toEqual(['dwarf-barbarian-1', 'dwarf-barbarian-2', 'hooded']);
+    expect(portraitsFor('elf', 'ranger').map((p) => p.id)).toEqual(['elf-ranger-1', 'elf-ranger-2', 'hooded']);
     expect(portraitsFor('elf', 'wizard').map((p) => p.id)).toEqual(['elf-wizard-1', 'elf-wizard-2', 'hooded']);
   });
 });
