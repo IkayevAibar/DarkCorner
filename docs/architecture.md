@@ -118,7 +118,7 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
   - Alone: the Hunt sized for one Hero, the Daily Delve's Chests by Rooms won, and no Free market Omen.
   - The Companion: `services/companion.ts`.
     - A Companion is a Hero owned by a Player of its own, `COMPANION_PLAYER`. That Player is never online, approved or ranked, so the Records, the Hunt and the Vaults pass it by. The Duo code walks, fights and shares with it as with a friend's Hero.
-    - Where a Companion differs, the Duo services ask `isCompanion`. It has no Stamina, loot, events or Deeds of its own; the AI plays all its turns; it goes through a Town Portal; and it waits at the door of the Dragon's lair.
+    - Where a Companion differs, the Duo services ask `isCompanion`. It has no Stamina, loot, events or Deeds of its own; the AI plays all its turns; it runs with its Hero (`follows` on the engine's `AllyInput`); it goes through a Town Portal; and it waits at the door of the Dragon's lair.
     - `tendCompanion` runs in `loadActors` before every action: the morning's wage, its level kept to the Hero's, a fallen Companion back, and back beside its Hero.
     - Its wage, Loyalty and fall live in the World's `Setting` table under `companion`, so the server's schema stays as it is.
   - The routes the server lacks: `routes/solo.ts` (the Save's settings), `routes/companion.ts` (`/api/companion…`, and `POST /api/labyrinth/chest/all` to take a whole Duo Chest), and `POST /api/labyrinth/sleep`.

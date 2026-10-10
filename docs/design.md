@@ -57,6 +57,7 @@ The solo build plays by this document, except for these:
 - **The Companion** *(v0)*: a Hero of another Class, hired at the Tavern and played by the AI as the Hero's Partner. The Duo rules hold: it walks beside the Hero, opens Twin doors with it, meets a Duo's monsters, swears at Oathstones and shares Duo Chests, and each takes 65% of a fight's XP and gold.
   - **Hiring.** The Tavern offers three each Day, at the Hero's level. The wage is 20 gold × its level each morning, the first paid on hiring. On a morning the Hero can't pay, it leaves.
   - **One of the pair.** It is always its Hero's level, with its Path and growth chosen for it. The AI plays it in every fight. It finds no loot, events or hoards of its own, pays no Stamina, and keeps its share of the gold. It rests whenever the Hero rests.
+  - **Out of a fight together** *(the owner, 2026-10-11)*. Unlike a friend's Hero, a Companion follows its Hero out of a fight. The Hero may break away mid-fight as a Hero alone would: by hand, or on Auto when its Stance would run. The Companion gets out on the same Escape roll, hauled along if it is down. It never runs on its own.
   - **Wherever the Hero goes,** through a Town Portal and back through it too, but not into the Dragon's lair: there it waits at the door until the Hero comes back out or goes home.
   - **Gear.** It comes in its Class's Starter kit and wears what the Player gives it from the Bag (or Storage, in the City). It gives anything back when asked.
   - **Loyalty**, from 0 to 10, starts at 5.

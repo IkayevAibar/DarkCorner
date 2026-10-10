@@ -226,8 +226,8 @@ Each phase ends on something a person can try.
      - the Duo strip in the Labyrinth
      - "Take it all" at a Duo Chest
    - **The bots hire Companions** with `PLAYTEST_COMPANION=1`. Twelve bots played 15 Days with no server errors. They hired, paid wages, fell and came back, dressed their Companions, shared and took at Duo Chests, swore at Oathstones, and left their Companions at the lair's door.
-     - **With a Companion, the bots level faster and die more often.** By Day 15 the average level was 12.8 against 11.4 alone, and the twelve died 30 times against 21.
-     - Nobody flees a Duo fight, and the bots fled 11 times against 55 alone. Whether a Duo with a Companion may retreat mid-fight is the owner's call *(v0)*.
+     - **A Duo with a Companion may retreat mid-fight** (the owner, 2026-10-11). In the first run nobody could flee a Duo fight: by Day 15 the bots fled 11 times against 55 alone, and died 30 times against 21.
+     - With the retreat, the bots fled 22 times and died 19 times. They reached level 12.5 on average, against 11.4 alone.
    - **One request for Codex:** the Duo Chest scene shows a 30-second pick timer. Offline, the Companion picks at once and the game clock stands still, so the timer always reads 30. The solo build should hide it.
 
    **Still to build in Phase 3:**

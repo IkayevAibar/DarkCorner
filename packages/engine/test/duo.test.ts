@@ -43,6 +43,24 @@ describe('Duo fights', () => {
     }
   });
 
+  it('let a Hero whose partner follows it (a solo Companion) break away, and take the partner along', () => {
+    let escaped = 0;
+    for (let i = 0; i < 60; i++) {
+      const input = duoFight(starter('wizard', 3), starter('wizard', 3), 4, `wary-${i}`, 'wary');
+      const r = simulateFight(createRng(`wary-${i}`), { ...input, ally: { ...input.ally!, follows: true } });
+      const rolls = r.events.filter((e): e is Extract<FightEvent, { type: 'escape' }> => e.type === 'escape');
+      // Only the Hero rolls to run; its partner gets out on that same roll, never on its own.
+      expect(rolls.filter((e) => !e.actor).length).toBeGreaterThanOrEqual(rolls.filter((e) => e.actor === 'ally').length);
+      if (r.ally!.outcome === 'escaped') expect(r.outcome).toBe('escaped');
+      if (r.outcome === 'escaped') {
+        escaped++;
+        expect(r.ally!.outcome === 'escaped' || r.ally!.outcome === 'dead').toBe(true);
+        if (r.ally!.outcome === 'escaped') expect(r.ally!.hp).toBeGreaterThan(0);
+      }
+    }
+    expect(escaped).toBeGreaterThan(0);
+  });
+
   it('let a Cleric mend its partner', () => {
     let mended = 0;
     for (let i = 0; i < 200 && mended === 0; i++) {

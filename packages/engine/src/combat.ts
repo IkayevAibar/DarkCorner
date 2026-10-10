@@ -389,6 +389,12 @@ export interface AllyInput {
   runPowers: { deathless: boolean; lucky: boolean };
   stance?: StanceId;
   gold?: number;
+  /**
+   * It goes where its Hero goes (the solo game's Companion): the Hero may break away as a
+   * Hero alone would, and its partner comes out with it, hauled along if it is down. It
+   * never runs on its own.
+   */
+  follows?: boolean;
 }
 
 export interface FightInput {
@@ -412,7 +418,8 @@ export interface FightInput {
   spare?: boolean;
   /**
    * A Duo partner fighting alongside (docs/design.md → Duos). Monsters pick either Hero;
-   * breath, blasts, wails and fear reach both; nobody runs alone, and nobody is spared.
+   * breath, blasts, wails and fear reach both; nobody runs alone (a partner that `follows`
+   * runs with its Hero), and nobody is spared.
    */
   ally?: AllyInput | null;
 }
@@ -584,6 +591,9 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
   const fled = new Set<string>();
   /** A Duo fights side by side: no one runs alone, and nobody is spared a fall. */
   const duo = Boolean(input.ally);
+  /** A partner that follows its Hero lets the Hero run, and runs with it (a solo Companion). */
+  const follows = Boolean(input.ally?.follows);
+  const mayRun = (s: { key: HeroKey }): boolean => !duo || (follows && s.key === 'hero');
   /** The round being fought, for features that grow as a fight drags on. */
   let currentRound = 0;
 
@@ -1164,7 +1174,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
     if (cure.length > 0) actions.push('cure');
     if (s.secondWind && stage === 'start') actions.push('second-wind');
     if (potions > 0 && stage !== 'after-potion') actions.push('potion');
-    if (!duo) actions.push('escape');
+    if (mayRun(s)) actions.push('escape');
     actions.push('dodge');
     if (partner && partner.out === null && partner.c.hp > 0) actions.push('help', 'guard');
     if (partner && partner.out === null && partner.down) actions.push('revive');
@@ -1256,7 +1266,7 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
       if (patient && s.uses.heals > 0) return { ...action, kind: 'cure', target: patient.key };
     }
     if (stage !== 'after-potion' && c.hp < c.maxHp * 0.3 && s.potions > 0 && s.potionsUsed < POTIONS_PER_FIGHT) return { ...action, kind: 'potion' };
-    if (!duo && s.stance.escapeBelow > 0 && c.hp < c.maxHp * s.stance.escapeBelow) return { ...action, kind: 'escape' };
+    if (mayRun(s) && s.stance.escapeBelow > 0 && c.hp < c.maxHp * s.stance.escapeBelow) return { ...action, kind: 'escape' };
     const burst = (c.class === 'wizard' || c.class === 'sorcerer') && s.uses.spells > 0 && alive().length >= (loneBurst(s) ? 1 : 2);
     const twins = twinsPlan(s, burst);
     if (twins) return { ...action, ...twins };
@@ -1380,6 +1390,16 @@ function runFight(rng: Rng, input: FightInput, control: FightControl | null): Fi
           const roll = check(rng, escapeCheck(c, alive().length, input.escapeBonus ?? 0));
           events.push({ type: 'escape', natural: roll.roll.natural, total: roll.total, dc: roll.dc, success: roll.success, ...tag(s) });
           s.escaped = roll.success;
+          // A partner that follows gets out on the same roll, hauled along if it is down.
+          for (const x of follows && roll.success ? sides : []) {
+            if (x === s || x.out !== null) continue;
+            if (x.down) {
+              x.down = null;
+              x.c.hp = Math.max(1, x.c.hp);
+            }
+            x.escaped = true;
+            events.push({ type: 'escape', natural: roll.roll.natural, total: roll.total, dc: roll.dc, success: true, ...tag(x) });
+          }
           return;
         }
         case 'burst': {

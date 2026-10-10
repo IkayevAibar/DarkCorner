@@ -413,6 +413,8 @@ export function duoInput(hero: HeroWithItems, partner: HeroWithItems, monsters: 
     ally: {
       hero: combatOf(partner, hero), uses: { spells: partner.spellUses, heals: partner.healUses }, potions,
       runPowers: { deathless: partner.deathless, lucky: partner.lucky }, stance: partner.stance as StanceId, gold: partner.carriedGold,
+      // A Companion follows its Hero out of a fight (companion.ts): the Duo may retreat mid-fight.
+      follows: isCompanion(partner),
     },
   };
 }

@@ -19,6 +19,7 @@ export const soloEn: Lines = {
   'lodging.about': 'A bed upstairs: sleep, and the next Day begins with full Stamina and both short rests.',
   'lodging.take': 'Sleep',
   'lodging.rising': 'A night costs nothing. A Camp in the Labyrinth is a bed too, and at a pinch so are its bare stones.',
+  'duo.fightNote': '{name} fights at your side in its own Stance. You may break away as you would alone, and {name} comes out with you.',
   'lodging.done': 'A new Day: Stamina is full again.',
   // Days: what comes back overnight.
   'lab.graveInfo': '{n} Items, {g} gold · gone {time}',
@@ -101,6 +102,7 @@ export const soloRu: Lines = {
   'lodging.about': 'Кровать наверху: выспитесь, и новый день начнётся с полной выносливостью и обоими короткими отдыхами.',
   'lodging.take': 'Лечь спать',
   'lodging.rising': 'Ночь ничего не стоит. Лагерь в лабиринте — тоже постель, а в крайнем случае и голые камни.',
+  'duo.fightNote': '{name} сражается рядом в своей стойке. Вы можете вырваться из боя, как в одиночку, и {name} уйдёт вместе с вами.',
   'lodging.done': 'Новый день: выносливость снова полная.',
   'lab.graveInfo': 'Предметов: {n}, золота: {g} · исчезнет {time}',
   'route.back.fight': 'Зачищено · монстры вернутся {time}',

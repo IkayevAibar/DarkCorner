@@ -152,6 +152,23 @@ describe('the Companion', () => {
     expect(row!.items.filter((i) => i.place === 'BAG').map((i) => i.base)).toEqual(['potion']);
   });
 
+  it('breaks away from a fight with its Hero: the Duo retreats together', async () => {
+    const { backend } = await withCompanion();
+    await act(backend, '/api/labyrinth/enter', { floor: 1 });
+    await arrange(backend, () => prisma.hero.updateMany({ data: { maxHp: 999, hp: 999, dex: 20 } }));
+    await act(backend, '/api/labyrinth/move', { to: fightNext });
+    let r = await act(backend, '/api/labyrinth/face', { action: 'fight', auto: false });
+    expect(r.view.fight!.turn.actions).toContain('escape');
+    // The Hero rolls to get away until it does; the Companion comes out on that roll.
+    for (let i = 0; i < 40 && r.view.fight; i++) r = await act(backend, '/api/labyrinth/fight', { action: { kind: 'escape' } });
+    expect(r.fight!.outcome).toBe('escaped');
+    expect(said(r)).toContain('You break away');
+    const { hero, companion: row } = await rows(backend);
+    expect(hero.room).toBe(floor1.landing);
+    expect(row).toMatchObject({ room: floor1.landing, partnerId: hero.id });
+    expect(r.view.duo).not.toBeNull();
+  });
+
   it('swears at an Oathstone by its loyalty, which the Player’s own oath moves', async () => {
     const { backend } = await withCompanion();
     await act(backend, '/api/labyrinth/enter', { floor: 1 });
