@@ -1,0 +1,44 @@
+.forge-strike { overflow: hidden; max-width: 520px; width: 100%; justify-self: center; box-sizing: border-box; }
+.forge-stage { position: relative; height: 275px; isolation: isolate; overflow: hidden; background: var(--noise), radial-gradient(ellipse at 50% 80%, #4a2612, #16120e 65%); }
+.forge-furnace { position: absolute; inset: auto 10% 8px; height: 70px; border-radius: 50%; background: #b65b2030; filter: blur(14px); }
+.forge-anvil { position: absolute; width: 96%; height: 180px; left: 2%; bottom: -15px; filter: drop-shadow(0 6px 3px #000); }
+.forge-item, .forge-shards { position: absolute; width: 105px; height: 105px; left: calc(50% - 52.5px); top: 85px; color: var(--color-bone); filter: drop-shadow(0 4px 3px #000); }
+.forge-item img, .forge-item svg, .forge-shards img, .forge-shards svg { width: 100%; height: 100%; object-fit: contain; }
+.forge-hammer { position: absolute; width: 145px; height: 170px; left: calc(50% - 64px); top: 65px; transform-origin: 75% 90%; animation: forge-hammer 1.25s cubic-bezier(.4, 0, .8, 1) both; }
+.forge-impact { position: absolute; left: 50%; top: 145px; }
+.forge-ring { position: absolute; width: 120px; height: 120px; left: -60px; top: -60px; border: 3px solid var(--color-gold); border-radius: 50%; opacity: 0; box-shadow: 0 0 18px #e0b86a70, inset 0 0 18px #e0b86a30; }
+.forge-sparks i { position: absolute; width: 3px; height: 8px; background: #ffdc8c; opacity: 0; box-shadow: 0 0 7px #ff9c32; }
+.forge-rank { position: absolute; top: 213px; left: 0; right: 0; text-align: center; font: 800 30px var(--font-head); color: var(--color-gold); text-shadow: 0 2px 4px #000; }
+.forge-result { padding: 13px 16px; display: grid; gap: 4px; border-top: 1px solid var(--color-brass-dim); }
+.forge-result strong { font: 800 21px/1.15 var(--font-head); color: var(--color-gold); }
+.forge-item-name, .forge-d100 { color: var(--color-muted); font-size: 14px; }
+.forge-d100 { font-variant-numeric: tabular-nums; }
+.forge-cracks { position: absolute; width: 86px; height: 86px; top: 92px; left: calc(50% - 43px); opacity: 0; }
+.forge-shards { display: none; }
+.forge-shards span { position: absolute; inset: 0; }
+.forge-scroll { position: absolute; top: 62px; left: calc(50% - 102px); width: 64px; height: 90px; transform: rotate(-18deg); opacity: 0; }
+.forge-scroll svg { width: 100%; height: 100%; }
+.forge-scroll i { position: absolute; left: 4px; right: 4px; bottom: 0; height: 42px; background: radial-gradient(ellipse at 50% 90%, #fff1a2, #d66722 35%, transparent 72%); filter: drop-shadow(0 0 8px #ff9519); }
+.forge-strike[data-landed=true] .forge-sparks i { animation: forge-spark .85s var(--spark-delay) ease-out both; }
+.forge-strike[data-landed=true][data-outcome=success] .forge-ring { animation: forge-ring 1.2s ease-out both; }
+.forge-strike[data-crown=true] .forge-stage { background: var(--noise), radial-gradient(ellipse at 50% 60%, #6c4b15, #16120e 75%); }
+.forge-strike[data-crown=true] .forge-ring { border-width: 5px; }
+.forge-strike[data-landed=true] .forge-ring.second { animation-delay: .25s; }
+.forge-strike[data-landed=true] .forge-ring.third { animation-delay: .5s; }
+.forge-strike[data-landed=true][data-outcome=failed] .forge-item { animation: forge-dull .55s both; }
+.forge-strike[data-landed=true] .forge-cracks { opacity: 1; }
+.forge-strike[data-landed=true][data-outcome=dropped] .forge-item { animation: forge-dull .55s both; }
+.forge-strike[data-landed=true] .forge-scroll { animation: forge-scroll 1.45s both; }
+.forge-strike[data-landed=true][data-outcome=destroyed] .forge-item { visibility: hidden; }
+.forge-strike[data-landed=true][data-outcome=destroyed] .forge-shards { display: block; }
+.forge-strike[data-landed=true] .forge-shards span { animation: forge-shatter 1.2s cubic-bezier(.3, 0, .7, 1) both; }
+.forge-strike[data-outcome=destroyed] .forge-result strong, .forge-strike[data-outcome=destroyed] .forge-rank { color: #d98a74; }
+.forge-strike[data-outcome=failed] .forge-result strong { color: var(--color-bone); }
+.forge-strike[data-finished=true] .forge-stage { display: none; }
+@keyframes forge-hammer { 0% { transform: rotate(35deg) translateY(-24px); } 45% { transform: rotate(55deg) translateY(-25px); } 61% { transform: rotate(5deg) translateY(36px); } 75% { opacity: 1; transform: rotate(18deg) translateY(3px); } 100% { opacity: 0; transform: rotate(45deg) translateY(-36px); } }
+@keyframes forge-ring { 0% { opacity: 1; transform: scale(.4); } 100% { opacity: 0; transform: scale(2.3); } }
+@keyframes forge-spark { 0% { opacity: 1; transform: translate(0, 0); } 80% { opacity: .8; } 100% { opacity: 0; transform: translate(var(--spark-x), var(--spark-y)) rotate(95deg); } }
+@keyframes forge-shatter { to { transform: translate(var(--shard-x), var(--shard-y)) rotate(var(--shard-turn)); opacity: 0; } }
+@keyframes forge-dull { 20% { transform: translateY(4px) rotate(4deg); filter: brightness(.5); } to { filter: brightness(.65); } }
+@keyframes forge-scroll { 0%, 20% { opacity: 1; } 50% { opacity: 1; filter: brightness(1.4); transform: rotate(-12deg) translateY(-12px); } 100% { opacity: 0; transform: rotate(-8deg) translateY(-30px); filter: brightness(.2); } }
+@media (prefers-reduced-motion: reduce) { .forge-strike *, .forge-strike *::after { animation: none !important; transition: none !important; } }
