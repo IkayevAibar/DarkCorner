@@ -13,6 +13,8 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- What shows behind the system bars: the game's dark, not the light theme's white. -->
+        <item name="android:windowBackground">@color/ic_launcher_background</item>
     </style>
 
 
