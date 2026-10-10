@@ -172,6 +172,23 @@ The checklist for each day is in [launch.md](launch.md).
 | Before the Finale (≈ early December) | Rehearse the Finale, Wipe and Hall of Fame on a copy of the database |
 | During the Season | Collect notes for Season 1: PvP Encounters, Duos, Barbarian and Ranger |
 
+**Rehearsed on 2026-10-10**, the day before Season 0's gate (day 14), on the local dev database rather than a copy of the live one:
+- `apps/api/test/finale.test.ts` plays the end of a Season through the API:
+  - the sealed lair, with the gate and the Wipe each run by its own job
+  - a Champion from a fight played by hand
+  - a full podium, where a fourth win pays only the hoard
+  - a Duo turned away at the lair
+  - the Dragon's first weakening
+  - an empty next Season, shut until an admin starts it
+- A walk through the screens on the running server showed working:
+  - the sealed-gate message and the Dragon's card
+  - the Victory report with its Deeds
+  - the Tavern's Finale countdown and podium
+  - the Wipe running on the server's own scheduler
+  - the Hall of Fame chronicle, and Season 1's Quick start
+- Nothing was broken.
+- Left open: Season 1 would bring Season 0's Dragon back, since a new Boss for each Season isn't built yet.
+
 ## If we fall behind
 
 Cut in this order, and ship whatever was cut as an update during the Season:

@@ -959,24 +959,24 @@ A board leaves out anyone with nothing to show on it yet. The Rankings end with 
 
 ## Scope
 
-### Season 0 (target 2026-11-06)
+### Season 0 (live since 2026-09-27; first planned for 2026-11-06)
 
-**In:**
-- **Heroes:** creating a Hero (4 Races, 4 Classes, rolled ability scores, origin Talents, portraits) and Retiring.
-- **City:** Tavern, Shops, Forge, Market, Temple and the Labyrinth gate.
-- **Labyrinth:** full size, with Stamina, Clues, the Map, Waypoints, Town Portals and Camps.
-- **Fights:** played back with dice, Death saves and Graves.
+**In** (as built, 2026-10-10):
+- **Heroes:** creating a Hero (4 Races, 12 Classes with two Paths each, rolled ability scores, origin Talents, portraits), Level up by hand, growth choices, Deeds and Titles, and Retiring.
+- **City:** the Tavern (Lodging, Bounties, the week's Hunt, Rankings, the Hall of Fame), Shops, Forge, Market, Temple, Academy, Training grounds, the Well (the Daily Delve) and the Labyrinth gate.
+- **Labyrinth:** full size, with Stamina, Clues, the Map and its routes, Waypoints, Town Portals, Camps and short rests.
+- **Fights:** turn by turn or on Auto, with dice, Stances, Death saves and Graves.
 - **Loot:**
   - Tiers, Quality, Bonus stats, Radiant, Unidentified Items and Relics
   - Chests and Keys
   - Upgrade, Reforge, Salvage and crafting
   - the Bad-luck meter
-- **Rooms:** the Season 0 event rooms, Vaults and their announcements, Mini-bosses, and the Dragon.
-- **The Season itself:** the timeline, the Wipe and the Hall of Fame.
-- **Social:** the Feed, Broadcasts and Duos.
+- **Rooms:** the event rooms, hidden rooms, Vaults and their announcements, Mini-bosses, and the Dragon.
+- **The Season itself:** the timeline, Omens, the Finale, the Wipe and the Hall of Fame.
+- **Social:** the Feed, Broadcasts, Notifications, and Duos with their own Rooms (Twin doors and the Twin Wardens, Oathstones).
 - **Everything else:** the admin page, Russian and English, sound effects, and the hub card.
 
-**Later Seasons:** PvP Encounters, Duo-only Rooms and the Boss for Duos, Auctions, Academy, Training grounds, Houses, Arena, Guilds, tavern games, the shell game, Map copies, a Discord bot, music, and more Classes and Races.
+**Later Seasons:** a new Boss each Season (the deep Floors re-themed to match), the Boss for Duos, PvP Encounters, manual fights inside events and the Daily Delve, Auctions, Houses, Arena, Guilds, more tavern games, Map copies, a Discord bot, music, and more Races.
 
 **If we fall behind (proposal, to settle in the build plan):** cut in this order:
 1. the lockpicking minigame
