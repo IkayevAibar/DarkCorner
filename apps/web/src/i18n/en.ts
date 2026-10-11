@@ -97,7 +97,8 @@ export const en = {
   'push.failed': 'Something went wrong. Try again in a moment.',
   'credits.icons': 'Icons by Lorc, Delapouite, Willdabeast and DarkZaitzev from game-icons.net, CC BY 3.0.',
   'credits.sounds': 'Sound effects by Kenney (kenney.nl), CC0. Thank you!',
-  'credits.srdTitle': 'D&D rules',
+  'credits.fonts': 'Fonts: Alegreya and Alegreya SC by Juan Pablo del Peral (Huerta Tipográfica), SIL Open Font License 1.1.',
+  'credits.srdTitle': 'Fifth Edition rules',
 
   'steps.title': 'First steps',
   'steps.progress': '{n} of {of} done',

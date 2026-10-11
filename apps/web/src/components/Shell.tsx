@@ -162,6 +162,7 @@ function AccountSheet() {
         <div className="mt-2 grid gap-2">
           <p className="m-0">{t('credits.icons')}</p>
           <p className="m-0">{t('credits.sounds')}</p>
+          <p className="m-0">{t('credits.fonts')}</p>
           <p className="m-0"><strong className="text-bone">{t('credits.srdTitle')}.</strong> {SRD_ATTRIBUTION}</p>
         </div>
       </details>

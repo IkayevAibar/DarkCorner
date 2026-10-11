@@ -98,7 +98,8 @@ export const ru: Record<MessageKey, string> = {
   'push.failed': 'Что-то пошло не так. Попробуйте через минуту.',
   'credits.icons': 'Иконки: Lorc, Delapouite, Willdabeast и DarkZaitzev с game-icons.net, CC BY 3.0.',
   'credits.sounds': 'Звуки: Kenney (kenney.nl), CC0. Спасибо!',
-  'credits.srdTitle': 'Правила D&D',
+  'credits.fonts': 'Шрифты: Alegreya и Alegreya SC, автор Хуан Пабло дель Пераль (Huerta Tipográfica), SIL Open Font License 1.1.',
+  'credits.srdTitle': 'Правила пятой редакции',
 
   'steps.title': 'Первые шаги',
   'steps.progress': 'Готово: {n} из {of}',
