@@ -1,5 +1,21 @@
 apply plugin: 'com.android.application'
 
+// The app's version is apps/android/package.json's: "1.2.3" is versionName 1.2.3 and
+// versionCode 1002003. Google Play takes each upload only with a higher versionCode.
+def appVersion = new groovy.json.JsonSlurper().parse(file('../../package.json')).version as String
+def versionParts = appVersion.tokenize('.')
+if (versionParts.size() != 3 || !versionParts.every { it.isInteger() }) {
+    throw new GradleException("apps/android/package.json: the version must be major.minor.patch, not ${appVersion}")
+}
+def (versionMajor, versionMinor, versionPatch) = versionParts.collect { it as int }
+
+// The upload key is the owner's and stays out of the repo: `npm run key -w @dark/android`
+// makes it in ~/.dark-corner, or DARK_KEYSTORE_PROPERTIES names another properties file.
+// Without it, release builds come out unsigned and Google Play refuses them.
+def keyFile = file(System.getenv('DARK_KEYSTORE_PROPERTIES') ?: "${System.getProperty('user.home')}/.dark-corner/keystore.properties")
+def key = new Properties()
+if (keyFile.exists()) keyFile.withInputStream { key.load(it) }
+
 android {
     namespace = "world.ugolok.darkcorner"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +23,8 @@ android {
         applicationId "world.ugolok.darkcorner"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode versionMajor * 1000000 + versionMinor * 1000 + versionPatch
+        versionName appVersion
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +32,20 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (keyFile.exists()) {
+            release {
+                def store = new File(key.getProperty('storeFile'))
+                storeFile store.absolute ? store : new File(keyFile.parentFile, key.getProperty('storeFile'))
+                storePassword key.getProperty('storePassword')
+                keyAlias key.getProperty('keyAlias')
+                keyPassword key.getProperty('keyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keyFile.exists()) signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

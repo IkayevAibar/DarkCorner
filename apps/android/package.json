@@ -1,11 +1,13 @@
 {
   "name": "@dark/android",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "sync": "npm run build:solo -w @dark/web && cap sync android",
     "apk": "npm run sync && node scripts/gradle.mjs assembleDebug",
+    "aab": "node scripts/release.mjs",
+    "key": "node scripts/key.mjs",
     "open": "node scripts/studio.mjs",
     "icons": "node scripts/assets.mjs"
   },

@@ -11,6 +11,9 @@ coverage/
 
 # env and secrets
 .env
+*.jks
+*.keystore
+keystore.properties
 .env.*
 !.env.example
 !.env.*.example
