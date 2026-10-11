@@ -1,17 +1,19 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import { describe, expect, it } from 'vitest';
 import { type Backend, type SaveFileView, type SaveSummary, createBackend } from '../src/backend.js';
 import { memoryStorage } from '../src/storage.js';
 import { WORLD_VERSION, parseWorld, serializeWorld } from '../src/world.js';
 
-// Saves outlive builds (docs/architecture.md → The solo game). test/saves keeps Saves
-// from each release, written by the bots (PLAYTEST_SAVES); every later build must load
-// each one and play on. parseWorld fits an older Save to the schema where the schema
-// gives defaults; a change it can't fit needs a migration there.
+// Saves outlive builds (docs/architecture.md → The solo build). test/saves keeps Saves
+// from each release, written by the bots (PLAYTEST_SAVES) and gzipped; every later
+// build must load each one and play on. parseWorld fits an older Save to the schema
+// where the schema gives defaults; a change it can't fit needs a migration there.
 
 const DIR = path.join(import.meta.dirname, 'saves');
-const RELEASED = fs.readdirSync(DIR).filter((f) => f.endsWith('.json')).sort();
+const RELEASED = fs.readdirSync(DIR).filter((f) => f.endsWith('.json.gz')).sort();
+const released = (file: string) => zlib.gunzipSync(fs.readFileSync(path.join(DIR, file))).toString('utf8');
 
 /** What the screens ask the backend for. */
 const SCREENS = [
@@ -40,7 +42,7 @@ describe('Saves from released builds', () => {
 
   for (const file of RELEASED) {
     it(`${file} loads, answers every screen, and sleeps a night`, async () => {
-      const storage = memoryStorage(fs.readFileSync(path.join(DIR, file), 'utf8'));
+      const storage = memoryStorage(released(file));
       const backend = await createBackend({ storage });
       for (const url of SCREENS) expect((await backend.handle('GET', url)).status, url).toBe(200);
       const { hero } = await call<{ hero: { inCity: boolean } | null }>(backend, 'GET', '/api/heroes/me');
