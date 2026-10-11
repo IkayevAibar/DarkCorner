@@ -37,7 +37,5 @@
         </provider>
     </application>
 
-    <!-- Permissions -->
-
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- No permissions, not even the network's: the game plays offline, and its Save stays on the phone. -->
 </manifest>

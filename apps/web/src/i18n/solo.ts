@@ -67,6 +67,7 @@ export const soloEn: Lines = {
   'guide.daily.body': 'The Tavern has three Bounties a day, one a week, and the week’s Hunt. Each day brings an Omen that bends the Labyrinth. Look for Waypoints: once woken, you can enter the Labyrinth there.',
   // Chapters instead of Seasons: no Finale and no Wipe.
   'tavern.season': 'Chapter {n}',
+  tagline: 'A dark labyrinth, one Chapter at a time.',
   'tavern.quiet': 'Nothing has happened yet this Chapter.',
   'tavern.hallEmpty': 'No Glory yet. The first Chapter is still being written.',
   'city.statusUnavailable': 'Chapter status unavailable. Try again for current gate information.',
@@ -147,6 +148,7 @@ export const soloRu: Lines = {
   'guide.loot.body': 'Предметы бывают разных рангов — от обычного до мифического. Редкие и лучше выпадают неопознанными: нужен свиток (волшебникам он не нужен). Лишнее можно выбросить, продать в городе или разобрать в кузнице на материалы.',
   'guide.daily.body': 'В таверне — три задания на день, одно на неделю и охота недели. Каждый день приносит знамение, которое меняет лабиринт. Ищите путевые камни: пробуждённый камень — это вход в лабиринт.',
   'tavern.season': 'Глава {n}',
+  tagline: 'Тёмный лабиринт, глава за главой.',
   'tavern.quiet': 'В этой главе пока ничего не случилось.',
   'tavern.hallEmpty': 'Славы пока нет. Первая глава ещё пишется.',
   'city.statusUnavailable': 'Статус главы недоступен. Попробуйте ещё раз, чтобы узнать состояние врат.',
