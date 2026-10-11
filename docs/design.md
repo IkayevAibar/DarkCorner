@@ -58,6 +58,7 @@ The solo build plays by this document, except for these:
 
     After that, the City and the Tavern lead back to it. Before the fall, the same screen tells the Chapter so far.
   - **A next Chapter** needs new Bosses, so for now there is only Chapter 1.
+- **A Save to a file,** in the Account: saving copies the game into a file, to keep or to take to another device. Loading a file puts its game in place of the one on the device, once the Player has seen both.
 - **The Save's settings,** chosen before its first Hero and fixed after it:
   - **Difficulty.** Story gives monsters a quarter less health and damage, and Hard a quarter more *(v0)*. Normal is this document's numbers.
   - **Iron mode.** A Hero lives once. One who dies falls for good: what it carried lies in its Grave for two nights, and the next Hero keeps the gold and Storage left in the City, as after a Retire. A fall doesn't use up the Chapter's Retire.

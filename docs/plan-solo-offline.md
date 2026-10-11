@@ -7,7 +7,7 @@
 - the solo game it becomes
 - a plan in phases
 
-The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phases 1 and 2 and the Android shell are on `main`. Phase 3 is under way: Days, Chapters, difficulty, Iron mode, the bots and the Companion are on `main`. The Chapter's end screen is built on the branch `claude/solo-chapter-end`. Chapter 2 and Rivals are still to come.
+The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phases 1 and 2 and the Android shell are on `main`. Phase 3 is under way: Days, Chapters, difficulty, Iron mode, the bots, the Companion and the Chapter's end are on `main`, and Chapter 2 and Rivals are still to come. Phase 4's code is built on the branch `claude/solo-phase-4`.
 
 Read with [design.md](design.md), [architecture.md](architecture.md) and [CONTEXT.md](../CONTEXT.md). design.md stays the source of truth for every rule this doc doesn't change.
 
@@ -159,7 +159,7 @@ Each phase ends on something a person can try.
    - The loop is played in `packages/solo/test/backend.test.ts`, with fixed dice so it runs the same every time.
    - In a browser, the solo build (`npm run dev:solo -w @dark/web`, port 5181) made a Fighter, won four Floor 1 fights and wore the longsword one dropped. The Hero went home, and a reload found it all as it was.
    - The game made no request to an API or a sign-in at any point.
-   - Only the Google Fonts stylesheet still uses the network: Phase 4 bundles the fonts.
+   - Only the Google Fonts stylesheet still used the network, until Phase 4 put the fonts in the game.
 2. **Everything single-player.**
    - Port the rest: events, the Daily Delve, Forge, Shop, Bounties, Deeds, First steps, Academy, Training, Lodging, Temple, Relics, Vaults and the Boss.
    - Port the scenarios in `apps/api/test` so they run against the local backend.
@@ -265,12 +265,24 @@ Each phase ends on something a person can try.
    - The log showed no errors.
    - The emulator draws with a software GPU, so it says nothing about speed.
 
+   **Release work, 2026-10-11,** on `claude/solo-phase-4`, after the owner asked whether the game could go to Google Play as an alpha:
+   - **Offline for real.** The fonts ship with the game (`@fontsource`, woff2 only, 848 KB), and the app asks for no permissions at all, not even the network's. Checked on the emulator in airplane mode.
+   - **The release build.** `npm run key -w @dark/android` makes the owner's upload key once, in `~/.dark-corner`, outside the repo. `npm run aab -w @dark/android` builds a bundle signed with it. The version is `apps/android/package.json`'s, now 0.1.0: Gradle makes versionName and versionCode from it (0.1.0 is 1000), and the Account shows it. Checked with a throwaway key.
+   - **Save files.** The Account saves the Save to a file and loads one back, showing both games before one replaces the other. In the app, Android's own "Save to" screen picks the place (`SaveFilePlugin.java`), so no storage permission is needed. Checked on the emulator: saved to Downloads, then loaded back through the file picker.
+   - **Old Saves load.** `parseWorld` fits a Save from an older build to the schema: new tables start empty, new fields take their defaults, and dropped ones go. `packages/solo/test/saves` keeps Saves from each release, written by the bots (`PLAYTEST_SAVES`). The tests load each one, open every screen and sleep a night. 0.1.0's are a Fighter's Day 9 with a Companion, and a Warlock's Day 61, long after the Dragon's fall.
+   - **Fixed on the way:**
+     - In the app, Android's own title bar covered the game's top bar and its language, news, help and Account buttons. `MainActivity` turned on edge to edge before Capacitor set its theme, so the window was built under the splash theme, which has a title bar. The emulator check of 2026-10-10 took it for a drawing glitch.
+     - The manifest marks the app a game, so Android 16 keeps its portrait lock on tablets and unfolded phones.
+     - The credits name the fonts, and call the SRD "Fifth Edition rules" instead of using Wizards' trademark.
+     - The boot screen said "one season at a time". Solo, it says Chapters.
+
    Still to do in Phase 4:
-   - **Fonts in the app:** the Google Fonts stylesheet still needs the network.
-   - **Save export and import.**
-   - **A release key:** the owner's, kept out of the repo.
-   - **Speed on a real phone:** the Threat cost, and fights. Each request also deep-copies the World: once for the request's undo, and once for each `$transaction`. That cost grows with the Save. A World copied only where it changes would make it small.
-   - **The store listing.**
+   - **Speed on a real phone:** the Threat cost, and fights. Measured on a desktop with the bots' Saves:
+     - **The Save grows to about 550 KB by Day 60** (twelve bots with Companions, 60 Days, no server errors; eleven saw the Dragon fall). A thousand rolls kept for the Rolls tab are 315 KB of it.
+     - **At Day 60:** copying the World for a request's undo takes 2 ms, writing the Save after a change 15 to 17 ms, and the Labyrinth's view 20 ms. Loading it at start takes 40 ms.
+     - So the copies are cheap, and writing the whole Save after every change is the cost to watch. A phone is several times slower than a desktop: measure there before changing anything.
+   - **The owner's part:** the app id below, a Play Console account, and the upload key.
+   - **The store listing and a privacy policy.**
 
    **Before friends install it**, the owner confirms the app id, `world.ugolok.darkcorner`. A Save belongs to the app id: changing the id later leaves every Save behind.
 

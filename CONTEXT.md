@@ -459,7 +459,7 @@ _Avoid_: clan, faction
 ### The solo game
 
 **Save** (сохранение):
-One solo game on one device: its Hero, its Labyrinth and its Day, kept between sessions.
+One solo game on one device: its Hero, its Labyrinth and its Day, kept between sessions. It can be saved to a file and loaded from one, to keep it or move it to another device.
 _Avoid_: profile, file, slot (a slot holds a Save)
 
 **Day** (день):

@@ -102,6 +102,8 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
 
 - **The services are the server's, copied.** `packages/solo/src/services` and `routes` are `apps/api/src`'s, ported once (as of `9969d96`, the last change there): `new Date()` became the game clock, and a small router stands in for Fastify. They now change on their own; the server's stay as they are. The solo versions of push and the hub sign-in do nothing.
 - **The World** (`world.ts`) is a Save: the server's tables, a clock and the Save's settings, written as JSON (Dates and BigInts tagged).
+  - **Saves outlive builds.** `parseWorld` fits a Save from an older build to the schema: a new table starts empty, a new field takes its default (null when optional), and what the schema dropped goes. A change it can't fit, such as a new field with no default, needs a migration there, by `WORLD_VERSION`.
+  - `packages/solo/test/saves` keeps Saves from each release, written by the bots (`PLAYTEST_SAVES=dir`) and gzipped. `saves.test.ts` loads each one, opens every screen and sleeps a night. Before each release, add its Saves: an early one and a late one.
 - **The in-memory database** (`db/memdb.ts`) is the slice of Prisma's client the services use, typed as Prisma's own client, so the services compile unchanged. It keeps Postgres's habits where the services can tell:
   - Reads are copies.
   - NULL matches no `not`, `in` or comparison, and never clashes in a unique key.
@@ -124,6 +126,7 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
   - The Chapter's end: `chapterView` in `services/chapters.ts` tells the Chapter whole. The Dragon's first fall cuts the Chapter's records into the Hall (`recordRecords`, once). The Chapters whose end the Player has seen live in the World's `Setting` table under `chapter-seen`. The web shows it at `/chapter` (`screens/chapter/ChapterEnd.tsx`).
   - The routes the server lacks: `routes/solo.ts` (the Save's settings, and `/api/chapter`), `routes/companion.ts` (`/api/companion…`, and `POST /api/labyrinth/chest/all` to take a whole Duo Chest), and `POST /api/labyrinth/sleep`.
 - **The backend** (`backend.ts`) runs one request at a time. A request that throws leaves the World as it was. After any change it saves: IndexedDB in a browser, falling back to memory.
+  - **The Save as a file** is the backend's too, since the router has no hold on the World: `GET /api/save` hands it out with a name and a summary, `POST /api/save/check` reads one, and `POST /api/save` puts one in place. The Account shows them (`components/SaveFile.tsx`).
 - **The screens follow the World,** not the device:
   - `src/solo.ts` hands the World's clock to `src/time.ts`. Countdowns, `useNow` and `useAt` count in game time, and redraw when the Hero sleeps. Code that needs the time for a countdown takes it from `useNow()` or `clockNow()`, never from `Date.now()`.
   - Nothing polls. `useRefresh` does nothing offline, and every `useLoad` loads again when the day turns.
@@ -132,10 +135,20 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
   - `src/i18n/solo.ts` lays the solo build's own lines over `en` and `ru`: nights instead of hours, Chapters instead of Seasons, one Player instead of many. A line that reads differently offline goes there, in both languages.
 - **Tests:** `packages/solo/test` runs the server's API scenarios on the solo backend (a `solo_player` cookie plays several Players at once there), plus the in-memory database's own tests and `backend.test.ts` for Saves and Days.
 - **The bots:** `npm run playtest -w @dark/solo [-- days]` plays the server's playtest bots (`apps/api/scripts/playtest.ts`, moved to Days) on the solo backend: a World each, a Day's Stamina, then bed in a Camp or at the Tavern, or a rough night where it stands. `PLAYTEST_CLASSES=cleric,ranger` plays only those, `PLAYTEST_TRACE_DAY=N` prints each step of that Day, and `PLAYTEST_COMPANION=1` has each bot hire a Companion and dress it, pick at Duo Chests and swear at Oathstones. A bot that still cannot sleep is a finding in the report.
-- **The Android app** (`apps/android`) is Capacitor 8 around the solo build: the WebView serves `apps/web/dist-solo` from the APK at `https://localhost`, and the Save lives in that WebView's IndexedDB.
+- **The Android app** (`apps/android`) is Capacitor 8 around the solo build: the WebView serves `apps/web/dist-solo` from the APK at `https://localhost`, and the Save lives in that WebView's IndexedDB. It asks for no permissions, not even the network's: the fonts ship with the web app.
   - `npm run apk -w @dark/android` builds the web app, copies it in and builds a debug APK with the Gradle wrapper. Use JDK 21: Android Studio's own Java 25 is too new for the pinned Gradle.
   - `npm run open -w @dark/android` opens the project in Android Studio.
   - `npm run icons -w @dark/android` remakes the launcher icons and splash screens from the web app's icons with ffmpeg.
-  - `apps/android/android` is the native project. Capacitor generated it; the edits are the app name in `values-ru`, the portrait lock, the splash and window colour, and edge to edge with dark system bars in `MainActivity`. Build output and the copied web app stay out of git.
+  - **For Google Play:** `npm run key -w @dark/android` makes the owner's upload key once, in `~/.dark-corner` (or where `DARK_KEYSTORE_PROPERTIES` points), outside the repo. `npm run aab -w @dark/android` builds the bundle signed with it.
+  - **The version** is `apps/android/package.json`'s. Gradle makes versionName and versionCode from it (1.2.3 is 1002003), and the web shows it in the Account (`__APP_VERSION__`). Raise it before each upload.
+  - `apps/android/android` is the native project. Capacitor generated it. The edits:
+    - the app name in `values-ru`, the portrait lock, and the splash and window colour
+    - the game category (`appCategory`), so Android 16 keeps the portrait lock on large screens
+    - no permissions
+    - edge to edge with dark system bars in `MainActivity`, after `super.onCreate`: before it, the window is built under the splash theme, whose title bar covers the game's top bar
+    - `SaveFilePlugin.java`, Android's "Save to" screen for the Save file
+    - the release signing and version in `app/build.gradle`
+
+    Build output and the copied web app stay out of git.
   - **The back button** is `apps/web/src/native.ts`, which only the app loads. It sends Escape to the topmost `role="dialog"`; with no dialog open it goes back a screen, and on the first screen it puts the app away. So every dialog, sheet and full-screen scene needs `role="dialog"` and an Escape handler, or Back walks past it.
-  - **On an emulator:** install with `adb install -r`. A debug build's WebView answers Chrome DevTools: open `chrome://inspect`, or run `adb forward tcp:9222 localabstract:webview_devtools_remote_<pid>`. Under the emulator's software GPU, `adb` screenshots can smear the sticky header; the page itself draws correctly.
+  - **On an emulator:** install with `adb install -r`. A debug build's WebView answers Chrome DevTools: open `chrome://inspect`, or run `adb forward tcp:9222 localabstract:webview_devtools_remote_<pid>`. `adb shell uiautomator dump` lists the native views over the WebView, which a capture of the page alone can't show.
