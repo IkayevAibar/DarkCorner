@@ -16,7 +16,8 @@
  * and in the City identify, equip, sell, salvage, upgrade, restock and grow.
  * PLAYTEST_NO_RESTS=1 plays without short rests; PLAYTEST_CLASSES=cleric,ranger plays only those. PLAYTEST_COMPANION=1
  * hires a Companion once five mornings of its wage are spare, dresses it from the Bag, picks at Duo Chests (now and
- * then taking it all) and swears at Oathstones (mostly sharing). The World is compacted every night, as the app
+ * then taking it all) and swears at Oathstones (mostly sharing). PLAYTEST_SAVES=dir writes each bot's Save there at
+ * the end, as the app would (test/saves keeps one from each release). The World is compacted every night, as the app
  * compacts a Save, and server errors here are the solo backend's.
  */
 import type {
@@ -836,4 +837,17 @@ console.log('\nDeaths:');
 for (const bot of bots) for (const d of bot.stats.deathLog) console.log(`  ${bot.cls.padEnd(9)} ${d}`);
 const errors = bots.flatMap((b) => b.stats.errors.map((e) => `${b.name}: ${e}`));
 console.log(errors.length ? `\nErrors (${errors.length}):\n${[...new Set(errors)].slice(0, 30).join('\n')}` : '\nNo server errors.');
+const saves = process.env.PLAYTEST_SAVES;
+if (saves) {
+  const { serializeWorld } = await import('../src/world.js');
+  const { mkdirSync, writeFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  mkdirSync(saves, { recursive: true });
+  console.log(`\nSaves, in ${saves}:`);
+  for (const bot of bots) {
+    const text = serializeWorld(bot.world);
+    writeFileSync(join(saves, `${bot.cls}.json`), text);
+    console.log(`  ${bot.cls.padEnd(9)} ${Math.round(text.length / 1024)} KB`);
+  }
+}
 await app.close();

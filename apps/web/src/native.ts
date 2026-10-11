@@ -1,4 +1,5 @@
 import { App } from '@capacitor/app';
+import { registerPlugin } from '@capacitor/core';
 
 /**
  * The Android app (the solo build inside Capacitor). Left alone, Android closes
@@ -21,4 +22,16 @@ export function startNative(): void {
     if (canGoBack) window.history.back();
     else void App.minimizeApp();
   });
+}
+
+/** The app's own plugin (android/app/src/main/java/world/ugolok/darkcorner/SaveFilePlugin.java). */
+const SaveFilePlugin = registerPlugin<{ save(options: { name: string; text: string }): Promise<{ saved: boolean }> }>('SaveFile');
+
+/**
+ * Writes a file through Android's own "Save to" screen, where the player picks the
+ * place: the phone, a memory card, a cloud drive. No storage permission is needed.
+ * False when the player backs out.
+ */
+export async function saveFile(name: string, text: string): Promise<boolean> {
+  return (await SaveFilePlugin.save({ name, text })).saved;
 }

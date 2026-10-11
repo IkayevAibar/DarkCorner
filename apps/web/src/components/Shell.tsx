@@ -4,6 +4,7 @@ import { Guide } from './Guide';
 import { InstallCard } from './InstallCard';
 import { PushSettings } from './PushSettings';
 import { SaveSettings } from './SaveSettings';
+import { SaveFile } from './SaveFile';
 import { useI18n } from '../i18n';
 import type { MessageKey } from '../i18n/en';
 import { markNewsRead, newsUnread } from '../newsState';
@@ -138,6 +139,7 @@ function AccountSheet() {
       </div>
       {/* Solo has no server: no push, no admin, no account to sign out of. */}
       {__SOLO__ && <SaveSettings summary />}
+      {__SOLO__ && <SaveFile />}
       {!__SOLO__ && <PushSettings />}
       <InstallCard />
       {!__SOLO__ && player.isAdmin && (
@@ -166,6 +168,8 @@ function AccountSheet() {
           <p className="m-0"><strong className="text-bone">{t('credits.srdTitle')}.</strong> {SRD_ATTRIBUTION}</p>
         </div>
       </details>
+      {/* Which build a tester plays, for their reports. */}
+      {__SOLO__ && <p className="m-0 text-xs text-muted">{t('account.version', { v: __APP_VERSION__ })}</p>}
     </div>
   );
 }

@@ -1,12 +1,14 @@
+import type { ClassId } from '@dark/shared';
 import { useSettings } from './settings.js';
 import { type SoloApp, buildApp } from './app.js';
 import { cloneState } from './db/memdb.js';
 import { memdb, prisma } from './db.js';
-import { DAY_MS, gameNow, gameNowMs, useClock } from './gameClock.js';
+import { DAY_MS, dayOf, gameNow, gameNowMs, useClock } from './gameClock.js';
 import { newSeed } from './lib/seed.js';
+import { COMPANION_PLAYER } from './services/companion.js';
 import { runDueJobs } from './services/scheduler.js';
 import { startSeason } from './services/seasonLife.js';
-import { type World, emptyWorld, parseWorld, serializeWorld } from './world.js';
+import { SaveError, type World, type WorldSettings, emptyWorld, parseWorld, serializeWorld } from './world.js';
 
 /** Where a save lives: IndexedDB in a browser, a file on the phone, memory in tests. */
 export interface SaveStorage {
@@ -63,6 +65,34 @@ export async function compactWorld(): Promise<void> {
   await prisma.job.deleteMany({ where: { doneAt: { lt: new Date(gameNowMs() - JOBS_KEPT_MS) } } });
 }
 
+/** What a Save holds, in brief: shown before one Save takes another's place. */
+export interface SaveSummary {
+  day: number;
+  chapter: number;
+  /** The Player's Hero: the newest one not Retired. */
+  hero: { name: string; level: number; class: ClassId } | null;
+  difficulty: WorldSettings['difficulty'];
+  iron: boolean;
+}
+
+/** The Save as a file (`GET /api/save`): its text, a name for the file, and what it holds. */
+export interface SaveFileView {
+  name: string;
+  text: string;
+  summary: SaveSummary;
+}
+
+export function summarize(world: World): SaveSummary {
+  const hero = (world.db.tables.Hero ?? []).filter((h) => h.playerId !== COMPANION_PLAYER && !h.retiredAt).at(-1);
+  return {
+    day: dayOf(world.clock),
+    chapter: Math.max(1, ...(world.db.tables.Season ?? []).map((s) => Number(s.number))),
+    hero: hero ? { name: String(hero.name), level: Number(hero.level), class: hero.class as ClassId } : null,
+    difficulty: world.settings.difficulty,
+    iron: world.settings.iron,
+  };
+}
+
 let app: Promise<SoloApp> | null = null;
 
 /**
@@ -80,7 +110,38 @@ export async function createBackend(options: { storage: SaveStorage } & NewWorld
 
   let queue: Promise<unknown> = Promise.resolve();
 
+  /**
+   * The Save as a file (docs/plan-solo-offline.md, Phase 4): `GET /api/save` hands it out
+   * to keep or to move; `POST /api/save/check` reads one from a file; `POST /api/save`
+   * puts one in this Save's place. The router has no hold on the World, so these live here.
+   */
+  async function saveFile(method: string, url: string, body: unknown): Promise<SoloResult | null> {
+    if (method === 'GET' && url === '/api/save') {
+      const file: SaveFileView = { name: `dark-corner-day-${dayOf(world.clock)}.json`, text: serializeWorld(world), summary: summarize(world) };
+      return { status: 200, body: file };
+    }
+    if (method !== 'POST' || (url !== '/api/save' && url !== '/api/save/check')) return null;
+    const text = (body as { text?: unknown } | null | undefined)?.text;
+    let incoming: World;
+    try {
+      if (typeof text !== 'string') throw new SaveError('not_a_save', 'No save came with the request');
+      incoming = parseWorld(text);
+    } catch (error) {
+      if (error instanceof SaveError) return { status: 400, body: { error: error.code, message: error.message } };
+      console.error('[solo] could not read a save', error);
+      return { status: 500, body: { error: 'internal_error', message: 'Something went wrong' } };
+    }
+    if (url === '/api/save') {
+      world = incoming;
+      bindWorld(world);
+      await options.storage.save(serializeWorld(world));
+    }
+    return { status: 200, body: { summary: summarize(incoming) } };
+  }
+
   async function run(method: string, url: string, body: unknown): Promise<SoloResult> {
+    const file = await saveFile(method, url, body);
+    if (file) return file;
     bindWorld(world);
     const before = { db: cloneState(world.db), clock: { ...world.clock }, settings: { ...world.settings } };
     memdb.writes = 0;

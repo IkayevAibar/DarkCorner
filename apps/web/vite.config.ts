@@ -1,6 +1,8 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { type Plugin, defineConfig } from 'vite';
+// The Android app's version is the game's (apps/android/android/app/build.gradle reads it too).
+import android from '../android/package.json';
 
 // Runs in Node, but the web tsconfig only ships browser types.
 declare const process: { env: Record<string, string | undefined> };
@@ -28,7 +30,7 @@ export default defineConfig(({ mode }) => {
   const solo = mode === 'solo';
   return {
     plugins: [react(), tailwindcss(), woff2Only],
-    define: { __SOLO__: JSON.stringify(solo) },
+    define: { __SOLO__: JSON.stringify(solo), __APP_VERSION__: JSON.stringify(android.version) },
     server: {
       port: solo ? 5181 : 5180,
       strictPort: true,

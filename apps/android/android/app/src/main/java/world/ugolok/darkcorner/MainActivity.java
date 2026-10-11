@@ -14,6 +14,8 @@ public class MainActivity extends BridgeActivity {
         // insetsHandling "native"), as Capacitor 9 will do by default. The bars are
         // see-through with light icons: the game is dark whatever the phone's theme.
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT));
+        // The game's own plugin: saving the Save to a file (SaveFilePlugin).
+        registerPlugin(SaveFilePlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
