@@ -49,7 +49,14 @@ The solo build plays by this document, except for these:
   - **What the server counts in hours waits for a night.** Training ends overnight, and keeps the Hero in the City until then. A Blessing lasts until the Hero sleeps. A Town Portal stays open through one night, until the end of the next Day, so the Hero can sleep at home and step back through. A Grave lasts two nights.
 - **Chapters.** A Chapter is a Season without its Finale and its Wipe.
   - **The Boss gate** opens the first time the Hero reaches Floor 10, or four weeks in at the latest. The Dragon's weakening counts from the gate.
-  - **The Dragon's fall ends the Chapter.** The Hero enters the Hall of Fame as its Champion, and the world goes on: the Dragon returns the next day, hoard and all.
+  - **The Dragon's fall ends the Chapter.** The Hero enters the Hall of Fame as its Champion. The Chapter's records go in beside it: the deepest Floor, the highest level and the best drop. Then the world goes on, and the Dragon returns the next day, hoard and all.
+  - **The Chapter's end** comes up by itself once, after the fall. It shows:
+    - how the Dragon fell, on which Day, and after how many fights
+    - the Champion
+    - the Chapter in numbers: Days, Heroes, the deepest Floor and highest level, Mini-bosses beaten, Rooms explored, gold brought home, hidden hoards, Legendary finds, Relics, Deeds done and deaths, and the finest Item
+    - its names in the Hall of Fame
+
+    After that, the City and the Tavern lead back to it. Before the fall, the same screen tells the Chapter so far.
   - **A next Chapter** needs new Bosses, so for now there is only Chapter 1.
 - **The Save's settings,** chosen before its first Hero and fixed after it:
   - **Difficulty.** Story gives monsters a quarter less health and damage, and Hard a quarter more *(v0)*. Normal is this document's numbers.

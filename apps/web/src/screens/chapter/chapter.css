@@ -1,0 +1,38 @@
+/* Solo: the Chapter's end (screens/chapter/ChapterEnd.tsx). A phone held upright first. */
+.chapter-end { display: grid; gap: 18px; }
+
+.chapter-end-head {
+  display: grid; justify-items: center; gap: 8px; padding: 26px 18px 24px; text-align: center; overflow: hidden;
+  border: 1px solid #5e472c; box-shadow: 0 12px 24px #0008;
+  background: linear-gradient(180deg, #0b0a09b0 0%, #0b0a09e8 70%), url('/art/rooms/lair-6.webp') center / cover;
+}
+.chapter-end-dragon { width: min(56vw, 220px); height: auto; filter: drop-shadow(0 10px 18px #000); }
+/* Fallen: the Dragon greys and tips over. */
+.chapter-end[data-complete] .chapter-end-dragon { filter: grayscale(.6) brightness(.72) drop-shadow(0 10px 18px #000); transform: rotate(-9deg); }
+.chapter-end-kicker { font: 700 13px var(--font-head); letter-spacing: .14em; text-transform: uppercase; color: var(--color-gold); }
+.chapter-end-head h1 { margin: 0; font: 800 clamp(28px, 7.5vw, 42px)/1.08 var(--font-head); text-shadow: 0 2px 10px #000; }
+.chapter-end-head p { margin: 0; max-width: 36ch; }
+.chapter-end-tries { font-size: 14px; color: var(--color-muted); }
+
+.chapter-end-champion {
+  display: flex; align-items: center; gap: 14px; padding: 14px;
+  border: 1px solid var(--color-brass-dim); background: var(--noise), linear-gradient(115deg, #2e2418, #15110c);
+}
+.chapter-end-champion > div { display: grid; gap: 2px; min-width: 0; }
+.chapter-end-label { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--color-gold); }
+.chapter-end-champion strong { font: 800 22px var(--font-head); overflow-wrap: anywhere; }
+.chapter-end-champion em { color: var(--color-gold); }
+.chapter-end-champion small { color: var(--color-muted); }
+
+.chapter-end-numbers, .chapter-end-next { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--color-line); background: var(--color-panel); }
+.chapter-end-numbers dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.chapter-end-numbers dl > div { padding: 8px 10px; background: #0b0a0980; border: 1px solid #3a302680; }
+.chapter-end-numbers dt { font-size: 12px; color: var(--color-muted); }
+.chapter-end-numbers dd { margin: 0; font: 800 20px var(--font-head); }
+.chapter-end-finest, .chapter-end-next p { margin: 0; }
+/* One Chapter, one slab: the Tavern's Hall sets slabs two abreast on a wide screen. */
+.chapter-end .tavern-hall { grid-template-columns: 1fr; }
+
+@media (min-width: 700px) {
+  .chapter-end-numbers dl { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

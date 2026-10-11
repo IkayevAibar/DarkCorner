@@ -8,6 +8,7 @@ import { countDeeds } from './deeds.js';
 import type { HeroWithItems, Tx } from './ledger.js';
 import { dropGear, dropStack, withGoldFind } from './loot.js';
 import { lockSeason, playerName } from './relics.js';
+import { recordRecords } from './seasonLife.js';
 import { gameNow, worldDay } from '../gameClock.js';
 
 const PLACE_KIND = ['champion', 'second', 'third'] as const;
@@ -37,6 +38,8 @@ export async function bossVictory(tx: Tx, hero: HeroWithItems, season: Season, f
     });
     await feed(tx, season, hero, 'boss-kill', { place });
     if (place === 1) {
+      // The Chapter's records join its Champion in the Hall: solo has no Wipe to cut them.
+      await recordRecords(tx, fresh);
       const day = worldDay(now.getTime());
       out.notices.push(t(
         `The Ancient Dragon falls on Day ${day}. Chapter ${season.number} is complete: ${hero.name} enters the Hall of Fame. The world goes on, and the Dragon returns tomorrow.`,

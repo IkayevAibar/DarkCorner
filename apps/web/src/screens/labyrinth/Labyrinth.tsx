@@ -1,6 +1,6 @@
 import { useTrustText } from './trust/messages';
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { NavLink } from 'react-router';
+import { NavLink, useNavigate } from 'react-router';
 import {
   STANCES, TIERS, type CheckView, type Direction, type Exit, type Facing, type FeatureView, type KitItemView, type LabyrinthResult,
   type LabyrinthView, type RunSummary,
@@ -63,6 +63,13 @@ export function Labyrinth() {
   const { closeSheet } = useSheet();
   useEffect(() => { if (scene) closeSheet(); }, [scene, closeSheet]);
   const sceneOver = useCallback(() => { if (scene) dispatch({ type: 'finish', scene }); }, [scene]);
+  const navigate = useNavigate();
+  /** Solo: the Dragon's first fall ends the Chapter, and its end comes up once, as the report closes. */
+  const closeReport = () => {
+    const slain = __SOLO__ && report?.fight?.outcome === 'victory' && report.view.room?.type === 'boss';
+    dispatch({ type: 'dismiss' });
+    if (slain) void api.chapter().then((c) => { if (c.complete && !c.seen) navigate('/chapter'); }).catch(() => undefined);
+  };
 
   useEffect(() => { void preloadFightScene().catch(() => { /* Playback can retry or show its fallback. */ }); }, []);
 
@@ -150,7 +157,7 @@ export function Labyrinth() {
 
   return (
     <div className="grid gap-3">
-      {!scene && report && <Report result={report} onClose={() => dispatch({ type: 'dismiss' })} />}
+      {!scene && report && <Report result={report} onClose={closeReport} />}
       <div className="grid gap-3" inert={trustScene || undefined}>
         {view.location === 'city' && !ending ? (
           <Gate view={view} busy={busy} error={error} act={act} onDuo={() => void load()} />

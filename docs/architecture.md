@@ -121,7 +121,8 @@ The offline game ([plan-solo-offline.md](plan-solo-offline.md)) answers the web'
     - Where a Companion differs, the Duo services ask `isCompanion`. It has no Stamina, loot, events or Deeds of its own; the AI plays all its turns; it runs with its Hero (`follows` on the engine's `AllyInput`); it goes through a Town Portal; and it waits at the door of the Dragon's lair.
     - `tendCompanion` runs in `loadActors` before every action: the morning's wage, its level kept to the Hero's, a fallen Companion back, and back beside its Hero.
     - Its wage, Loyalty and fall live in the World's `Setting` table under `companion`, so the server's schema stays as it is.
-  - The routes the server lacks: `routes/solo.ts` (the Save's settings), `routes/companion.ts` (`/api/companion…`, and `POST /api/labyrinth/chest/all` to take a whole Duo Chest), and `POST /api/labyrinth/sleep`.
+  - The Chapter's end: `chapterView` in `services/chapters.ts` tells the Chapter whole. The Dragon's first fall cuts the Chapter's records into the Hall (`recordRecords`, once). The Chapters whose end the Player has seen live in the World's `Setting` table under `chapter-seen`. The web shows it at `/chapter` (`screens/chapter/ChapterEnd.tsx`).
+  - The routes the server lacks: `routes/solo.ts` (the Save's settings, and `/api/chapter`), `routes/companion.ts` (`/api/companion…`, and `POST /api/labyrinth/chest/all` to take a whole Duo Chest), and `POST /api/labyrinth/sleep`.
 - **The backend** (`backend.ts`) runs one request at a time. A request that throws leaves the World as it was. After any change it saves: IndexedDB in a browser, falling back to memory.
 - **The screens follow the World,** not the device:
   - `src/solo.ts` hands the World's clock to `src/time.ts`. Countdowns, `useNow` and `useAt` count in game time, and redraw when the Hero sleeps. Code that needs the time for a countdown takes it from `useNow()` or `clockNow()`, never from `Date.now()`.

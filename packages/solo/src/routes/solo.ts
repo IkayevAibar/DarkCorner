@@ -3,6 +3,7 @@ import type { App } from '../router.js';
 import { prisma } from '../db.js';
 import { ApiError } from '../lib/errors.js';
 import { requireApproved } from '../lib/session.js';
+import { type ChapterView, chapterSeen, chapterView } from '../services/chapters.js';
 import { worldSettings } from '../settings.js';
 import type { WorldSettings } from '../world.js';
 
@@ -26,6 +27,10 @@ export async function soloRoutes(app: App) {
   const guard = { preHandler: requireApproved };
 
   app.get('/api/solo/settings', guard, async (): Promise<SoloSettingsView> => view());
+
+  /** The Chapter told whole, for its end screen (docs/design.md → The solo game → Chapters). */
+  app.get('/api/chapter', guard, async (request): Promise<ChapterView> => chapterView(request.player!));
+  app.post('/api/chapter/seen', guard, async (request): Promise<ChapterView> => chapterSeen(request.player!));
 
   app.put('/api/solo/settings', guard, async (request): Promise<SoloSettingsView> => {
     const choice = settingsSchema.parse(request.body);

@@ -7,7 +7,7 @@
 - the solo game it becomes
 - a plan in phases
 
-The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phases 1 and 2 and the Android shell are on `main`. Phase 3 is under way: Days, Chapters, difficulty, Iron mode and the bots are on `main`, and the Companion is built on the branch `claude/solo-companion`, as the owner confirmed it on 2026-10-11. The Chapter's end screen and Rivals are still to come.
+The owner settled the decisions in section 1 on 2026-10-10, all six as recommended. Phases 1 and 2 and the Android shell are on `main`. Phase 3 is under way: Days, Chapters, difficulty, Iron mode, the bots and the Companion are on `main`. The Chapter's end screen is built on the branch `claude/solo-chapter-end`. Chapter 2 and Rivals are still to come.
 
 Read with [design.md](design.md), [architecture.md](architecture.md) and [CONTEXT.md](../CONTEXT.md). design.md stays the source of truth for every rule this doc doesn't change.
 
@@ -230,8 +230,18 @@ Each phase ends on something a person can try.
      - With the retreat, the bots fled 22 times and died 19 times. They reached level 12.5 on average, against 11.4 alone.
    - **One request for Codex:** the Duo Chest scene shows a 30-second pick timer. Offline, the Companion picks at once and the game clock stands still, so the timer always reads 30. The solo build should hide it.
 
+   **The Chapter's end, 2026-10-11,** on `claude/solo-chapter-end`. design.md → The solo game → Chapters has the rules.
+   - **The fall cuts the Chapter's records into the Hall of Fame:** the deepest Floor, the highest level and the best drop, beside the Champion. Online, the Wipe cut these.
+   - **The end screen** (`/chapter`) comes up once, as the report of the Dragon's fall closes. Its sections:
+     - how and when the Dragon fell, and the Champion
+     - the Chapter in numbers, from the Heroes' Deed counts, which a Save keeps whole
+     - the Hall's slab for the Chapter
+     - what comes next
+   - **After that,** the City's Chapter chip and the Tavern lead back to it. Before the fall, it tells the Chapter so far.
+   - **Checked in the solo build, in Russian.** It showed the Chapter so far, then came up by itself after a real fight with the Dragon. Once seen, it no longer came up by itself.
+
    **Still to build in Phase 3:**
-   - **The Chapter's end:** an end screen, and Chapter 2 started with a legacy. Chapter 2 also needs new Bosses and re-themed deep Floors.
+   - **Chapter 2,** started with a legacy: it needs new Bosses and re-themed deep Floors.
    - **Rivals:** Retired and fallen Heroes, back as ghosts deep in the Labyrinth.
 4. **Android.**
    - Build: the Capacitor shell, and save slots with export and import.

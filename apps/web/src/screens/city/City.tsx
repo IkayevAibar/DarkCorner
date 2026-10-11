@@ -11,6 +11,8 @@ import { isPhone } from '../../install';
 import { QuickStart } from '../heroes/QuickStart';
 
 const INSTALL_DISMISSED = 'dc.install.dismissed';
+/** Solo: the Chapter, for its end once the Dragon has fallen; online there are no Chapters. */
+const loadChapter = __SOLO__ ? api.chapter : async () => null;
 const seen = (key: string) => {
   try {
     return localStorage.getItem(key) !== null;
@@ -37,13 +39,23 @@ export function City() {
   const needsHero = mine.data !== null && mine.data.hero === null && mine.data.canCreate;
   // Phones get the home-screen offer until it's taken or waved away (the account sheet keeps it).
   const [offerInstall, setOfferInstall] = useState(() => isPhone && !seen(INSTALL_DISMISSED));
+  const chapter = useLoad(loadChapter);
+  const complete = __SOLO__ && (data?.season.podium.length ?? 0) > 0;
 
   return (
     <div className="city-surface grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="sub-heading m-0">{t('tab.city')}</h1>
-        {data && <span className="chip">{t('tavern.season', { n: data.season.number })} · {__SOLO__ && data.season.podium.length > 0 ? t('chapter.complete') : t(`season.${data.season.status}`)}</span>}
+        {data && !complete && <span className="chip">{t('tavern.season', { n: data.season.number })} · {t(`season.${data.season.status}`)}</span>}
+        {data && complete && <button type="button" className="chip" onClick={() => navigate('/chapter')}>{t('tavern.season', { n: data.season.number })} · {t('chapter.complete')}</button>}
       </div>
+      {/* Solo: a Chapter whose end hasn't been seen yet (the app closed on the Dragon's fall, say) leads there. */}
+      {chapter.data?.complete && !chapter.data.seen && (
+        <button type="button" className="panel grid gap-1 p-3.5 text-left" onClick={() => navigate('/chapter')}>
+          <strong className="font-head text-lg text-gold">{t('chapterEnd.ready', { n: chapter.data.number })}</strong>
+          <span className="text-sm text-muted">{t('chapterEnd.readyBody')}</span>
+        </button>
+      )}
       {failed ? <div className="flex flex-wrap items-center gap-2 text-sm text-muted" role="status">
         <span>{t('city.statusUnavailable')}</span>
         <button type="button" className="btn btn-small" onClick={() => void reload()}>{t('retry')}</button>

@@ -130,8 +130,13 @@ export async function discardSeason(seasonId: string, now = gameNow()): Promise<
   });
 }
 
-/** Records for the Hall of Fame at the Wipe: the deepest Floor and the highest level. */
-async function recordRecords(tx: Tx, season: Season): Promise<void> {
+/**
+ * Records for the Hall of Fame at the Wipe: the deepest Floor, the highest level and the
+ * best drop. Solo, where there is no Wipe, at the Dragon's first fall (boss.ts).
+ */
+export async function recordRecords(tx: Tx, season: Season): Promise<void> {
+  // Cut once: solo at the Dragon's fall, so the Chapter's end (an admin's, in the tests) finds them there.
+  if (await tx.hallEntry.count({ where: { seasonNumber: season.number, kind: { in: ['deepest', 'highest-level', 'best-drop'] } } }) > 0) return;
   const heroes = await tx.hero.findMany({ where: { seasonId: season.id, playerId: { not: COMPANION_PLAYER } }, include: { player: true } });
   if (heroes.length === 0) return;
   const deepest = [...heroes].sort((a, b) => b.bestFloor - a.bestFloor || a.createdAt.getTime() - b.createdAt.getTime())[0]!;

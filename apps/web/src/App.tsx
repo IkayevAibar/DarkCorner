@@ -27,6 +27,8 @@ const Tavern = screen(() => import('./screens/city/Tavern'), 'Tavern');
 const Delve = screen(() => import('./screens/city/Delve'), 'Delve');
 const Admin = screen(() => import('./screens/Admin'), 'Admin');
 const News = screen(() => import('./screens/News'), 'News');
+/** Solo only: the Chapter's end (the server has no Chapters). */
+const ChapterEnd = __SOLO__ ? screen(() => import('./screens/chapter/ChapterEnd'), 'ChapterEnd') : null;
 /** Development builds only: production never ships the sandbox or its fixtures. */
 const Sandbox = import.meta.env.DEV ? screen(() => import('./screens/Sandbox'), 'Sandbox') : null;
 
@@ -65,6 +67,7 @@ export function App() {
         <Route path="/loot" element={page(Loot)} />
         <Route path="/heroes" element={page(Heroes)} />
         <Route path="/news" element={page(News)} />
+        {ChapterEnd && <Route path="/chapter" element={page(ChapterEnd)} />}
         {session.player.isAdmin && <Route path="/admin" element={page(Admin)} />}
         {Sandbox && <Route path="/sandbox" element={page(Sandbox)} />}
         <Route path="*" element={<Navigate to="/city" replace />} />

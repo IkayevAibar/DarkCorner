@@ -6,7 +6,7 @@ import type {
   SalvageResult, ShopView, SlotId, Stance, TempleView, TradeResult, UpdateMeRequest, UpgradeResult, PushKind, PushSubscribeRequest, PushView,
   BoonId, DelveResult, StepsView, StepClaimResult, AdminAnnounce, AdminAnnounceResult, DuoState, HeroActionView, OathChoice, AcademyView, TalentId, TrainingView, AbilityId, BulkTier, BulkSellResult, BulkSalvageResult
 } from '@dark/shared';
-import type { CompanionView } from '@dark/solo';
+import type { ChapterView, CompanionView } from '@dark/solo';
 
 /**
  * Solo only (docs/plan-solo-offline.md, decisions 5 and 6): a Save's difficulty and
@@ -116,6 +116,9 @@ export const api = {
   dismissCompanion: () => request<CompanionView>('POST', '/api/companion/dismiss'),
   giveToCompanion: (itemId: string) => request<CompanionView>('POST', '/api/companion/give', { itemId }),
   takeFromCompanion: (itemId: string) => request<CompanionView>('POST', '/api/companion/take', { itemId }),
+  /** Solo only (docs/design.md → The solo game → Chapters): the Chapter told whole, and its end seen. */
+  chapter: () => request<ChapterView>('GET', '/api/chapter'),
+  chapterSeen: () => request<ChapterView>('POST', '/api/chapter/seen'),
   /** Solo only: every Item left in the Duo Chest at once, at a price in the Companion's Loyalty. */
   takeWholeChest: () => request<LabyrinthResult>('POST', '/api/labyrinth/chest/all'),
   lootGrave: (id: string) => request<LabyrinthResult>('POST', `/api/labyrinth/graves/${encodeURIComponent(id)}/loot`),

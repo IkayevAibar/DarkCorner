@@ -148,7 +148,9 @@ describe('the end of a Season, rehearsed', () => {
     expect(await prisma.job.count({ where: { kind: 'wipe' } })).toBe(0);
     const tavern = (await get(admin, '/api/tavern')).json();
     expect(tavern.season).toMatchObject({ status: 'active', wipeAt: null, podium: [{ place: 1, hero: 'Admira' }] });
-    expect((await prisma.hallEntry.findMany()).map((e) => [e.kind, e.heroName])).toEqual([['champion', 'Admira']]);
+    // Its records join the Champion there: solo has no Wipe to cut them (a best drop too, if the hoard held one).
+    expect((await prisma.hallEntry.findMany({ orderBy: { createdAt: 'asc' } })).map((e) => e.kind).filter((k) => k !== 'best-drop'))
+      .toEqual(['champion', 'deepest', 'highest-level']);
     await runDueJobs();
     expect((await prisma.season.findFirstOrThrow()).status).toBe('ACTIVE');
   }, 20_000);
@@ -174,8 +176,8 @@ describe('the end of a Season, rehearsed', () => {
 
     const podium = (await get(admin, '/api/tavern')).json().season.podium;
     expect(podium.map((p: { place: number; hero: string }) => [p.place, p.hero])).toEqual(places);
-    expect((await prisma.hallEntry.findMany({ orderBy: { createdAt: 'asc' } })).map((e) => [e.kind, e.heroName]))
-      .toEqual([['champion', 'Admira'], ['second', 'Bryn'], ['third', 'Cato']]);
+    expect((await prisma.hallEntry.findMany({ orderBy: { createdAt: 'asc' } })).filter((e) => e.kind !== 'best-drop').map((e) => [e.kind, e.heroName]))
+      .toEqual([['champion', 'Admira'], ['deepest', 'Admira'], ['highest-level', 'Admira'], ['second', 'Bryn'], ['third', 'Cato']]);
     // Solo: no Wipe follows.
     expect(await prisma.job.count({ where: { kind: 'wipe', doneAt: null } })).toBe(0);
   });

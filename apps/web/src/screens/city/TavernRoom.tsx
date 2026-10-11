@@ -87,6 +87,8 @@ function SeasonNotice({ season }: { season: SeasonView }) {
     {season.podium.length > 0 && <ol className="season-podium">{[...season.podium].sort((a,b) => a.place-b.place).map(p => <li key={p.place}>
       <span>{t(`tavern.place.${p.place as 1 | 2 | 3}`)}</span><strong>{p.hero}</strong>{!__SOLO__ && <small>{p.player}</small>}
     </li>)}</ol>}
+    {/* Solo: the Dragon has fallen, and the Chapter's end waits here. */}
+    {__SOLO__ && season.podium.length > 0 && <NavLink to="/chapter" className="btn btn-small justify-self-start">{t('chapterEnd.open')}</NavLink>}
   </section>;
 }
 
