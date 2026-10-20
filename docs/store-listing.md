@@ -137,7 +137,7 @@ What to type into Play Console for Dark Corner, in English and Russian, and how 
 - **News app:** no. **Government app:** no. **Financial features:** none. **Health:** none.
 - **EU Digital Services Act:** not a trader. The game is free, with no ads or purchases.
 
-## Still to fill in
+## Contact
 
-- `CONTACT_EMAIL` in `privacy.html`: the address players and Google can write to. Play shows the developer email on the store page too.
-- The privacy policy is live once this branch is on `main` (the live site deploys `main`). Check https://dark.ugolok.world/privacy.html before pasting the link into Console.
+- Developer email, in Play Console and the privacy policy: aibarchik2013@gmail.com.
+- The privacy policy is live once it is on `main` (the live site deploys `main`). Check https://dark.ugolok.world/privacy.html before pasting the link into Console.
