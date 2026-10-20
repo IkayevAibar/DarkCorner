@@ -1,6 +1,6 @@
 # Google Play: the store listing
 
-What to type into Play Console for Dark Corner, in English and Russian, and how to answer its forms. The privacy policy is `apps/web/public/privacy.html`, served at https://dark.ugolok.world/privacy.html once it is on `main`.
+What to type into Play Console for Dark Corner, in English and Russian, and how to answer its forms. The privacy policy is `apps/web/public/privacy.html`. The live site's server is no longer paid for, so it is published on GitHub Pages from the `gh-pages` branch, which holds only the policy: https://ikayevaibar.github.io/DarkCorner/privacy.html. After changing the policy, copy it to that branch.
 
 ## The app
 
@@ -13,7 +13,7 @@ What to type into Play Console for Dark Corner, in English and Russian, and how 
 | Ads | No |
 | In-app purchases | No |
 | Tags | Dungeon crawler, Fantasy, Offline, Single player, Turn-based RPG |
-| Privacy policy | https://dark.ugolok.world/privacy.html |
+| Privacy policy | https://ikayevaibar.github.io/DarkCorner/privacy.html |
 
 ## English (default)
 
@@ -140,4 +140,4 @@ What to type into Play Console for Dark Corner, in English and Russian, and how 
 ## Contact
 
 - Developer email, in Play Console and the privacy policy: aibarchik2013@gmail.com.
-- The privacy policy is live once it is on `main` (the live site deploys `main`). Check https://dark.ugolok.world/privacy.html before pasting the link into Console.
+- Check https://ikayevaibar.github.io/DarkCorner/privacy.html opens before pasting the link into Console.
